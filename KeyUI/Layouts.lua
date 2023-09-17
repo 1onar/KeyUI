@@ -62,7 +62,7 @@ KeyBindAllBoards = {
 { "Ä", Keyboard, 861, -232, 70, 70 },
 { '#', Keyboard, 934, -232, 70, 70 },
 
-{ 'L-SHIFT', Keyboard, 7, -305, 101, 70 },
+{ 'LSHIFT', Keyboard, 7, -305, 101, 70 },
 { '<', Keyboard, 111, -305, 70, 70 },
 { 'Y', Keyboard, 184, -305, 70, 70 },
 { 'X', Keyboard, 257, -305, 70, 70 },
@@ -74,13 +74,13 @@ KeyBindAllBoards = {
 { ',', Keyboard, 695, -305, 70, 70 },
 { '.', Keyboard, 768, -305, 70, 70 },
 { '-', Keyboard, 841, -305, 70, 70 },
-{ 'R-SHIFT', Keyboard, 914, -305, 185, 70 },
+{ 'RSHIFT', Keyboard, 914, -305, 185, 70 },
 
-{ 'L-CTRL', Keyboard, 7, -378, 101, 70 },
-{ 'L-ALT', Keyboard, 215, -378, 101, 70 },
+{ 'LCTRL', Keyboard, 7, -378, 101, 70 },
+{ 'LALT', Keyboard, 215, -378, 101, 70 },
 { 'SPACE', Keyboard, 319, -378, 415, 70 },
-{ 'R-ALT', Keyboard, 737, -378, 101, 70 },
-{ 'R-CTRL', Keyboard, 998, -378, 101, 70 },
+{ 'RALT', Keyboard, 737, -378, 101, 70 },
+{ 'RCTRL', Keyboard, 998, -378, 101, 70 },
 },
 }
 KeyBindAllMice = {}
@@ -148,7 +148,7 @@ KeyBindAllBoards.QWERTY = {
 { ",", Keyboard, 861, -232, 70, 70 },
 {'ENTER', Keyboard, 934, -232, 165, 70 },
 
-{ 'L-SHIFT', Keyboard, 7, -305, 154, 70 },
+{ 'LSHIFT', Keyboard, 7, -305, 154, 70 },
 { 'Z', Keyboard, 164, -305, 70, 70 },
 { 'X', Keyboard, 237, -305, 70, 70 },
 { 'C', Keyboard, 310, -305, 70, 70 },
@@ -159,12 +159,12 @@ KeyBindAllBoards.QWERTY = {
 { ',', Keyboard, 675, -305, 70, 70 },
 { '.', Keyboard, 748, -305, 70, 70 },
 { '/', Keyboard, 821, -305, 70, 70 },
-{ 'R-SHIFT', Keyboard, 894, -305, 205, 70 },
+{ 'RSHIFT', Keyboard, 894, -305, 205, 70 },
 
-{ 'L-CTRL', Keyboard, 7, -378, 101, 70 },
-{ 'L-ALT', Keyboard, 174, -378, 101, 70 },
+{ 'LCTRL', Keyboard, 7, -378, 101, 70 },
+{ 'LALT', Keyboard, 174, -378, 101, 70 },
 { 'SPACE', Keyboard, 278, -378, 467, 70 },
-{ 'R-ALT', Keyboard, 748, -378, 101, 70 },
-{ 'R-CTRL', Keyboard, 998, -378, 101, 70 },
+{ 'RALT', Keyboard, 748, -378, 101, 70 },
+{ 'RCTRL', Keyboard, 998, -378, 101, 70 },
 }
 KeyBindAllMice = {}

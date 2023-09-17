@@ -17,7 +17,7 @@ function addon:CreateControls()
   Controls:SetScript("OnMouseUp", function(s) s:StopMovingOrSizing() end)
 
   Controls.Close = CreateFrame("Button",nil, Controls, "UIPanelButtonTemplate", BackdropTemplateMixin and "BackdropTemplate")
-  Controls.Close:SetSize(15, 15)
+  Controls.Close:SetSize(26, 18)
   Controls.Close:SetText("X")
   Controls.Close:SetScript("OnClick", function(s) Controls:Hide() Keyboard:Hide() end)
   Controls.Close:SetPoint("TOPRIGHT", Controls, "TOPRIGHT")
@@ -33,36 +33,32 @@ function addon:CreateControls()
 	Controls.Slider:SetScript("OnValueChanged",
 				function(self) Keyboard:SetScale(self:GetValue())end)
 
-	Controls.Slider:SetWidth(200)
+	Controls.Slider:SetWidth(224)
 	Controls.Slider:SetHeight(20)
 	Controls.Slider:SetPoint("BOTTOMLEFT", Controls, "BOTTOMLEFT", 15, 15)
-
-
-
-  Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate", BackdropTemplateMixin and "BackdropTemplate");
-  _G[Controls.AltCB:GetName().."Text"]:SetText ("Alt")
-  Controls.AltCB:SetHitRectInsets(0,-40,0,0)
-  Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -40)
-  Controls.AltCB:SetScript("OnClick", function(s) if s:GetChecked() then modif.ALT = "ALT-" else modif.ALT = "" end addon:RefreshKeys() end)
-  Controls.AltCB:SetSize(20, 20)
-
 
 
 
   Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate", BackdropTemplateMixin and "BackdropTemplate");
   _G[Controls.ShiftCB:GetName().."Text"]:SetText ("Shift")
   Controls.ShiftCB:SetHitRectInsets(0,-40,0,0)
-  Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 80, -40)
+  Controls.ShiftCB:SetPoint("TOP", Controls, "TOPLEFT", 26, -40)
   Controls.ShiftCB:SetScript("OnClick", function(s) if s:GetChecked() then modif.SHIFT = "SHIFT-" else modif.SHIFT = "" end addon:RefreshKeys() end)
-  Controls.ShiftCB:SetSize(20, 20)
-
+  Controls.ShiftCB:SetSize(30, 30)
 
   Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate", BackdropTemplateMixin and "BackdropTemplate");
   _G[Controls.CtrlCB:GetName().."Text"]:SetText ("Ctrl")
   Controls.CtrlCB:SetHitRectInsets(0,-40,0,0)
-  Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 150, -40)
+  Controls.CtrlCB:SetPoint("TOP", Controls, "TOP", 0, -40)
   Controls.CtrlCB:SetScript("OnClick", function(s) if s:GetChecked() then modif.CTRL = "CTRL-" else modif.CTRL = "" end addon:RefreshKeys() end)
-  Controls.CtrlCB:SetSize(20, 20)
+  Controls.CtrlCB:SetSize(30, 30)
+
+  Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate", BackdropTemplateMixin and "BackdropTemplate");
+  _G[Controls.AltCB:GetName().."Text"]:SetText ("Alt")
+  Controls.AltCB:SetHitRectInsets(0,-40,0,0)
+  Controls.AltCB:SetPoint("TOP", Controls, "TOPRIGHT", -46, -40)
+  Controls.AltCB:SetScript("OnClick", function(s) if s:GetChecked() then modif.ALT = "ALT-" else modif.ALT = "" end addon:RefreshKeys() end)
+  Controls.AltCB:SetSize(30, 30)
 
   Controls.Keyboard = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate", BackdropTemplateMixin and "BackdropTemplate")
   Controls.Keyboard:SetSize(80, 20)

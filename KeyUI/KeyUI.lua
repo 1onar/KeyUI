@@ -358,19 +358,15 @@ local function DropDown_Initialize(self, level) -- the menu items, needs a clean
 	end
 end
 
-
-
 function addon:CreateDropDown()
 	local DropDown = CreateFrame("Frame", "KBDropDown", self.keyboardFrame, "UIDropDownMenuTemplate", BackdropTemplateMixin and "BackdropTemplate")
-	DropDown:SetPoint("CENTER")
-	UIDropDownMenu_SetWidth(DropDown, 65)
+	UIDropDownMenu_SetWidth(DropDown, 60)
 	UIDropDownMenu_SetButtonWidth(DropDown, 20)
 	DropDown:Hide()
 	self.dropdown = DropDown
 	UIDropDownMenu_Initialize(DropDown, DropDown_Initialize, "MENU")
 	return DropDown
 end
-
 
 --IsPassiveSpell(spellID, "bookType")
 
@@ -401,8 +397,8 @@ end
 function addon:CreateChangerDD()
 	local Controls = self.controlsFrame
 	local KBChangeBoardDDD = CreateFrame("Frame", "KBChangeBoardDD", Controls, "UIDropDownMenuTemplate", BackdropTemplateMixin and "BackdropTemplate")
-	KBChangeBoardDD:SetPoint("TOPLEFT", -10, -10)
-	UIDropDownMenu_SetWidth(KBChangeBoardDD, 100)
+	KBChangeBoardDD:SetPoint("TOPLEFT", -3, -10)
+	UIDropDownMenu_SetWidth(KBChangeBoardDD, 150)
 	UIDropDownMenu_SetButtonWidth(KBChangeBoardDD, 100)
 
 
