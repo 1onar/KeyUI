@@ -167,7 +167,7 @@ end
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
     local spell = GetBindingAction(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or "")) or ""
-
+-- print("spell:"..spell)
     if spell:find("^SPELL") then
         button.icon:Show()
         spell = spell:match("SPELL%s(.*)")
@@ -192,13 +192,39 @@ function addon:SetKey(button)
         for i = 1, GetNumBindings() do
             local a = GetBinding(i)
             if spell:find(a) then
-                local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)") or spell:match("MULTIACTIONBAR1BUTTON(%d+)")
+--            print("binding:"..i)
+--	print("a:"..a)
+                local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)") 
+		        local bar,bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+--	bindingAction = GetBindingByKey(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or ""))
+--	if slot then print("slot:"..slot) end
+--	if bar then print("bar:"..bar) end
+--	if bar2 then print("bar2:"..bar2) end
 
-                if slot then
-                    button.icon:SetTexture(GetActionTexture(slot))
+	            if bar and bar2 then
+	              if bar=="0" then slot=bar2 end
+	              if bar=="1" then slot=60+bar2 end
+	              if bar=="2" then slot=48+bar2 end
+	              if bar=="3" then slot=24+bar2 end
+	              if bar=="4" then slot=36+bar2 end
+	              if bar=="5" then slot=144+bar2 end
+	              if bar=="6" then slot=156+bar2 end
+	              if bar=="7" then slot=168+bar2 end
+--	if slot then print("slot:"..slot) end
+	            end
+	            if spell=="EXTRAACTIONBUTTON1" then
+		            button.icon:SetTexture(132341)
                     button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                     button.icon:Show()
-                    button.slot = slot
+	            else 
+
+                    if slot then
+--		if slot then print("slot:"..slot) end
+                        button.icon:SetTexture(GetActionTexture(slot))
+                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                        button.icon:Show()
+                        button.slot = slot
+                    end
                 end
                 spell = GetBindingText(spell, "BINDING_NAME_") or spell
                 button.type = "interface"
@@ -429,15 +455,28 @@ function addon:BattleCheck(event)
     end
 end
 
+local function editmodecb(ownerID, ...)
+fighting=false
+-- print("fightfalse")
+end
+
+local function editmodecb2(ownerID, ...)
+fighting=true
+-- print("fighttrue")
+end
+
+
 -- SpecCheck - Monitors changes in the player's talents.
 local SpecCheck = CreateFrame("Frame", BackdropTemplateMixin and "BackdropTemplate")
 SpecCheck:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 SpecCheck:SetScript("OnEvent", function(self, spec) end)
 
--- EventCheck - Monitors various in-game events such as entering and leaving combat mode and changing the target object.
+-- EventCheck - Monitors various in-game events such as entering and leaving combat mode.
 local EventCheck = CreateFrame("Frame", BackdropTemplateMixin and "BackdropTemplate")
 EventCheck:RegisterEvent("PLAYER_REGEN_ENABLED")
 EventCheck:RegisterEvent("PLAYER_REGEN_DISABLED")
+EventRegistry:RegisterCallback("EditMode.Enter",editmodecb2)
+EventRegistry:RegisterCallback("EditMode.Exit",editmodecb)
 EventCheck:SetScript("OnEvent", function(self, event) addon:BattleCheck(event) end)
 
 
