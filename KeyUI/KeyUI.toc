@@ -1,0 +1,15 @@
+## Interface: 100107
+## Title: KeyUI
+## Author: Blandros
+## Version 1.0
+## Notes: Visualize your keyboard and keybinds.
+## SavedVariablesPerCharacter: KeyBindSettings
+## IconTexture: Interface\AddOns\KeyUI\Media\icon
+## OptionalDeps: LibDBIcon-1.0
+
+Layouts.lua
+UINewButton.lua
+KeyUI.lua
+UIKeyboard.lua
+UIControls.lua
+tooltip.lua
