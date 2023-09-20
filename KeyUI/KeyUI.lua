@@ -1,11 +1,33 @@
 local name, addon = ...
 
+local LibStub = LibStub
+local icon = LibStub("LibDBIcon-1.0")
+icon:Register("KeyUI", {
+    icon = "Interface\\\AddOns\\KeyUI\\Media\\keyboard", -- Pfade zum Icon
+    OnClick = function(self, button)
+        if button == "LeftButton" then
+            if firstClick then
+                addon.keyboardFrame:Hide()
+                addon.controlsFrame:Hide()
+            else
+                addon:Load()
+            end
+            firstClick = not firstClick
+        end
+    end,
+     OnTooltipShow = function(tooltip)
+        -- Hier kannst du eine Tooltip-Beschreibung für dein Minimap-Icon hinzufügen
+        tooltip:SetText("KeyUI")
+        -- tooltip:AddLine("Klick, um Aktion auszuführen", 1, 1, 1)
+     end,
+})
+
 KeyBindSettings = {}
 
 local fighting = false -- Indicates whether the player is in combat or not
 local Keys = {} -- Stores the key buttons once they are created
 
-local DefaultBoard = KeyBindAllBoards.qwertz
+local DefaultBoard = KeyBindAllBoards.QWERTZ
 
 local modif = {} -- Table that stores the modifiers
 modif.CTRL = ""
@@ -18,7 +40,6 @@ function addon:Load()
     if fighting then
         return
     end
-
     local keyboard = self.keyboardFrame or self:CreateKeyboard()
     local controls = self.controlsFrame or self:CreateControls()
     local dropdown = self.dropdown or self:CreateDropDown()
@@ -83,8 +104,8 @@ end
 
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
 function addon:SwitchBoard(board)
-    if KeyBindAllBoards[board] or KBEditLayouts[board] then
-        board = KeyBindAllBoards[board] or KBEditLayouts[board]
+    if KeyBindAllBoards[board] then
+        board = KeyBindAllBoards[board]
 
         local cx, cy = self.keyboardFrame:GetCenter()
         local left, right, top, bottom = cx, cx, cy, cy
@@ -167,7 +188,7 @@ end
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
     local spell = GetBindingAction(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or "")) or ""
--- print("spell:"..spell)
+    -- print("spell:"..spell)
     if spell:find("^SPELL") then
         button.icon:Show()
         spell = spell:match("SPELL%s(.*)")
@@ -180,26 +201,26 @@ function addon:SetKey(button)
         button.icon:SetTexture(select(2, GetMacroInfo(spell)))
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.type = "macro"
-    elseif spell:find("^ITEM") then
-        button.icon:Show()
-        spell = spell:match("ITEM%s(.*)")
-        button.icon:SetTexture(select(10, GetItemInfo(spell)))
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        button.type = "item"
+    -- elseif spell:find("^ITEM") then
+    --    button.icon:Show()
+    --    spell = spell:match("ITEM%s(.*)")
+    --    button.icon:SetTexture(select(10, GetItemInfo(spell)))
+    --    button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+    --    button.type = "item"
     else
         button.icon:Hide()
         local found = false
         for i = 1, GetNumBindings() do
             local a = GetBinding(i)
             if spell:find(a) then
---            print("binding:"..i)
---	print("a:"..a)
+                -- print("binding:"..i)
+                --	print("a:"..a)
                 local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)") 
 		        local bar,bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
---	bindingAction = GetBindingByKey(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or ""))
---	if slot then print("slot:"..slot) end
---	if bar then print("bar:"..bar) end
---	if bar2 then print("bar2:"..bar2) end
+                --	bindingAction = GetBindingByKey(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or ""))
+                --	if slot then print("slot:"..slot) end
+                --	if bar then print("bar:"..bar) end
+                --	if bar2 then print("bar2:"..bar2) end
 
 	            if bar and bar2 then
 	              if bar=="0" then slot=bar2 end
@@ -210,7 +231,7 @@ function addon:SetKey(button)
 	              if bar=="5" then slot=144+bar2 end
 	              if bar=="6" then slot=156+bar2 end
 	              if bar=="7" then slot=168+bar2 end
---	if slot then print("slot:"..slot) end
+                    --	if slot then print("slot:"..slot) end
 	            end
 	            if spell=="EXTRAACTIONBUTTON1" then
 		        button.icon:SetTexture(4200126)
@@ -219,7 +240,7 @@ function addon:SetKey(button)
 	            else
 
                     if slot then
---		if slot then print("slot:"..slot) end
+                    --		if slot then print("slot:"..slot) end
                         button.icon:SetTexture(GetActionTexture(slot))
                         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                         button.icon:Show()
@@ -432,7 +453,6 @@ function addon:CreateChangerDD()
             end
         end
     end
-
     UIDropDownMenu_Initialize(KBChangeBoardDDD, ChangeBoardDD_Initialize)
     self.ddChanger = KBChangeBoardDDD
     return KBChangeBoardDDD
@@ -456,13 +476,13 @@ function addon:BattleCheck(event)
 end
 
 local function editmodecb(ownerID, ...)
-fighting=false
--- print("fightfalse")
+    fighting=false
+    -- print("fightfalse")
 end
 
 local function editmodecb2(ownerID, ...)
-fighting=true
--- print("fighttrue")
+    fighting=true
+    -- print("fighttrue")
 end
 
 
@@ -478,7 +498,6 @@ EventCheck:RegisterEvent("PLAYER_REGEN_DISABLED")
 EventRegistry:RegisterCallback("EditMode.Enter",editmodecb2)
 EventRegistry:RegisterCallback("EditMode.Exit",editmodecb)
 EventCheck:SetScript("OnEvent", function(self, event) addon:BattleCheck(event) end)
-
 
 -- SlashCmdList["KeyBind"] - Registers a command to load the addon.
 SLASH_KeyBind1 = "/kui"
