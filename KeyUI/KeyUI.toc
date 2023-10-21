@@ -1,17 +1,26 @@
 ## Interface: 100107
 ## Author: Blandros
-## Version 1.03
+## Version 2.0.1
 
 ## Title: KeyUI
-## Notes: Visualize your keyboard and keybinds.
+## Notes: Visualize your keyboard, mouse and keybinds.
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
-## SavedVariablesPerCharacter: KeyBindSettings
-## OptionalDeps: LibDBIcon-1.0
+## SavedVariables: MiniMapDB
+## SavedVariables: KeyboardPosition
+## SavedVariables: MousePosition
+## SavedVariables: ShowEmptyBinds
+## SavedVariables: ShowInterfaceBinds
+## SavedVariables: KeyBindSettings
+## SavedVariables: KeyBindSettingsMouse
+## SavedVariables: MouseKeyEditLayouts
+## SavedVariables: CurrentLayout
 
+Libs\embeds.xml
+
+KeyMappings.lua
 Layouts.lua
-UINewButton.lua
-KeyUI.lua
+LayoutsMouse.lua
 UIKeyboard.lua
-UIControls.lua
-tooltip.lua
+MouseKeyUI.lua
+KeyUI.lua
