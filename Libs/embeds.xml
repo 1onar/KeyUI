@@ -1,0 +1,15 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<!-- Loading all embedded libraries -->
+
+	<!-- General -->
+    <Script file="LibStub\LibStub.lua"/>
+    <Script file="CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
+
+    <!-- Data broker -->
+    <Script file="LibDataBroker-1.1\LibDataBroker-1.1.lua"/>
+    <Include file="LibDBIcon-1.0\lib.xml"/>
+
+</Ui>
+
