@@ -406,6 +406,9 @@ function addon:NewButtonMouse()
     Mousebutton:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             Release(self, button)
+        elseif button == "RightButton" then
+            addon.currentKey = self
+            ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
         end
     end)
 

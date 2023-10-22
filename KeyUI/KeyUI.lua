@@ -74,7 +74,6 @@ function addon:Load()
         MouseControls:Show()
 
         local dropdown = self.dropdown or self:CreateDropDown()
-        local dropdownMouse = self.dropdownMouse or self:CreateDropDownMouse()
         local tooltip = self.tooltip or self:CreateTooltip()
 
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
@@ -588,17 +587,34 @@ local frame = CreateFrame("Frame")
     end
 end)
 
--- Dropdown stuffs:
 local function DropDown_Initialize(self, level)
     level = level or 1
     local info = UIDropDownMenu_CreateInfo()
     local value = UIDROPDOWNMENU_MENU_VALUE
 
     if level == 1 then
+
+        info.text = "Spell"
+        info.value = "Spell"
+        info.hasArrow = true
+        info.func = function() end
+        UIDropDownMenu_AddButton(info, level)
+
+        info.text = "Macro"
+        info.value = "Macro"
+        info.hasArrow = true
+        info.func = function() end
+        UIDropDownMenu_AddButton(info, level)
+
+		info.text = "Interface"
+		info.value = "UIBind"
+		info.hasArrow = true
+		info.func = function() end
+		UIDropDownMenu_AddButton(info, level)
+
         info.text = "Unbind Key"
         info.value = 1
-        info.tooltipTitle = "Unbind"
-        info.tooltipText = "Removes all bindings from the selected key"
+        info.hasArrow = false
         info.func = function()
             if addon.currentKey.label ~= "" then
                 SetBinding(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""))
@@ -609,79 +625,64 @@ local function DropDown_Initialize(self, level)
         end
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "General Macro"
-        info.value = "General Macro"
-        info.tooltipTitle = "Macro"
-        info.tooltipText = "Bind the selected key to a general macro"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
-
-        info.text = "Player Macro"
-        info.value = "Player Macro"
-        info.tooltipTitle = "Macro"
-        info.tooltipText = "Bind the selected key to a player-specific macro"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
-
-        info.text = "Spell"
-        info.value = "Spell"
-        info.tooltipTitle = "Spell"
-        info.tooltipText = "Bind the selected key to a spell"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
     elseif level == 2 then
+
         if value == "Spell" then
             for tabName, v in pairs(addon.spells) do
                 info.text = tabName
                 info.value = 'tab:' .. tabName
-                info.tooltipTitle = tabName
                 info.hasArrow = true
                 info.func = function() end
                 UIDropDownMenu_AddButton(info, level)
             end
         end
 
-        if value == "General Macro" then
-            for i = 1, 36 do
-                local title, iconTexture, body = GetMacroInfo(i)
-                if title then
-                    info.text = title
-                    info.value = title
-                    info.tooltipTitle = title
-                    info.tooltipText = body
-                    info.hasArrow = false
-                    info.func = function(self)
-                        SetBindingMacro(modif.CTRL .. modif.SHIFT .. modif.ALT .. (
-                        addon.currentKey.label:GetText() or ""), title)
-                        SaveBindings(2)
-                        addon:RefreshKeys()
-                    end
-                    UIDropDownMenu_AddButton(info, level)
-                end
-            end
+        if value == "Macro" then
+            info.text = "General Macro"
+            info.value = "General Macro"
+            info.hasArrow = true
+            info.func = function() end
+            UIDropDownMenu_AddButton(info, level)
+
+            info.text = "Player Macro"
+            info.value = "Player Macro"
+            info.hasArrow = true
+            info.func = function() end
+            UIDropDownMenu_AddButton(info, level)
         end
 
-        if value == "Player Macro" then
-            for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-                local title, iconTexture, body = GetMacroInfo(i)
-                if title then
-                    info.text = title
-                    info.value = title
-                    info.tooltipTitle = title
-                    info.tooltipText = body
-                    info.hasArrow = false
-                    info.func = function(self)
-                        SetBindingMacro(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""), title)
-                        SaveBindings(2)
-                        addon:RefreshKeys()
-                    end
+        if value == "UIBind" then
+            local categories = {
+                "Movement Keys",
+                "Action Bar",
+                "Action Bar 2",
+                "Action Bar 3",
+                "Action Bar 4",
+                "Action Bar 5",
+                "Action Bar 6",
+                "Action Bar 7",
+                "Action Bar 8",
+                "Interface Panel",
+                "Chat",
+                "Targeting",
+                "Target Markers",
+                "Vehicle Controls",
+                "Camera",
+                "Ping System",
+                "Miscellaneous",
+            }
+            for _, category in ipairs(categories) do
+                local keybindings = InterfaceMapping[category]
+                if keybindings then
+                    local info = UIDropDownMenu_CreateInfo()
+                    info.text = category
+                    info.hasArrow = true
+                    info.value = category
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        end
+        end          
+        
     elseif level == 3 then
         if value:find("^tab:") then
             local tabName = value:match('^tab:(.+)')
@@ -690,13 +691,64 @@ local function DropDown_Initialize(self, level)
                 info.value = spellName
                 info.hasArrow = false
                 info.func = function(self)
-                    SetBindingSpell(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""), spellName)
+                    local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local command = "Spell " .. spellName
+                    SetBinding(key, command)
                     SaveBindings(2)
                     addon:RefreshKeys()
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
-        end
+        elseif value == "General Macro" then
+            for i = 1, 36 do
+                local title, iconTexture, body = GetMacroInfo(i)
+                if title then
+                    info.text = title
+                    info.value = title
+                    info.hasArrow = false
+                    info.func = function(self)
+                        local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local command = "Macro " .. title
+                        SetBinding(key, command)
+                        SaveBindings(2)
+                        addon:RefreshKeys()
+                    end
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            end
+
+        elseif value == "Player Macro" then
+            for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+                local title, iconTexture, body = GetMacroInfo(i)
+                if title then
+                    info.text = title
+                    info.value = title
+                    info.hasArrow = false
+                    info.func = function(self)
+                        local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local command = "Macro " .. title
+                        SetBinding(key, command)
+                        SaveBindings(2)
+                        addon:RefreshKeys()
+                    end
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            end
+        elseif InterfaceMapping[value] then
+            local keybindings = InterfaceMapping[value]
+            for index, keybinding in ipairs(keybindings) do
+                info.text = keybinding[1]
+                info.value = keybinding[2]
+                info.hasArrow = false
+                info.func = function(self)
+                    local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    SetBinding(key, keybinding[2])
+                    SaveBindings(2)
+                    addon:RefreshKeys()
+                end
+                UIDropDownMenu_AddButton(info, level)
+            end
+        end        
     end
 end
 
@@ -709,17 +761,6 @@ function addon:CreateDropDown()
     self.dropdown = DropDown
     UIDropDownMenu_Initialize(DropDown, DropDown_Initialize, "MENU")
     return DropDown
-end
-
--- DropDownMouse() - Creates the dropdown menu for selecting key bindings.
-function addon:CreateDropDownMouse()
-    local DropDownMouse = CreateFrame("Frame", "KBDropDownMouse", self.MouseFrame, "UIDropDownMenuTemplate")
-    UIDropDownMenu_SetWidth(DropDownMouse, 60)
-    UIDropDownMenu_SetButtonWidth(DropDownMouse, 20)
-    DropDownMouse:Hide()
-    self.dropdown = DropDownMouse
-    UIDropDownMenu_Initialize(DropDownMouse, DropDown_Initialize, "MENU")
-    return DropDownMouse
 end
 
 local function KeyHandler(self, key)
