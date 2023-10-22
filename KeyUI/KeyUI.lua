@@ -228,7 +228,7 @@ function addon:NewButton(parent)
     button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     button.label:SetTextColor(1, 1, 1, 0.9)
     button.label:SetHeight(50)
-    button.label:SetWidth(60)
+    button.label:SetWidth(100)
     button.label:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
     button.label:SetJustifyH("RIGHT")
     button.label:SetJustifyV("TOP")
@@ -471,7 +471,8 @@ function addon:SetKey(button)
     
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
-        if spell == "" and labelText ~= "ESC" and labelText ~= "CAPS" and labelText ~= "LSHIFT" and labelText ~= "LCTRL" and labelText ~= "LALT" and labelText ~= "RALT" and labelText ~= "RCTRL" and labelText ~= "RSHIFT" and labelText ~= "BACKSPACE" then
+        if spell == "" and labelText ~= "ESC" and labelText ~= "CAPS" and labelText ~= "LSHIFT" and labelText ~= "LCTRL" and labelText ~= "LALT" and labelText ~= "RALT" and labelText ~= "RCTRL" and labelText ~= "RSHIFT" and labelText ~= "BACKSPACE" and labelText ~= "ENTER" and labelText ~= "SPACE" then
+
             button:SetBackdropColor(1, 0, 0, 1)  -- Highlight in red if no binding and not one of the specified keys
         else
             button:SetBackdropColor(0, 0, 0, 1)

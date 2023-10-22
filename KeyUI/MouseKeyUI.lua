@@ -158,7 +158,7 @@ function addon:CreateMouseControls()
             -- Remove the selected layout from the MouseKeyEditLayouts table.
             MouseKeyEditLayouts[selectedLayout] = nil
             -- Clear the text in the Mouse.Input field.
-            Mouse.Input:SetText("")
+            MouseControls.Input:SetText("")
             -- Print a message indicating which layout was deleted.
             print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
         end)
@@ -320,6 +320,7 @@ function addon:SaveLayout()
     local msg = MouseControls.Input:GetText()
     if locked == true then
         if msg ~= "" then
+            MouseControls.Input:SetText("")
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
             MouseKeyEditLayouts[msg] = {}
             for _, Mousebutton in ipairs(KeysMouse) do
