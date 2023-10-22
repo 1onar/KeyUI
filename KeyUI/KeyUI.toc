@@ -1,6 +1,6 @@
 ## Interface: 100107
 ## Author: Blandros
-## Version 2.0.1
+## Version 2.0.4
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
@@ -21,6 +21,6 @@ Libs\embeds.xml
 KeyMappings.lua
 Layouts.lua
 LayoutsMouse.lua
-UIKeyboard.lua
 MouseKeyUI.lua
+UIKeyboard.lua
 KeyUI.lua

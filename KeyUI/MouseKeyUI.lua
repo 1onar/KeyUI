@@ -369,13 +369,12 @@ function addon:NewButtonMouse()
 
     --button.interfaceaction = Blizzard ID changed to readable Text
     Mousebutton.interfaceaction = Mousebutton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Mousebutton.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    Mousebutton.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 8, "OUTLINE")
     Mousebutton.interfaceaction:SetTextColor(1, 1, 1)
-    Mousebutton.interfaceaction:SetHeight(64)
-    Mousebutton.interfaceaction:SetWidth(64)
-    Mousebutton.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
+    Mousebutton.interfaceaction:SetHeight(20)
+    Mousebutton.interfaceaction:SetWidth(44)
+    Mousebutton.interfaceaction:SetPoint("TOP", Mousebutton, "TOP", 0, -6)
     Mousebutton.interfaceaction:SetText("")
-    --Mousebutton.interfaceaction:Hide()
 
     Mousebutton.icon = Mousebutton:CreateTexture(nil, "ARTWORK")
     Mousebutton.icon:SetSize(40, 40)

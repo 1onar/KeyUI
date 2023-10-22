@@ -247,7 +247,6 @@ function addon:NewButton(parent)
     button.interfaceaction:SetWidth(64)
     button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
     button.interfaceaction:SetText("")
-    --button.interfaceaction:Hide()
 
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(60, 60)
