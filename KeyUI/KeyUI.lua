@@ -64,43 +64,32 @@ function addon:Load()
 
     if fighting then
         return
-    end
-
-    if addonOpen then
-        keyboard:Hide()
-        Controls:Hide()
-        Mouseholder:Hide()
-        Mouse:Hide()
-        MouseControls:Hide()
-        addonOpen = false
     else
+        addonOpen = true
+
         keyboard:Show()
         Controls:Show()
         Mouseholder:Show()
         Mouse:Show()
         MouseControls:Show()
-        addonOpen = true
-    end
 
-    local dropdown = self.dropdown or self:CreateDropDown()
-    local dropdownMouse = self.dropdownMouse or self:CreateDropDownMouse()
-    local tooltip = self.tooltip or self:CreateTooltip()
-    self.ddChanger = self.ddChanger or self:CreateChangerDD()
-    self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()   
-    local currentActiveBoard = KeyBindSettings.currentboard
-    UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
-    local layoutKey = next(CurrentLayout)
-    UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
-    
-    keyboard:Show()
-    Mouseholder:Show()
-    Mouse:Show()
-    Controls:Show()
-    MouseControls:Show()
-    
-    self:LoadSpells()
-    self:LoadDropDown()
-    self:RefreshKeys()
+        local dropdown = self.dropdown or self:CreateDropDown()
+        local dropdownMouse = self.dropdownMouse or self:CreateDropDownMouse()
+        local tooltip = self.tooltip or self:CreateTooltip()
+
+        self.ddChanger = self.ddChanger or self:CreateChangerDD()
+        self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()   
+
+        local currentActiveBoard = KeyBindSettings.currentboard
+        UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
+
+        local layoutKey = next(CurrentLayout)
+        UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
+        
+        self:LoadSpells()
+        self:LoadDropDown()
+        self:RefreshKeys()
+    end
 end
 
 -- LoadDropDown() - This function initializes the dropdown menu for key bindings.
@@ -295,10 +284,13 @@ end
 
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
 function addon:SwitchBoard(board)
-    if KeyBindAllBoards[board] and addonOpen == true then
+    if KeyBindAllBoards[board] and addonOpen == true and addon.keyboardFrame then
         board = KeyBindAllBoards[board]
         
-        local cx, cy = self.keyboardFrame:GetCenter()
+        addon.keyboardFrame:SetWidth(100)
+        addon.keyboardFrame:SetHeight(100)
+
+        local cx, cy = addon.keyboardFrame:GetCenter()
         local left, right, top, bottom = cx, cx, cy, cy
 
         for i = 1, #board do
@@ -344,10 +336,12 @@ function addon:SwitchBoard(board)
 end
 
 function addon:SwitchBoardMouse()
-    if addonOpen == true then
+    if addonOpen == true and addon.MouseFrame then
         if CurrentLayout then
+            
             -- Calculate the center of the Mouse frame once
-            local cx, cy = self.MouseFrame:GetCenter()
+            local cx, cy = addon.MouseFrame:GetCenter()
+            local left, right, top, bottom = cx, cx, cy, cy
 
             for _, layoutData in pairs(CurrentLayout) do
                 for i = 1, #layoutData do
@@ -374,7 +368,6 @@ function addon:SwitchBoardMouse()
             end
 
             -- After all buttons are added, set the size of the Mouse frame
-            local left, right, top, bottom = cx, cx, cy, cy
             for i = 1, #KeysMouse do
                 local l, r, t, b = KeysMouse[i]:GetLeft(), KeysMouse[i]:GetRight(), KeysMouse[i]:GetTop(), KeysMouse[i]:GetBottom()
 
