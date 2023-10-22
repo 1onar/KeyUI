@@ -449,24 +449,20 @@ function addon:SetKey(button)
                 if bar == "6" then slot = 156 + bar2 end
                 if bar == "7" then slot = 168 + bar2 end
             end            
-            if spell == "EXTRAACTIONBUTTON1" then
-                button.icon:SetTexture(4200126)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-            elseif spell == "MOVEFORWARD" then
-                button.icon:SetTexture(450907)
+            if spell == "MOVEFORWARD" then
+                button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowup")
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
             elseif spell == "MOVEBACKWARD" then
-                button.icon:SetTexture(450905)
+                button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowdown")
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()    
             elseif spell == "STRAFELEFT" then
-                button.icon:SetTexture(450906)
+                button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowleft")
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
             elseif spell == "STRAFERIGHT" then
-                button.icon:SetTexture(450908)
+                button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowright")
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
             elseif slot then
