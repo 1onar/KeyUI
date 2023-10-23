@@ -39,7 +39,8 @@ Edit Keybindings:
 - Naming Your Layout: Before saving, don't forget to enter a name for your layout.
 - Saving Your Changes: Once you're satisfied with your layout and have given it a name, hit the "Save" button to preserve your changes
 
-Instruction Video: https://youtube.com/shorts/9YGcy8SvPRs?si=funnwsDq5-ytUsxG
+
+![KeyUI Instructions really small](https://github.com/1onar/KeyUI/assets/52460200/58705c59-ab05-482e-865a-9b89209bbdda)
 
  
 View modified Keyboard:
