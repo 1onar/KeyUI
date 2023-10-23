@@ -505,8 +505,11 @@ end
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
     if not locked then
-    --if not locked or UIDropDownMenu_GetText(self.ddChangerMouse) == "New Layout" then
-        return -- Do nothing if not locked or if "New Layout" is selected
+        return
+    end
+
+    if keyboardFrameVisible == false and MouseholderFrameVisible == false then
+        return
     end
 
     if MouseEditInput then
