@@ -40,18 +40,18 @@ function addon:CreateMouseholder()
 end
 
 function addon:CreateMouseUI()
-    local Mouse = CreateFrame("Frame", 'MouseFrame', Mouseholder)
-    _G["Mouse"] = Mouse
-    tinsert(UISpecialFrames, "Mouse")
-    Mouse:SetWidth(50)
-    Mouse:SetHeight(50)
-    Mouse:SetPoint("RIGHT", Mouseholder, "LEFT", 5, -25)
-    Mouse:SetScale(1)
-    Mouse:Hide()
+    local MouseFrame = CreateFrame("Frame", 'MouseFrame', Mouseholder)
+    _G["Mouse"] = MouseFrame
+    tinsert(UISpecialFrames, "MouseFrame")
+    MouseFrame:SetWidth(50)
+    MouseFrame:SetHeight(50)
+    MouseFrame:SetPoint("RIGHT", Mouseholder, "LEFT", 5, -25)
+    MouseFrame:SetScale(1)
+    MouseFrame:Hide()
 
-    addon.MouseFrame = Mouse
+    addon.MouseFrame = MouseFrame
 
-    return Mouse
+    return MouseFrame
 end
 
 function addon:CreateMouseControls()
@@ -161,6 +161,11 @@ function addon:CreateMouseControls()
             MouseControls.Input:SetText("")
             -- Print a message indicating which layout was deleted.
             print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+        
+            --CurrentLayout = {KeyBindAllBoardsMouse.Layout_4x3}
+            wipe(CurrentLayout)
+            UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
+            addon:RefreshKeys()
         end)
         local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
         DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
@@ -183,7 +188,11 @@ function addon:CreateMouseControls()
         local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
         LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
         LockText:SetPoint("CENTER", 0, 1)
-        LockText:SetText("Unlock")
+        if locked == false then
+            LockText:SetText("Lock")
+        else
+            LockText:SetText("Unlock")
+        end
 
         local function ToggleLock()
             if locked then
@@ -191,9 +200,15 @@ function addon:CreateMouseControls()
                 edited = true
                 LockText:SetText("Lock")
                 --print("Keys edited = true")
+                --if glowBoxLock then
+                    MouseControls.glowBoxLock:Show()
+                --end
             else
                 locked = true
                 LockText:SetText("Unlock")
+                --if glowBoxLock then
+                MouseControls.glowBoxLock:Hide()
+                --end  
             end
         end
 
@@ -212,6 +227,12 @@ function addon:CreateMouseControls()
             GameTooltip:Hide()
         end)
 
+        MouseControls.glowBoxLock = CreateFrame("Frame", nil, MouseControls, "GlowBorderTemplate")
+        MouseControls.glowBoxLock:SetSize(106, 28)
+        MouseControls.glowBoxLock:SetPoint("CENTER", MouseControls.Lock, "CENTER", 0, 0)
+        MouseControls.glowBoxLock:Hide()
+        MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
+
         --Mouse.New = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
         --Mouse.New:SetSize(100,30)
         --Mouse.New:SetPoint("TOPRIGHT", Mouse.Lock, "TOPLEFT", -20, 0)
@@ -223,6 +244,12 @@ function addon:CreateMouseControls()
         MouseControls.Save:Show()
         MouseControls.Delete:Show()
         MouseControls.Lock:Show()
+
+        if locked == false then
+            if MouseControls.glowBoxLock then
+                MouseControls.glowBoxLock:Show()
+            end
+        end
 
         if KBChangeBoardDDMouse then
         KBChangeBoardDDMouse:Show()
@@ -247,6 +274,10 @@ function addon:CreateMouseControls()
             MouseControls.Layout:Hide()
             MouseControls.Name:Hide()
 
+            if MouseControls.glowBoxLock then
+                MouseControls.glowBoxLock:Hide()
+            end
+
             if KBChangeBoardDDMouse then
                 KBChangeBoardDDMouse:Hide()
             end
@@ -257,7 +288,7 @@ function addon:CreateMouseControls()
     MouseControls.Close = CreateFrame("Button", "$parentClose", MouseControls, "UIPanelCloseButton")
     MouseControls.Close:SetSize(42, 42)
     MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)
-    MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouse:Hide() Mouseholder:Hide() end)
+    MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouseholder:Hide() end)
 
     MouseControls.MinMax = CreateFrame("Frame", "#parentMinMax", MouseControls, "MaximizeMinimizeButtonFrameTemplate")
     MouseControls.MinMax:SetSize(42, 42)
@@ -333,8 +364,8 @@ function addon:SaveLayout()
                     MouseKeyEditLayouts[msg][#MouseKeyEditLayouts[msg] + 1] = {
                         Mousebutton.label:GetText(),
                         "Mouse",
-                        floor(Mousebutton:GetLeft() - Mouse:GetLeft() + 0.5),
-                        floor(Mousebutton:GetTop() - Mouse:GetTop() + 0.5),
+                        floor(Mousebutton:GetLeft() - MouseFrame:GetLeft() + 0.5),
+                        floor(Mousebutton:GetTop() - MouseFrame:GetTop() + 0.5),
                         floor(Mousebutton:GetWidth() + 0.5),
                         floor(Mousebutton:GetHeight() + 0.5)
                     }

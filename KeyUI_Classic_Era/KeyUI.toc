@@ -1,6 +1,6 @@
 ## Interface: 11404
 ## Author: Blandros
-## Version 1.0.0
+## Version 1.0.2
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
