@@ -31,16 +31,15 @@ View Keybindings:
 Edit Keybindings:
 - Enabling Editor Mode: To access the Editor Mode, simply click the "Unlock" button.
 - Rearrange Keys: You can easily reorganize your layout by using the Drag and Drop feature.
-- Assigning a New Key:      - Hover over the key you want to assign.
-                            - Click on the key you wish to assign.
+- Assigning a New Key:
+  - Hover over the key you want to assign.
+  - Click on the key you wish to assign.
 - Deleting Keys: To remove a key, press and hold the "Shift" key on your keyboard and simultaneously click the left mouse button on the target key.
 - Disabling Editor Mode: When you're done editing, click the "Lock" button to exit Editor Mode.
 - Naming Your Layout: Before saving, don't forget to enter a name for your layout.
 - Saving Your Changes: Once you're satisfied with your layout and have given it a name, hit the "Save" button to preserve your changes
 
-
-![KeyUI Instructions](https://github.com/1onar/KeyUI/assets/52460200/ca5a9b94-db06-4166-8756-5bb55a463ac4)
-
+![KeyUI Instructions little](https://github.com/1onar/KeyUI/assets/52460200/31635f48-3bbf-43fa-be06-d115134e19b8)
 
 View modified Keyboard:
 - Click on modifiers (SHIFT / CTRL / ALT) to toggle them.
