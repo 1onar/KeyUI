@@ -119,7 +119,7 @@ function addon:CreateMouseControls()
         MouseControls.Layout:SetPoint("RIGHT", KBChangeBoardDDMouse, "LEFT", 0, 2)
         MouseControls.Layout:SetTextColor(1, 1, 1)
 
-        MouseControls.Input  = CreateFrame("EditBox", "KBEditInputExp", MouseControls, "InputBoxInstructionsTemplate")
+        MouseControls.Input  = CreateFrame("EditBox", "MouseEditInput", MouseControls, "InputBoxInstructionsTemplate")
         MouseControls.Input:SetSize(130, 30)
         MouseControls.Input:SetPoint("TOP", MouseControls, "TOP", -16, -54)
         MouseControls.Input:SetAutoFocus(false)
@@ -355,6 +355,7 @@ function addon:SaveLayout()
     if locked == true then
         if msg ~= "" then
             MouseControls.Input:SetText("")
+            MouseControls.Input:ClearFocus()
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
             MouseKeyEditLayouts[msg] = {}
             for _, Mousebutton in ipairs(KeysMouse) do
