@@ -41,7 +41,6 @@ end
 
 function addon:CreateMouseUI()
     local MouseFrame = CreateFrame("Frame", 'MouseFrame', Mouseholder)
-    _G["Mouse"] = MouseFrame
     tinsert(UISpecialFrames, "MouseFrame")
     MouseFrame:SetWidth(50)
     MouseFrame:SetHeight(50)
@@ -357,6 +356,7 @@ function addon:SaveLayout()
     if locked == true then
         if msg ~= "" then
             MouseControls.Input:SetText("")
+            MouseControls.Input:ClearFocus()
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
             MouseKeyEditLayouts[msg] = {}
             for _, Mousebutton in ipairs(KeysMouse) do

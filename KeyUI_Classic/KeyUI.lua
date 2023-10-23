@@ -522,6 +522,12 @@ function addon:RefreshKeys()
         return -- Do nothing if not locked or if "New Layout" is selected
     end
 
+    if MouseEditInput then
+        if MouseControls.Input:HasFocus() then
+            return
+        end
+    end
+
     for i = 1, #Keys do
         Keys[i]:Hide()
     end
@@ -858,6 +864,8 @@ function addon:CreateChangerDDMouse()
                 CurrentLayout = {[name] = KeyBindAllBoardsMouse[name]}
                 addon:RefreshKeys()
                 UIDropDownMenu_SetText(self, name)
+                MouseControls.Input:SetText("")
+                MouseControls.Input:ClearFocus()
             end
             UIDropDownMenu_AddButton(info, level)
         end
@@ -872,6 +880,8 @@ function addon:CreateChangerDDMouse()
                     CurrentLayout[name] = layout
                     addon:RefreshKeys()
                     UIDropDownMenu_SetText(self, name)
+                    MouseControls.Input:SetText("")
+                    MouseControls.Input:ClearFocus()
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
