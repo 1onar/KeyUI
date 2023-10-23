@@ -24,9 +24,8 @@ local KeyIcon = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addonOpen then
-                addon.keyboardFrame:Hide()
+                keyboardFrame:Hide()
                 KBControlsFrame:Hide()
-                addon.MouseFrame:Hide()
                 Mouseholder:Hide()
                 MouseControls:Hide()
                 addonOpen = false
@@ -59,7 +58,7 @@ function addon:Load()
     local keyboard = self:GetKeyboard()
     local Controls = self:GetControls()
     local Mouseholder = self:GetMouseholder()
-    local Mouse = self:GetMouse()
+    local MouseFrame = self:GetMouseFrame()
     local MouseControls = self:GetMouseControls()
 
     if fighting then
@@ -70,7 +69,7 @@ function addon:Load()
         keyboard:Show()
         Controls:Show()
         Mouseholder:Show()
-        Mouse:Show()
+        MouseFrame:Show()
         MouseControls:Show()
 
         local dropdown = self.dropdown or self:CreateDropDown()
@@ -160,7 +159,7 @@ function addon:GetMouseholder()
     return MouseholderFrame
 end
 
-function addon:GetMouse()
+function addon:GetMouseFrame()
     if not MouseFrame then
         MouseFrame = self:CreateMouseUI()
     end
