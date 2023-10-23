@@ -39,8 +39,9 @@ Edit Keybindings:
 - Naming Your Layout: Before saving, don't forget to enter a name for your layout.
 - Saving Your Changes: Once you're satisfied with your layout and have given it a name, hit the "Save" button to preserve your changes
 
-![KeyUI Instructions little](https://github.com/1onar/KeyUI/assets/52460200/31635f48-3bbf-43fa-be06-d115134e19b8)
+Instruction Video: https://youtube.com/shorts/9YGcy8SvPRs?si=funnwsDq5-ytUsxG
 
+ 
 View modified Keyboard:
 - Click on modifiers (SHIFT / CTRL / ALT) to toggle them.
 - Press modifier keys.
