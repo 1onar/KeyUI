@@ -13,8 +13,8 @@ CurrentLayout = {}
 KeysMouse = {}
 local addonOpen = false
 local fighting = false
-local keyboardFrameVisible = false
-local MouseholderFrameVisible = false
+local keyboardFrameVisible = {}
+local MouseholderFrameVisible = {}
 local Keys = {}
 
 local KeyIcon = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
@@ -118,7 +118,6 @@ end
 local function OnFrameHide(self)
     if not keyboardFrameVisible and not MouseholderFrameVisible then
         addonOpen = false
-        --print("addonOpen = false")
     end
 end
 
@@ -231,6 +230,15 @@ function addon:NewButton(parent)
     button.label:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
     button.label:SetJustifyH("RIGHT")
     button.label:SetJustifyV("TOP")
+
+    button.ShortLabel = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
+    button.ShortLabel:SetHeight(50)
+    button.ShortLabel:SetWidth(100)
+    button.ShortLabel:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
+    button.ShortLabel:SetJustifyH("RIGHT")
+    button.ShortLabel:SetJustifyV("TOP")
 
     --button.macro = Blizzard ID Commands
     button.macro = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -500,11 +508,20 @@ function addon:SetKey(button)
     end
     -- Set the new text in "button.interfaceaction"
     button.interfaceaction:SetText(newText)
+
+    if LabelMapping[button.label:GetText()] then
+        button.label:Hide()
+        button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
+    end    
 end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
     if not locked then
+        return
+    end
+
+    if addonOpen == false then
         return
     end
 
@@ -551,47 +568,43 @@ end
 
 -- Define a function to handle key press events
 local function HandleKeyPress(key)
-    if addonOpen then
-        if AltCheckbox == false and CtrlCheckbox == false and ShiftCheckbox == false then
-            if key == "LSHIFT" or key == "RSHIFT" then
-                modif.SHIFT = "SHIFT-"
-            elseif key == "LCTRL" or key == "RCTRL" then
-                modif.CTRL = "CTRL-"
-            elseif key == "LALT" or key == "RALT" then
-                modif.ALT = "ALT-"
-            end
-            addon:RefreshKeys()  -- Refresh the displayed keys with the updated modifiers
-        end
+    if key == "LSHIFT" or key == "RSHIFT" then
+        modif.SHIFT = "SHIFT-"
+    elseif key == "LCTRL" or key == "RCTRL" then
+        modif.CTRL = "CTRL-"
+    elseif key == "LALT" or key == "RALT" then
+        modif.ALT = "ALT-"
     end
+    addon:RefreshKeys()
 end
 
 -- Define a function to handle key release events
 local function HandleKeyRelease(key)
-    if addonOpen then
-        if AltCheckbox == false and CtrlCheckbox == false and ShiftCheckbox == false then
-            if key == "LSHIFT" or key == "RSHIFT" then
-                modif.SHIFT = ""
-            elseif key == "LCTRL" or key == "RCTRL" then
-                modif.CTRL = ""
-            elseif key == "LALT" or key == "RALT" then
-                modif.ALT = ""
-            end
-            addon:RefreshKeys()  -- Refresh the displayed keys with the updated modifiers
-        end
+    if key == "LSHIFT" or key == "RSHIFT" then
+        modif.SHIFT = ""
+    elseif key == "LCTRL" or key == "RCTRL" then
+        modif.CTRL = ""
+    elseif key == "LALT" or key == "RALT" then
+        modif.ALT = ""
     end
+    addon:RefreshKeys()
 end
 
 -- Register for key events
 local frame = CreateFrame("Frame")
     frame:RegisterEvent("MODIFIER_STATE_CHANGED")
     frame:SetScript("OnEvent", function(_, event, key, state)
-    if event == "MODIFIER_STATE_CHANGED" then
-        if state == 1 then
-            -- Key press event
-            HandleKeyPress(key)
-        else
-            -- Key release event
-            HandleKeyRelease(key)
+    if addonOpen then
+        if AltCheckbox == false and CtrlCheckbox == false and ShiftCheckbox == false then
+            if event == "MODIFIER_STATE_CHANGED" then
+                if state == 1 then
+                    -- Key press event
+                    HandleKeyPress(key)
+                else
+                    -- Key release event
+                    HandleKeyRelease(key)
+                end
+            end
         end
     end
 end)
@@ -772,24 +785,6 @@ function addon:CreateDropDown()
     return DropDown
 end
 
-local function KeyHandler(self, key)
-    if modif[key] then
-        for v, button in pairs(Keys) do
-            if modif[button.label:GetText()] then
-                if button.active then
-                    button.active = false
-                    modif[button.label:GetText()] = ""
-                    addon:RefreshKeys()
-                else
-                    button.active = true
-                    modif[button.label:GetText()] = button.label:GetText() .. "-"
-                    addon:RefreshKeys()
-                end
-            end
-        end
-    end
-end
-
 function addon:CreateChangerDD() 
     local KBChangeBoardDD = CreateFrame("Frame", "KBChangeBoardDD", KBControlsFrame, "UIDropDownMenuTemplate")
 
@@ -914,30 +909,16 @@ function addon:BattleCheck(event)
     end
 end
 
-local function editmodecb(ownerID, ...)
-    fighting=false
-    --print("fighting false")
-end
-
-local function editmodecb2(ownerID, ...)
-    fighting=true
-    --print("fighting true")
-    if addonOpen then
-        KeyUIMainFrame:Hide()
-        KBControlsFrame:Hide()
-        MouseControls:Hide()
-        Mouseholder:Hide()
-        MouseFrame:Hide()
-        addonOpen = false
-    end
-end
-
 local function OnEvent(self, event, ...)
-	addon:RefreshKeys()
+    C_Timer.After(0.01, function()
+        addon:RefreshKeys()
+    end)
 end
 
 local f = CreateFrame("Frame")
-f:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+f:RegisterEvent("ACTIONBAR_SHOWGRID")
+f:RegisterEvent("ACTIONBAR_HIDEGRID")
+--f:RegisterEvent("MODIFIER_STATE_CHANGED")
 f:SetScript("OnEvent", OnEvent)
 
 -- SpecCheck - Monitors changes in the player's talents.
@@ -946,14 +927,12 @@ SpecCheck:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 SpecCheck:SetScript("OnEvent", function(self, spec) end)
 
 -- EventCheck - Monitors various in-game events such as entering and leaving combat mode.
-local EventCheck = CreateFrame("Frame", "BackdropTemplate")
+local EventCheck = CreateFrame("Frame")
 EventCheck:RegisterEvent("PLAYER_REGEN_ENABLED")
 EventCheck:RegisterEvent("PLAYER_REGEN_DISABLED")
-EventRegistry:RegisterCallback("EditMode.Exit",editmodecb)
-EventRegistry:RegisterCallback("EditMode.Enter",editmodecb2)
 EventCheck:SetScript("OnEvent", function(self, event) addon:BattleCheck(event) end)
 
--- SlashCmdList["KeyBind"] - Registers a command to load the addon.
-SLASH_KeyBind1 = "/kui"
-SLASH_KeyBind2 = "/keyui"
-SlashCmdList["KeyBind"] = function() addon:Load() end
+-- SlashCmdList["KeyUI"] - Registers a command to load the addon.
+SLASH_KeyUI1 = "/kui"
+SLASH_KeyUI2 = "/keyui"
+SlashCmdList["KeyUI"] = function() addon:Load() end

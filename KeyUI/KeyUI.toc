@@ -17,6 +17,7 @@
 ## SavedVariables: CurrentLayout
 
 Libs\embeds.xml
+Libs\TaintLess\TaintLess.xml
 
 KeyMappings.lua
 Layouts.lua

@@ -67,173 +67,199 @@ function addon:CreateMouseControls()
         maximizeFlag = true
 
         MouseControls:SetWidth((Mouseholder:GetWidth()+100))
-        MouseControls:SetHeight(220)
+        MouseControls:SetHeight(190)
 
-        MouseControls.Slider = CreateFrame("Slider", "MouseControlSlider", MouseControls, "OptionsSliderTemplate")
-        MouseControls.Slider:SetMinMaxValues(0.5, 1.5)
-        MouseControls.Slider:SetValueStep(0.01)
-        MouseControls.Slider:SetValue(Mouseholder:GetScale())
-        _G[MouseControls.Slider:GetName().."Low"]:SetText("0.5")
-        _G[MouseControls.Slider:GetName().."High"]:SetText("1.5")
-        MouseControls.Slider:SetScript("OnValueChanged", function(self)
-            Mouseholder:SetScale(self:GetValue())
-            MouseControls.EditBox:SetText(string.format("%.2f", self:GetValue()))
-        end)
-        MouseControls.Slider:SetWidth((Mouseholder:GetWidth()+60))
-        MouseControls.Slider:SetHeight(20)
-        MouseControls.Slider:SetPoint("BOTTOM", MouseControls, "BOTTOM", 0, 20)
-
-        MouseControls.EditBox = CreateFrame("EditBox", "KUI_EditBox2", MouseControls, "InputBoxTemplate")
-        MouseControls.EditBox:SetSize(60, 12)
-        MouseControls.EditBox:SetPoint("BOTTOM", MouseControls.Slider, "TOP", 28, 6)
-        MouseControls.EditBox:SetMaxLetters(4)
-        MouseControls.EditBox:SetAutoFocus(false)
-        MouseControls.EditBox:SetText(string.format("%.2f", Mouseholder:GetScale()))
-        MouseControls.EditBox:SetJustifyH("CENTER")
-        MouseControls.EditBox:SetFrameLevel(MouseControls.Slider:GetFrameLevel() + 1)
-
-        -- Add a function to update the slider value when the user types in the edit box
-        MouseControls.EditBox:SetScript("OnEnterPressed", function(self)
-            local value = tonumber(self:GetText())
-            if value then
-                if value < 0.5 then
-                    value = 0.5
-                elseif value > 1 then
-                    value = 1
+        --Size start
+            MouseControls.EditBox = CreateFrame("EditBox", "KUI_EditBox2", MouseControls, "InputBoxTemplate")
+            MouseControls.EditBox:SetSize(60, 12)
+            MouseControls.EditBox:SetPoint("BOTTOM", MouseControls, "BOTTOM", 0, 26)
+            MouseControls.EditBox:SetMaxLetters(4)
+            MouseControls.EditBox:SetAutoFocus(false)
+            MouseControls.EditBox:SetText(string.format("%.2f", Mouseholder:GetScale()))
+            MouseControls.EditBox:SetJustifyH("CENTER")
+            
+            MouseControls.EditBox:SetScript("OnEnterPressed", function(self)
+                local value = tonumber(self:GetText())
+                if value then
+                    if value < 0.5 then
+                        value = 0.5
+                    elseif value > 1.5 then
+                        value = 1.5
+                    end
+                    Mouseholder:SetScale(value)
+                    self:SetText(string.format("%.2f", value))
                 end
-                MouseControls.Slider:SetValue(value)
-                Mouseholder:SetScale(value)
-            end
-            self:ClearFocus()
-        end)
+                self:ClearFocus()
+            end)
 
-        MouseControls.Size = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        MouseControls.Size:SetText("Size")
-        MouseControls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        MouseControls.Size:SetPoint("RIGHT", MouseControls.EditBox, "LEFT", -10, 0)
-        MouseControls.Size:SetTextColor(1, 1, 1)
+            MouseControls.LeftButton = CreateFrame("Button", "MouseControlLeftButton", MouseControls)
+            MouseControls.LeftButton:SetSize(34, 34)
+            MouseControls.LeftButton:SetPoint("CENTER", MouseControls.EditBox, "CENTER", -58, 0)
+            MouseControls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+            MouseControls.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+            MouseControls.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+            
+            MouseControls.RightButton = CreateFrame("Button", "MouseControlRightButton", MouseControls)
+            MouseControls.RightButton:SetSize(34, 34)
+            MouseControls.RightButton:SetPoint("CENTER", MouseControls.EditBox, "CENTER", 54, 0)
+            MouseControls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+            MouseControls.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+            MouseControls.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+            
+            MouseControls.LeftButton:SetScript("OnClick", function()
+                local currentValue = Mouseholder:GetScale()
+                local step = 0.05
+                local newValue = currentValue - step
+                if newValue < 0.5 then
+                    newValue = 0.5
+                end
+                Mouseholder:SetScale(newValue)
+                MouseControls.EditBox:SetText(string.format("%.2f", newValue))
+            end)
+            
+            MouseControls.RightButton:SetScript("OnClick", function()
+                local currentValue = Mouseholder:GetScale()
+                local step = 0.05
+                local newValue = currentValue + step
+                if newValue > 1.5 then
+                    newValue = 1.5
+                end
+                Mouseholder:SetScale(newValue)
+                MouseControls.EditBox:SetText(string.format("%.2f", newValue))
+            end)        
+        --Size end
 
-        MouseControls.Layout = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        MouseControls.Layout:SetText("Layout")
-        MouseControls.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        MouseControls.Layout:SetPoint("RIGHT", KBChangeBoardDDMouse, "LEFT", 0, 2)
-        MouseControls.Layout:SetTextColor(1, 1, 1)
+        --Text start
+            MouseControls.Layout = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            MouseControls.Layout:SetText("Layout")
+            MouseControls.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            MouseControls.Layout:SetPoint("RIGHT", KBChangeBoardDDMouse, "LEFT", 0, 2)
+            MouseControls.Layout:SetTextColor(1, 1, 1)
 
-        MouseControls.Input  = CreateFrame("EditBox", "MouseEditInput", MouseControls, "InputBoxInstructionsTemplate")
-        MouseControls.Input:SetSize(130, 30)
-        MouseControls.Input:SetPoint("TOP", MouseControls, "TOP", -16, -54)
-        MouseControls.Input:SetAutoFocus(false)
+            MouseControls.Name = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            MouseControls.Name:SetText("Name")
+            MouseControls.Name:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            MouseControls.Name:SetPoint("TOPLEFT", MouseControls.Layout, "TOPLEFT", 0, -44)
+            MouseControls.Name:SetTextColor(1, 1, 1)
 
-        MouseControls.Name = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        MouseControls.Name:SetText("Name")
-        MouseControls.Name:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        MouseControls.Name:SetPoint("TOPLEFT", MouseControls.Layout, "TOPLEFT", 0, -44)
-        MouseControls.Name:SetTextColor(1, 1, 1)
-        
-        MouseControls.Save = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-        MouseControls.Save:SetSize(104, 26)
-        MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -10)
-        MouseControls.Save:SetScript("OnClick", function() addon:SaveLayout() end)
-        local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
-        SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-        SaveText:SetPoint("CENTER", 0, 1)
-        SaveText:SetText("Save")
+            MouseControls.Size = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            MouseControls.Size:SetText("Size")
+            MouseControls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            MouseControls.Size:SetPoint("TOPLEFT", MouseControls.Name, "TOPLEFT", 0, -90)
+            MouseControls.Size:SetTextColor(1, 1, 1)
+        --Text end
 
-        MouseControls.Save:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Save the current layout.")
-            GameTooltip:Show()
-        end)
-        
-        MouseControls.Save:SetScript("OnLeave", function(self)
-            GameTooltip:Hide()
-        end)
-        
-        MouseControls.Delete = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-        MouseControls.Delete:SetSize(104, 26)
-        MouseControls.Delete:SetPoint("LEFT", MouseControls.Save, "RIGHT", 5, 0)
+        --Edit start
+            MouseControls.Input  = CreateFrame("EditBox", "MouseEditInput", MouseControls, "InputBoxInstructionsTemplate")
+            MouseControls.Input:SetSize(130, 30)
+            MouseControls.Input:SetPoint("TOP", MouseControls, "TOP", -16, -54)
+            MouseControls.Input:SetAutoFocus(false)
+            
+            MouseControls.Save = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
+            MouseControls.Save:SetSize(104, 26)
+            MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -16)
+            MouseControls.Save:SetScript("OnClick", function() addon:SaveLayout() end)
+            local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
+            SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            SaveText:SetPoint("CENTER", 0, 1)
+            SaveText:SetText("Save")
 
-        MouseControls.Delete:SetScript("OnClick", function(self)                                        --select a default layout
-            -- Get the text from the KBChangeBoardDDMouse dropdown menu.
-            local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDDMouse)
-            -- Remove the selected layout from the MouseKeyEditLayouts table.
-            MouseKeyEditLayouts[selectedLayout] = nil
-            -- Clear the text in the Mouse.Input field.
-            MouseControls.Input:SetText("")
-            -- Print a message indicating which layout was deleted.
-            print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+            MouseControls.Save:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Save the current layout.")
+                GameTooltip:Show()
+            end)
+            
+            MouseControls.Save:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+            
+            MouseControls.Delete = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
+            MouseControls.Delete:SetSize(104, 26)
+            MouseControls.Delete:SetPoint("LEFT", MouseControls.Save, "RIGHT", 5, 0)
 
-            --CurrentLayout = {KeyBindAllBoardsMouse.Layout_4x3}
-            wipe(CurrentLayout)
-            UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
-            addon:RefreshKeys()
-        end)
-        local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
-        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-        DeleteText:SetPoint("CENTER", 0, 1)
-        DeleteText:SetText("Delete")
+            MouseControls.Delete:SetScript("OnClick", function(self)                                        --select a default layout
+                -- Get the text from the KBChangeBoardDDMouse dropdown menu.
+                local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDDMouse)
+                -- Remove the selected layout from the MouseKeyEditLayouts table.
+                MouseKeyEditLayouts[selectedLayout] = nil
+                -- Clear the text in the Mouse.Input field.
+                MouseControls.Input:SetText("")
+                -- Print a message indicating which layout was deleted.
+                print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
 
-        MouseControls.Delete:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
-            GameTooltip:Show()
-        end)
-        
-        MouseControls.Delete:SetScript("OnLeave", function(self)
-            GameTooltip:Hide()
-        end)
+                --CurrentLayout = {KeyBindAllBoardsMouse.Layout_4x3}
+                wipe(CurrentLayout)
+                UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
+                addon:RefreshKeys()
+            end)
+            local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
+            DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            DeleteText:SetPoint("CENTER", 0, 1)
+            DeleteText:SetText("Delete")
 
-        MouseControls.Lock = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-        MouseControls.Lock:SetSize(104, 26)
-        MouseControls.Lock:SetPoint("RIGHT", MouseControls.Save, "LEFT", -5, 0)
+            MouseControls.Delete:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
+                GameTooltip:Show()
+            end)
+            
+            MouseControls.Delete:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
 
-        local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
-        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-        LockText:SetPoint("CENTER", 0, 1)
-        if locked == false then
-            LockText:SetText("Lock")
-        else
-            LockText:SetText("Unlock")
-        end
+            MouseControls.Lock = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
+            MouseControls.Lock:SetSize(104, 26)
+            MouseControls.Lock:SetPoint("RIGHT", MouseControls.Save, "LEFT", -5, 0)
 
-        local function ToggleLock()
-            if locked then
-                locked = false
-                edited = true
+            local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
+            LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            LockText:SetPoint("CENTER", 0, 1)
+            if locked == false then
                 LockText:SetText("Lock")
-                --print("Keys edited = true")
-                if MouseControls.glowBoxLock then
-                    MouseControls.glowBoxLock:Show()
-                end
             else
-                locked = true
                 LockText:SetText("Unlock")
-                if MouseControls.glowBoxLock then
-                MouseControls.glowBoxLock:Hide()
-                end  
             end
-        end
 
-        MouseControls.Lock:SetScript("OnClick", function(self) ToggleLock() end)
+            local function ToggleLock()
+                if locked then
+                    locked = false
+                    edited = true
+                    LockText:SetText("Lock")
+                    --print("Keys edited = true")
+                    if MouseControls.glowBoxLock then
+                        MouseControls.glowBoxLock:Show()
+                    end
+                else
+                    locked = true
+                    LockText:SetText("Unlock")
+                    if MouseControls.glowBoxLock then
+                    MouseControls.glowBoxLock:Hide()
+                    end  
+                end
+            end
 
-        MouseControls.Lock:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Toggle Editor Mode")
-            GameTooltip:AddLine("- Drag the keys with left mouse")
-            GameTooltip:AddLine("- Delete keys with Shift + left-click mouse")
-            GameTooltip:AddLine("- Assign new keybindings by pushing keys")
-            GameTooltip:Show()
-        end)
-        
-        MouseControls.Lock:SetScript("OnLeave", function(self)
-            GameTooltip:Hide()
-        end)
+            MouseControls.Lock:SetScript("OnClick", function(self) ToggleLock() end)
 
-        MouseControls.glowBoxLock = CreateFrame("Frame", nil, MouseControls, "GlowBorderTemplate")
-        MouseControls.glowBoxLock:SetSize(106, 28)
-        MouseControls.glowBoxLock:SetPoint("CENTER", MouseControls.Lock, "CENTER", 0, 0)
-        MouseControls.glowBoxLock:Hide()
-        MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
+            MouseControls.Lock:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Toggle Editor Mode")
+                GameTooltip:AddLine("- Drag the keys with left mouse")
+                GameTooltip:AddLine("- Delete keys with Shift + left-click mouse")
+                GameTooltip:AddLine("- Assign new keybindings by pushing keys")
+                GameTooltip:Show()
+            end)
+            
+            MouseControls.Lock:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+
+            MouseControls.glowBoxLock = CreateFrame("Frame", nil, MouseControls, "GlowBorderTemplate")
+            MouseControls.glowBoxLock:SetSize(106, 28)
+            MouseControls.glowBoxLock:SetPoint("CENTER", MouseControls.Lock, "CENTER", 0, 0)
+            MouseControls.glowBoxLock:Hide()
+            MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
+        --Edit end
 
         --Mouse.New = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
         --Mouse.New:SetSize(100,30)
@@ -241,7 +267,9 @@ function addon:CreateMouseControls()
         --Mouse.New:SetText("New Key")
         --Mouse.New:SetScript("OnClick", addon.NewButtonMouse)
 	
-        MouseControls.Slider:Show()
+        MouseControls.EditBox:Show()
+        MouseControls.LeftButton:Show()
+        MouseControls.RightButton:Show()
         MouseControls.Input:Show()
         MouseControls.Save:Show()
         MouseControls.Delete:Show()
@@ -253,7 +281,6 @@ function addon:CreateMouseControls()
             end
         end
             
-
         KBChangeBoardDDMouse:Show()
 
     end
@@ -264,9 +291,10 @@ function addon:CreateMouseControls()
         MouseControls:SetWidth(50)
         MouseControls:SetHeight(26)
 
-        if MouseControls.Slider then
-            MouseControls.Slider:Hide()
+        if MouseControls.EditBox then
             MouseControls.EditBox:Hide()
+            MouseControls.LeftButton:Hide()
+            MouseControls.RightButton:Hide()
             MouseControls.Input:Hide()
             MouseControls.Save:Hide()
             MouseControls.Delete:Hide()
