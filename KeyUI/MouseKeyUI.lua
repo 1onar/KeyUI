@@ -226,7 +226,6 @@ function addon:CreateMouseControls()
                     locked = false
                     edited = true
                     LockText:SetText("Lock")
-                    --print("Keys edited = true")
                     if MouseControls.glowBoxLock then
                         MouseControls.glowBoxLock:Show()
                     end
@@ -234,7 +233,7 @@ function addon:CreateMouseControls()
                     locked = true
                     LockText:SetText("Unlock")
                     if MouseControls.glowBoxLock then
-                    MouseControls.glowBoxLock:Hide()
+                        MouseControls.glowBoxLock:Hide()
                     end  
                 end
             end

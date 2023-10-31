@@ -265,7 +265,16 @@ function addon:NewButton(parent)
         GameTooltip:Hide()
         KeyUITooltip:Hide()
     end)
-    button:SetScript("OnMouseDown", function()
+    button:SetScript("OnMouseDown", function(self, Mousebutton)
+        if Mousebutton == "LeftButton" then
+            addon.currentKey = self
+            local key = addon.currentKey.macro:GetText()
+            local actionSlot = SlotMappings[key]
+            if actionSlot then
+                PickupAction(actionSlot)
+                addon:RefreshKeys()
+            end
+        end
     end)
     button:SetScript("OnMouseUp", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
@@ -274,10 +283,13 @@ function addon:NewButton(parent)
             if infoType == "spell" then
                 local spellname = GetSpellBookItemName(info1, info2)
                 addon.currentKey = self
-                SetBindingSpell(modif.CTRL..modif.SHIFT..modif.ALT..(addon.currentKey.label:GetText() or ""), spellname)
-                ClearCursor()
-                SaveBindings(2)
-                addon:RefreshKeys()
+                local key = addon.currentKey.macro:GetText()
+                local actionSlot = SlotMappings[key]
+                if actionSlot then
+                    PlaceAction(actionSlot)
+                    ClearCursor()
+                    addon:RefreshKeys()
+                end
             end
         elseif Mousebutton == "RightButton" then
             addon.currentKey = self
@@ -337,6 +349,7 @@ function addon:SwitchBoard(board)
         self.keyboardFrame:SetWidth(right - left + 15)
         self.keyboardFrame:SetHeight(top - bottom + 14)
         KBControlsFrame:SetWidth(self.keyboardFrame:GetWidth())
+
     end
 end
 
@@ -609,7 +622,7 @@ local frame = CreateFrame("Frame")
     end
 end)
 
-local function DropDown_Initialize(self, level)
+local function DropDown_Initialize(self, level, button)
     level = level or 1
     local info = UIDropDownMenu_CreateInfo()
     local value = UIDROPDOWNMENU_MENU_VALUE
@@ -633,6 +646,20 @@ local function DropDown_Initialize(self, level)
 		info.hasArrow = true
 		info.func = function() end
 		UIDropDownMenu_AddButton(info, level)
+
+        info.text = "Clear Binding"
+        info.value = 1
+        info.hasArrow = false
+        info.func = function(self)
+            local key = addon.currentKey.macro:GetText()
+            local actionSlot = SlotMappings[key]
+            if actionSlot then
+                PickupAction(actionSlot)
+                ClearCursor()
+                addon:RefreshKeys()
+            end
+        end
+        UIDropDownMenu_AddButton(info, level)
 
         info.text = "Unbind Key"
         info.value = 1
@@ -713,11 +740,23 @@ local function DropDown_Initialize(self, level)
                 info.value = spellName
                 info.hasArrow = false
                 info.func = function(self)
+                    local actionbutton = addon.currentKey.macro:GetText()
+                    local actionSlot = SlotMappings[actionbutton]
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
-                    SetBinding(key, command)
-                    SaveBindings(2)
-                    addon:RefreshKeys()
+                    if actionSlot then
+                        PickupSpellBookItem(spellName)
+                        PlaceAction(actionSlot)
+                        --print(spellName)      -- Spellname
+                        --print(key)            -- e.g. ACTIONBUTTON1
+                        --print(actionSlot)     -- e.g. 1 (Actionslot)
+                        ClearCursor()
+                        addon:RefreshKeys()
+                    else
+                        SetBinding(key, command)
+                        SaveBindings(2)
+                        addon:RefreshKeys()
+                    end
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
@@ -729,11 +768,20 @@ local function DropDown_Initialize(self, level)
                     info.value = title
                     info.hasArrow = false
                     info.func = function(self)
+                        local actionbutton = addon.currentKey.macro:GetText()
+                        local actionSlot = SlotMappings[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
-                        SetBinding(key, command)
-                        SaveBindings(2)
-                        addon:RefreshKeys()
+                        if actionSlot then
+                            PickupMacro(title)
+                            PlaceAction(actionSlot)
+                            ClearCursor()
+                            addon:RefreshKeys()
+                        else
+                            SetBinding(key, command)
+                            SaveBindings(2)
+                            addon:RefreshKeys()
+                        end
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -747,11 +795,20 @@ local function DropDown_Initialize(self, level)
                     info.value = title
                     info.hasArrow = false
                     info.func = function(self)
+                        local actionbutton = addon.currentKey.macro:GetText()
+                        local actionSlot = SlotMappings[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
-                        SetBinding(key, command)
-                        SaveBindings(2)
-                        addon:RefreshKeys()
+                        if actionSlot then
+                            PickupMacro(title)
+                            PlaceAction(actionSlot)
+                            ClearCursor()
+                            addon:RefreshKeys()
+                        else
+                            SetBinding(key, command)
+                            SaveBindings(2)
+                            addon:RefreshKeys()
+                        end
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -793,7 +850,10 @@ function addon:CreateChangerDD()
     UIDropDownMenu_SetButtonWidth(KBChangeBoardDD, 120)
     KBChangeBoardDD:Hide()
 
-    local boardOrder = {"QWERTZ_SLIM", "QWERTZ_TKL", "QWERTZ_FULL", "QWERTY_SLIM", "QWERTY_TKL", "QWERTY_FULL", "AZERTY_SLIM", "AZERTY_TKL", "AZERTY_FULL", "Razer_Tartarus", "Razer_Tartarus2", "Azeron"}
+    local boardOrder = {"QWERTZ_PRIMARY", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%", 
+                        "QWERTY_PRIMARY","QWERTY_60%", "QWERTY_80%", "QWERTY_100%", 
+                        "AZERTY_PRIMARY", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%", 
+                        "Razer_Tartarus", "Razer_Tartarus2", "Azeron"}
 
     local function ChangeBoardDD_Initialize(self, level)
         level = level or 1

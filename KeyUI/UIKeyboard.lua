@@ -280,7 +280,7 @@ function addon:CreateControls()
         Controls.SwitchEmptyBinds = CreateFrame("Button", "SwitchEmptyBinds", Controls, "UIPanelButtonTemplate")
         Controls.SwitchEmptyBinds:SetSize(146, 26)
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" then
-            Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -156, 2)
+            Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -200, 2)
         else
             Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.ShiftCB, "RIGHT", 28, -2)
         end
@@ -358,16 +358,8 @@ function addon:CreateControls()
         Controls.Display = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         Controls.Display:SetText("Display Options")
         Controls.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        Controls.Display:SetPoint("BOTTOM", Controls.SwitchInterfaceBinds, "CENTER", 0, 20)
+        Controls.Display:SetPoint("BOTTOM", Controls.SwitchInterfaceBinds, "RIGHT", 2, 20)
         Controls.Display:SetTextColor(1, 1, 1)
-
-        Controls.HighlightKeys = CreateFrame("Button", "SwitchInterfaceBinds", Controls, "UIPanelButtonTemplate")
-        Controls.HighlightKeys:SetSize(146, 26)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" then
-            Controls.HighlightKeys:SetPoint("RIGHT", Controls.SwitchInterfaceBinds, "LEFT", -6, 0)
-        else
-            Controls.HighlightKeys:SetPoint("TOP", Controls.SwitchEmptyBinds, "BOTTOM", 0, 0)
-        end
 
     --Buttons end
 
@@ -383,7 +375,6 @@ function addon:CreateControls()
 
         Controls.SwitchEmptyBinds:Show()
         Controls.SwitchInterfaceBinds:Show()
-        Controls.HighlightKeys:Show()
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" then
             Controls.Display:Show()
         else
@@ -415,7 +406,6 @@ function addon:CreateControls()
 
             Controls.SwitchEmptyBinds:Hide()
             Controls.SwitchInterfaceBinds:Hide()
-            Controls.HighlightKeys:Hide()
             Controls.Display:Hide()
 
             Controls.LayoutName:Show() -- REVERSED
