@@ -1,6 +1,6 @@
 ## Interface: 11404
 ## Author: Blandros
-## Version 1.0.4
+## Version 1.1.0
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
@@ -17,6 +17,7 @@
 ## SavedVariables: CurrentLayout
 
 Libs\embeds.xml
+Libs\TaintLess\TaintLess.xml
 
 KeyMappings.lua
 Layouts.lua
