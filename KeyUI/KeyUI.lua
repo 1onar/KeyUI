@@ -622,7 +622,7 @@ local frame = CreateFrame("Frame")
     end
 end)
 
-local function DropDown_Initialize(self, level, button)
+local function DropDown_Initialize(self, level)
     level = level or 1
     local info = UIDropDownMenu_CreateInfo()
     local value = UIDROPDOWNMENU_MENU_VALUE
@@ -647,7 +647,7 @@ local function DropDown_Initialize(self, level, button)
 		info.func = function() end
 		UIDropDownMenu_AddButton(info, level)
 
-        info.text = "Clear Binding"
+        info.text = "Clear Actionbutton"
         info.value = 1
         info.hasArrow = false
         info.func = function(self)

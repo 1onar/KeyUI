@@ -459,16 +459,38 @@ function addon:NewButtonMouse()
 
     Mousebutton:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
-            DragOrSize(self, button)
-        else
-            -- Handle other mouse buttons here, e.g., KeyDown logic
-            KeyDown(self, button)
+            if locked == false then
+                DragOrSize(self, button)
+            else
+                addon.currentKey = self
+                local key = addon.currentKey.macro:GetText()
+                local actionSlot = SlotMappings[key]
+                if actionSlot then
+                    PickupAction(actionSlot)
+                    addon:RefreshKeys()
+                end
+            end
         end
     end)
 
     Mousebutton:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
-            Release(self, button)
+            if locked == false then  
+                Release(self, button)
+            else
+                infoType, info1, info2 = GetCursorInfo()
+                if infoType == "spell" then
+                    local spellname = GetSpellBookItemName(info1, info2)
+                    addon.currentKey = self
+                    local key = addon.currentKey.macro:GetText()
+                    local actionSlot = SlotMappings[key]
+                    if actionSlot then
+                        PlaceAction(actionSlot)
+                        ClearCursor()
+                        addon:RefreshKeys()
+                    end
+                end
+            end
         elseif button == "RightButton" then
             addon.currentKey = self
             ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
