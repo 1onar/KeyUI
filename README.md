@@ -33,6 +33,6 @@
 [![YouTube Link](https://img.youtube.com/vi/4jNuNZVvpqY/0.jpg)](https://www.youtube.com/watch?v=4jNuNZVvpqY)
 
 
-**<ins>Edit Mouse Layout (youtube)</ins>**
+**<ins>Edit Mouse Layout</ins>**
 
 [![YouTube Link](https://img.youtube.com/vi/ClGztJtR2rQ/0.jpg)](https://www.youtube.com/watch?v=ClGztJtR2rQ)
