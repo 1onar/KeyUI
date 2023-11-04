@@ -470,6 +470,8 @@ function addon:NewButtonMouse()
                     addon:RefreshKeys()
                 end
             end
+        else
+            KeyDown(self, button)
         end
     end)
 

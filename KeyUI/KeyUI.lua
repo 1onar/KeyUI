@@ -647,7 +647,7 @@ local function DropDown_Initialize(self, level)
 		info.func = function() end
 		UIDropDownMenu_AddButton(info, level)
 
-        info.text = "Clear Actionbutton"
+        info.text = "Clear Action Button"
         info.value = 1
         info.hasArrow = false
         info.func = function(self)
