@@ -642,7 +642,7 @@ function addon:RefreshKeys()
     for j = 1, #KeysMouse do
         self:SetKey(KeysMouse[j])
     end
-    print("Keys refreshed")
+    --print("Keys refreshed")
 end
 
 -- Define a function to handle key press events
