@@ -446,10 +446,10 @@ function addon:SetKey(button)
     button.icon:Hide()
     local found = false
     for i = 1, GetNumBindings() do
-        local a = GetBinding(i)      
+        local a = GetBinding(i)
         if spell:find(a) then
             local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)")
-            local bar, bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")            
+            local bar, bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
             if bar and bar2 then
                 if bar == "0" then slot = bar2 end
                 if bar == "1" then slot = 60 + bar2 end
@@ -459,33 +459,99 @@ function addon:SetKey(button)
                 if bar == "5" then slot = 144 + bar2 end
                 if bar == "6" then slot = 156 + bar2 end
                 if bar == "7" then slot = 168 + bar2 end
-            end            
-            if spell == "EXTRAACTIONBUTTON1" then
-                button.icon:SetTexture(4200126)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-            elseif spell == "MOVEFORWARD" then
-                button.icon:SetTexture(450907)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-            elseif spell == "MOVEBACKWARD" then
-                button.icon:SetTexture(450905)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()    
-            elseif spell == "STRAFELEFT" then
-                button.icon:SetTexture(450906)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-            elseif spell == "STRAFERIGHT" then
-                button.icon:SetTexture(450908)
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-            elseif slot then
+            end
+            if slot then
                 button.icon:SetTexture(GetActionTexture(slot))
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
                 button.slot = slot
             end
+        end
+    end
+
+    if spell == "EXTRAACTIONBUTTON1" then
+        button.icon:SetTexture(4200126)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()
+    elseif spell == "MOVEFORWARD" then
+        button.icon:SetTexture(450907)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()
+    elseif spell == "MOVEBACKWARD" then
+        button.icon:SetTexture(450905)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()    
+    elseif spell == "STRAFELEFT" then
+        button.icon:SetTexture(450906)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()
+    elseif spell == "STRAFERIGHT" then
+        button.icon:SetTexture(450908)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()
+    end
+
+    if PetHasActionBar() == true then
+        if spell:match("^BONUSACTIONBUTTON%d+$") then
+            for i = 1, 10 do
+                local petspellName = "BONUSACTIONBUTTON" .. i
+                if spell:match(petspellName) then
+                    local pet = GetPetActionInfo(i)
+                    if pet then
+                        local petTexture = GetSpellTexture(pet)
+                        if petTexture then
+                            button.icon:SetTexture(petTexture)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = petTexture
+                        end
+                        if pet == "PET_ACTION_ATTACK" then
+                            button.icon:SetTexture(132152)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 132152
+                        elseif pet == "PET_MODE_DEFENSIVEASSIST" then
+                            button.icon:SetTexture(132110)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 132110
+                        elseif pet == "PET_MODE_PASSIVE" then
+                            button.icon:SetTexture(132311)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 132311
+                        elseif pet == "PET_MODE_ASSIST" then
+                            button.icon:SetTexture(524348)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 524348
+                        elseif pet == "PET_ACTION_FOLLOW" then
+                            button.icon:SetTexture(132328)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 132328
+                        elseif pet == "PET_ACTION_MOVE_TO" then
+                            button.icon:SetTexture(457329)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 457329
+                        elseif pet == "PET_ACTION_WAIT" then
+                            button.icon:SetTexture(136106)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 136106
+                        end
+                    else
+                        button.icon:Hide()
+                        button.slot = nil
+                    end
+                end
+            end
+        end
+    else
+        if spell:match("^BONUSACTIONBUTTON%d+$") then
+            button.icon:Hide()
+            button.slot = nil
         end
     end
     
@@ -576,7 +642,7 @@ function addon:RefreshKeys()
     for j = 1, #KeysMouse do
         self:SetKey(KeysMouse[j])
     end
-    --print("Keys refreshed")
+    print("Keys refreshed")
 end
 
 -- Define a function to handle key press events
@@ -978,7 +1044,7 @@ end
 local f = CreateFrame("Frame")
 f:RegisterEvent("ACTIONBAR_SHOWGRID")
 f:RegisterEvent("ACTIONBAR_HIDEGRID")
---f:RegisterEvent("MODIFIER_STATE_CHANGED")
+f:RegisterEvent("UNIT_PET")
 f:SetScript("OnEvent", OnEvent)
 
 -- SpecCheck - Monitors changes in the player's talents.
