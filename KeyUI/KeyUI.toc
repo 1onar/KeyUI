@@ -1,6 +1,6 @@
 ## Interface: 100107
 ## Author: Blandros
-## Version 2.1.2
+## Version 2.1.3
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
