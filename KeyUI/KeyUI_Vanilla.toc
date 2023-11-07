@@ -1,0 +1,27 @@
+## Interface: 11404
+## Author: Blandros
+## Version 2.2.0
+
+## Title: KeyUI
+## Notes: Visualize your keyboard, mouse and keybinds.
+## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
+
+## SavedVariables: MiniMapDB
+## SavedVariables: KeyboardPosition
+## SavedVariables: MousePosition
+## SavedVariables: ShowEmptyBinds
+## SavedVariables: ShowInterfaceBinds
+## SavedVariables: KeyBindSettings
+## SavedVariables: KeyBindSettingsMouse
+## SavedVariables: MouseKeyEditLayouts
+## SavedVariables: CurrentLayout
+
+Libs\embeds.xml
+Libs\TaintLess\TaintLess.xml
+
+KeyMappings.lua
+Layouts.lua
+LayoutsMouse.lua
+MouseKeyUI_Classic.lua
+UIKeyboard_Classic.lua
+KeyUI_Classic.lua

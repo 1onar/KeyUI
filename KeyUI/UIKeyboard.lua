@@ -363,7 +363,9 @@ function addon:CreateControls()
 
     --Buttons end
 
-        KBChangeBoardDD:Show()
+        if KBChangeBoardDD then
+            KBChangeBoardDD:Show()
+        end
 
         Controls.EditBox:Show()
         Controls.LeftButton:Show()
@@ -391,7 +393,9 @@ function addon:CreateControls()
         Controls:SetWidth(Keyboard:GetWidth())
 
         if Controls.EditBox then
-            KBChangeBoardDD:Hide()
+            if KBChangeBoardDD then
+                KBChangeBoardDD:Hide()
+            end
             Controls.Layout:Hide()
 
             Controls.EditBox:Hide()

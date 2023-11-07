@@ -279,8 +279,10 @@ function addon:CreateMouseControls()
                 MouseControls.glowBoxLock:Show()
             end
         end
-            
-        KBChangeBoardDDMouse:Show()
+        
+        if KBChangeBoardDDMouse then
+            KBChangeBoardDDMouse:Show()
+        end
 
     end
 
@@ -306,7 +308,9 @@ function addon:CreateMouseControls()
                 MouseControls.glowBoxLock:Hide()
             end
 
-            KBChangeBoardDDMouse:Hide()
+            if KBChangeBoardDDMouse then
+                KBChangeBoardDDMouse:Hide()
+            end
         end
     end    
 

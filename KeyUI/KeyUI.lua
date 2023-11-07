@@ -279,7 +279,6 @@ function addon:NewButton(parent)
     button:SetScript("OnMouseUp", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
             infoType, info1, info2 = GetCursorInfo()
-
             if infoType == "spell" then
                 local spellname = GetSpellBookItemName(info1, info2)
                 addon.currentKey = self
@@ -591,7 +590,7 @@ function addon:SetKey(button)
     if LabelMapping[button.label:GetText()] then
         button.label:Hide()
         button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
-    end    
+    end
 end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
