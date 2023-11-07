@@ -1,6 +1,9 @@
 ## Interface: 11404
 ## Author: Blandros
-## Version 2.2.0
+## Version @project-version@
+## X-Curse-Project-ID: 913973
+## X-WoWI-ID: 26644
+## X-Wago-ID: b6XV0OGp
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
