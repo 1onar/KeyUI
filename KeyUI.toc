@@ -1,4 +1,4 @@
-## Interface: 100107
+## Interface: 100200
 ## Author: Blandros
 ## Version @project-version@
 ## X-Curse-Project-ID: 913973
