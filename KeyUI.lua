@@ -200,6 +200,11 @@ function addon:ButtonMouseOver(button)
             GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
             GameTooltip:SetAction(button.slot)
             GameTooltip:Show()
+        elseif button.spellid then
+            GameTooltip:SetOwner(button, "ANCHOR_NONE")
+            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+            GameTooltip:SetSpellByID(button.spellid)
+            GameTooltip:Show()
         end
 
     KBTooltip:SetWidth(KBTooltip.title:GetWidth() + 20)
@@ -272,6 +277,10 @@ function addon:NewButton(parent)
             local actionSlot = SlotMappings[key]
             if actionSlot then
                 PickupAction(actionSlot)
+                addon:RefreshKeys()
+            elseif button.stateaction then
+                local pickupstateaction = loadstring("return " .. button.stateaction)()
+                PickupAction(pickupstateaction)
                 addon:RefreshKeys()
             end
         end
@@ -442,8 +451,9 @@ end
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
     local spell = GetBindingAction(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or "")) or ""
+
     button.icon:Hide()
-    local found = false
+
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if spell:find(a) then
@@ -464,6 +474,31 @@ function addon:SetKey(button)
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
                 button.slot = slot
+            end
+        end
+    end
+
+    if IsAddOnLoaded("ElvUI") then
+        for _, mapping in ipairs(ElvUIMappings) do
+            local spellName, iconName = unpack(mapping)
+            if spell == spellName then
+                local fullIconName = iconName .. "Icon"
+                local fullSpellName = iconName .. ".abilityID"
+                local buttonStateAction = iconName .. "._state_action"
+        
+                button.icon:SetTexture(_G[fullIconName]:GetTexture())
+                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        
+                local isIconVisible = _G[fullIconName]:IsVisible()
+        
+                if isIconVisible then
+                    button.icon:Show()
+                    local abilityID = loadstring("return " .. fullSpellName)()
+                    button.spellid = abilityID
+                    button.stateaction = buttonStateAction
+                end
+        
+                break
             end
         end
     end
