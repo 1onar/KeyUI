@@ -1,6 +1,6 @@
 ## Interface: 11501
 ## Author: Blandros
-## Version @project-version@
+## Version: @project-version@
 ## X-Curse-Project-ID: 913973
 ## X-WoWI-ID: 26644
 ## X-Wago-ID: b6XV0OGp
