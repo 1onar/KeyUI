@@ -1,7 +1,8 @@
 local name, addon = ...
 
+local ldb = LibStub:GetLibrary("LibDataBroker-1.1", true)
+
 --SavedVariables--------------
-MiniMapDB = {}
 ShowEmptyBinds = {}
 ShowInterfaceBinds = {}
 KeyBindSettings = {}
@@ -17,7 +18,7 @@ local keyboardFrameVisible = {}
 local MouseholderFrameVisible = {}
 local Keys = {}
 
-local KeyIcon = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
+local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
     type = "data source",
     text = "KeyUI",
     icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
@@ -44,8 +45,9 @@ local KeyIcon = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
         -- tooltip:AddLine("BLA BLA BLA", 1, 1, 1)    
     end,
 })
-local icon = LibStub("LibDBIcon-1.0")
-icon:Register("KeyUI", KeyIcon, MiniMapDB)
+
+local icon = LibStub("LibDBIcon-1.0", true)
+icon:Register("KeyUI", miniButton , MiniMapDB)
 
 -- Define the modif table
 local modif = {}
