@@ -100,18 +100,21 @@ end
 -- LoadSpells() - Here, all available spells and abilities of the player are loaded and stored in a table.
 function addon:LoadSpells()
     self.spells = {}
-    for i = 1, GetNumSpellTabs() do
-        local name, texture, offset, numSpells = GetSpellTabInfo(i)
+    for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+        local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
+        local name = skillLineInfo.name
+        local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
         self.spells[name] = {}
 
         if not name then
-            --break
+            break
         end
 
-        for j = offset + 1, (offset + numSpells) do
-            local spellName = GetSpellBookItemName(j, BOOKTYPE_SPELL)
-            if spellName and not (IsPassiveSpell(j, BOOKTYPE_SPELL)) then
-                tinsert(self.spells[name], spellName)
+        for j = offset + 1, offset + numSlots do
+            local spellName, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
+            local isPassive = C_SpellBook.IsSpellBookItemPassive(j, Enum.SpellBookSpellBank.Player)
+            if spellName and not isPassive then
+                table.insert(self.spells[name], spellName)
             end
         end
     end
@@ -847,7 +850,7 @@ local function DropDown_Initialize(self, level)
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
-                        PickupSpellBookItem(spellName)
+                        C_Spell.PickupSpell(spellName)
                         PlaceAction(actionSlot)
                         --print(spellName)      -- Spellname
                         --print(key)            -- e.g. ACTIONBUTTON1
