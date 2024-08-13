@@ -1355,7 +1355,7 @@ KeyBindAllBoards = {
         { 'RALT', Keyboard, 742, -372, 104, 70 },
         { '', Keyboard, 849, -372, 70, 70 }, 
         -- Lücke für MENU { '', Keyboard, 922, -372, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -372, 104, 70 }
+        { 'RCTRL', Keyboard, 995, -372, 104, 70 },
         
         { 'LCTRL', Keyboard, 7, -372, 101, 70 },
         { 'LALT', Keyboard, 174, -372, 101, 70 },
