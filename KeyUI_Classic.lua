@@ -933,7 +933,7 @@ function addon:CreateChangerDD()
     local boardOrder = {"QWERTZ_PRIMARY", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%", 
                         "QWERTY_PRIMARY","QWERTY_60%", "QWERTY_80%", "QWERTY_100%", 
                         "AZERTY_PRIMARY", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%", 
-                        "DVORAK_PRIMARY", "DVORAKY_60%", "DVORAK_80%", "DVORAK_100%", 
+                        "DVORAK_PRIMARY", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%", 
                         "Razer_Tartarus", "Razer_Tartarus2", "Azeron"}
 
     local function ChangeBoardDD_Initialize(self, level)
