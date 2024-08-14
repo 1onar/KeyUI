@@ -483,7 +483,7 @@ function addon:SetKey(button)
         end
     end
 
-    if IsAddOnLoaded("ElvUI") then
+    if C_AddOns.IsAddOnLoaded("ElvUI") then
         for _, mapping in ipairs(ElvUIMappings) do
             local spellName, iconName = unpack(mapping)
             if spell == spellName then
