@@ -287,6 +287,14 @@ function addon:NewButton(parent)
                 local pickupstateaction = loadstring("return " .. button.stateaction)()
                 PickupAction(pickupstateaction)
                 addon:RefreshKeys()
+            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                -- Handle ElvUI Buttons
+                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                if elvUIButton and elvUIButton._state_action then
+                    PickupAction(elvUIButton._state_action)
+                    addon:RefreshKeys()
+                end
             end
         end
     end)
@@ -302,6 +310,15 @@ function addon:NewButton(parent)
                     PlaceAction(actionSlot)
                     ClearCursor()
                     addon:RefreshKeys()
+                elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                    -- Handle ElvUI Buttons
+                    local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                    local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                    if elvUIButton and elvUIButton._state_action then
+                        PlaceAction(elvUIButton._state_action)
+                        ClearCursor()
+                        addon:RefreshKeys()
+                    end
                 end
             end
         elseif Mousebutton == "RightButton" then
@@ -483,27 +500,21 @@ function addon:SetKey(button)
         end
     end
 
-    if C_AddOns.IsAddOnLoaded("ElvUI") then
-        for _, mapping in ipairs(ElvUIMappings) do
-            local spellName, iconName = unpack(mapping)
-            if spell == spellName then
-                local fullIconName = iconName .. "Icon"
-                local fullSpellName = iconName .. ".abilityID"
-                local buttonStateAction = iconName .. "._state_action"
-        
-                button.icon:SetTexture(_G[fullIconName]:GetTexture())
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        
-                local isIconVisible = _G[fullIconName]:IsVisible()
-        
-                if isIconVisible then
-                    button.icon:Show()
-                    local abilityID = loadstring("return " .. fullSpellName)()
-                    button.spellid = abilityID
-                    button.stateaction = buttonStateAction
+    -- Add logic to handle ElvUI buttons
+    for barIndex = 1, 15 do
+        for buttonIndex = 1, 12 do
+            local elvUIButtonName = "ELVUIBAR" .. barIndex .. "BUTTON" .. buttonIndex
+            if spell == elvUIButtonName then
+                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                if elvUIButton and elvUIButton.icon then
+                    local elvUIIconTexture = elvUIButton.icon:GetTexture()
+                    if elvUIIconTexture then
+                        button.icon:SetTexture(elvUIIconTexture)
+                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                        button.icon:Show()
+                        button.slot = elvUIIconTexture
+                    end
                 end
-        
-                break
             end
         end
     end
