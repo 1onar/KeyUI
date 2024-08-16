@@ -287,7 +287,7 @@ function addon:NewButton(parent)
                 local pickupstateaction = loadstring("return " .. button.stateaction)()
                 PickupAction(pickupstateaction)
                 addon:RefreshKeys()
-            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+            elseif key and string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
                 -- Handle ElvUI Buttons
                 local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
                 local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
@@ -476,6 +476,7 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
+    -- Standard ActionButton logic
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if spell:find(a) then
@@ -500,25 +501,26 @@ function addon:SetKey(button)
         end
     end
 
-    -- Add logic to handle ElvUI buttons
+    -- Custom logic for ElvUI buttons
     for barIndex = 1, 15 do
         for buttonIndex = 1, 12 do
             local elvUIButtonName = "ELVUIBAR" .. barIndex .. "BUTTON" .. buttonIndex
             if spell == elvUIButtonName then
                 local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                if elvUIButton and elvUIButton.icon then
-                    local elvUIIconTexture = elvUIButton.icon:GetTexture()
-                    if elvUIIconTexture then
-                        button.icon:SetTexture(elvUIIconTexture)
+                if elvUIButton then
+                    local actionID = elvUIButton._state_action
+                    if elvUIButton._state_type == "action" and actionID then
+                        button.icon:SetTexture(GetActionTexture(actionID))
                         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                         button.icon:Show()
-                        button.slot = elvUIIconTexture
+                        button.slot = actionID
                     end
                 end
             end
         end
     end
 
+    -- code for setting icons for other actions (movement, pets, etc.)
     if spell == "EXTRAACTIONBUTTON1" then
         button.icon:SetTexture(4200126)
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
@@ -605,32 +607,33 @@ function addon:SetKey(button)
         end
     end
     
+    -- handling empty bindings
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
-        if spell == "" and labelText ~= "ESC" and labelText ~= "CAPS" and labelText ~= "LSHIFT" and labelText ~= "LCTRL" and labelText ~= "LALT" and labelText ~= "RALT" and labelText ~= "RCTRL" and labelText ~= "RSHIFT" and labelText ~= "BACKSPACE" and labelText ~= "ENTER" and labelText ~= "SPACE" then
-
-            button:SetBackdropColor(1, 0, 0, 1)  -- Highlight in red if no binding and not one of the specified keys
+        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE"}, labelText) then
+            button:SetBackdropColor(1, 0, 0, 1)
         else
             button:SetBackdropColor(0, 0, 0, 1)
         end
     else
-        button:SetBackdropColor(0, 0, 0, 1)  -- Reset to the default color if a binding is set
-    end    
+        button:SetBackdropColor(0, 0, 0, 1)
+    end   
 
 	button.macro:SetText(spell) -- Macro = Blizzard Interface Command (e.g. STRAFE etc.) ////// Spell = Key (e.g. 1, 2, 3, ..., Q, W, E, R, T, Z,..)
 
+    -- additional logic for interface bindings if needed
     if button.interfaceaction then
         if ShowInterfaceBinds == true then
-        -- Check if there's no icon before setting the text
             button.interfaceaction:Show()
         else
             button.interfaceaction:Hide()
         end
     end
+
     -- Get the current text from "button.macro"
     local currentText = button.macro:GetText()
     -- Look up the corresponding text in the "KeyMappings" table
-    local newText = KeyMappings[currentText]
+    local newText = KeyMappings[currentText] or currentText
     -- Check if newText is nil (not found in KeyMappings)
     if newText == nil then
         newText = currentText  -- Use the original text if not found
