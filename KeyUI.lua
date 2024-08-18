@@ -97,24 +97,24 @@ function addon:LoadDropDown()
     self.menu = {}
 end
 
--- LoadSpells() - Here, all available spells and abilities of the player are loaded and stored in a table.
+-- Load all available spells and abilities of the player and store them in a table.
 function addon:LoadSpells()
     self.spells = {}
     for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
         local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
         local name = skillLineInfo.name
         local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
-        self.spells[name] = {}
 
-        if not name then
-            break
-        end
+        -- Ensure the skill line has a name before proceeding.
+        if name then
+            self.spells[name] = {}
 
-        for j = offset + 1, offset + numSlots do
-            local spellName, subName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
-            local isPassive = C_SpellBook.IsSpellBookItemPassive(j, Enum.SpellBookSpellBank.Player)
-            if spellName and not isPassive then
-                table.insert(self.spells[name], spellName)
+            for j = offset + 1, offset + numSlots do
+                local spellName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
+                local isPassive = C_SpellBook.IsSpellBookItemPassive(j, Enum.SpellBookSpellBank.Player)
+                if spellName and not isPassive then
+                    table.insert(self.spells[name], spellName)
+                end
             end
         end
     end
@@ -223,15 +223,19 @@ function addon:ButtonMouseOver(button)
     end
 end
 
+-- Create a new button on the given parent frame or default to the main keyboard frame.
 function addon:NewButton(parent)
     if not parent then
         parent = self.keyboardFrame
     end
+
+    -- Create a frame that acts as a button with a tooltip border.
     local button = CreateFrame("FRAME", nil, parent, "TooltipBorderedFrameTemplate")
     button:SetMovable(true)
     button:EnableMouse(true)
     button:SetBackdropColor(0, 0, 0, 1)
 
+    -- Create a label to display the full name of the action.
     button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     button.label:SetTextColor(1, 1, 1, 0.9)
@@ -241,6 +245,7 @@ function addon:NewButton(parent)
     button.label:SetJustifyH("RIGHT")
     button.label:SetJustifyV("TOP")
 
+    -- Create a shorter label, possibly for abbreviations or shorter texts.
     button.ShortLabel = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
@@ -250,12 +255,12 @@ function addon:NewButton(parent)
     button.ShortLabel:SetJustifyH("RIGHT")
     button.ShortLabel:SetJustifyV("TOP")
 
-    --button.macro = Blizzard ID Commands
+    -- Hidden font string to store the macro text.
     button.macro = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.macro:SetText("")
     button.macro:Hide()
 
-    --button.interfaceaction = Blizzard ID changed to readable Text
+    -- Font string to display the interface action text.
     button.interfaceaction = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
     button.interfaceaction:SetTextColor(1, 1, 1)
@@ -264,10 +269,12 @@ function addon:NewButton(parent)
     button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
     button.interfaceaction:SetText("")
 
+    -- Icon texture for the button.
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(60, 60)
     button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 5, -5)
 
+    -- Define the mouse hover behavior to show tooltips.
     button:SetScript("OnEnter", function()
         self:ButtonMouseOver(button)
     end)
@@ -275,50 +282,97 @@ function addon:NewButton(parent)
         GameTooltip:Hide()
         KeyUITooltip:Hide()
     end)
+
+    -- Define behavior for mouse down actions (left-click).
     button:SetScript("OnMouseDown", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
             addon.currentKey = self
             local key = addon.currentKey.macro:GetText()
-            local actionSlot = SlotMappings[key]
-            if actionSlot then
-                PickupAction(actionSlot)
-                addon:RefreshKeys()
-            elseif button.stateaction then
-                local pickupstateaction = loadstring("return " .. button.stateaction)()
-                PickupAction(pickupstateaction)
-                addon:RefreshKeys()
-            elseif key and string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                -- Handle ElvUI Buttons
-                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                if elvUIButton and elvUIButton._state_action then
-                    PickupAction(elvUIButton._state_action)
-                    addon:RefreshKeys()
-                end
-            end
-        end
-    end)
-    button:SetScript("OnMouseUp", function(self, Mousebutton)
-        if Mousebutton == "LeftButton" then
-            infoType, info1, info2 = GetCursorInfo()
-            if infoType == "spell" then
-                local spellname = GetSpellBookItemName(info1, info2)
-                addon.currentKey = self
-                local key = addon.currentKey.macro:GetText()
+
+            -- Check if 'key' is non-nil and non-empty before proceeding.
+            if key and key ~= "" then
                 local actionSlot = SlotMappings[key]
                 if actionSlot then
-                    PlaceAction(actionSlot)
-                    ClearCursor()
+                    PickupAction(actionSlot)
+                    addon:RefreshKeys()
+                elseif button.stateaction then
+                    local pickupstateaction = loadstring("return " .. button.stateaction)()
+                    PickupAction(pickupstateaction)
                     addon:RefreshKeys()
                 elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
                     -- Handle ElvUI Buttons
                     local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
                     local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
                     if elvUIButton and elvUIButton._state_action then
-                        PlaceAction(elvUIButton._state_action)
-                        ClearCursor()
+                        PickupAction(elvUIButton._state_action)
                         addon:RefreshKeys()
                     end
+                end
+            else
+                -- Handle the case where the key is nil or empty
+                --print("No valid macro text found for the button.")
+            end
+        end
+    end)
+
+    -- Define behavior for mouse up actions (left-click and right-click).
+    button:SetScript("OnMouseUp", function(self, Mousebutton)
+        if Mousebutton == "LeftButton" then
+            local infoType, info1, info2 = GetCursorInfo()
+
+            -- Debug output to check values (optional)
+            --print("infoType:", infoType)
+            --print("info1 (expected spellbook slot):", info1)
+            --print("info2 (expected spellbook type):", info2)
+
+            if infoType == "spell" then
+                local slotIndex = tonumber(info1)
+
+                -- Determine the correct spell book type based on info2.
+                local spellBookType
+                if info2 == "spell" then
+                    spellBookType = Enum.SpellBookSpellBank.Player  -- Default to player spells.
+                elseif info2 == "pet" then
+                    spellBookType = Enum.SpellBookSpellBank.Pet     -- For pet spells.
+                else
+                    --print("Unknown spell book type:", info2)
+                    return
+                end
+
+                -- Ensure slotIndex is valid before using it.
+                if slotIndex then
+                    local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(slotIndex, spellBookType)
+
+                    -- Check if spellBookItemInfo is valid before accessing its properties.
+                    if spellBookItemInfo then
+                        local spellname = spellBookItemInfo.name
+                        addon.currentKey = self
+                        local key = addon.currentKey.macro:GetText()
+                        if key and key ~= "" then
+                            local actionSlot = SlotMappings[key]
+                            if actionSlot then
+                                PlaceAction(actionSlot)
+                                ClearCursor()
+                                addon:RefreshKeys()
+                            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                                -- Handle ElvUI Buttons.
+                                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                                if elvUIButton and elvUIButton._state_action then
+                                    PlaceAction(elvUIButton._state_action)
+                                    ClearCursor()
+                                    addon:RefreshKeys()
+                                end
+                            end
+                        else
+                            -- Handle the case where the key is nil or empty
+                            --print("No valid macro text found for the button.")
+                        end
+                    else
+                        --print("spellBookItemInfo is nil")
+                    end
+                else
+                    --print("Invalid slotIndex:", slotIndex)
                 end
             end
         elseif Mousebutton == "RightButton" then
@@ -326,6 +380,7 @@ function addon:NewButton(parent)
             ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
         end
     end)
+
     return button
 end
 
