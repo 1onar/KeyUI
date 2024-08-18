@@ -97,7 +97,7 @@ function addon:LoadDropDown()
     self.menu = {}
 end
 
--- LoadSpells() - Here, all available spells and abilities of the player are loaded and stored in a table.
+-- Load all available spells and abilities of the player and store them in a table.
 function addon:LoadSpells()
     self.spells = {}
     for i = 1, GetNumSpellTabs() do
@@ -202,6 +202,11 @@ function addon:ButtonMouseOver(button)
             GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
             GameTooltip:SetAction(button.slot)
             GameTooltip:Show()
+        elseif button.spellid then
+            GameTooltip:SetOwner(button, "ANCHOR_NONE")
+            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+            GameTooltip:SetSpellByID(button.spellid)
+            GameTooltip:Show()
         end
 
     KBTooltip:SetWidth(KBTooltip.title:GetWidth() + 20)
@@ -215,15 +220,19 @@ function addon:ButtonMouseOver(button)
     end
 end
 
+-- Create a new button on the given parent frame or default to the main keyboard frame.
 function addon:NewButton(parent)
     if not parent then
         parent = self.keyboardFrame
     end
+
+    -- Create a frame that acts as a button with a tooltip border.
     local button = CreateFrame("FRAME", nil, parent, "TooltipBorderedFrameTemplate")
     button:SetMovable(true)
     button:EnableMouse(true)
-    button:SetBackdropColor(0, 0, 0, 0.7)
+    button:SetBackdropColor(0, 0, 0, 1)
 
+    -- Create a label to display the full name of the action.
     button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     button.label:SetTextColor(1, 1, 1, 0.9)
@@ -233,6 +242,7 @@ function addon:NewButton(parent)
     button.label:SetJustifyH("RIGHT")
     button.label:SetJustifyV("TOP")
 
+    -- Create a shorter label, possibly for abbreviations or shorter texts.
     button.ShortLabel = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
@@ -242,12 +252,12 @@ function addon:NewButton(parent)
     button.ShortLabel:SetJustifyH("RIGHT")
     button.ShortLabel:SetJustifyV("TOP")
 
-    --button.macro = Blizzard ID Commands
+    -- Hidden font string to store the macro text.
     button.macro = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.macro:SetText("")
     button.macro:Hide()
 
-    --button.interfaceaction = Blizzard ID changed to readable Text
+    -- Font string to display the interface action text.
     button.interfaceaction = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
     button.interfaceaction:SetTextColor(1, 1, 1)
@@ -256,10 +266,12 @@ function addon:NewButton(parent)
     button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
     button.interfaceaction:SetText("")
 
+    -- Icon texture for the button.
     button.icon = button:CreateTexture(nil, "ARTWORK")
     button.icon:SetSize(60, 60)
     button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 5, -5)
 
+    -- Define the mouse hover behavior to show tooltips.
     button:SetScript("OnEnter", function()
         self:ButtonMouseOver(button)
     end)
@@ -267,29 +279,96 @@ function addon:NewButton(parent)
         GameTooltip:Hide()
         KeyUITooltip:Hide()
     end)
+
+    -- Define behavior for mouse down actions (left-click).
     button:SetScript("OnMouseDown", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
             addon.currentKey = self
             local key = addon.currentKey.macro:GetText()
-            local actionSlot = SlotMappings[key]
-            if actionSlot then
-                PickupAction(actionSlot)
-                addon:RefreshKeys()
+
+            -- Check if 'key' is non-nil and non-empty before proceeding.
+            if key and key ~= "" then
+                local actionSlot = SlotMappings[key]
+                if actionSlot then
+                    PickupAction(actionSlot)
+                    addon:RefreshKeys()
+                elseif button.stateaction then
+                    local pickupstateaction = loadstring("return " .. button.stateaction)()
+                    PickupAction(pickupstateaction)
+                    addon:RefreshKeys()
+                elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                    -- Handle ElvUI Buttons
+                    local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                    local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                    if elvUIButton and elvUIButton._state_action then
+                        PickupAction(elvUIButton._state_action)
+                        addon:RefreshKeys()
+                    end
+                end
+            else
+                -- Handle the case where the key is nil or empty
+                --print("No valid macro text found for the button.")
             end
         end
     end)
+
+    -- Define behavior for mouse up actions (left-click and right-click).
     button:SetScript("OnMouseUp", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
-            infoType, info1, info2 = GetCursorInfo()
+            local infoType, info1, info2 = GetCursorInfo()
+
+            -- Debug output to check values (optional)
+            --print("infoType:", infoType)
+            --print("info1 (expected spellbook slot):", info1)
+            --print("info2 (expected spellbook type):", info2)
+
             if infoType == "spell" then
-                local spellname = GetSpellBookItemName(info1, info2)
-                addon.currentKey = self
-                local key = addon.currentKey.macro:GetText()
-                local actionSlot = SlotMappings[key]
-                if actionSlot then
-                    PlaceAction(actionSlot)
-                    ClearCursor()
-                    addon:RefreshKeys()
+                local slotIndex = tonumber(info1)
+                local spellBookType
+
+                -- Determine the correct spell book type based on info2.
+                if info2 == "spell" then
+                    spellBookType = "spell"
+                elseif info2 == "pet" then
+                    spellBookType = "pet"
+                else
+                    --print("Unknown spell book type:", info2)
+                    return
+                end
+
+                -- Ensure slotIndex is valid before using it.
+                if slotIndex then
+                    local spellname = GetSpellBookItemName(slotIndex, spellBookType)
+
+                    -- Check if spellname is valid before using it.
+                    if spellname then
+                        addon.currentKey = self
+                        local key = addon.currentKey.macro:GetText()
+                        if key and key ~= "" then
+                            local actionSlot = SlotMappings[key]
+                            if actionSlot then
+                                PlaceAction(actionSlot)
+                                ClearCursor()
+                                addon:RefreshKeys()
+                            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                                -- Handle ElvUI Buttons.
+                                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                                if elvUIButton and elvUIButton._state_action then
+                                    PlaceAction(elvUIButton._state_action)
+                                    ClearCursor()
+                                    addon:RefreshKeys()
+                                end
+                            end
+                        else
+                            -- Handle the case where the key is nil or empty
+                            --print("No valid macro text found for the button.")
+                        end
+                    else
+                        --print("spellname is nil")
+                    end
+                else
+                    --print("Invalid slotIndex:", slotIndex)
                 end
             end
         elseif Mousebutton == "RightButton" then
@@ -297,14 +376,6 @@ function addon:NewButton(parent)
             ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
         end
     end)
-    
-    local glowBox = CreateFrame("Frame", nil, button, "GlowBoxTemplate")
-    glowBox:SetSize(68, 68)
-    glowBox:SetPoint("CENTER", button, "CENTER", 0, 0)
-    glowBox:Hide()
-    glowBox:SetFrameLevel(button:GetFrameLevel())
-
-    button.glowBox = glowBox
 
     return button
 end
@@ -453,8 +524,10 @@ end
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
     local spell = GetBindingAction(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or "")) or ""
+
     button.icon:Hide()
-    local found = false
+
+    -- Standard ActionButton logic
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if spell:find(a) then
@@ -479,20 +552,44 @@ function addon:SetKey(button)
         end
     end
 
-    if spell == "MOVEFORWARD" then
-        button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowup")
+    -- Custom logic for ElvUI buttons
+    for barIndex = 1, 15 do
+        for buttonIndex = 1, 12 do
+            local elvUIButtonName = "ELVUIBAR" .. barIndex .. "BUTTON" .. buttonIndex
+            if spell == elvUIButtonName then
+                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                if elvUIButton then
+                    local actionID = elvUIButton._state_action
+                    if elvUIButton._state_type == "action" and actionID then
+                        button.icon:SetTexture(GetActionTexture(actionID))
+                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                        button.icon:Show()
+                        button.slot = actionID
+                    end
+                end
+            end
+        end
+    end
+
+    -- code for setting icons for other actions (movement, pets, etc.)
+    if spell == "EXTRAACTIONBUTTON1" then
+        button.icon:SetTexture(4200126)
+        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        button.icon:Show()
+    elseif spell == "MOVEFORWARD" then
+        button.icon:SetTexture(450907)
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()
     elseif spell == "MOVEBACKWARD" then
-        button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowdown")
+        button.icon:SetTexture(450905)
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()    
     elseif spell == "STRAFELEFT" then
-        button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowleft")
+        button.icon:SetTexture(450906)
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()
     elseif spell == "STRAFERIGHT" then
-        button.icon:SetTexture("Interface\\AddOns\\KeyUI\\Media\\arrowright")
+        button.icon:SetTexture(450908)
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()
     end
@@ -561,40 +658,33 @@ function addon:SetKey(button)
         end
     end
     
+    -- handling empty bindings
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
-        if spell == "" and labelText ~= "ESC" and labelText ~= "CAPS" and labelText ~= "LSHIFT" and labelText ~= "LCTRL" and labelText ~= "LALT" and labelText ~= "RALT" and labelText ~= "RCTRL" and labelText ~= "RSHIFT" and labelText ~= "BACKSPACE" and labelText ~= "ENTER" and labelText ~= "SPACE" then
-            button:SetBackdropColor(1, 1, 1, 1)
-            if button.glowBox then
-                button.glowBox:Show()
-            end
+        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE"}, labelText) then
+            button:SetBackdropColor(1, 0, 0, 1)
         else
             button:SetBackdropColor(0, 0, 0, 1)
-            if button.glowBox then
-                button.glowBox:Hide()
-            end
         end
     else
-        button:SetBackdropColor(0, 0, 0, 1)  -- Reset to the default color if a binding is set
-        if button.glowBox then
-            button.glowBox:Hide()
-        end
-    end    
+        button:SetBackdropColor(0, 0, 0, 1)
+    end   
 
 	button.macro:SetText(spell) -- Macro = Blizzard Interface Command (e.g. STRAFE etc.) ////// Spell = Key (e.g. 1, 2, 3, ..., Q, W, E, R, T, Z,..)
 
+    -- additional logic for interface bindings if needed
     if button.interfaceaction then
         if ShowInterfaceBinds == true then
-        -- Check if there's no icon before setting the text
             button.interfaceaction:Show()
         else
             button.interfaceaction:Hide()
         end
     end
+
     -- Get the current text from "button.macro"
     local currentText = button.macro:GetText()
     -- Look up the corresponding text in the "KeyMappings" table
-    local newText = KeyMappings[currentText]
+    local newText = KeyMappings[currentText] or currentText
     -- Check if newText is nil (not found in KeyMappings)
     if newText == nil then
         newText = currentText  -- Use the original text if not found
@@ -708,7 +798,6 @@ local function DropDown_Initialize(self, level)
     local value = UIDROPDOWNMENU_MENU_VALUE
 
     if level == 1 then
-
         info.text = "Spell"
         info.value = "Spell"
         info.hasArrow = true
@@ -721,11 +810,11 @@ local function DropDown_Initialize(self, level)
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-		info.text = "Interface"
-		info.value = "UIBind"
-		info.hasArrow = true
-		info.func = function() end
-		UIDropDownMenu_AddButton(info, level)
+        info.text = "Interface"
+        info.value = "UIBind"
+        info.hasArrow = true
+        info.func = function() end
+        UIDropDownMenu_AddButton(info, level)
 
         info.text = "Clear Action Button"
         info.value = 1
@@ -745,7 +834,7 @@ local function DropDown_Initialize(self, level)
         info.value = 1
         info.hasArrow = false
         info.func = function()
-            if addon.currentKey.label ~= "" then
+            if addon.currentKey.label and addon.currentKey.label:GetText() ~= "" then
                 SetBinding(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
@@ -755,7 +844,6 @@ local function DropDown_Initialize(self, level)
         UIDropDownMenu_AddButton(info, level)
 
     elseif level == 2 then
-
         if value == "Spell" then
             for tabName, v in pairs(addon.spells) do
                 info.text = tabName
@@ -803,14 +891,13 @@ local function DropDown_Initialize(self, level)
             for _, category in ipairs(categories) do
                 local keybindings = InterfaceMapping[category]
                 if keybindings then
-                    local info = UIDropDownMenu_CreateInfo()
                     info.text = category
                     info.hasArrow = true
                     info.value = category
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        end          
+        end
         
     elseif level == 3 then
         if value:find("^tab:") then
@@ -825,7 +912,12 @@ local function DropDown_Initialize(self, level)
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
-                        PickupSpellBookItem(spellName)
+                        -- Ensure C_Spell.PickupSpell is available
+                        if C_Spell.PickupSpell then
+                            C_Spell.PickupSpell(spellName)
+                        else
+                            PickupSpell(spellName)
+                        end
                         PlaceAction(actionSlot)
                         --print(spellName)      -- Spellname
                         --print(key)            -- e.g. ACTIONBUTTON1
