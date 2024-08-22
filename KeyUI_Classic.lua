@@ -803,6 +803,7 @@ local function DropDown_Initialize(self, level)
     local value = UIDROPDOWNMENU_MENU_VALUE
 
     if level == 1 then
+
         info.text = "Spell"
         info.value = "Spell"
         info.hasArrow = true
@@ -815,11 +816,11 @@ local function DropDown_Initialize(self, level)
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "Interface"
-        info.value = "UIBind"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
+		info.text = "Interface"
+		info.value = "UIBind"
+		info.hasArrow = true
+		info.func = function() end
+		UIDropDownMenu_AddButton(info, level)
 
         info.text = "Clear Action Button"
         info.value = 1
@@ -839,7 +840,7 @@ local function DropDown_Initialize(self, level)
         info.value = 1
         info.hasArrow = false
         info.func = function()
-            if addon.currentKey.label and addon.currentKey.label:GetText() ~= "" then
+            if addon.currentKey.label ~= "" then
                 SetBinding(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
@@ -896,13 +897,14 @@ local function DropDown_Initialize(self, level)
             for _, category in ipairs(categories) do
                 local keybindings = InterfaceMapping[category]
                 if keybindings then
+                    local info = UIDropDownMenu_CreateInfo()
                     info.text = category
                     info.hasArrow = true
                     info.value = category
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        end
+        end          
         
     elseif level == 3 then
         if value:find("^tab:") then
@@ -917,12 +919,7 @@ local function DropDown_Initialize(self, level)
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
-                        -- Ensure C_Spell.PickupSpell is available
-                        if C_Spell.PickupSpell then
-                            C_Spell.PickupSpell(spellName)
-                        else
-                            PickupSpell(spellName)
-                        end
+                        C_Spell.PickupSpell(spellName)
                         PlaceAction(actionSlot)
                         --print(spellName)      -- Spellname
                         --print(key)            -- e.g. ACTIONBUTTON1
@@ -1004,7 +1001,7 @@ local function DropDown_Initialize(self, level)
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
-        end        
+        end
     end
 end
 

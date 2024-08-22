@@ -854,7 +854,6 @@ local function DropDown_Initialize(self, level)
         UIDropDownMenu_AddButton(info, level)
 
     elseif level == 2 then
-
         if value == "Spell" then
             for tabName, v in pairs(addon.spells) do
                 info.text = tabName
@@ -1006,7 +1005,7 @@ local function DropDown_Initialize(self, level)
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
-        end        
+        end
     end
 end
 
