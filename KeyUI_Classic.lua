@@ -643,6 +643,11 @@ function addon:SetKey(button)
                             button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                             button.icon:Show()
                             button.slot = 136106
+                        elseif pet == "PET_MODE_DEFENSIVE" then
+                            button.icon:SetTexture(132110)
+                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                            button.icon:Show()
+                            button.slot = 132110
                         end
                     else
                         button.icon:Hide()
