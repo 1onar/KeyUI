@@ -324,13 +324,13 @@ function addon:NewButton(parent)
 
             if infoType == "spell" then
                 local slotIndex = tonumber(info1)
-                local spellBookType
 
                 -- Determine the correct spell book type based on info2.
+                local spellBookType
                 if info2 == "spell" then
-                    spellBookType = "spell"
+                    spellBookType = Enum.SpellBookSpellBank.Player  -- Default to player spells.
                 elseif info2 == "pet" then
-                    spellBookType = "pet"
+                    spellBookType = Enum.SpellBookSpellBank.Pet     -- For pet spells.
                 else
                     --print("Unknown spell book type:", info2)
                     return
@@ -338,10 +338,11 @@ function addon:NewButton(parent)
 
                 -- Ensure slotIndex is valid before using it.
                 if slotIndex then
-                    local spellname = GetSpellBookItemName(slotIndex, spellBookType)
+                    local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(slotIndex, spellBookType)
 
-                    -- Check if spellname is valid before using it.
-                    if spellname then
+                    -- Check if spellBookItemInfo is valid before accessing its properties.
+                    if spellBookItemInfo then
+                        local spellname = spellBookItemInfo.name
                         addon.currentKey = self
                         local key = addon.currentKey.macro:GetText()
                         if key and key ~= "" then
@@ -365,7 +366,7 @@ function addon:NewButton(parent)
                             --print("No valid macro text found for the button.")
                         end
                     else
-                        --print("spellname is nil")
+                        --print("spellBookItemInfo is nil")
                     end
                 else
                     --print("Invalid slotIndex:", slotIndex)
