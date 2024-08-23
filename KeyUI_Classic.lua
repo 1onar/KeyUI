@@ -1067,7 +1067,7 @@ function addon:CreateChangerDDMouse()
     UIDropDownMenu_SetButtonWidth(KBChangeBoardDDMouse, 120)
     KBChangeBoardDDMouse:Hide()
 
-    local boardOrder = {"Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle"}
+    local boardOrder = {"Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle","Layout_Buttons1-5_Forward+Back"}
 
     local function ChangeBoardDDMouse_Initialize(self, level)
         level = level or 1

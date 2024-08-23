@@ -147,4 +147,16 @@ KeyBindAllBoardsMouse = {
         { 'F7', Mouse, -10, -45, 50, 50 },
         { 'F6', Mouse, -60, -55, 50, 50 },
         { 'F5', Mouse, -110, -20, 50, 50 },
-        { 'F4', Mouse, -110, 30, 50, 50 }}}
+        { 'F4', Mouse, -110, 30, 50, 50 }
+    },
+
+    ['Layout_Buttons1-5_Forward+Back'] = {
+
+        { 'MouseWheelUp', Mouse, 140, 170, 50, 50 },
+        { 'Button3', Mouse, 140, 123, 50, 50 },
+        { 'MouseWheelDown', Mouse, 140, 76, 50, 50 },
+        
+        { 'Button5', Mouse, 10, 30, 50, 50 },
+        { 'Button4', Mouse, 10, -20, 50, 50 },
+    }
+}
