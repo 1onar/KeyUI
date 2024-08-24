@@ -22,6 +22,7 @@
 - "2x2"
 - "1x2"
 - "Circle"
+- [Create your layout as shown in the video](https://www.youtube.com/watch?v=ClGztJtR2rQ)
 
 **<ins>View Keybindings</ins>**
 - Hover over keys to see the assigned Spell, Macro or UI-Function
