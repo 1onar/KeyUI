@@ -12,7 +12,7 @@
 - "Razer Tartarus 2"
 - "Azeron"
 
-**<ins>Choose Your Keyboard Layout</ins>**
+**<ins>Choose Your Mouse Layout</ins>**
 - "4x3"
 - "2+4x3"
 - "3x3"
