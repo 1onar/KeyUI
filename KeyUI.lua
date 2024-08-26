@@ -3,7 +3,7 @@ local name, addon = ...
 -- Initialize libraries
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local LibDBIcon = LibStub("LibDBIcon-1.0", true) -- Stelle sicher, dass LibDBIcon korrekt geladen wird
+local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
 -- Initialize saved variables
@@ -17,7 +17,6 @@ CurrentLayout = CurrentLayout or {}                     -- Ensure CurrentLayout 
 MouseKeyEditLayouts = MouseKeyEditLayouts or {}         -- Ensure MouseKeyEditLayouts is initialized as a table
 Keys = {}                                               -- Ensure Keys is initialized as a table
 KeysMouse = {}                                          -- Ensure KeysMouse is initialized as a table
-MiniMapDB = MiniMapDB or {}                             -- Ensure MiniMapDB is initialized as a table
 addonOpen = false                                       -- Flag to track if the addon is open
 fighting = false                                        -- Flag to track if the addon is in a fighting state
 
@@ -40,7 +39,6 @@ local options = {
                 end
             end,
         },
-        -- Add more settings here
     },
 }
 
@@ -58,7 +56,6 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addonOpen then
-                -- Hide frames
                 keyboardFrame:Hide()
                 KBControlsFrame:Hide()
                 Mouseholder:Hide()
@@ -66,7 +63,7 @@ local miniButton = LDB:NewDataObject("KeyUI", {
                 addonOpen = false
             else
                 if not fighting then
-                    addon:Load()  -- Assumes you have a Load function in your addon
+                    addon:Load()
                     addonOpen = true
                 end
             end
@@ -79,12 +76,10 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     end,
 })
 
--- Register the icon with LibDBIcon
-if LibDBIcon then
+EventUtil.ContinueOnAddOnLoaded(..., function()
+    MiniMapDB = MiniMapDB or {}  -- Ensure MiniMapDB is initialized within the addon loaded callback
     LibDBIcon:Register("KeyUI", miniButton, MiniMapDB)
-else
-    print("Error: LibDBIcon is not available.")
-end
+end)
 
 -- Define the modif table
 local modif = {}
