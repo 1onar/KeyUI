@@ -1,38 +1,68 @@
 local name, addon = ...
 
-local ldb = LibStub:GetLibrary("LibDataBroker-1.1", true)
+-- Initialize libraries
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
+local LibDBIcon = LibStub("LibDBIcon-1.0", true) -- Stelle sicher, dass LibDBIcon korrekt geladen wird
+local LDB = LibStub("LibDataBroker-1.1")
 
---SavedVariables--------------
-ShowEmptyBinds = {}
-ShowInterfaceBinds = {}
-KeyBindSettings = {}
-KeyBindSettingsMouse = {}
-MouseKeyEditLayouts = {}
-CurrentLayout = {}
-------------------------------
+-- Initialize saved variables
+KeyUI_Settings = KeyUI_Settings or {}
+KeyUI_Settings.minimapButtonEnabled = KeyUI_Settings.minimapButtonEnabled ~= false  -- Default to true
 
-KeysMouse = {}
-local addonOpen = false
-local fighting = false
-local keyboardFrameVisible = {}
-local MouseholderFrameVisible = {}
-local Keys = {}
+-- Initialize global variables
+Keys = {}  -- Ensure Keys is initialized as a table
+KeysMouse = {}  -- Ensure KeysMouse is initialized as a table
+MiniMapDB = MiniMapDB or {}  -- Ensure MiniMapDB is initialized as a table
+addonOpen = false  -- Flag to track if the addon is open
+fighting = false  -- Flag to track if the addon is in a fighting state
 
-local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
+-- Define the options table for AceConfig
+local options = {
+    type = "group",
+    name = "KeyUI",
+    args = {
+        minimap = {
+            type = "toggle",
+            name = "Enable Minimap Button",
+            desc = "Show or hide the minimap button",
+            get = function() return KeyUI_Settings.minimapButtonEnabled end,
+            set = function(_, value)
+                KeyUI_Settings.minimapButtonEnabled = value
+                if value then
+                    LibDBIcon:Show("KeyUI")
+                else
+                    LibDBIcon:Hide("KeyUI")
+                end
+            end,
+        },
+        -- Add more settings here
+    },
+}
+
+-- Register the options table
+AceConfig:RegisterOptionsTable("KeyUI", options)
+
+-- Create the options frame and add it to the Interface Options
+local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
+
+-- Minimap button setup using LibDataBroker
+local miniButton = LDB:NewDataObject("KeyUI", {
     type = "data source",
     text = "KeyUI",
     icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addonOpen then
+                -- Hide frames
                 keyboardFrame:Hide()
                 KBControlsFrame:Hide()
                 Mouseholder:Hide()
                 MouseControls:Hide()
                 addonOpen = false
             else
-                if fighting == false then
-                    addon:Load()
+                if not fighting then
+                    addon:Load()  -- Assumes you have a Load function in your addon
                     addonOpen = true
                 end
             end
@@ -42,12 +72,15 @@ local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject("KeyUI", {
     OnTooltipShow = function(tooltip)
         if not tooltip or not tooltip.AddLine then return end
         tooltip:AddLine("KeyUI")
-        -- tooltip:AddLine("BLA BLA BLA", 1, 1, 1)    
     end,
 })
 
-local icon = LibStub("LibDBIcon-1.0", true)
-icon:Register("KeyUI", miniButton , MiniMapDB)
+-- Register the icon with LibDBIcon
+if LibDBIcon then
+    LibDBIcon:Register("KeyUI", miniButton, MiniMapDB)
+else
+    print("Error: LibDBIcon is not available.")
+end
 
 -- Define the modif table
 local modif = {}
@@ -78,7 +111,7 @@ function addon:Load()
         local tooltip = self.tooltip or self:CreateTooltip()
 
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
-        self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()   
+        self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
 
         local currentActiveBoard = KeyBindSettings.currentboard
         UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
@@ -707,7 +740,7 @@ function addon:SetKey(button)
     end
 end
 
--- RefreshKeys() - Updates the display of key bindings and their textures/texts.
+-- RefreshKeys function
 function addon:RefreshKeys()
     if not locked then
         return
@@ -727,6 +760,11 @@ function addon:RefreshKeys()
         end
     end
 
+    -- Initialize Keys and KeysMouse if not already
+    Keys = Keys or {}
+    KeysMouse = KeysMouse or {}
+
+    -- Hide all keys
     for i = 1, #Keys do
         Keys[i]:Hide()
     end
@@ -742,12 +780,12 @@ function addon:RefreshKeys()
     else
         wipe(KeysMouse)
         edited = false
-        --print("Keys edited = false")
         self:SwitchBoardMouse()
     end
     self:CheckModifiers()
     addon:RefreshControls()
 
+    -- Set the keys
     for i = 1, #Keys do
         self:SetKey(Keys[i])
     end
@@ -755,7 +793,6 @@ function addon:RefreshKeys()
     for j = 1, #KeysMouse do
         self:SetKey(KeysMouse[j])
     end
-    --print("Keys refreshed")
 end
 
 -- Define a function to handle key press events
