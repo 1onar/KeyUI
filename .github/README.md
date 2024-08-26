@@ -12,7 +12,7 @@
 - "Razer Tartarus 2"
 - "Azeron"
 
-**<ins>Choose Your Keyboard Layout</ins>**
+**<ins>Choose Your Mouse Layout</ins>**
 - "4x3"
 - "2+4x3"
 - "3x3"
@@ -22,6 +22,7 @@
 - "2x2"
 - "1x2"
 - "Circle"
+- [Create your layout as shown in the video](https://www.youtube.com/watch?v=ClGztJtR2rQ)
 
 **<ins>View Keybindings</ins>**
 - Hover over keys to see the assigned Spell, Macro or UI-Function
