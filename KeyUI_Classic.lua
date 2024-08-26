@@ -11,11 +11,15 @@ KeyUI_Settings = KeyUI_Settings or {}
 KeyUI_Settings.minimapButtonEnabled = KeyUI_Settings.minimapButtonEnabled ~= false  -- Default to true
 
 -- Initialize global variables
-Keys = {}  -- Ensure Keys is initialized as a table
-KeysMouse = {}  -- Ensure KeysMouse is initialized as a table
-MiniMapDB = MiniMapDB or {}  -- Ensure MiniMapDB is initialized as a table
-addonOpen = false  -- Flag to track if the addon is open
-fighting = false  -- Flag to track if the addon is in a fighting state
+KeyBindSettings = KeyBindSettings or {}                 -- Ensure KeyBindSettings is initialized as a table
+KeyBindSettingsMouse = KeyBindSettingsMouse or {}       -- Ensure KeyBindSettingsMouse is initialized as a table
+CurrentLayout = CurrentLayout or {}                     -- Ensure CurrentLayout is initialized as a table
+MouseKeyEditLayouts = MouseKeyEditLayouts or {}         -- Ensure MouseKeyEditLayouts is initialized as a table
+Keys = {}                                               -- Ensure Keys is initialized as a table
+KeysMouse = {}                                          -- Ensure KeysMouse is initialized as a table
+MiniMapDB = MiniMapDB or {}                             -- Ensure MiniMapDB is initialized as a table
+addonOpen = false                                       -- Flag to track if the addon is open
+fighting = false                                        -- Flag to track if the addon is in a fighting state
 
 -- Define the options table for AceConfig
 local options = {
