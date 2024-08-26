@@ -6,10 +6,6 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
--- Initialize saved variables
-KeyUI_Settings = KeyUI_Settings or {}
-KeyUI_Settings.minimapButtonEnabled = KeyUI_Settings.minimapButtonEnabled ~= false  -- Default to true
-
 -- Initialize global variables
 KeyBindSettings = KeyBindSettings or {}                 -- Ensure KeyBindSettings is initialized as a table
 KeyBindSettingsMouse = KeyBindSettingsMouse or {}       -- Ensure KeyBindSettingsMouse is initialized as a table
@@ -29,13 +25,15 @@ local options = {
             type = "toggle",
             name = "Enable Minimap Button",
             desc = "Show or hide the minimap button",
-            get = function() return KeyUI_Settings.minimapButtonEnabled end,
+            get = function() return not MiniMapDB.hide end,  -- Reflect the actual state of MiniMapDB.hide
             set = function(_, value)
-                KeyUI_Settings.minimapButtonEnabled = value
+                MiniMapDB.hide = not value
                 if value then
                     LibDBIcon:Show("KeyUI")
+                    print("Minimap button enabled.")
                 else
                     LibDBIcon:Hide("KeyUI")
+                    print("Minimap button disabled.")
                 end
             end,
         },
@@ -77,7 +75,15 @@ local miniButton = LDB:NewDataObject("KeyUI", {
 })
 
 EventUtil.ContinueOnAddOnLoaded(..., function()
-    MiniMapDB = MiniMapDB or {}  -- Ensure MiniMapDB is initialized within the addon loaded callback
+    MiniMapDB = MiniMapDB or { hide = false }  -- Ensure MiniMapDB is initialized with a default value
+    
+    -- Apply the saved state when the addon is loaded
+    if MiniMapDB.hide then
+        LibDBIcon:Hide("KeyUI")
+    else
+        LibDBIcon:Show("KeyUI")
+    end
+    
     LibDBIcon:Register("KeyUI", miniButton, MiniMapDB)
 end)
 
