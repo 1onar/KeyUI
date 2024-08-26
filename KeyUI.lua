@@ -740,7 +740,7 @@ function addon:SetKey(button)
     end
 end
 
--- RefreshKeys function
+-- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
     if not locked then
         return
