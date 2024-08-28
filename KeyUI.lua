@@ -1167,32 +1167,50 @@ function addon:CreateChangerDD()
     UIDropDownMenu_SetButtonWidth(KBChangeBoardDD, 120)
     KBChangeBoardDD:Hide()
 
-    local boardOrder = {"QWERTZ_PRIMARY", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%", 
-                        "QWERTY_PRIMARY","QWERTY_60%", "QWERTY_80%", "QWERTY_100%", 
-                        "AZERTY_PRIMARY", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%", 
-                        "DVORAK_PRIMARY", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%", 
-                        "Razer_Tartarus", "Razer_Tartarus2", "Azeron"}
+    local boardCategories = {
+        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%"},
+        QWERTY = {"QWERTY_PRIMARY", "QWERTY_60%", "QWERTY_80%", "QWERTY_100%"},
+        AZERTY = {"AZERTY_PRIMARY", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%"},
+        DVORAK = {"DVORAK_PRIMARY", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%"},
+        Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
+        Azeron = {"Azeron"}
+    }
+
+    local categoryOrder = {"QWERTZ", "QWERTY", "AZERTY", "DVORAK", "Razer", "Azeron"}
 
     local function ChangeBoardDD_Initialize(self, level)
         level = level or 1
         local info = UIDropDownMenu_CreateInfo()
         local value = UIDROPDOWNMENU_MENU_VALUE
     
-        for _, name in ipairs(boardOrder) do 
-            local buttons = KeyBindAllBoards[name]
-            info.text = name
-            info.value = name
-            info.func = function()
-                KeyBindSettings.currentboard = name
-                addon:RefreshKeys()
-                UIDropDownMenu_SetText(self, name)
-                if maximizeFlag == true then
-                    KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-                else
-                    return
+        if level == 1 then
+            for _, category in ipairs(categoryOrder) do 
+                info.text = category
+                info.value = category
+                info.hasArrow = true
+                info.notCheckable = true
+                info.menuList = category
+                UIDropDownMenu_AddButton(info, level)
+            end
+        elseif level == 2 then
+            local layouts = boardCategories[value]
+            if layouts then
+                for _, name in ipairs(layouts) do
+                    info.text = name
+                    info.value = name
+                    info.func = function()
+                        KeyBindSettings.currentboard = name
+                        addon:RefreshKeys()
+                        UIDropDownMenu_SetText(KBChangeBoardDD, name)
+                        if maximizeFlag == true then
+                            KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
+                        else
+                            return
+                        end
+                    end
+                    UIDropDownMenu_AddButton(info, level)
                 end
             end
-            UIDropDownMenu_AddButton(info, level)
         end
     end
 
