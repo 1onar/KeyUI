@@ -9,6 +9,7 @@
 ## Notes: Visualize your keyboard, mouse and keybinds.
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
+## SavedVariables: KeyUI_Settings
 ## SavedVariables: MiniMapDB
 ## SavedVariables: KeyboardPosition
 ## SavedVariables: MousePosition

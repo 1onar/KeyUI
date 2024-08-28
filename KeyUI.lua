@@ -6,15 +6,28 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
--- Initialize global variables
-KeyBindSettings = KeyBindSettings or {}                 -- Ensure KeyBindSettings is initialized as a table
-KeyBindSettingsMouse = KeyBindSettingsMouse or {}       -- Ensure KeyBindSettingsMouse is initialized as a table
-CurrentLayout = CurrentLayout or {}                     -- Ensure CurrentLayout is initialized as a table
-MouseKeyEditLayouts = MouseKeyEditLayouts or {}         -- Ensure MouseKeyEditLayouts is initialized as a table
-Keys = {}                                               -- Ensure Keys is initialized as a table
-KeysMouse = {}                                          -- Ensure KeysMouse is initialized as a table
-addonOpen = false                                       -- Flag to track if the addon is open
-fighting = false                                        -- Flag to track if the addon is in a fighting state
+-- Initialize global variables and SavedVariables
+KeyBindSettings = KeyBindSettings or {}
+KeyBindSettingsMouse = KeyBindSettingsMouse or {}
+CurrentLayout = CurrentLayout or {}
+MouseKeyEditLayouts = MouseKeyEditLayouts or {}
+Keys = {}
+KeysMouse = {}
+addonOpen = false
+fighting = false
+
+-- Initialize SavedVariables for KeyUI settings
+KeyUI_Settings = KeyUI_Settings or {
+    showKeyboard = false,  -- Default to false if not set
+    showMouse = true,      -- Default to true if not set
+}
+
+-- Initialize modif table to avoid nil errors
+local modif = modif or {}
+modif.CTRL = modif.CTRL or ""
+modif.SHIFT = modif.SHIFT or ""
+modif.ALT = modif.ALT or ""
+addon.modif = modif
 
 -- Define the options table for AceConfig
 local options = {
@@ -23,17 +36,47 @@ local options = {
     args = {
         minimap = {
             type = "toggle",
-            name = "Enable Minimap Button",
+            name = "Minimap Button",
             desc = "Show or hide the minimap button",
-            get = function() return not MiniMapDB.hide end,  -- Reflect the actual state of MiniMapDB.hide
+            get = function() return not MiniMapDB.hide end,
             set = function(_, value)
                 MiniMapDB.hide = not value
                 if value then
                     LibDBIcon:Show("KeyUI")
-                    print("Minimap button enabled.")
+                    print("KeyUI: Minimap button enabled")
                 else
                     LibDBIcon:Hide("KeyUI")
-                    print("Minimap button disabled.")
+                    print("KeyUI: Minimap button disabled")
+                end
+            end,
+        },
+        showKeyboard = {
+            type = "toggle",
+            name = "Show Keyboard",
+            desc = "Show or hide the keyboard interface",
+            get = function() return KeyUI_Settings.showKeyboard end,
+            set = function(_, value)
+                KeyUI_Settings.showKeyboard = value
+                addon:SaveSettings()
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Keyboard visibility", status)
+                if addonOpen then
+                    addon:UpdateInterfaceVisibility()
+                end
+            end,
+        },
+        showMouse = {
+            type = "toggle",
+            name = "Show Mouse",
+            desc = "Show or hide the mouse interface",
+            get = function() return KeyUI_Settings.showMouse end,
+            set = function(_, value)
+                KeyUI_Settings.showMouse = value
+                addon:SaveSettings()
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Mouse visibility", status)
+                if addonOpen then
+                    addon:UpdateInterfaceVisibility()
                 end
             end,
         },
@@ -54,10 +97,7 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addonOpen then
-                keyboardFrame:Hide()
-                KBControlsFrame:Hide()
-                Mouseholder:Hide()
-                MouseControls:Hide()
+                addon:HideAll()
                 addonOpen = false
             else
                 if not fighting then
@@ -65,19 +105,30 @@ local miniButton = LDB:NewDataObject("KeyUI", {
                     addonOpen = true
                 end
             end
+        elseif btn == "RightButton" then
+            -- Open the Blizzard settings page
+            Settings.OpenToCategory("KeyUI")
         end
     end,
     
     OnTooltipShow = function(tooltip)
         if not tooltip or not tooltip.AddLine then return end
+
+        -- Add the title
         tooltip:AddLine("KeyUI")
+        
+        -- Add blank line for spacing
+        tooltip:AddLine(" ")
+
+        -- Add description lines with custom colors
+        tooltip:AddLine("|cffffffffLeft-Click|r |cFF00FF00to toggle addon|r")
+        tooltip:AddLine("|cffffffffRight-Click|r |cFF00FF00to open options|r")
     end,
 })
 
 EventUtil.ContinueOnAddOnLoaded(..., function()
-    MiniMapDB = MiniMapDB or { hide = false }  -- Ensure MiniMapDB is initialized with a default value
+    MiniMapDB = MiniMapDB or { hide = false }
     
-    -- Apply the saved state when the addon is loaded
     if MiniMapDB.hide then
         LibDBIcon:Hide("KeyUI")
     else
@@ -85,32 +136,49 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     end
     
     LibDBIcon:Register("KeyUI", miniButton, MiniMapDB)
+
+    -- Load saved settings
+    addon:LoadSettings()
+    addon:UpdateInterfaceVisibility()
 end)
 
--- Define the modif table
-local modif = {}
-modif.CTRL = ""
-modif.SHIFT = ""
-modif.ALT = ""
-addon.modif = modif
+-- Update the visibility of keyboard and mouse based on settings, only if addon is open
+function addon:UpdateInterfaceVisibility()
+    if not addonOpen then
+        return
+    end
 
-function addon:Load()
     local keyboard = self:GetKeyboard()
     local Controls = self:GetControls()
     local Mouseholder = self:GetMouseholder()
     local MouseFrame = self:GetMouseFrame()
     local MouseControls = self:GetMouseControls()
 
+    if KeyUI_Settings.showKeyboard then
+        keyboard:Show()
+        Controls:Show()
+    else
+        keyboard:Hide()
+        Controls:Hide()
+    end
+
+    if KeyUI_Settings.showMouse then
+        Mouseholder:Show()
+        MouseFrame:Show()
+        MouseControls:Show()
+    else
+        Mouseholder:Hide()
+        MouseFrame:Hide()
+        MouseControls:Hide()
+    end
+end
+
+function addon:Load()
     if fighting then
         return
     else
         addonOpen = true
-
-        keyboard:Show()
-        Controls:Show()
-        Mouseholder:Show()
-        MouseFrame:Show()
-        MouseControls:Show()
+        self:UpdateInterfaceVisibility()
 
         local dropdown = self.dropdown or self:CreateDropDown()
         local tooltip = self.tooltip or self:CreateTooltip()
@@ -128,6 +196,35 @@ function addon:Load()
         self:LoadDropDown()
         self:RefreshKeys()
     end
+end
+
+-- Save the current settings to SavedVariables
+function addon:SaveSettings()
+    KeyUI_Settings = KeyUI_Settings or {}
+    KeyUI_Settings.showKeyboard = KeyUI_Settings.showKeyboard
+    KeyUI_Settings.showMouse = KeyUI_Settings.showMouse
+end
+
+-- Load settings from SavedVariables
+function addon:LoadSettings()
+    KeyUI_Settings = KeyUI_Settings or {}
+    KeyUI_Settings.showKeyboard = KeyUI_Settings.showKeyboard ~= nil and KeyUI_Settings.showKeyboard or false
+    KeyUI_Settings.showMouse = KeyUI_Settings.showMouse ~= nil and KeyUI_Settings.showMouse or false
+end
+
+-- Hides all UI elements when the addon is closed
+function addon:HideAll()
+    local keyboard = self:GetKeyboard()
+    local Controls = self:GetControls()
+    local Mouseholder = self:GetMouseholder()
+    local MouseFrame = self:GetMouseFrame()
+    local MouseControls = self:GetMouseControls()
+
+    keyboard:Hide()
+    Controls:Hide()
+    Mouseholder:Hide()
+    MouseFrame:Hide()
+    MouseControls:Hide()
 end
 
 -- LoadDropDown() - This function initializes the dropdown menu for key bindings.
