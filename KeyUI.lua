@@ -18,7 +18,7 @@ fighting = false
 
 -- Initialize SavedVariables for KeyUI settings
 KeyUI_Settings = KeyUI_Settings or {
-    showKeyboard = false,  -- Default to false if not set
+    showKeyboard = true,  -- Default to true if not set
     showMouse = true,      -- Default to true if not set
 }
 
