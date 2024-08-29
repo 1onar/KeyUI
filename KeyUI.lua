@@ -1168,10 +1168,10 @@ function addon:CreateChangerDD()
     KBChangeBoardDD:Hide()
 
     local boardCategories = {
-        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%"},
-        QWERTY = {"QWERTY_PRIMARY", "QWERTY_60%", "QWERTY_80%", "QWERTY_100%"},
-        AZERTY = {"AZERTY_PRIMARY", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%"},
-        DVORAK = {"DVORAK_PRIMARY", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%"},
+        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_HALF", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%"},
+        QWERTY = {"QWERTY_PRIMARY", "QWERTY_HALF", "QWERTY_60%", "QWERTY_80%", "QWERTY_100%"},
+        AZERTY = {"AZERTY_PRIMARY", "AZERTY_HALF", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%"},
+        DVORAK = {"DVORAK_PRIMARY", "DVORAK_HALF", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%"},
         Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
         Azeron = {"Azeron"}
     }

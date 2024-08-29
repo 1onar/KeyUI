@@ -82,7 +82,54 @@ KeyBindAllBoards = {
         { 'SPACE', Keyboard, 319, -372, 415, 70 },
         { 'RALT', Keyboard, 737, -372, 101, 70 },
         { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
+
+    ['QWERTZ_HALF'] = {
+
+        { 'ESC', Keyboard, 7, -7, 70, 70 },
     
+        { 'F1', Keyboard, 153, -7, 70, 70 },
+        { 'F2', Keyboard, 226, -7, 70, 70 },
+        { 'F3', Keyboard, 299, -7, 70, 70 },
+        { 'F4', Keyboard, 372, -7, 70, 70 },
+
+        { 'F5', Keyboard, 480, -7, 70, 70 },
+        
+        { '^', Keyboard, 7, -80, 70, 70 },
+        { '1', Keyboard, 80, -80, 70, 70 },
+        { '2', Keyboard, 153, -80, 70, 70 },
+        { '3', Keyboard, 226, -80, 70, 70 },
+        { '4', Keyboard, 299, -80, 70, 70 },
+        { '5', Keyboard, 372, -80, 70, 70 },
+        { '6', Keyboard, 445, -80, 70, 70 },
+        
+        { 'TAB', Keyboard, 7, -153, 104, 70 },
+        { 'Q', Keyboard, 114, -153, 70, 70 },
+        { 'W', Keyboard, 187, -153, 70, 70 },
+        { 'E', Keyboard, 260, -153, 70, 70 },
+        { 'R', Keyboard, 333, -153, 70, 70 },
+        { 'T', Keyboard, 406, -153, 70, 70 },
+        { 'Z', Keyboard, 479, -153, 70, 70 },
+        
+        { 'CAPS', Keyboard, 7, -226, 121, 70 },
+        { 'A', Keyboard, 131, -226, 70, 70 },
+        { 'S', Keyboard, 204, -226, 70, 70 },
+        { 'D', Keyboard, 277, -226, 70, 70 },
+        { 'F', Keyboard, 350, -226, 70, 70 },
+        { 'G', Keyboard, 423, -226, 70, 70 },
+        { 'H', Keyboard, 496, -226, 70, 70 },
+        
+        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
+        { '<', Keyboard, 111, -299, 70, 70 },
+        { 'Y', Keyboard, 184, -299, 70, 70 },
+        { 'X', Keyboard, 257, -299, 70, 70 },
+        { 'C', Keyboard, 330, -299, 70, 70 },
+        { 'V', Keyboard, 403, -299, 70, 70 },
+        { 'B', Keyboard, 476, -299, 70, 70 },
+        
+        
+        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
+        { 'LALT', Keyboard, 215, -372, 101, 70 },
+        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
 
     ['QWERTZ_60%'] = {
              
@@ -149,7 +196,6 @@ KeyBindAllBoards = {
         { 'SPACE', Keyboard, 319, -299, 415, 70 },
         { 'RALT', Keyboard, 737, -299, 101, 70 },
         { 'RCTRL', Keyboard, 998, -299, 101, 70 }},
-
 
     ['QWERTZ_80%'] = {
 
@@ -250,7 +296,6 @@ KeyBindAllBoards = {
         { 'DOWN', Keyboard, 1192, -372, 70, 70 },
         { 'UP', Keyboard, 1192, -299, 70, 70 },
         { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
 
     ['QWERTZ_100%'] = {
 
@@ -374,7 +419,6 @@ KeyBindAllBoards = {
         { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
         { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
 
-
     ['QWERTY_PRIMARY'] = { 
     
         { 'ESC', Keyboard, 7, -7, 70, 70 },
@@ -457,6 +501,51 @@ KeyBindAllBoards = {
         { 'RALT', Keyboard, 748, -372, 101, 70 },
         { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
 
+    ['QWERTY_HALF'] = { 
+
+        { 'ESC', Keyboard, 7, -7, 70, 70 },
+            
+        { 'F1', Keyboard, 153, -7, 70, 70 },
+        { 'F2', Keyboard, 226, -7, 70, 70 },
+        { 'F3', Keyboard, 299, -7, 70, 70 },
+        { 'F4', Keyboard, 372, -7, 70, 70 },
+
+        { 'F5', Keyboard, 480, -7, 70, 70 },
+            
+        { '`', Keyboard, 7, -80, 70, 70 },
+        { '1', Keyboard, 80, -80, 70, 70 },
+        { '2', Keyboard, 153, -80, 70, 70 },
+        { '3', Keyboard, 226, -80, 70, 70 },
+        { '4', Keyboard, 299, -80, 70, 70 },
+        { '5', Keyboard, 372, -80, 70, 70 },
+        { '6', Keyboard, 445, -80, 70, 70 },
+            
+        { 'TAB', Keyboard, 7, -153, 104, 70 },
+        { 'Q', Keyboard, 114, -153, 70, 70 },
+        { 'W', Keyboard, 187, -153, 70, 70 },
+        { 'E', Keyboard, 260, -153, 70, 70 },
+        { 'R', Keyboard, 333, -153, 70, 70 },
+        { 'T', Keyboard, 406, -153, 70, 70 },
+        { 'Y', Keyboard, 479, -153, 70, 70 },
+            
+        { 'CAPS', Keyboard, 7, -226, 121, 70 },
+        { 'A', Keyboard, 131, -226, 70, 70 },
+        { 'S', Keyboard, 204, -226, 70, 70 },
+        { 'D', Keyboard, 277, -226, 70, 70 },
+        { 'F', Keyboard, 350, -226, 70, 70 },
+        { 'G', Keyboard, 423, -226, 70, 70 },
+        { 'H', Keyboard, 496, -226, 70, 70 },
+            
+        { 'LSHIFT', Keyboard, 7, -299, 154, 70 },
+        { 'Z', Keyboard, 164, -299, 70, 70 },
+        { 'X', Keyboard, 237, -299, 70, 70 },
+        { 'C', Keyboard, 310, -299, 70, 70 },
+        { 'V', Keyboard, 383, -299, 70, 70 },
+        { 'B', Keyboard, 456, -299, 70, 70 },
+            
+        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
+        { 'LALT', Keyboard, 174, -372, 101, 70 },
+        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
 
     ['QWERTY_60%'] = { 
 
@@ -522,7 +611,6 @@ KeyBindAllBoards = {
         { 'SPACE', Keyboard, 278, -299, 467, 70 },
         { 'RALT', Keyboard, 748, -299, 101, 70 },
         { 'RCTRL', Keyboard, 998, -299, 101, 70 }},
-    
 
     ['QWERTY_80%'] = { 
 
@@ -622,7 +710,6 @@ KeyBindAllBoards = {
         { 'DOWN', Keyboard, 1192, -372, 70, 70 },
         { 'UP', Keyboard, 1192, -299, 70, 70 },
         { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
 
     ['QWERTY_100%'] = { 
 
@@ -745,7 +832,6 @@ KeyBindAllBoards = {
         { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
         { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
 
-
     ['AZERTY_PRIMARY'] = {
 
         { 'ESC', Keyboard, 7, -7, 70, 70 },
@@ -829,6 +915,52 @@ KeyBindAllBoards = {
         { 'RALT', Keyboard, 737, -372, 101, 70 },
         { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
 
+    ['AZERTY_HALF'] = {
+
+        { 'ESC', Keyboard, 7, -7, 70, 70 },
+        
+        { 'F1', Keyboard, 153, -7, 70, 70 },
+        { 'F2', Keyboard, 226, -7, 70, 70 },
+        { 'F3', Keyboard, 299, -7, 70, 70 },
+        { 'F4', Keyboard, 372, -7, 70, 70 },
+        
+        { 'F5', Keyboard, 480, -7, 70, 70 },
+        
+        { '²', Keyboard, 7, -80, 70, 70 },
+        { '1', Keyboard, 80, -80, 70, 70 },
+        { '2', Keyboard, 153, -80, 70, 70 },
+        { '3', Keyboard, 226, -80, 70, 70 },
+        { '4', Keyboard, 299, -80, 70, 70 },
+        { '5', Keyboard, 372, -80, 70, 70 },
+        { '6', Keyboard, 445, -80, 70, 70 },
+        
+        { 'TAB', Keyboard, 7, -153, 104, 70 },
+        { 'A', Keyboard, 114, -153, 70, 70 },
+        { 'Z', Keyboard, 187, -153, 70, 70 },
+        { 'E', Keyboard, 260, -153, 70, 70 },
+        { 'R', Keyboard, 333, -153, 70, 70 },
+        { 'T', Keyboard, 406, -153, 70, 70 },
+        { 'Y', Keyboard, 479, -153, 70, 70 },
+        
+        { 'CAPS', Keyboard, 7, -226, 121, 70 },
+        { 'Q', Keyboard, 131, -226, 70, 70 },
+        { 'S', Keyboard, 204, -226, 70, 70 },
+        { 'D', Keyboard, 277, -226, 70, 70 },
+        { 'F', Keyboard, 350, -226, 70, 70 },
+        { 'G', Keyboard, 423, -226, 70, 70 },
+        { 'H', Keyboard, 496, -226, 70, 70 },
+        
+        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
+        { '<', Keyboard, 111, -299, 70, 70 },
+        { 'W', Keyboard, 184, -299, 70, 70 },
+        { 'X', Keyboard, 257, -299, 70, 70 },
+        { 'C', Keyboard, 330, -299, 70, 70 },
+        { 'V', Keyboard, 403, -299, 70, 70 },
+        { 'B', Keyboard, 476, -299, 70, 70 },
+        
+        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
+        { 'LALT', Keyboard, 215, -372, 101, 70 },
+        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
 
     ['AZERTY_60%'] = {
 
@@ -1203,6 +1335,51 @@ KeyBindAllBoards = {
         -- Lücke für MENU { '', Keyboard, 922, -372, 70, 70 }, 
         { 'RCTRL', Keyboard, 995, -372, 104, 70 }},
 
+    ['DVORAK_HALF'] = {
+
+        { 'ESC', Keyboard, 7, -7, 70, 70 },
+    
+        { 'F1', Keyboard, 153, -7, 70, 70 },
+        { 'F2', Keyboard, 226, -7, 70, 70 },
+        { 'F3', Keyboard, 299, -7, 70, 70 },
+        { 'F4', Keyboard, 372, -7, 70, 70 },
+    
+        { 'F5', Keyboard, 480, -7, 70, 70 },
+    
+        { '`', Keyboard, 7, -80, 70, 70 },
+        { '1', Keyboard, 80, -80, 70, 70 },
+        { '2', Keyboard, 153, -80, 70, 70 },
+        { '3', Keyboard, 226, -80, 70, 70 },
+        { '4', Keyboard, 299, -80, 70, 70 },
+        { '5', Keyboard, 372, -80, 70, 70 },
+        { '6', Keyboard, 445, -80, 70, 70 },
+    
+        { 'TAB', Keyboard, 7, -153, 104, 70 },
+        { "'", Keyboard, 114, -153, 70, 70 },
+        { ',', Keyboard, 187, -153, 70, 70 },
+        { '.', Keyboard, 260, -153, 70, 70 },
+        { 'P', Keyboard, 333, -153, 70, 70 },
+        { 'Y', Keyboard, 406, -153, 70, 70 },
+        { 'F', Keyboard, 479, -153, 70, 70 },
+    
+        { 'CAPS', Keyboard, 7, -226, 121, 70 },
+        { 'A', Keyboard, 131, -226, 70, 70 },
+        { 'O', Keyboard, 204, -226, 70, 70 },
+        { 'E', Keyboard, 277, -226, 70, 70 },
+        { 'U', Keyboard, 350, -226, 70, 70 },
+        { 'I', Keyboard, 423, -226, 70, 70 },
+        { 'D', Keyboard, 496, -226, 70, 70 },
+    
+        { 'LSHIFT', Keyboard, 7, -299, 159, 70 },
+        { ';', Keyboard, 169, -299, 70, 70 },
+        { 'Q', Keyboard, 242, -299, 70, 70 },
+        { 'J', Keyboard, 315, -299, 70, 70 },
+        { 'K', Keyboard, 388, -299, 70, 70 },
+        { 'X', Keyboard, 461, -299, 70, 70 },
+    
+        { 'LCTRL', Keyboard, 7, -372, 104, 70 },
+        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
+
     ['DVORAK_60%'] = {
 
         { 'ESC', Keyboard, 7, -7, 70, 70 },
@@ -1530,7 +1707,6 @@ KeyBindAllBoards = {
         { 'C', Keyboard, 226, -153, 70, 70 },
         { 'V', Keyboard, 299, -153, 70, 70 }},
 
-
     ['Razer_Tartarus2'] = { 
 
         { '1', Keyboard, 7, -22, 70, 70 },   
@@ -1555,7 +1731,6 @@ KeyBindAllBoards = {
         { 'Z', Keyboard, 80, -226, 70, 70 },
         { 'X', Keyboard, 153, -226, 70, 70 },
         { 'C', Keyboard, 226, -226, 70, 70 }},
-
 
     ['Azeron'] = { 
 
