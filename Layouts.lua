@@ -1327,12 +1327,12 @@ KeyBindAllBoards = {
         { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
     
         { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- Lücke für LWIN { '', Keyboard, 114, -372, 70, 70 },
-        -- Lücke für RWIN { 'LALT', Keyboard, 187, -372, 104, 70 },
+        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
+        { 'LALT', Keyboard, 187, -372, 104, 70 },
         { 'SPACE', Keyboard, 296, -372, 443, 70 },
         { 'RALT', Keyboard, 742, -372, 104, 70 },
-        { '', Keyboard, 849, -372, 70, 70 }, 
-        -- Lücke für MENU { '', Keyboard, 922, -372, 70, 70 }, 
+        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
+        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
         { 'RCTRL', Keyboard, 995, -372, 104, 70 }},
 
     ['DVORAK_HALF'] = {
@@ -1378,7 +1378,9 @@ KeyBindAllBoards = {
         { 'X', Keyboard, 461, -299, 70, 70 },
     
         { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
+        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
+        { 'LALT', Keyboard, 187, -372, 104, 70 },
+        { 'SPACE', Keyboard, 296, -372, 270, 70 }},
 
     ['DVORAK_60%'] = {
 
@@ -1441,18 +1443,18 @@ KeyBindAllBoards = {
         { 'RSHIFT', Keyboard, 899, -226, 200, 70 },
 
         { 'LCTRL', Keyboard, 7, -299, 104, 70 },
-        -- Lücke für LWIN { '', Keyboard, 114, -299, 70, 70 },
-        -- Lücke für RWIN { 'LALT', Keyboard, 187, -299, 104, 70 },
+        -- gap for LWIN { '', Keyboard, 114, -299, 70, 70 },
+        { 'LALT', Keyboard, 187, -299, 104, 70 },
         { 'SPACE', Keyboard, 296, -299, 443, 70 },
         { 'RALT', Keyboard, 742, -299, 104, 70 },
-        { '', Keyboard, 849, -299, 70, 70 }, 
-        -- Lücke für MENU { '', Keyboard, 922, -299, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -299, 104, 70 }},     
+        -- gap for RWIN { { '', Keyboard, 849, -299, 70, 70 }, 
+        -- gap for MENU { '', Keyboard, 922, -299, 70, 70 }, 
+        { 'RCTRL', Keyboard, 995, -299, 104, 70 }},
 
     ['DVORAK_80%'] = {
 
         { 'ESC', Keyboard, 7, -7, 70, 70 },
-        
+    
         { 'F1', Keyboard, 153, -7, 70, 70 },
         { 'F2', Keyboard, 226, -7, 70, 70 },
         { 'F3', Keyboard, 299, -7, 70, 70 },
@@ -1524,21 +1526,15 @@ KeyBindAllBoards = {
         { 'V', Keyboard, 753, -299, 70, 70 },
         { 'Z', Keyboard, 826, -299, 70, 70 },
         { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
-        
+
         { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- Lücke für LWIN { '', Keyboard, 114, -372, 70, 70 },
-        -- Lücke für RWIN { 'LALT', Keyboard, 187, -372, 104, 70 },
+        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
+        { 'LALT', Keyboard, 187, -372, 104, 70 },
         { 'SPACE', Keyboard, 296, -372, 443, 70 },
         { 'RALT', Keyboard, 742, -372, 104, 70 },
-        { '', Keyboard, 849, -372, 70, 70 }, 
-        -- Lücke für MENU { '', Keyboard, 922, -372, 70, 70 }, 
+        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
+        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
         { 'RCTRL', Keyboard, 995, -372, 104, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 278, -372, 467, 70 },
-        { 'RALT', Keyboard, 748, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
         
         { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
         { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
@@ -1558,9 +1554,9 @@ KeyBindAllBoards = {
         { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
 
     ['DVORAK_100%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
         
+        { 'ESC', Keyboard, 7, -7, 70, 70 },
+    
         { 'F1', Keyboard, 153, -7, 70, 70 },
         { 'F2', Keyboard, 226, -7, 70, 70 },
         { 'F3', Keyboard, 299, -7, 70, 70 },
@@ -1632,21 +1628,15 @@ KeyBindAllBoards = {
         { 'V', Keyboard, 753, -299, 70, 70 },
         { 'Z', Keyboard, 826, -299, 70, 70 },
         { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
-        
+
         { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- Lücke für LWIN { '', Keyboard, 114, -372, 70, 70 },
-        -- Lücke für RWIN { 'LALT', Keyboard, 187, -372, 104, 70 },
+        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
+        { 'LALT', Keyboard, 187, -372, 104, 70 },
         { 'SPACE', Keyboard, 296, -372, 443, 70 },
         { 'RALT', Keyboard, 742, -372, 104, 70 },
-        { '', Keyboard, 849, -372, 70, 70 }, 
-        -- Lücke für MENU { '', Keyboard, 922, -372, 70, 70 }, 
+        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
+        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
         { 'RCTRL', Keyboard, 995, -372, 104, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 278, -372, 467, 70 },
-        { 'RALT', Keyboard, 748, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
         
         { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
         { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
