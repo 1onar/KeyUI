@@ -1305,17 +1305,43 @@ function addon:BattleCheck(event)
     end
 end
 
+-- Create a frame to handle stance and stealth events
+local eventFrame = CreateFrame("Frame")
+
+-- Register events for stance changes
+eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+
+-- Define a function to handle stance events
 local function OnEvent(self, event, ...)
-    C_Timer.After(0.01, function()
-        addon:RefreshKeys()
-    end)
+    if addonOpen then 
+        local classFilename = UnitClassBase("player")
+        
+        if event == "UPDATE_BONUS_ACTIONBAR" then
+            -- Check if the class is Rogue or Druid
+            if classFilename == "DRUID" or classFilename == "ROGUE" then
+                local bonusBarOffset = GetBonusBarOffset()
+                --print("Class Filename:", classFilename)
+                --print("Bonus Bar Offset:", bonusBarOffset)
+            end
+        end
+    end
 end
 
+-- Set the event handler function
+eventFrame:SetScript("OnEvent", OnEvent)
+
+-- Existing code to handle other events
 local f = CreateFrame("Frame")
 f:RegisterEvent("ACTIONBAR_SHOWGRID")
 f:RegisterEvent("ACTIONBAR_HIDEGRID")
 f:RegisterEvent("UNIT_PET")
-f:SetScript("OnEvent", OnEvent)
+f:SetScript("OnEvent", function(_, event, ...)
+    if addonOpen then
+        C_Timer.After(0.01, function()
+            addon:RefreshKeys()
+        end)
+    end
+end)
 
 -- SpecCheck - Monitors changes in the player's talents.
 local SpecCheck = CreateFrame("Frame", "BackdropTemplate")
