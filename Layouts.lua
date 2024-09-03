@@ -1,1817 +1,3292 @@
+-- Define key sizes
+local u = 60
+local u1_25 = 1.25 * u
+local u1_5 = 1.5 * u
+local u1_75 = 1.75 * u
+local u2 = 2 * u + 2
+local u2_25 = 2.25 * u
+local u2_75 = 2.75 * u
+local u6_25 = 6.25 * u + 8
+
 KeyBindAllBoards = {
+
+-- ISO --
+
+    -- QWERTZ --
+
+        ['QWERTZ_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+            
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
+            
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+
+        ['QWERTZ_96%'] = {
+
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'DELETE', Keyboard, 812, -6, u, u },
+                { 'INSERT', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 936, -6, u, u },
+                { 'END', Keyboard, 998, -6, u, u },
+                { 'PAGEUP', Keyboard, 1060, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1122, -6, u, u },
+            
+                
+            -- 2 row
+            
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 936, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 998, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1060, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1122, -68, u, u },
+            
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'NUMPAD7', Keyboard, 936, -130, u, u },
+                { 'NUMPAD8', Keyboard, 998, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1060, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1122, -130, u, u2 },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                { 'NUMPAD4', Keyboard, 936, -192, u, u },
+                { 'NUMPAD5', Keyboard, 998, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1060, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'NUMPAD1', Keyboard, 936, -254, u, u },
+                { 'NUMPAD2', Keyboard, 998, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1060, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1122, -254, u, u2 },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+                { 'NUMPAD0', Keyboard, 998, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1060, -316, u, u },
+        },
+
+        ['QWERTZ_80%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+
+            -- 4 row
+
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        },
+
+        ['QWERTZ_75%'] = {
+
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'PRINTSCREEN', Keyboard, 812, -6, u, u },
+                { 'PAUSE', Keyboard, 874, -6, u, u },
+                { 'DELETE', Keyboard, 936, -6, u, u },
+                
+            -- 2 row
+            
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'HOME', Keyboard, 936, -68, u, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'END', Keyboard, 936, -130, u, u },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                { 'PAGEUP', Keyboard, 936, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'PAGEDOWN', Keyboard, 936, -254, u, u },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+        },
+                
+        ['QWERTZ_60%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { '1', Keyboard, 68, -6, u, u },
+                { '2', Keyboard, 130, -6, u, u },
+                { '3', Keyboard, 192, -6, u, u },
+                { '4', Keyboard, 254, -6, u, u },
+                { '5', Keyboard, 316, -6, u, u },
+                { '6', Keyboard, 378, -6, u, u },
+                { '7', Keyboard, 440, -6, u, u },
+                { '8', Keyboard, 502, -6, u, u },
+                { '9', Keyboard, 564, -6, u, u },
+                { '0', Keyboard, 626, -6, u, u },
+                { 'ß', Keyboard, 688, -6, u, u },
+                { '´', Keyboard, 750, -6, u, u },
+                { 'BACKSPACE', Keyboard, 812, -6, u2, u },
+                
+            -- 2 row
+
+                { 'TAB', Keyboard, 6, -68, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -68, u, u },
+                { 'W', Keyboard, 160, -68, u, u },
+                { 'E', Keyboard, 222, -68, u, u },
+                { 'R', Keyboard, 284, -68, u, u },
+                { 'T', Keyboard, 346, -68, u, u },
+                { 'Z', Keyboard, 408, -68, u, u },
+                { 'U', Keyboard, 470, -68, u, u },
+                { 'I', Keyboard, 532, -68, u, u },
+                { 'O', Keyboard, 594, -68, u, u },
+                { 'P', Keyboard, 656, -68, u, u },
+                { 'ü', Keyboard, 718, -68, u, u },
+                { '+', Keyboard, 780, -68, u, u },
+                { 'ENTER', Keyboard, 859, -68, u1_25, u2 },
+
+            -- 3 row
+
+                { 'CAPS', Keyboard, 6, -130, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -130, u, u },
+                { 'S', Keyboard, 177, -130, u, u },
+                { 'D', Keyboard, 239, -130, u, u },
+                { 'F', Keyboard, 301, -130, u, u },
+                { 'G', Keyboard, 363, -130, u, u },
+                { 'H', Keyboard, 425, -130, u, u },
+                { 'J', Keyboard, 487, -130, u, u },
+                { 'K', Keyboard, 549, -130, u, u },
+                { 'L', Keyboard, 611, -130, u, u },
+                { 'ö', Keyboard, 673, -130, u, u },
+                { "ä", Keyboard, 735, -130, u, u },
+                { '#', Keyboard, 797, -130, u, u },
+                
+            -- 4 row
+
+                { 'LSHIFT', Keyboard, 6, -192, u1_25 + 2, u },
+                { '<', Keyboard, 85, -192, u, u },
+                { 'Y', Keyboard, 147, -192, u, u },
+                { 'X', Keyboard, 209, -192, u, u },
+                { 'C', Keyboard, 271, -192, u, u },
+                { 'V', Keyboard, 333, -192, u, u },
+                { 'B', Keyboard, 395, -192, u, u },
+                { 'N', Keyboard, 457, -192, u, u },
+                { 'M', Keyboard, 519, -192, u, u },
+                { ',', Keyboard, 581, -192, u, u },
+                { '.', Keyboard, 643, -192, u, u },
+                { '-', Keyboard, 705, -192, u, u },
+                { 'RSHIFT', Keyboard, 767, -192, u2_75 + 2, u },
+
+            -- 5 row
+
+                { 'LCTRL', Keyboard, 6, -254, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -254, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -254, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -254, u6_25, u },
+                { 'RALT', Keyboard, 626, -254, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -254, u1_25, u },
+                { 'MENU', Keyboard, 782, -254, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -254, u1_25, u },
+        },
+
+        ['QWERTZ_1800'] = {
+
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 956, -6, u, u },
+                { 'END', Keyboard, 1018, -6, u, u },
+                { 'PAGEUP', Keyboard, 1080, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1142, -6, u, u },
+            
+                
+            -- 2 row
+            
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 956, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1018, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1080, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1142, -68, u, u },
+            
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'NUMPAD7', Keyboard, 956, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1018, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1080, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1142, -130, u, u2 },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                { 'NUMPAD4', Keyboard, 956, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1018, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1080, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 884, -264, u, u },
+                { 'NUMPAD1', Keyboard, 956, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1018, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1080, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1142, -254, u, u2 },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 822, -326, u, u },
+                { 'DOWN', Keyboard, 884, -326, u, u },
+                { 'RIGHT', Keyboard, 946, -326, u, u },
+                { 'NUMPAD0', Keyboard, 1018, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1080, -316, u, u },
+        },
     
-    ['QWERTZ_PRIMARY'] = {
-    
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '^', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { 'ß', Keyboard, 810, -80, 70, 70 },
-        { '´', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Z', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { 'ü', Keyboard, 844, -153, 70, 70 },
-        { '+', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'ö', Keyboard, 788, -226, 70, 70 },
-        { "ä", Keyboard, 861, -226, 70, 70 },
-        { '#', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'Y', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { 'M', Keyboard, 622, -299, 70, 70 },
-        { ',', Keyboard, 695, -299, 70, 70 },
-        { '.', Keyboard, 768, -299, 70, 70 },
-        { '-', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
-
-    ['QWERTZ_HALF'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        
-        { '^', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Z', Keyboard, 479, -153, 70, 70 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'Y', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
-
-    ['QWERTZ_60%'] = {
-             
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        { '1', Keyboard, 80, -7, 70, 70 },
-        { '2', Keyboard, 153, -7, 70, 70 },
-        { '3', Keyboard, 226, -7, 70, 70 },
-        { '4', Keyboard, 299, -7, 70, 70 },
-        { '5', Keyboard, 372, -7, 70, 70 },
-        { '6', Keyboard, 445, -7, 70, 70 },
-        { '7', Keyboard, 518, -7, 70, 70 },
-        { '8', Keyboard, 591, -7, 70, 70 },
-        { '9', Keyboard, 664, -7, 70, 70 },
-        { '0', Keyboard, 737, -7, 70, 70 },
-        { 'ß', Keyboard, 810, -7, 70, 70 },
-        { '´', Keyboard, 883, -7, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -7, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -80, 104, 70 },
-        { 'Q', Keyboard, 114, -80, 70, 70 },
-        { 'W', Keyboard, 187, -80, 70, 70 },
-        { 'E', Keyboard, 260, -80, 70, 70 },
-        { 'R', Keyboard, 333, -80, 70, 70 },
-        { 'T', Keyboard, 406, -80, 70, 70 },
-        { 'Z', Keyboard, 479, -80, 70, 70 },
-        { 'U', Keyboard, 552, -80, 70, 70 },
-        { 'I', Keyboard, 625, -80, 70, 70 },
-        { 'O', Keyboard, 698, -80, 70, 70 },
-        { 'P', Keyboard, 771, -80, 70, 70 },
-        { 'ü', Keyboard, 844, -80, 70, 70 },
-        { '+', Keyboard, 917, -80, 70, 70 },
-        {'ENTER', Keyboard, 1010, -80, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -153, 121, 70 },
-        { 'A', Keyboard, 131, -153, 70, 70 },
-        { 'S', Keyboard, 204, -153, 70, 70 },
-        { 'D', Keyboard, 277, -153, 70, 70 },
-        { 'F', Keyboard, 350, -153, 70, 70 },
-        { 'G', Keyboard, 423, -153, 70, 70 },
-        { 'H', Keyboard, 496, -153, 70, 70 },
-        { 'J', Keyboard, 569, -153, 70, 70 },
-        { 'K', Keyboard, 642, -153, 70, 70 },
-        { 'L', Keyboard, 715, -153, 70, 70 },
-        { 'ö', Keyboard, 788, -153, 70, 70 },
-        { "ä", Keyboard, 861, -153, 70, 70 },
-        { '#', Keyboard, 934, -153, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -226, 101, 70 },
-        { '<', Keyboard, 111, -226, 70, 70 },
-        { 'Y', Keyboard, 184, -226, 70, 70 },
-        { 'X', Keyboard, 257, -226, 70, 70 },
-        { 'C', Keyboard, 330, -226, 70, 70 },
-        { 'V', Keyboard, 403, -226, 70, 70 },
-        { 'B', Keyboard, 476, -226, 70, 70 },
-        { 'N', Keyboard, 549, -226, 70, 70 },
-        { 'M', Keyboard, 622, -226, 70, 70 },
-        { ',', Keyboard, 695, -226, 70, 70 },
-        { '.', Keyboard, 768, -226, 70, 70 },
-        { '-', Keyboard, 841, -226, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -226, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -299, 101, 70 },
-        { 'LALT', Keyboard, 215, -299, 101, 70 },
-        { 'SPACE', Keyboard, 319, -299, 415, 70 },
-        { 'RALT', Keyboard, 737, -299, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -299, 101, 70 }},
-
-    ['QWERTZ_80%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '^', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { 'ß', Keyboard, 810, -80, 70, 70 },
-        { '´', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Z', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { 'ü', Keyboard, 844, -153, 70, 70 },
-        { '+', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'ö', Keyboard, 788, -226, 70, 70 },
-        { "ä", Keyboard, 861, -226, 70, 70 },
-        { '#', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'Y', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { 'M', Keyboard, 622, -299, 70, 70 },
-        { ',', Keyboard, 695, -299, 70, 70 },
-        { '.', Keyboard, 768, -299, 70, 70 },
-        { '-', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-    
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
-    ['QWERTZ_100%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '^', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { 'ß', Keyboard, 810, -80, 70, 70 },
-        { '´', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Z', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { 'ü', Keyboard, 844, -153, 70, 70 },
-        { '+', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'ö', Keyboard, 788, -226, 70, 70 },
-        { "ä", Keyboard, 861, -226, 70, 70 },
-        { '#', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'Y', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { 'M', Keyboard, 622, -299, 70, 70 },
-        { ',', Keyboard, 695, -299, 70, 70 },
-        { '.', Keyboard, 768, -299, 70, 70 },
-        { '-', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-    
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 },
-    
-        { 'NUMLOCK', Keyboard, 1355, -80, 70, 70 },
-        { 'NUMPADDIV', Keyboard, 1428, -80, 70, 70 },
-        { 'NUMPADMULT', Keyboard, 1501, -80, 70, 70 },
-        { 'NUMPADSUB', Keyboard, 1574, -80, 70, 70 },
-
-        { 'NUMPAD7', Keyboard, 1355, -153, 70, 70 },
-        { 'NUMPAD8', Keyboard, 1428, -153, 70, 70 },
-        { 'NUMPAD9', Keyboard, 1501, -153, 70, 70 },
-        { 'NUMPADADD', Keyboard, 1574, -153, 70, 143 },
-    
-        { 'NUMPAD4', Keyboard, 1355, -226, 70, 70 },
-        { 'NUMPAD5', Keyboard, 1428, -226, 70, 70 },
-        { 'NUMPAD6', Keyboard, 1501, -226, 70, 70 },
-
-        { 'NUMPAD1', Keyboard, 1355, -299, 70, 70 },
-        { 'NUMPAD2', Keyboard, 1428, -299, 70, 70 },
-        { 'NUMPAD3', Keyboard, 1501, -299, 70, 70 },
-        { 'NUMPADENTER', Keyboard, 1574, -299, 70, 143 },
-
-        { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
-        { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
-
-    ['QWERTY_PRIMARY'] = { 
-    
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
+        ['QWERTZ_HALF'] = {
             
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                
+            -- 2 row
+
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                
+            -- 3 row
             
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
             
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
+            -- 4 row
             
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '-', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, 245, u },
+        },
+
+        ['QWERTZ_PRIMARY'] = {
+        
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '^', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { 'ß', Keyboard, 688, -68, u, u },
+                { '´', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
             
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '[', Keyboard, 844, -153, 70, 70 },
-        { ']', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Z', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { 'ü', Keyboard, 718, -130, u, u },
+                { '+', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
             
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { ';', Keyboard, 788, -226, 70, 70 },
-        { ",", Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
+            -- 4 row
             
-        { 'LSHIFT', Keyboard, 7, -299, 154, 70 },
-        { 'Z', Keyboard, 164, -299, 70, 70 },
-        { 'X', Keyboard, 237, -299, 70, 70 },
-        { 'C', Keyboard, 310, -299, 70, 70 },
-        { 'V', Keyboard, 383, -299, 70, 70 },
-        { 'B', Keyboard, 456, -299, 70, 70 },
-        { 'N', Keyboard, 529, -299, 70, 70 },
-        { 'M', Keyboard, 602, -299, 70, 70 },
-        { ',', Keyboard, 675, -299, 70, 70 },
-        { '.', Keyboard, 748, -299, 70, 70 },
-        { '/', Keyboard, 821, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 894, -299, 205, 70 },
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'ö', Keyboard, 673, -192, u, u },
+                { "ä", Keyboard, 735, -192, u, u },
+                { '#', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'Y', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '-', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+        },
+
+    --
+
+    -- AZERTY --
+
+        ['AZERTY_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
             
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 278, -372, 467, 70 },
-        { 'RALT', Keyboard, 748, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
-
-    ['QWERTY_HALF'] = { 
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
             
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-
-        { 'F5', Keyboard, 480, -7, 70, 70 },
+            -- 4 row
             
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
             
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
             
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+
+        ['AZERTY_96%'] = {
+
+            -- 1 row
             
-        { 'LSHIFT', Keyboard, 7, -299, 154, 70 },
-        { 'Z', Keyboard, 164, -299, 70, 70 },
-        { 'X', Keyboard, 237, -299, 70, 70 },
-        { 'C', Keyboard, 310, -299, 70, 70 },
-        { 'V', Keyboard, 383, -299, 70, 70 },
-        { 'B', Keyboard, 456, -299, 70, 70 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'DELETE', Keyboard, 812, -6, u, u },
+                { 'INSERT', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 936, -6, u, u },
+                { 'END', Keyboard, 998, -6, u, u },
+                { 'PAGEUP', Keyboard, 1060, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1122, -6, u, u },
             
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
-
-    ['QWERTY_60%'] = { 
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        { '1', Keyboard, 80, -7, 70, 70 },
-        { '2', Keyboard, 153, -7, 70, 70 },
-        { '3', Keyboard, 226, -7, 70, 70 },
-        { '4', Keyboard, 299, -7, 70, 70 },
-        { '5', Keyboard, 372, -7, 70, 70 },
-        { '6', Keyboard, 445, -7, 70, 70 },
-        { '7', Keyboard, 518, -7, 70, 70 },
-        { '8', Keyboard, 591, -7, 70, 70 },
-        { '9', Keyboard, 664, -7, 70, 70 },
-        { '0', Keyboard, 737, -7, 70, 70 },
-        { '-', Keyboard, 810, -7, 70, 70 },
-        { '=', Keyboard, 883, -7, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -7, 143, 70 },
+                
+            -- 2 row
             
-        { 'TAB', Keyboard, 7, -80, 104, 70 },
-        { 'Q', Keyboard, 114, -80, 70, 70 },
-        { 'W', Keyboard, 187, -80, 70, 70 },
-        { 'E', Keyboard, 260, -80, 70, 70 },
-        { 'R', Keyboard, 333, -80, 70, 70 },
-        { 'T', Keyboard, 406, -80, 70, 70 },
-        { 'Y', Keyboard, 479, -80, 70, 70 },
-        { 'U', Keyboard, 552, -80, 70, 70 },
-        { 'I', Keyboard, 625, -80, 70, 70 },
-        { 'O', Keyboard, 698, -80, 70, 70 },
-        { 'P', Keyboard, 771, -80, 70, 70 },
-        { '[', Keyboard, 844, -80, 70, 70 },
-        { ']', Keyboard, 917, -80, 70, 70 },
-        { '\\', Keyboard, 990, -80, 109, 70 },
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 936, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 998, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1060, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1122, -68, u, u },
             
-        { 'CAPS', Keyboard, 7, -153, 121, 70 },
-        { 'A', Keyboard, 131, -153, 70, 70 },
-        { 'S', Keyboard, 204, -153, 70, 70 },
-        { 'D', Keyboard, 277, -153, 70, 70 },
-        { 'F', Keyboard, 350, -153, 70, 70 },
-        { 'G', Keyboard, 423, -153, 70, 70 },
-        { 'H', Keyboard, 496, -153, 70, 70 },
-        { 'J', Keyboard, 569, -153, 70, 70 },
-        { 'K', Keyboard, 642, -153, 70, 70 },
-        { 'L', Keyboard, 715, -153, 70, 70 },
-        { ';', Keyboard, 788, -153, 70, 70 },
-        { ",", Keyboard, 861, -153, 70, 70 },
-        {'ENTER', Keyboard, 934, -153, 165, 70 },
+            -- 3 row
             
-        { 'LSHIFT', Keyboard, 7, -226, 154, 70 },
-        { 'Z', Keyboard, 164, -226, 70, 70 },
-        { 'X', Keyboard, 237, -226, 70, 70 },
-        { 'C', Keyboard, 310, -226, 70, 70 },
-        { 'V', Keyboard, 383, -226, 70, 70 },
-        { 'B', Keyboard, 456, -226, 70, 70 },
-        { 'N', Keyboard, 529, -226, 70, 70 },
-        { 'M', Keyboard, 602, -226, 70, 70 },
-        { ',', Keyboard, 675, -226, 70, 70 },
-        { '.', Keyboard, 748, -226, 70, 70 },
-        { '/', Keyboard, 821, -226, 70, 70 },
-        { 'RSHIFT', Keyboard, 894, -226, 205, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'NUMPAD7', Keyboard, 936, -130, u, u },
+                { 'NUMPAD8', Keyboard, 998, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1060, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1122, -130, u, u2 },
             
-        { 'LCTRL', Keyboard, 7, -299, 101, 70 },
-        { 'LALT', Keyboard, 174, -299, 101, 70 },
-        { 'SPACE', Keyboard, 278, -299, 467, 70 },
-        { 'RALT', Keyboard, 748, -299, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -299, 101, 70 }},
-
-    ['QWERTY_80%'] = { 
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
+            -- 4 row
             
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                { 'NUMPAD4', Keyboard, 936, -192, u, u },
+                { 'NUMPAD5', Keyboard, 998, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1060, -192, u, u },
+                
+            -- 5 row
             
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'NUMPAD1', Keyboard, 936, -254, u, u },
+                { 'NUMPAD2', Keyboard, 998, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1060, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1122, -254, u, u2 },
             
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
+            -- 6 row
             
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '-', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+                { 'NUMPAD0', Keyboard, 998, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1060, -316, u, u },
+        },
+
+        ['AZERTY_80%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+
+            -- 4 row
+
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        },
+
+        ['AZERTY_75%'] = {
+
+            -- 1 row
             
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '[', Keyboard, 844, -153, 70, 70 },
-        { ']', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'PRINTSCREEN', Keyboard, 812, -6, u, u },
+                { 'PAUSE', Keyboard, 874, -6, u, u },
+                { 'DELETE', Keyboard, 936, -6, u, u },
+                
+            -- 2 row
             
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { ';', Keyboard, 788, -226, 70, 70 },
-        { ",", Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'HOME', Keyboard, 936, -68, u, u },
+                
+            -- 3 row
             
-        { 'LSHIFT', Keyboard, 7, -299, 154, 70 },
-        { 'Z', Keyboard, 164, -299, 70, 70 },
-        { 'X', Keyboard, 237, -299, 70, 70 },
-        { 'C', Keyboard, 310, -299, 70, 70 },
-        { 'V', Keyboard, 383, -299, 70, 70 },
-        { 'B', Keyboard, 456, -299, 70, 70 },
-        { 'N', Keyboard, 529, -299, 70, 70 },
-        { 'M', Keyboard, 602, -299, 70, 70 },
-        { ',', Keyboard, 675, -299, 70, 70 },
-        { '.', Keyboard, 748, -299, 70, 70 },
-        { '/', Keyboard, 821, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 894, -299, 205, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'END', Keyboard, 936, -130, u, u },
             
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 278, -372, 467, 70 },
-        { 'RALT', Keyboard, 748, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-    
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
-    ['QWERTY_100%'] = { 
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
+            -- 4 row
             
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                { 'PAGEUP', Keyboard, 936, -192, u, u },
+                
+            -- 5 row
             
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'PAGEDOWN', Keyboard, 936, -254, u, u },
             
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
+            -- 6 row
             
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '-', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+        },
+
+        ['AZERTY_60%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { '&', Keyboard, 68, -6, u, u },
+                { 'é', Keyboard, 130, -6, u, u },
+                { '"', Keyboard, 192, -6, u, u },
+                { "'", Keyboard, 254, -6, u, u },
+                { '(', Keyboard, 316, -6, u, u },
+                { '-', Keyboard, 378, -6, u, u },
+                { 'è', Keyboard, 440, -6, u, u },
+                { '_', Keyboard, 502, -6, u, u },
+                { 'ç', Keyboard, 564, -6, u, u },
+                { 'à', Keyboard, 626, -6, u, u },
+                { ')', Keyboard, 688, -6, u, u },
+                { '=', Keyboard, 750, -6, u, u },
+                { 'BACKSPACE', Keyboard, 812, -6, u2, u },
+                
+            -- 2 row
+
+                { 'TAB', Keyboard, 6, -68, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -68, u, u },
+                { 'Z', Keyboard, 160, -68, u, u },
+                { 'E', Keyboard, 222, -68, u, u },
+                { 'R', Keyboard, 284, -68, u, u },
+                { 'T', Keyboard, 346, -68, u, u },
+                { 'Y', Keyboard, 408, -68, u, u },
+                { 'U', Keyboard, 470, -68, u, u },
+                { 'I', Keyboard, 532, -68, u, u },
+                { 'O', Keyboard, 594, -68, u, u },
+                { 'P', Keyboard, 656, -68, u, u },
+                { '^', Keyboard, 718, -68, u, u },
+                { '$', Keyboard, 780, -68, u, u },
+                { 'ENTER', Keyboard, 859, -68, u1_25, u2 },
+
+            -- 3 row
+
+                { 'CAPSLOCK', Keyboard, 6, -130, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -130, u, u },
+                { 'S', Keyboard, 177, -130, u, u },
+                { 'D', Keyboard, 239, -130, u, u },
+                { 'F', Keyboard, 301, -130, u, u },
+                { 'G', Keyboard, 363, -130, u, u },
+                { 'H', Keyboard, 425, -130, u, u },
+                { 'J', Keyboard, 487, -130, u, u },
+                { 'K', Keyboard, 549, -130, u, u },
+                { 'L', Keyboard, 611, -130, u, u },
+                { 'M', Keyboard, 673, -130, u, u },
+                { 'ù', Keyboard, 735, -130, u, u },
+                { '*', Keyboard, 797, -130, u, u },
+                
+            -- 4 row
+
+                { 'LSHIFT', Keyboard, 6, -192, u1_25 + 2, u },
+                { '<', Keyboard, 85, -192, u, u },
+                { 'W', Keyboard, 147, -192, u, u },
+                { 'X', Keyboard, 209, -192, u, u },
+                { 'C', Keyboard, 271, -192, u, u },
+                { 'V', Keyboard, 333, -192, u, u },
+                { 'B', Keyboard, 395, -192, u, u },
+                { 'N', Keyboard, 457, -192, u, u },
+                { ',', Keyboard, 519, -192, u, u },
+                { ';', Keyboard, 581, -192, u, u },
+                { ':', Keyboard, 643, -192, u, u },
+                { '!', Keyboard, 705, -192, u, u },
+                { 'RSHIFT', Keyboard, 767, -192, u2_75 + 2, u },
+
+            -- 5 row
+
+                { 'LCTRL', Keyboard, 6, -254, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -254, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -254, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -254, u6_25, u },
+                { 'RALT', Keyboard, 626, -254, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -254, u1_25, u },
+                { 'MENU', Keyboard, 782, -254, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -254, u1_25, u },
+        },
+
+        ['AZERTY_1800'] = {
+
+            -- 1 row
             
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'Q', Keyboard, 114, -153, 70, 70 },
-        { 'W', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '[', Keyboard, 844, -153, 70, 70 },
-        { ']', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 956, -6, u, u },
+                { 'END', Keyboard, 1018, -6, u, u },
+                { 'PAGEUP', Keyboard, 1080, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1142, -6, u, u },
             
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { ';', Keyboard, 788, -226, 70, 70 },
-        { ",", Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
+                
+            -- 2 row
             
-        { 'LSHIFT', Keyboard, 7, -299, 154, 70 },
-        { 'Z', Keyboard, 164, -299, 70, 70 },
-        { 'X', Keyboard, 237, -299, 70, 70 },
-        { 'C', Keyboard, 310, -299, 70, 70 },
-        { 'V', Keyboard, 383, -299, 70, 70 },
-        { 'B', Keyboard, 456, -299, 70, 70 },
-        { 'N', Keyboard, 529, -299, 70, 70 },
-        { 'M', Keyboard, 602, -299, 70, 70 },
-        { ',', Keyboard, 675, -299, 70, 70 },
-        { '.', Keyboard, 748, -299, 70, 70 },
-        { '/', Keyboard, 821, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 894, -299, 205, 70 },
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 956, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1018, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1080, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1142, -68, u, u },
             
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 174, -372, 101, 70 },
-        { 'SPACE', Keyboard, 278, -372, 467, 70 },
-        { 'RALT', Keyboard, 748, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-    
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 },
-    
-        { 'NUMLOCK', Keyboard, 1355, -80, 70, 70 },
-        { 'NUMPADDIV', Keyboard, 1428, -80, 70, 70 },
-        { 'NUMPADMULT', Keyboard, 1501, -80, 70, 70 },
-        { 'NUMPADSUB', Keyboard, 1574, -80, 70, 70 },
-
-        { 'NUMPAD7', Keyboard, 1355, -153, 70, 70 },
-        { 'NUMPAD8', Keyboard, 1428, -153, 70, 70 },
-        { 'NUMPAD9', Keyboard, 1501, -153, 70, 70 },
-        { 'NUMPADADD', Keyboard, 1574, -153, 70, 143 },
-    
-        { 'NUMPAD4', Keyboard, 1355, -226, 70, 70 },
-        { 'NUMPAD5', Keyboard, 1428, -226, 70, 70 },
-        { 'NUMPAD6', Keyboard, 1501, -226, 70, 70 },
-
-        { 'NUMPAD1', Keyboard, 1355, -299, 70, 70 },
-        { 'NUMPAD2', Keyboard, 1428, -299, 70, 70 },
-        { 'NUMPAD3', Keyboard, 1501, -299, 70, 70 },
-        { 'NUMPADENTER', Keyboard, 1574, -299, 70, 143 },
-
-        { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
-        { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
-
-    ['AZERTY_PRIMARY'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '²', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { ')', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'A', Keyboard, 114, -153, 70, 70 },
-        { 'Z', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '^', Keyboard, 844, -153, 70, 70 },
-        { '$', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'Q', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'M', Keyboard, 788, -226, 70, 70 },
-        { "ù", Keyboard, 861, -226, 70, 70 },
-        { '*', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'W', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { ',', Keyboard, 622, -299, 70, 70 },
-        { ';', Keyboard, 695, -299, 70, 70 },
-        { ':', Keyboard, 768, -299, 70, 70 },
-        { '!', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 }},
-
-    ['AZERTY_HALF'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        
-        { '²', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'A', Keyboard, 114, -153, 70, 70 },
-        { 'Z', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'Q', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'W', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 247, 70 }},
-
-    ['AZERTY_60%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        { '1', Keyboard, 80, -7, 70, 70 },
-        { '2', Keyboard, 153, -7, 70, 70 },
-        { '3', Keyboard, 226, -7, 70, 70 },
-        { '4', Keyboard, 299, -7, 70, 70 },
-        { '5', Keyboard, 372, -7, 70, 70 },
-        { '6', Keyboard, 445, -7, 70, 70 },
-        { '7', Keyboard, 518, -7, 70, 70 },
-        { '8', Keyboard, 591, -7, 70, 70 },
-        { '9', Keyboard, 664, -7, 70, 70 },
-        { '0', Keyboard, 737, -7, 70, 70 },
-        { ')', Keyboard, 810, -7, 70, 70 },
-        { '=', Keyboard, 883, -7, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -7, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -80, 104, 70 },
-        { 'A', Keyboard, 114, -80, 70, 70 },
-        { 'Z', Keyboard, 187, -80, 70, 70 },
-        { 'E', Keyboard, 260, -80, 70, 70 },
-        { 'R', Keyboard, 333, -80, 70, 70 },
-        { 'T', Keyboard, 406, -80, 70, 70 },
-        { 'Y', Keyboard, 479, -80, 70, 70 },
-        { 'U', Keyboard, 552, -80, 70, 70 },
-        { 'I', Keyboard, 625, -80, 70, 70 },
-        { 'O', Keyboard, 698, -80, 70, 70 },
-        { 'P', Keyboard, 771, -80, 70, 70 },
-        { '^', Keyboard, 844, -80, 70, 70 },
-        { '$', Keyboard, 917, -80, 70, 70 },
-        {'ENTER', Keyboard, 1010, -80, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -153, 121, 70 },
-        { 'Q', Keyboard, 131, -153, 70, 70 },
-        { 'S', Keyboard, 204, -153, 70, 70 },
-        { 'D', Keyboard, 277, -153, 70, 70 },
-        { 'F', Keyboard, 350, -153, 70, 70 },
-        { 'G', Keyboard, 423, -153, 70, 70 },
-        { 'H', Keyboard, 496, -153, 70, 70 },
-        { 'J', Keyboard, 569, -153, 70, 70 },
-        { 'K', Keyboard, 642, -153, 70, 70 },
-        { 'L', Keyboard, 715, -153, 70, 70 },
-        { 'M', Keyboard, 788, -153, 70, 70 },
-        { "ù", Keyboard, 861, -153, 70, 70 },
-        { '*', Keyboard, 934, -153, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -226, 101, 70 },
-        { '<', Keyboard, 111, -226, 70, 70 },
-        { 'W', Keyboard, 184, -226, 70, 70 },
-        { 'X', Keyboard, 257, -226, 70, 70 },
-        { 'C', Keyboard, 330, -226, 70, 70 },
-        { 'V', Keyboard, 403, -226, 70, 70 },
-        { 'B', Keyboard, 476, -226, 70, 70 },
-        { 'N', Keyboard, 549, -226, 70, 70 },
-        { ',', Keyboard, 622, -226, 70, 70 },
-        { ';', Keyboard, 695, -226, 70, 70 },
-        { ':', Keyboard, 768, -226, 70, 70 },
-        { '!', Keyboard, 841, -226, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -226, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -299, 101, 70 },
-        { 'LALT', Keyboard, 215, -299, 101, 70 },
-        { 'SPACE', Keyboard, 319, -299, 415, 70 },
-        { 'RALT', Keyboard, 737, -299, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -299, 101, 70 }},   
-
-    ['AZERTY_80%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '²', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { ')', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'A', Keyboard, 114, -153, 70, 70 },
-        { 'Z', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '^', Keyboard, 844, -153, 70, 70 },
-        { '$', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'Q', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'M', Keyboard, 788, -226, 70, 70 },
-        { "ù", Keyboard, 861, -226, 70, 70 },
-        { '*', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'W', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { ',', Keyboard, 622, -299, 70, 70 },
-        { ';', Keyboard, 695, -299, 70, 70 },
-        { ':', Keyboard, 768, -299, 70, 70 },
-        { '!', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
-    ['AZERTY_100%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-        
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '²', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { ')', Keyboard, 810, -80, 70, 70 },
-        { '=', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { 'A', Keyboard, 114, -153, 70, 70 },
-        { 'Z', Keyboard, 187, -153, 70, 70 },
-        { 'E', Keyboard, 260, -153, 70, 70 },
-        { 'R', Keyboard, 333, -153, 70, 70 },
-        { 'T', Keyboard, 406, -153, 70, 70 },
-        { 'Y', Keyboard, 479, -153, 70, 70 },
-        { 'U', Keyboard, 552, -153, 70, 70 },
-        { 'I', Keyboard, 625, -153, 70, 70 },
-        { 'O', Keyboard, 698, -153, 70, 70 },
-        { 'P', Keyboard, 771, -153, 70, 70 },
-        { '^', Keyboard, 844, -153, 70, 70 },
-        { '$', Keyboard, 917, -153, 70, 70 },
-        {'ENTER', Keyboard, 1010, -153, 89, 143 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'Q', Keyboard, 131, -226, 70, 70 },
-        { 'S', Keyboard, 204, -226, 70, 70 },
-        { 'D', Keyboard, 277, -226, 70, 70 },
-        { 'F', Keyboard, 350, -226, 70, 70 },
-        { 'G', Keyboard, 423, -226, 70, 70 },
-        { 'H', Keyboard, 496, -226, 70, 70 },
-        { 'J', Keyboard, 569, -226, 70, 70 },
-        { 'K', Keyboard, 642, -226, 70, 70 },
-        { 'L', Keyboard, 715, -226, 70, 70 },
-        { 'M', Keyboard, 788, -226, 70, 70 },
-        { "ù", Keyboard, 861, -226, 70, 70 },
-        { '*', Keyboard, 934, -226, 70, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 101, 70 },
-        { '<', Keyboard, 111, -299, 70, 70 },
-        { 'W', Keyboard, 184, -299, 70, 70 },
-        { 'X', Keyboard, 257, -299, 70, 70 },
-        { 'C', Keyboard, 330, -299, 70, 70 },
-        { 'V', Keyboard, 403, -299, 70, 70 },
-        { 'B', Keyboard, 476, -299, 70, 70 },
-        { 'N', Keyboard, 549, -299, 70, 70 },
-        { ',', Keyboard, 622, -299, 70, 70 },
-        { ';', Keyboard, 695, -299, 70, 70 },
-        { ':', Keyboard, 768, -299, 70, 70 },
-        { '!', Keyboard, 841, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 914, -299, 185, 70 },
-        
-        { 'LCTRL', Keyboard, 7, -372, 101, 70 },
-        { 'LALT', Keyboard, 215, -372, 101, 70 },
-        { 'SPACE', Keyboard, 319, -372, 415, 70 },
-        { 'RALT', Keyboard, 737, -372, 101, 70 },
-        { 'RCTRL', Keyboard, 998, -372, 101, 70 },
-
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 },
-    
-        { 'NUMLOCK', Keyboard, 1355, -80, 70, 70 },
-        { 'NUMPADDIV', Keyboard, 1428, -80, 70, 70 },
-        { 'NUMPADMULT', Keyboard, 1501, -80, 70, 70 },
-        { 'NUMPADSUB', Keyboard, 1574, -80, 70, 70 },
-
-        { 'NUMPAD7', Keyboard, 1355, -153, 70, 70 },
-        { 'NUMPAD8', Keyboard, 1428, -153, 70, 70 },
-        { 'NUMPAD9', Keyboard, 1501, -153, 70, 70 },
-        { 'NUMPADADD', Keyboard, 1574, -153, 70, 143 },
-    
-        { 'NUMPAD4', Keyboard, 1355, -226, 70, 70 },
-        { 'NUMPAD5', Keyboard, 1428, -226, 70, 70 },
-        { 'NUMPAD6', Keyboard, 1501, -226, 70, 70 },
-
-        { 'NUMPAD1', Keyboard, 1355, -299, 70, 70 },
-        { 'NUMPAD2', Keyboard, 1428, -299, 70, 70 },
-        { 'NUMPAD3', Keyboard, 1501, -299, 70, 70 },
-        { 'NUMPADENTER', Keyboard, 1574, -299, 70, 143 },
-
-        { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
-        { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
-
-    ['DVORAK_PRIMARY'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-    
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-    
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-    
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '[', Keyboard, 810, -80, 70, 70 },
-        { ']', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-    
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { "'", Keyboard, 114, -153, 70, 70 },
-        { ',', Keyboard, 187, -153, 70, 70 },
-        { '.', Keyboard, 260, -153, 70, 70 },
-        { 'P', Keyboard, 333, -153, 70, 70 },
-        { 'Y', Keyboard, 406, -153, 70, 70 },
-        { 'F', Keyboard, 479, -153, 70, 70 },
-        { 'G', Keyboard, 552, -153, 70, 70 },
-        { 'C', Keyboard, 625, -153, 70, 70 },
-        { 'R', Keyboard, 698, -153, 70, 70 },
-        { 'L', Keyboard, 771, -153, 70, 70 },
-        { '/', Keyboard, 844, -153, 70, 70 },
-        { '=', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
-    
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'O', Keyboard, 204, -226, 70, 70 },
-        { 'E', Keyboard, 277, -226, 70, 70 },
-        { 'U', Keyboard, 350, -226, 70, 70 },
-        { 'I', Keyboard, 423, -226, 70, 70 },
-        { 'D', Keyboard, 496, -226, 70, 70 },
-        { 'H', Keyboard, 569, -226, 70, 70 },
-        { 'T', Keyboard, 642, -226, 70, 70 },
-        { 'N', Keyboard, 715, -226, 70, 70 },
-        { 'S', Keyboard, 788, -226, 70, 70 },
-        { '-', Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
-    
-        { 'LSHIFT', Keyboard, 7, -299, 159, 70 },
-        { ';', Keyboard, 169, -299, 70, 70 },
-        { 'Q', Keyboard, 242, -299, 70, 70 },
-        { 'J', Keyboard, 315, -299, 70, 70 },
-        { 'K', Keyboard, 388, -299, 70, 70 },
-        { 'X', Keyboard, 461, -299, 70, 70 },
-        { 'B', Keyboard, 534, -299, 70, 70 },
-        { 'M', Keyboard, 607, -299, 70, 70 },
-        { 'W', Keyboard, 680, -299, 70, 70 },
-        { 'V', Keyboard, 753, -299, 70, 70 },
-        { 'Z', Keyboard, 826, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
-    
-        { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
-        { 'LALT', Keyboard, 187, -372, 104, 70 },
-        { 'SPACE', Keyboard, 296, -372, 443, 70 },
-        { 'RALT', Keyboard, 742, -372, 104, 70 },
-        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
-        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -372, 104, 70 }},
-
-    ['DVORAK_HALF'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-    
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-    
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-    
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { "'", Keyboard, 114, -153, 70, 70 },
-        { ',', Keyboard, 187, -153, 70, 70 },
-        { '.', Keyboard, 260, -153, 70, 70 },
-        { 'P', Keyboard, 333, -153, 70, 70 },
-        { 'Y', Keyboard, 406, -153, 70, 70 },
-        { 'F', Keyboard, 479, -153, 70, 70 },
-    
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'O', Keyboard, 204, -226, 70, 70 },
-        { 'E', Keyboard, 277, -226, 70, 70 },
-        { 'U', Keyboard, 350, -226, 70, 70 },
-        { 'I', Keyboard, 423, -226, 70, 70 },
-        { 'D', Keyboard, 496, -226, 70, 70 },
-    
-        { 'LSHIFT', Keyboard, 7, -299, 159, 70 },
-        { ';', Keyboard, 169, -299, 70, 70 },
-        { 'Q', Keyboard, 242, -299, 70, 70 },
-        { 'J', Keyboard, 315, -299, 70, 70 },
-        { 'K', Keyboard, 388, -299, 70, 70 },
-        { 'X', Keyboard, 461, -299, 70, 70 },
-    
-        { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
-        { 'LALT', Keyboard, 187, -372, 104, 70 },
-        { 'SPACE', Keyboard, 296, -372, 270, 70 }},
-
-    ['DVORAK_60%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-
-        { '1', Keyboard, 80, -7, 70, 70 },
-        { '2', Keyboard, 153, -7, 70, 70 },
-        { '3', Keyboard, 226, -7, 70, 70 },
-        { '4', Keyboard, 299, -7, 70, 70 },
-        { '5', Keyboard, 372, -7, 70, 70 },
-        { '6', Keyboard, 445, -7, 70, 70 },
-        { '7', Keyboard, 518, -7, 70, 70 },
-        { '8', Keyboard, 591, -7, 70, 70 },
-        { '9', Keyboard, 664, -7, 70, 70 },
-        { '0', Keyboard, 737, -7, 70, 70 },
-        { '[', Keyboard, 810, -7, 70, 70 },
-        { ']', Keyboard, 883, -7, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -7, 143, 70 },
-
-        { 'TAB', Keyboard, 7, -80, 104, 70 },
-        { "'", Keyboard, 114, -80, 70, 70 },
-        { ',', Keyboard, 187, -80, 70, 70 },
-        { '.', Keyboard, 260, -80, 70, 70 },
-        { 'P', Keyboard, 333, -80, 70, 70 },
-        { 'Y', Keyboard, 406, -80, 70, 70 },
-        { 'F', Keyboard, 479, -80, 70, 70 },
-        { 'G', Keyboard, 552, -80, 70, 70 },
-        { 'C', Keyboard, 625, -80, 70, 70 },
-        { 'R', Keyboard, 698, -80, 70, 70 },
-        { 'L', Keyboard, 771, -80, 70, 70 },
-        { '/', Keyboard, 844, -80, 70, 70 },
-        { '=', Keyboard, 917, -80, 70, 70 },
-        { '\\', Keyboard, 990, -80, 109, 70 },
-
-        { 'CAPS', Keyboard, 7, -153, 121, 70 },
-        { 'A', Keyboard, 131, -153, 70, 70 },
-        { 'O', Keyboard, 204, -153, 70, 70 },
-        { 'E', Keyboard, 277, -153, 70, 70 },
-        { 'U', Keyboard, 350, -153, 70, 70 },
-        { 'I', Keyboard, 423, -153, 70, 70 },
-        { 'D', Keyboard, 496, -153, 70, 70 },
-        { 'H', Keyboard, 569, -153, 70, 70 },
-        { 'T', Keyboard, 642, -153, 70, 70 },
-        { 'N', Keyboard, 715, -153, 70, 70 },
-        { 'S', Keyboard, 788, -153, 70, 70 },
-        { '-', Keyboard, 861, -153, 70, 70 },
-        {'ENTER', Keyboard, 934, -153, 165, 70 },
-
-        { 'LSHIFT', Keyboard, 7, -226, 159, 70 },
-        { ';', Keyboard, 169, -226, 70, 70 },
-        { 'Q', Keyboard, 242, -226, 70, 70 },
-        { 'J', Keyboard, 315, -226, 70, 70 },
-        { 'K', Keyboard, 388, -226, 70, 70 },
-        { 'X', Keyboard, 461, -226, 70, 70 },
-        { 'B', Keyboard, 534, -226, 70, 70 },
-        { 'M', Keyboard, 607, -226, 70, 70 },
-        { 'W', Keyboard, 680, -226, 70, 70 },
-        { 'V', Keyboard, 753, -226, 70, 70 },
-        { 'Z', Keyboard, 826, -226, 70, 70 },
-        { 'RSHIFT', Keyboard, 899, -226, 200, 70 },
-
-        { 'LCTRL', Keyboard, 7, -299, 104, 70 },
-        -- gap for LWIN { '', Keyboard, 114, -299, 70, 70 },
-        { 'LALT', Keyboard, 187, -299, 104, 70 },
-        { 'SPACE', Keyboard, 296, -299, 443, 70 },
-        { 'RALT', Keyboard, 742, -299, 104, 70 },
-        -- gap for RWIN { { '', Keyboard, 849, -299, 70, 70 }, 
-        -- gap for MENU { '', Keyboard, 922, -299, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -299, 104, 70 }},
-
-    ['DVORAK_80%'] = {
-
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '[', Keyboard, 810, -80, 70, 70 },
-        { ']', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { "'", Keyboard, 114, -153, 70, 70 },
-        { ',', Keyboard, 187, -153, 70, 70 },
-        { '.', Keyboard, 260, -153, 70, 70 },
-        { 'P', Keyboard, 333, -153, 70, 70 },
-        { 'Y', Keyboard, 406, -153, 70, 70 },
-        { 'F', Keyboard, 479, -153, 70, 70 },
-        { 'G', Keyboard, 552, -153, 70, 70 },
-        { 'C', Keyboard, 625, -153, 70, 70 },
-        { 'R', Keyboard, 698, -153, 70, 70 },
-        { 'L', Keyboard, 771, -153, 70, 70 },
-        { '/', Keyboard, 844, -153, 70, 70 },
-        { '=', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'O', Keyboard, 204, -226, 70, 70 },
-        { 'E', Keyboard, 277, -226, 70, 70 },
-        { 'U', Keyboard, 350, -226, 70, 70 },
-        { 'I', Keyboard, 423, -226, 70, 70 },
-        { 'D', Keyboard, 496, -226, 70, 70 },
-        { 'H', Keyboard, 569, -226, 70, 70 },
-        { 'T', Keyboard, 642, -226, 70, 70 },
-        { 'N', Keyboard, 715, -226, 70, 70 },
-        { 'S', Keyboard, 788, -226, 70, 70 },
-        { '-', Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 159, 70 },
-        { ';', Keyboard, 169, -299, 70, 70 },
-        { 'Q', Keyboard, 242, -299, 70, 70 },
-        { 'J', Keyboard, 315, -299, 70, 70 },
-        { 'K', Keyboard, 388, -299, 70, 70 },
-        { 'X', Keyboard, 461, -299, 70, 70 },
-        { 'B', Keyboard, 534, -299, 70, 70 },
-        { 'M', Keyboard, 607, -299, 70, 70 },
-        { 'W', Keyboard, 680, -299, 70, 70 },
-        { 'V', Keyboard, 753, -299, 70, 70 },
-        { 'Z', Keyboard, 826, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
-
-        { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
-        { 'LALT', Keyboard, 187, -372, 104, 70 },
-        { 'SPACE', Keyboard, 296, -372, 443, 70 },
-        { 'RALT', Keyboard, 742, -372, 104, 70 },
-        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
-        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -372, 104, 70 },
-        
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-        
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-        
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 }},
-
-    ['DVORAK_100%'] = {
-        
-        { 'ESC', Keyboard, 7, -7, 70, 70 },
-    
-        { 'F1', Keyboard, 153, -7, 70, 70 },
-        { 'F2', Keyboard, 226, -7, 70, 70 },
-        { 'F3', Keyboard, 299, -7, 70, 70 },
-        { 'F4', Keyboard, 372, -7, 70, 70 },
-        
-        { 'F5', Keyboard, 480, -7, 70, 70 },
-        { 'F6', Keyboard, 553, -7, 70, 70 },
-        { 'F7', Keyboard, 626, -7, 70, 70 },
-        { 'F8', Keyboard, 699, -7, 70, 70 },
-        
-        { 'F9', Keyboard, 810, -7, 70, 70 },
-        { 'F10', Keyboard, 883, -7, 70, 70 },
-        { 'F11', Keyboard, 956, -7, 70, 70 },
-        { 'F12', Keyboard, 1029, -7, 70, 70 },
-        
-        { '`', Keyboard, 7, -80, 70, 70 },
-        { '1', Keyboard, 80, -80, 70, 70 },
-        { '2', Keyboard, 153, -80, 70, 70 },
-        { '3', Keyboard, 226, -80, 70, 70 },
-        { '4', Keyboard, 299, -80, 70, 70 },
-        { '5', Keyboard, 372, -80, 70, 70 },
-        { '6', Keyboard, 445, -80, 70, 70 },
-        { '7', Keyboard, 518, -80, 70, 70 },
-        { '8', Keyboard, 591, -80, 70, 70 },
-        { '9', Keyboard, 664, -80, 70, 70 },
-        { '0', Keyboard, 737, -80, 70, 70 },
-        { '[', Keyboard, 810, -80, 70, 70 },
-        { ']', Keyboard, 883, -80, 70, 70 },
-        { 'BACKSPACE', Keyboard, 956, -80, 143, 70 },
-        
-        { 'TAB', Keyboard, 7, -153, 104, 70 },
-        { "'", Keyboard, 114, -153, 70, 70 },
-        { ',', Keyboard, 187, -153, 70, 70 },
-        { '.', Keyboard, 260, -153, 70, 70 },
-        { 'P', Keyboard, 333, -153, 70, 70 },
-        { 'Y', Keyboard, 406, -153, 70, 70 },
-        { 'F', Keyboard, 479, -153, 70, 70 },
-        { 'G', Keyboard, 552, -153, 70, 70 },
-        { 'C', Keyboard, 625, -153, 70, 70 },
-        { 'R', Keyboard, 698, -153, 70, 70 },
-        { 'L', Keyboard, 771, -153, 70, 70 },
-        { '/', Keyboard, 844, -153, 70, 70 },
-        { '=', Keyboard, 917, -153, 70, 70 },
-        { '\\', Keyboard, 990, -153, 109, 70 },
-        
-        { 'CAPS', Keyboard, 7, -226, 121, 70 },
-        { 'A', Keyboard, 131, -226, 70, 70 },
-        { 'O', Keyboard, 204, -226, 70, 70 },
-        { 'E', Keyboard, 277, -226, 70, 70 },
-        { 'U', Keyboard, 350, -226, 70, 70 },
-        { 'I', Keyboard, 423, -226, 70, 70 },
-        { 'D', Keyboard, 496, -226, 70, 70 },
-        { 'H', Keyboard, 569, -226, 70, 70 },
-        { 'T', Keyboard, 642, -226, 70, 70 },
-        { 'N', Keyboard, 715, -226, 70, 70 },
-        { 'S', Keyboard, 788, -226, 70, 70 },
-        { '-', Keyboard, 861, -226, 70, 70 },
-        {'ENTER', Keyboard, 934, -226, 165, 70 },
-        
-        { 'LSHIFT', Keyboard, 7, -299, 159, 70 },
-        { ';', Keyboard, 169, -299, 70, 70 },
-        { 'Q', Keyboard, 242, -299, 70, 70 },
-        { 'J', Keyboard, 315, -299, 70, 70 },
-        { 'K', Keyboard, 388, -299, 70, 70 },
-        { 'X', Keyboard, 461, -299, 70, 70 },
-        { 'B', Keyboard, 534, -299, 70, 70 },
-        { 'M', Keyboard, 607, -299, 70, 70 },
-        { 'W', Keyboard, 680, -299, 70, 70 },
-        { 'V', Keyboard, 753, -299, 70, 70 },
-        { 'Z', Keyboard, 826, -299, 70, 70 },
-        { 'RSHIFT', Keyboard, 899, -299, 200, 70 },
-
-        { 'LCTRL', Keyboard, 7, -372, 104, 70 },
-        -- gap for LWIN { '', Keyboard, 114, -372, 70, 70 },
-        { 'LALT', Keyboard, 187, -372, 104, 70 },
-        { 'SPACE', Keyboard, 296, -372, 443, 70 },
-        { 'RALT', Keyboard, 742, -372, 104, 70 },
-        -- gap for RWIN { { '', Keyboard, 849, -372, 70, 70 }, 
-        -- gap for MENU { '', Keyboard, 922, -372, 70, 70 }, 
-        { 'RCTRL', Keyboard, 995, -372, 104, 70 },
-        
-        { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
-        
-        { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
-        
-        { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        { 'END', Keyboard, 1193, -153, 70, 70 },
-        { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
-        
-        { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        { 'UP', Keyboard, 1192, -299, 70, 70 },
-        { 'RIGHT', Keyboard, 1265, -372, 70, 70 },
-
-        { 'NUMLOCK', Keyboard, 1355, -80, 70, 70 },
-        { 'NUMPADDIV', Keyboard, 1428, -80, 70, 70 },
-        { 'NUMPADMULT', Keyboard, 1501, -80, 70, 70 },
-        { 'NUMPADSUB', Keyboard, 1574, -80, 70, 70 },
-
-        { 'NUMPAD7', Keyboard, 1355, -153, 70, 70 },
-        { 'NUMPAD8', Keyboard, 1428, -153, 70, 70 },
-        { 'NUMPAD9', Keyboard, 1501, -153, 70, 70 },
-        { 'NUMPADADD', Keyboard, 1574, -153, 70, 143 },
-    
-        { 'NUMPAD4', Keyboard, 1355, -226, 70, 70 },
-        { 'NUMPAD5', Keyboard, 1428, -226, 70, 70 },
-        { 'NUMPAD6', Keyboard, 1501, -226, 70, 70 },
-
-        { 'NUMPAD1', Keyboard, 1355, -299, 70, 70 },
-        { 'NUMPAD2', Keyboard, 1428, -299, 70, 70 },
-        { 'NUMPAD3', Keyboard, 1501, -299, 70, 70 },
-        { 'NUMPADENTER', Keyboard, 1574, -299, 70, 143 },
-
-        { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
-        { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }},
-
-    ['Razer_Tartarus'] = { 
-
-        { 'TAB', Keyboard, 7, -22, 70, 70 },   
-        { 'Q', Keyboard, 80, -7, 70, 70 },
-        { 'W', Keyboard, 153, -7, 70, 70 },
-        { 'E', Keyboard, 226, -7, 70, 70 },
-        { 'R', Keyboard, 299, -7, 70, 70 },
+            -- 3 row
             
-        { 'CAPS', Keyboard, 7, -95, 70, 70 },
-        { 'A', Keyboard, 80, -80, 70, 70 },
-        { 'S', Keyboard, 153, -80, 70, 70 },
-        { 'D', Keyboard, 226, -80, 70, 70 },
-        { 'F', Keyboard, 299, -80, 70, 70 },
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+                { 'NUMPAD7', Keyboard, 956, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1018, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1080, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1142, -130, u, u2 },
             
-        { 'LSHIFT', Keyboard, 7, -168, 70, 70 },
-        { 'Z', Keyboard, 80, -153, 70, 70 },
-        { 'X', Keyboard, 153, -153, 70, 70 },
-        { 'C', Keyboard, 226, -153, 70, 70 },
-        { 'V', Keyboard, 299, -153, 70, 70 }},
-
-    ['Razer_Tartarus2'] = { 
-
-        { '1', Keyboard, 7, -22, 70, 70 },   
-        { '2', Keyboard, 80, -7, 70, 70 },
-        { '3', Keyboard, 153, -7, 70, 70 },
-        { '4', Keyboard, 226, -7, 70, 70 },
-        { '5', Keyboard, 299, -7, 70, 70 },
-                        
-        { 'TAB', Keyboard, 7, -95, 70, 70 },
-        { 'Q', Keyboard, 80, -80, 70, 70 },
-        { 'W', Keyboard, 153, -80, 70, 70 },
-        { 'E', Keyboard, 226, -80, 70, 70 },
-        { 'R', Keyboard, 299, -80, 70, 70 },
-                        
-        { 'CAPS', Keyboard, 7, -168, 70, 70 },
-        { 'A', Keyboard, 80, -153, 70, 70 },
-        { 'S', Keyboard, 153, -153, 70, 70 },
-        { 'D', Keyboard, 226, -153, 70, 70 },
-        { 'F', Keyboard, 299, -153, 70, 70 },
+            -- 4 row
             
-        { 'LSHIFT', Keyboard, 7, -241, 70, 70 },
-        { 'Z', Keyboard, 80, -226, 70, 70 },
-        { 'X', Keyboard, 153, -226, 70, 70 },
-        { 'C', Keyboard, 226, -226, 70, 70 }},
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                { 'NUMPAD4', Keyboard, 956, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1018, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1080, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 884, -264, u, u },
+                { 'NUMPAD1', Keyboard, 956, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1018, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1080, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1142, -254, u, u2 },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 822, -326, u, u },
+                { 'DOWN', Keyboard, 884, -326, u, u },
+                { 'RIGHT', Keyboard, 946, -326, u, u },
+                { 'NUMPAD0', Keyboard, 1018, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1080, -316, u, u },
+        },
 
-    ['Azeron'] = { 
+        ['AZERTY_HALF'] = {
+            
+            -- 1 row
 
-        { 'I', Keyboard, 153, -7, 70, 70 },
-        { 'M', Keyboard, 226, -7, 70, 70 },
-        { 'UP', Keyboard, 372, -7, 70, 70 },
-                        
-        { 'Z', Keyboard, 7, -80, 70, 70 },
-        { 'X', Keyboard, 80, -80, 70, 70 },
-        { 'C', Keyboard, 153, -80, 70, 70 },
-        { 'V', Keyboard, 226, -80, 70, 70 },
-        { 'LEFT', Keyboard, 299, -80, 70, 70 },
-        { 'T', Keyboard, 372, -80, 70, 70 },
-        { 'RIGHT', Keyboard, 445, -80, 70, 70 },
-                        
-        { 'Q', Keyboard, 7, -153, 70, 70 },
-        { 'G', Keyboard, 80, -153, 70, 70 },
-        { 'R', Keyboard, 153, -153, 70, 70 },
-        { 'E', Keyboard, 226, -153, 70, 70 },
-        { 'DOWN', Keyboard, 372, -153, 70, 70 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                
+            -- 2 row
 
-        { '1', Keyboard, 7, -226, 70, 70 },
-        { '2', Keyboard, 80, -226, 70, 70 },
-        { '3', Keyboard, 153, -226, 70, 70 },
-        { '4', Keyboard, 226, -226, 70, 70 },
-        { 'F', Keyboard, 299, -226, 70, 70 },
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                
+            -- 5 row
 
-        { 'A', Keyboard, 7, -299, 70, 70 },
-        { 'ALT', Keyboard, 80, -299, 70, 70 },
-        { 'SHIFT', Keyboard, 153, -299, 70, 70 },
-        { 'CTRL', Keyboard, 226, -299, 70, 70 },
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
 
-        { '=', Keyboard, 372, -372, 70, 70 },
-        { 'ESC', Keyboard, 445, -372, 70, 70 }}}
+            -- 6 row
 
-    --80% Copy Paste------------------------------------------
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, 245, u },
+        },
 
-        -- { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        -- { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        -- { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
+        ['AZERTY_PRIMARY'] = {
         
-        -- { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        -- { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        -- { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '²', Keyboard, 6, -68, u, u },
+                { '&', Keyboard, 68, -68, u, u },
+                { 'é', Keyboard, 130, -68, u, u },
+                { '"', Keyboard, 192, -68, u, u },
+                { "'", Keyboard, 254, -68, u, u },
+                { '(', Keyboard, 316, -68, u, u },
+                { '-', Keyboard, 378, -68, u, u },
+                { 'è', Keyboard, 440, -68, u, u },
+                { '_', Keyboard, 502, -68, u, u },
+                { 'ç', Keyboard, 564, -68, u, u },
+                { 'à', Keyboard, 626, -68, u, u },
+                { ')', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'A', Keyboard, 98, -130, u, u },
+                { 'Z', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '^', Keyboard, 718, -130, u, u },
+                { '$', Keyboard, 780, -130, u, u },
+                { 'ENTER', Keyboard, 859, -130, u1_25, u2 },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'Q', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { 'M', Keyboard, 673, -192, u, u },
+                { 'ù', Keyboard, 735, -192, u, u },
+                { '*', Keyboard, 797, -192, u, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u1_25 + 2, u },
+                { '<', Keyboard, 85, -254, u, u },
+                { 'W', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { ',', Keyboard, 519, -254, u, u },
+                { ';', Keyboard, 581, -254, u, u },
+                { ':', Keyboard, 643, -254, u, u },
+                { '!', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+        },
+
+    --
+
+--
+
+-- ANSI --
+
+    -- QWERTY --
+
+        ['QWERTY_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+            
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
+            
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+        ['QWERTY_96%'] = {
+
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'DELETE', Keyboard, 812, -6, u, u },
+                { 'INSERT', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 936, -6, u, u },
+                { 'END', Keyboard, 998, -6, u, u },
+                { 'PAGEUP', Keyboard, 1060, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1122, -6, u, u },
+            
+                
+            -- 2 row
+            
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 936, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 998, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1060, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1122, -68, u, u },
+            
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+                { 'NUMPAD7', Keyboard, 936, -130, u, u },
+                { 'NUMPAD8', Keyboard, 998, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1060, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1122, -130, u, u2 },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                { 'NUMPAD4', Keyboard, 936, -192, u, u },
+                { 'NUMPAD5', Keyboard, 998, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1060, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'NUMPAD1', Keyboard, 936, -254, u, u },
+                { 'NUMPAD2', Keyboard, 998, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1060, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1122, -254, u, u2 },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+                { 'NUMPAD0', Keyboard, 998, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1060, -316, u, u },
+        },
+        ['QWERTY_80%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+                
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        },
+        ['QWERTY_75%'] = {
+
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { 'F1', Keyboard, 68, -6, u, u },
+                { 'F2', Keyboard, 130, -6, u, u },
+                { 'F3', Keyboard, 192, -6, u, u },
+                { 'F4', Keyboard, 254, -6, u, u },
+                { 'F5', Keyboard, 316, -6, u, u },
+                { 'F6', Keyboard, 378, -6, u, u },
+                { 'F7', Keyboard, 440, -6, u, u },
+                { 'F8', Keyboard, 502, -6, u, u },
+                { 'F9', Keyboard, 564, -6, u, u },
+                { 'F10', Keyboard, 626, -6, u, u },
+                { 'F11', Keyboard, 688, -6, u, u },
+                { 'F12', Keyboard, 750, -6, u, u },
+                { 'PRINTSCREEN', Keyboard, 812, -6, u, u },
+                { 'PAUSE', Keyboard, 874, -6, u, u },
+                { 'DELETE', Keyboard, 936, -6, u, u },
+                
+            -- 2 row
+            
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'HOME', Keyboard, 936, -68, u, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+                { 'END', Keyboard, 936, -130, u, u },
+            
+            -- 4 row
         
-        -- { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        -- { 'END', Keyboard, 1193, -153, 70, 70 },
-        -- { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                { 'PAGEUP', Keyboard, 936, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 874, -254, u, u },
+                { 'PAGEDOWN', Keyboard, 936, -254, u, u },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 812, -316, u, u },
+                { 'DOWN', Keyboard, 874, -316, u, u },
+                { 'RIGHT', Keyboard, 936, -316, u, u },
+        },
+        ['QWERTY_60%'] = {
+
+            -- 1 row
         
-        -- { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        -- { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        -- { 'UP', Keyboard, 1192, -299, 70, 70 },
-        -- { 'RIGHT', Keyboard, 1265, -372, 70, 70 }
-
-    --100% Copy Paste-----------------------------------------
-
-        -- { 'PRINTSCREEN', Keyboard, 1119, -7, 70, 70 },
-        -- { 'SCROLLLOCK', Keyboard, 1192, -7, 70, 70 },
-        -- { 'PAUSE', Keyboard, 1265, -7, 70, 70 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                { '1', Keyboard, 68, -6, u, u },
+                { '2', Keyboard, 130, -6, u, u },
+                { '3', Keyboard, 192, -6, u, u },
+                { '4', Keyboard, 254, -6, u, u },
+                { '5', Keyboard, 316, -6, u, u },
+                { '6', Keyboard, 378, -6, u, u },
+                { '7', Keyboard, 440, -6, u, u },
+                { '8', Keyboard, 502, -6, u, u },
+                { '9', Keyboard, 564, -6, u, u },
+                { '0', Keyboard, 626, -6, u, u },
+                { '-', Keyboard, 688, -6, u, u },
+                { '=', Keyboard, 750, -6, u, u },
+                { 'BACKSPACE', Keyboard, 812, -6, u2, u },
+                
+            -- 2 row
         
-        -- { 'INSERT', Keyboard, 1119, -80, 70, 70 },
-        -- { 'HOME', Keyboard, 1192, -80, 70, 70 },
-        -- { 'PAGEUP', Keyboard, 1265, -80, 70, 70 },
+                { 'TAB', Keyboard, 6, -68, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -68, u, u },
+                { 'W', Keyboard, 160, -68, u, u },
+                { 'E', Keyboard, 222, -68, u, u },
+                { 'R', Keyboard, 284, -68, u, u },
+                { 'T', Keyboard, 346, -68, u, u },
+                { 'Y', Keyboard, 408, -68, u, u },
+                { 'U', Keyboard, 470, -68, u, u },
+                { 'I', Keyboard, 532, -68, u, u },
+                { 'O', Keyboard, 594, -68, u, u },
+                { 'P', Keyboard, 656, -68, u, u },
+                { '[', Keyboard, 718, -68, u, u },
+                { ']', Keyboard, 780, -68, u, u },
+                { '\\', Keyboard, 842, -68, u1_5 + 2, u },
         
-        -- { 'DELETE', Keyboard, 1119, -153, 70, 70 },
-        -- { 'END', Keyboard, 1193, -153, 70, 70 },
-        -- { 'PAGEDOWN', Keyboard, 1265, -153, 70, 70 },
+            -- 3 row
         
-        -- { 'LEFT', Keyboard, 1119, -372, 70, 70 },
-        -- { 'DOWN', Keyboard, 1192, -372, 70, 70 },
-        -- { 'UP', Keyboard, 1192, -299, 70, 70 },
-        -- { 'RIGHT', Keyboard, 1265, -372, 70, 70 }
+                { 'CAPS', Keyboard, 6, -130, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -130, u, u },
+                { 'S', Keyboard, 177, -130, u, u },
+                { 'D', Keyboard, 239, -130, u, u },
+                { 'F', Keyboard, 301, -130, u, u },
+                { 'G', Keyboard, 363, -130, u, u },
+                { 'H', Keyboard, 425, -130, u, u },
+                { 'J', Keyboard, 487, -130, u, u },
+                { 'K', Keyboard, 549, -130, u, u },
+                { 'L', Keyboard, 611, -130, u, u },
+                { ';', Keyboard, 673, -130, u, u },
+                { ",", Keyboard, 735, -130, u, u },
+                { 'ENTER', Keyboard, 797, -130, u2_25 + 2, u },
+                
+            -- 4 row
+        
+                { 'LSHIFT', Keyboard, 6, -192, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -192, u, u },
+                { 'X', Keyboard, 209, -192, u, u },
+                { 'C', Keyboard, 271, -192, u, u },
+                { 'V', Keyboard, 333, -192, u, u },
+                { 'B', Keyboard, 395, -192, u, u },
+                { 'N', Keyboard, 457, -192, u, u },
+                { 'M', Keyboard, 519, -192, u, u },
+                { ',', Keyboard, 581, -192, u, u },
+                { '.', Keyboard, 643, -192, u, u },
+                { '/', Keyboard, 705, -192, u, u },
+                { 'RSHIFT', Keyboard, 767, -192, u2_75 + 2, u },
+        
+            -- 5 row
+        
+                { 'LCTRL', Keyboard, 6, -254, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -254, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -254, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -254, u6_25, u },
+                { 'RALT', Keyboard, 626, -254, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -254, u1_25, u },
+                { 'MENU', Keyboard, 782, -254, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -254, u1_25, u },
+        },
+        ['QWERTY_1800'] = {
 
-        -- { 'NUMLOCK', Keyboard, 1355, -80, 70, 70 },
-        -- { 'NUMPADDIV', Keyboard, 1428, -80, 70, 70 },
-        -- { 'NUMPADMULT', Keyboard, 1501, -80, 70, 70 },
-        -- { 'NUMPADSUB', Keyboard, 1574, -80, 70, 70 },
+            -- 1 row
+            
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                { 'HOME', Keyboard, 956, -6, u, u },
+                { 'END', Keyboard, 1018, -6, u, u },
+                { 'PAGEUP', Keyboard, 1080, -6, u, u },
+                { 'PAGEDOWN', Keyboard, 1142, -6, u, u },
+            
+                
+            -- 2 row
+            
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                { 'NUMLOCK', Keyboard, 956, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1018, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1080, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1142, -68, u, u },
+            
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+                { 'NUMPAD7', Keyboard, 956, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1018, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1080, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1142, -130, u, u2 },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                { 'NUMPAD4', Keyboard, 956, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1018, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1080, -192, u, u },
+                
+            -- 5 row
+            
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, 105, u },
+                { 'UP', Keyboard, 884, -264, u, u },
+                { 'NUMPAD1', Keyboard, 956, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1018, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1080, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1142, -254, u, u2 },
+            
+            -- 6 row
+            
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u, u },
+                { 'MENU', Keyboard, 688, -316, u, u },
+                { 'RCTRL', Keyboard, 750, -316, u, u },
+                { 'LEFT', Keyboard, 822, -326, u, u },
+                { 'DOWN', Keyboard, 884, -326, u, u },
+                { 'RIGHT', Keyboard, 946, -326, u, u },
+                { 'NUMPAD0', Keyboard, 1018, -316, u, u },
+                { 'NUMPADDOT', Keyboard, 1080, -316, u, u },
+        },        
+        ['QWERTY_HALF'] = {
+            
+            -- 1 row
+        
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                
+            -- 2 row
+        
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                
+            -- 5 row
+        
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+        
+            -- 6 row
+        
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, 245, u },
+        },
+        ['QWERTY_PRIMARY'] = {
 
-        -- { 'NUMPAD7', Keyboard, 1355, -153, 70, 70 },
-        -- { 'NUMPAD8', Keyboard, 1428, -153, 70, 70 },
-        -- { 'NUMPAD9', Keyboard, 1501, -153, 70, 70 },
-        -- { 'NUMPADADD', Keyboard, 1574, -153, 70, 143 },
-    
-        -- { 'NUMPAD4', Keyboard, 1355, -226, 70, 70 },
-        -- { 'NUMPAD5', Keyboard, 1428, -226, 70, 70 },
-        -- { 'NUMPAD6', Keyboard, 1501, -226, 70, 70 },
+            -- 1 row
 
-        -- { 'NUMPAD1', Keyboard, 1355, -299, 70, 70 },
-        -- { 'NUMPAD2', Keyboard, 1428, -299, 70, 70 },
-        -- { 'NUMPAD3', Keyboard, 1501, -299, 70, 70 },
-        -- { 'NUMPADENTER', Keyboard, 1574, -299, 70, 143 },
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+            
+            -- 2 row
 
-        -- { 'NUMPAD0', Keyboard, 1355, -372, 143, 70 },
-        -- { 'NUMPADDOT', Keyboard, 1501, -372, 70, 70 }
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '-', Keyboard, 688, -68, u, u },
+                { '=', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { 'Q', Keyboard, 98, -130, u, u },
+                { 'W', Keyboard, 160, -130, u, u },
+                { 'E', Keyboard, 222, -130, u, u },
+                { 'R', Keyboard, 284, -130, u, u },
+                { 'T', Keyboard, 346, -130, u, u },
+                { 'Y', Keyboard, 408, -130, u, u },
+                { 'U', Keyboard, 470, -130, u, u },
+                { 'I', Keyboard, 532, -130, u, u },
+                { 'O', Keyboard, 594, -130, u, u },
+                { 'P', Keyboard, 656, -130, u, u },
+                { '[', Keyboard, 718, -130, u, u },
+                { ']', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'S', Keyboard, 177, -192, u, u },
+                { 'D', Keyboard, 239, -192, u, u },
+                { 'F', Keyboard, 301, -192, u, u },
+                { 'G', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'J', Keyboard, 487, -192, u, u },
+                { 'K', Keyboard, 549, -192, u, u },
+                { 'L', Keyboard, 611, -192, u, u },
+                { ';', Keyboard, 673, -192, u, u },
+                { ",", Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { 'Z', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'C', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'B', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '.', Keyboard, 643, -254, u, u },
+                { '/', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_25 + 2, u },
+                { 'LWIN', Keyboard, 85, -316, u1_25 + 1, u },
+                { 'LALT', Keyboard, 163, -316, u1_25 + 1, u },
+                { 'SPACE', Keyboard, 241, -316, u6_25, u },
+                { 'RALT', Keyboard, 626, -316, u1_25 + 2, u },
+                { 'RWIN', Keyboard, 705, -316, u1_25, u },
+                { 'MENU', Keyboard, 782, -316, u1_25, u },
+                { 'RCTRL', Keyboard, 859, -316, u1_25, u },
+        },
+        
+    --
+
+--
+
+-- DVORAK --
+
+        ['DVORAK_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '[', Keyboard, 688, -68, u, u },
+                { ']', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { '`', Keyboard, 98, -130, u, u },
+                { ',', Keyboard, 160, -130, u, u },
+                { '.', Keyboard, 222, -130, u, u },
+                { 'P', Keyboard, 284, -130, u, u },
+                { 'Y', Keyboard, 346, -130, u, u },
+                { 'F', Keyboard, 408, -130, u, u },
+                { 'G', Keyboard, 470, -130, u, u },
+                { 'C', Keyboard, 532, -130, u, u },
+                { 'R', Keyboard, 594, -130, u, u },
+                { 'L', Keyboard, 656, -130, u, u },
+                { '/', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'O', Keyboard, 177, -192, u, u },
+                { 'E', Keyboard, 239, -192, u, u },
+                { 'U', Keyboard, 301, -192, u, u },
+                { 'I', Keyboard, 363, -192, u, u },
+                { 'D', Keyboard, 425, -192, u, u },
+                { 'H', Keyboard, 487, -192, u, u },
+                { 'T', Keyboard, 549, -192, u, u },
+                { 'N', Keyboard, 611, -192, u, u },
+                { 'S', Keyboard, 673, -192, u, u },
+                { '-', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { ';', Keyboard, 147, -254, u, u },
+                { 'Q', Keyboard, 209, -254, u, u },
+                { 'J', Keyboard, 271, -254, u, u },
+                { 'K', Keyboard, 333, -254, u, u },
+                { 'X', Keyboard, 395, -254, u, u },
+                { 'B', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { 'W', Keyboard, 581, -254, u, u },
+                { 'V', Keyboard, 643, -254, u, u },
+                { 'Z', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },
+
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
+            
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+
+        ['DVORAK_PRIMARY'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { '5', Keyboard, 316, -68, u, u },
+                { '6', Keyboard, 378, -68, u, u },
+                { '7', Keyboard, 440, -68, u, u },
+                { '8', Keyboard, 502, -68, u, u },
+                { '9', Keyboard, 564, -68, u, u },
+                { '0', Keyboard, 626, -68, u, u },
+                { '[', Keyboard, 688, -68, u, u },
+                { ']', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { '`', Keyboard, 98, -130, u, u },
+                { ',', Keyboard, 160, -130, u, u },
+                { '.', Keyboard, 222, -130, u, u },
+                { 'P', Keyboard, 284, -130, u, u },
+                { 'Y', Keyboard, 346, -130, u, u },
+                { 'F', Keyboard, 408, -130, u, u },
+                { 'G', Keyboard, 470, -130, u, u },
+                { 'C', Keyboard, 532, -130, u, u },
+                { 'R', Keyboard, 594, -130, u, u },
+                { 'L', Keyboard, 656, -130, u, u },
+                { '/', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'A', Keyboard, 115, -192, u, u },
+                { 'O', Keyboard, 177, -192, u, u },
+                { 'E', Keyboard, 239, -192, u, u },
+                { 'U', Keyboard, 301, -192, u, u },
+                { 'I', Keyboard, 363, -192, u, u },
+                { 'D', Keyboard, 425, -192, u, u },
+                { 'H', Keyboard, 487, -192, u, u },
+                { 'T', Keyboard, 549, -192, u, u },
+                { 'N', Keyboard, 611, -192, u, u },
+                { 'S', Keyboard, 673, -192, u, u },
+                { '-', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { ';', Keyboard, 147, -254, u, u },
+                { 'Q', Keyboard, 209, -254, u, u },
+                { 'J', Keyboard, 271, -254, u, u },
+                { 'K', Keyboard, 333, -254, u, u },
+                { 'X', Keyboard, 395, -254, u, u },
+                { 'B', Keyboard, 457, -254, u, u },
+                { 'M', Keyboard, 519, -254, u, u },
+                { 'W', Keyboard, 581, -254, u, u },
+                { 'V', Keyboard, 643, -254, u, u },
+                { 'Z', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },
+        },
+
+        ['DVORAK_RIGHT_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { 'J', Keyboard, 316, -68, u, u },
+                { 'L', Keyboard, 378, -68, u, u },
+                { 'M', Keyboard, 440, -68, u, u },
+                { 'F', Keyboard, 502, -68, u, u },
+                { 'P', Keyboard, 564, -68, u, u },
+                { '/', Keyboard, 626, -68, u, u },
+                { '[', Keyboard, 688, -68, u, u },
+                { ']', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { '5', Keyboard, 98, -130, u, u },
+                { '6', Keyboard, 160, -130, u, u },
+                { 'Q', Keyboard, 222, -130, u, u },
+                { '.', Keyboard, 284, -130, u, u },
+                { 'O', Keyboard, 346, -130, u, u },
+                { 'R', Keyboard, 408, -130, u, u },
+                { 'S', Keyboard, 470, -130, u, u },
+                { 'U', Keyboard, 532, -130, u, u },
+                { 'Y', Keyboard, 594, -130, u, u },
+                { 'B', Keyboard, 656, -130, u, u },
+                { ';', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { '&', Keyboard, 115, -192, u, u },
+                { '*', Keyboard, 177, -192, u, u },
+                { 'Z', Keyboard, 239, -192, u, u },
+                { 'A', Keyboard, 301, -192, u, u },
+                { 'E', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'T', Keyboard, 487, -192, u, u },
+                { 'D', Keyboard, 549, -192, u, u },
+                { 'C', Keyboard, 611, -192, u, u },
+                { 'K', Keyboard, 673, -192, u, u },
+                { '-', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { '9', Keyboard, 147, -254, u, u },
+                { '0', Keyboard, 209, -254, u, u },
+                { 'X', Keyboard, 271, -254, u, u },
+                { ',', Keyboard, 333, -254, u, u },
+                { 'I', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'W', Keyboard, 519, -254, u, u },
+                { 'V', Keyboard, 581, -254, u, u },
+                { 'G', Keyboard, 643, -254, u, u },
+                { ',', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },
+
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
+            
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+
+        ['DVORAK_RIGHT_PRIMARY'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '1', Keyboard, 68, -68, u, u },
+                { '2', Keyboard, 130, -68, u, u },
+                { '3', Keyboard, 192, -68, u, u },
+                { '4', Keyboard, 254, -68, u, u },
+                { 'J', Keyboard, 316, -68, u, u },
+                { 'L', Keyboard, 378, -68, u, u },
+                { 'M', Keyboard, 440, -68, u, u },
+                { 'F', Keyboard, 502, -68, u, u },
+                { 'P', Keyboard, 564, -68, u, u },
+                { '/', Keyboard, 626, -68, u, u },
+                { '[', Keyboard, 688, -68, u, u },
+                { ']', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { '5', Keyboard, 98, -130, u, u },
+                { '6', Keyboard, 160, -130, u, u },
+                { 'Q', Keyboard, 222, -130, u, u },
+                { '.', Keyboard, 284, -130, u, u },
+                { 'O', Keyboard, 346, -130, u, u },
+                { 'R', Keyboard, 408, -130, u, u },
+                { 'S', Keyboard, 470, -130, u, u },
+                { 'U', Keyboard, 532, -130, u, u },
+                { 'Y', Keyboard, 594, -130, u, u },
+                { 'B', Keyboard, 656, -130, u, u },
+                { ';', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { '&', Keyboard, 115, -192, u, u },
+                { '*', Keyboard, 177, -192, u, u },
+                { 'Z', Keyboard, 239, -192, u, u },
+                { 'A', Keyboard, 301, -192, u, u },
+                { 'E', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'T', Keyboard, 487, -192, u, u },
+                { 'D', Keyboard, 549, -192, u, u },
+                { 'C', Keyboard, 611, -192, u, u },
+                { 'K', Keyboard, 673, -192, u, u },
+                { '-', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { '9', Keyboard, 147, -254, u, u },
+                { '0', Keyboard, 209, -254, u, u },
+                { 'X', Keyboard, 271, -254, u, u },
+                { ',', Keyboard, 333, -254, u, u },
+                { 'I', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'W', Keyboard, 519, -254, u, u },
+                { 'V', Keyboard, 581, -254, u, u },
+                { 'G', Keyboard, 643, -254, u, u },
+                { ',', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },
+        },
+
+        ['DVORAK_LEFT_100%'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '[', Keyboard, 68, -68, u, u },
+                { ']', Keyboard, 130, -68, u, u },
+                { '/', Keyboard, 192, -68, u, u },
+                { 'P', Keyboard, 254, -68, u, u },
+                { 'F', Keyboard, 316, -68, u, u },
+                { 'M', Keyboard, 378, -68, u, u },
+                { 'L', Keyboard, 440, -68, u, u },
+                { 'J', Keyboard, 502, -68, u, u },
+                { '4', Keyboard, 564, -68, u, u },
+                { '3', Keyboard, 626, -68, u, u },
+                { '2', Keyboard, 688, -68, u, u },
+                { '1', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { ';', Keyboard, 98, -130, u, u },
+                { 'Q', Keyboard, 160, -130, u, u },
+                { 'B', Keyboard, 222, -130, u, u },
+                { 'Y', Keyboard, 284, -130, u, u },
+                { 'U', Keyboard, 346, -130, u, u },
+                { 'R', Keyboard, 408, -130, u, u },
+                { 'S', Keyboard, 470, -130, u, u },
+                { 'O', Keyboard, 532, -130, u, u },
+                { '.', Keyboard, 594, -130, u, u },
+                { '6', Keyboard, 656, -130, u, u },
+                { '5', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { '-', Keyboard, 115, -192, u, u },
+                { 'K', Keyboard, 177, -192, u, u },
+                { 'C', Keyboard, 239, -192, u, u },
+                { 'D', Keyboard, 301, -192, u, u },
+                { 'T', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'E', Keyboard, 487, -192, u, u },
+                { 'A', Keyboard, 549, -192, u, u },
+                { 'Z', Keyboard, 611, -192, u, u },
+                { '8', Keyboard, 673, -192, u, u },
+                { '9', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { ',', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'G', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'W', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'I', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '0', Keyboard, 643, -254, u, u },
+                { '9', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },
+
+            -- 80% ------------------------------------------
+
+                { 'PRINTSCREEN', Keyboard, 949, -6, u, u },
+                { 'SCROLLLOCK', Keyboard, 1011, -6, u, u },
+                { 'PAUSE', Keyboard, 1073, -6, u, u },
+
+                { 'INSERT', Keyboard, 949, -68, u, u },
+                { 'HOME', Keyboard, 1011, -68, u, u },
+                { 'PAGEUP', Keyboard, 1073, -68, u, u },
+
+                { 'DELETE', Keyboard, 949, -130, u, u },
+                { 'END', Keyboard, 1011, -130, u, u },
+                { 'PAGEDOWN', Keyboard, 1073, -130, u, u },
+                
+                { 'LEFT', Keyboard, 949, -316, u, u },
+                { 'DOWN', Keyboard, 1011, -316, u, u },
+                { 'UP', Keyboard, 1011, -254, u, u },
+                { 'RIGHT', Keyboard, 1073, -316, u, u },
+        
+            -- 100% -----------------------------------------
+
+                { 'NUMLOCK', Keyboard, 1148, -68, u, u },
+                { 'NUMPADDIV', Keyboard, 1210, -68, u, u },
+                { 'NUMPADMULT', Keyboard, 1272, -68, u, u },
+                { 'NUMPADSUB', Keyboard, 1334, -68, u, u },
+
+                { 'NUMPAD7', Keyboard, 1148, -130, u, u },
+                { 'NUMPAD8', Keyboard, 1210, -130, u, u },
+                { 'NUMPAD9', Keyboard, 1272, -130, u, u },
+                { 'NUMPADADD', Keyboard, 1334, -130, u, u2 },
+            
+                { 'NUMPAD4', Keyboard, 1148, -192, u, u },
+                { 'NUMPAD5', Keyboard, 1210, -192, u, u },
+                { 'NUMPAD6', Keyboard, 1272, -192, u, u },
+
+                { 'NUMPAD1', Keyboard, 1148, -254, u, u },
+                { 'NUMPAD2', Keyboard, 1210, -254, u, u },
+                { 'NUMPAD3', Keyboard, 1272, -254, u, u },
+                { 'NUMPADENTER', Keyboard, 1334, -254, u, u2 },
+
+                { 'NUMPAD0', Keyboard, 1148, -316, u2, u },
+                { 'NUMPADDOT', Keyboard, 1272, -316, u, u },
+        },
+
+        ['DVORAK_LEFT_PRIMARY'] = {
+
+            -- 1 row
+
+                { 'ESC', Keyboard, 6, -6, u, u },
+                -- 1u gap
+                { 'F1', Keyboard, 130, -6, u, u },
+                { 'F2', Keyboard, 192, -6, u, u },
+                { 'F3', Keyboard, 254, -6, u, u },
+                { 'F4', Keyboard, 316, -6, u, u },
+                -- 0,5u gap
+                { 'F5', Keyboard, 409, -6, u, u },
+                { 'F6', Keyboard, 471, -6, u, u },
+                { 'F7', Keyboard, 533, -6, u, u },
+                { 'F8', Keyboard, 595, -6, u, u },
+                -- 0,5u gap
+                { 'F9', Keyboard, 688, -6, u, u },
+                { 'F10', Keyboard, 750, -6, u, u },
+                { 'F11', Keyboard, 812, -6, u, u },
+                { 'F12', Keyboard, 874, -6, u, u },
+                
+            -- 2 row
+
+                { '`', Keyboard, 6, -68, u, u },
+                { '[', Keyboard, 68, -68, u, u },
+                { ']', Keyboard, 130, -68, u, u },
+                { '/', Keyboard, 192, -68, u, u },
+                { 'P', Keyboard, 254, -68, u, u },
+                { 'F', Keyboard, 316, -68, u, u },
+                { 'M', Keyboard, 378, -68, u, u },
+                { 'L', Keyboard, 440, -68, u, u },
+                { 'J', Keyboard, 502, -68, u, u },
+                { '4', Keyboard, 564, -68, u, u },
+                { '3', Keyboard, 626, -68, u, u },
+                { '2', Keyboard, 688, -68, u, u },
+                { '1', Keyboard, 750, -68, u, u },
+                { 'BACKSPACE', Keyboard, 812, -68, u2, u },
+                
+            -- 3 row
+            
+                { 'TAB', Keyboard, 6, -130, u1_5 + 1, u },
+                { ';', Keyboard, 98, -130, u, u },
+                { 'Q', Keyboard, 160, -130, u, u },
+                { 'B', Keyboard, 222, -130, u, u },
+                { 'Y', Keyboard, 284, -130, u, u },
+                { 'U', Keyboard, 346, -130, u, u },
+                { 'R', Keyboard, 408, -130, u, u },
+                { 'S', Keyboard, 470, -130, u, u },
+                { 'O', Keyboard, 532, -130, u, u },
+                { '.', Keyboard, 594, -130, u, u },
+                { '6', Keyboard, 656, -130, u, u },
+                { '5', Keyboard, 718, -130, u, u },
+                { '=', Keyboard, 780, -130, u, u },
+                { '\\', Keyboard, 842, -130, u1_5 + 2, u },
+            
+            -- 4 row
+            
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
+                { '-', Keyboard, 115, -192, u, u },
+                { 'K', Keyboard, 177, -192, u, u },
+                { 'C', Keyboard, 239, -192, u, u },
+                { 'D', Keyboard, 301, -192, u, u },
+                { 'T', Keyboard, 363, -192, u, u },
+                { 'H', Keyboard, 425, -192, u, u },
+                { 'E', Keyboard, 487, -192, u, u },
+                { 'A', Keyboard, 549, -192, u, u },
+                { 'Z', Keyboard, 611, -192, u, u },
+                { '8', Keyboard, 673, -192, u, u },
+                { '9', Keyboard, 735, -192, u, u },
+                { 'ENTER', Keyboard, 797, -192, u2_25 + 2, u },
+                
+            -- 5 row
+
+                { 'LSHIFT', Keyboard, 6, -254, u2_25 + 4, u },
+                { ',', Keyboard, 147, -254, u, u },
+                { 'X', Keyboard, 209, -254, u, u },
+                { 'G', Keyboard, 271, -254, u, u },
+                { 'V', Keyboard, 333, -254, u, u },
+                { 'W', Keyboard, 395, -254, u, u },
+                { 'N', Keyboard, 457, -254, u, u },
+                { 'I', Keyboard, 519, -254, u, u },
+                { ',', Keyboard, 581, -254, u, u },
+                { '0', Keyboard, 643, -254, u, u },
+                { '9', Keyboard, 705, -254, u, u },
+                { 'RSHIFT', Keyboard, 767, -254, u2_75 + 2, u },
+
+            -- 6 row
+
+                { 'LCTRL', Keyboard, 6, -316, u1_5 + 1, u },
+                { 'LWIN', Keyboard, 99, -316, u, u },
+                { 'LALT', Keyboard, 161, -316, u1_5 + 1, u },
+                { 'SPACE', Keyboard, 254, -316, 368, u },
+                { 'RALT', Keyboard, 624, -316, u1_5 + 2, u },
+                { 'RWIN', Keyboard, 718, -316, u, u },
+                { 'MENU', Keyboard, 780, -316, u, u },
+                { 'RCTRL', Keyboard, 842, -316, u1_5 + 2, u },   
+        },
+--
+}

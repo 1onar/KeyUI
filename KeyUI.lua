@@ -406,7 +406,7 @@ function addon:NewButton(parent)
 
     -- Icon texture for the button.
     button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(60, 60)
+    button.icon:SetSize(50, 50)
     button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 5, -5)
 
     -- Define the mouse hover behavior to show tooltips.
@@ -520,7 +520,17 @@ function addon:NewButton(parent)
 end
 
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
+
 function addon:SwitchBoard(board)
+    -- Clear the existing Keys array to avoid leftover data from previous layouts
+    for i = 1, #Keys do
+        Keys[i]:Hide()
+        Keys[i] = nil
+    end
+    Keys = {}
+
+    -- Proceed with setting up the new layout
+
     if KeyBindAllBoards[board] and addonOpen == true and addon.keyboardFrame then
         board = KeyBindAllBoards[board]
         
@@ -537,8 +547,8 @@ function addon:SwitchBoard(board)
                 Key:SetWidth(board[i][5])
                 Key:SetHeight(board[i][6])
             else
-                Key:SetWidth(70)
-                Key:SetHeight(70)
+                Key:SetWidth(60)
+                Key:SetHeight(60)
             end
 
             if not Keys[i] then
@@ -566,8 +576,8 @@ function addon:SwitchBoard(board)
             end
         end
 
-        self.keyboardFrame:SetWidth(right - left + 15)
-        self.keyboardFrame:SetHeight(top - bottom + 14)
+        self.keyboardFrame:SetWidth(right - left + 12)
+        self.keyboardFrame:SetHeight(top - bottom + 12)
         KBControlsFrame:SetWidth(self.keyboardFrame:GetWidth())
 
     end
@@ -805,7 +815,7 @@ function addon:SetKey(button)
     -- handling empty bindings
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
-        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE"}, labelText) then
+        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
             button:SetBackdropColor(1, 0, 0, 1)
         else
             button:SetBackdropColor(0, 0, 0, 1)
@@ -844,6 +854,8 @@ end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
+    --print("RefreshKeys function called")  -- Print statement
+
     if not locked then
         return
     end
@@ -1168,20 +1180,23 @@ function addon:CreateChangerDD()
     KBChangeBoardDD:Hide()
 
     local boardCategories = {
-        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_HALF", "QWERTZ_60%", "QWERTZ_80%", "QWERTZ_100%"},
-        QWERTY = {"QWERTY_PRIMARY", "QWERTY_HALF", "QWERTY_60%", "QWERTY_80%", "QWERTY_100%"},
-        AZERTY = {"AZERTY_PRIMARY", "AZERTY_HALF", "AZERTY_60%", "AZERTY_80%", "AZERTY_100%"},
-        DVORAK = {"DVORAK_PRIMARY", "DVORAK_HALF", "DVORAK_60%", "DVORAK_80%", "DVORAK_100%"},
+        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_HALF", "QWERTZ_1800", "QWERTZ_60%", "QWERTZ_75%", "QWERTZ_80%", "QWERTZ_96%", "QWERTZ_100%"},
+        QWERTY = {"QWERTY_PRIMARY", "QWERTY_HALF", "QWERTY_1800", "QWERTY_60%", "QWERTY_75%", "QWERTY_80%", "QWERTY_96%", "QWERTY_100%"},
+        AZERTY = {"AZERTY_PRIMARY", "AZERTY_HALF", "AZERTY_1800", "AZERTY_60%", "AZERTY_75%", "AZERTY_80%", "AZERTY_96%", "AZERTY_100%"},
+        DVORAK = {
+            Standard = {"DVORAK_PRIMARY", "DVORAK_100%"},
+            RightHand = {"DVORAK_RIGHT_PRIMARY", "DVORAK_RIGHT_100%"},
+            LeftHand = {"DVORAK_LEFT_PRIMARY", "DVORAK_LEFT_100%"}
+        },
         Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
         Azeron = {"Azeron"}
     }
 
     local categoryOrder = {"QWERTZ", "QWERTY", "AZERTY", "DVORAK", "Razer", "Azeron"}
 
-    local function ChangeBoardDD_Initialize(self, level)
+    local function ChangeBoardDD_Initialize(self, level, menuList)
         level = level or 1
         local info = UIDropDownMenu_CreateInfo()
-        local value = UIDROPDOWNMENU_MENU_VALUE
     
         if level == 1 then
             for _, category in ipairs(categoryOrder) do 
@@ -1193,7 +1208,37 @@ function addon:CreateChangerDD()
                 UIDropDownMenu_AddButton(info, level)
             end
         elseif level == 2 then
-            local layouts = boardCategories[value]
+            if menuList == "DVORAK" then
+                for subcategory, _ in pairs(boardCategories.DVORAK) do
+                    info.text = subcategory
+                    info.value = subcategory
+                    info.hasArrow = true
+                    info.notCheckable = true
+                    info.menuList = subcategory
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            else
+                local layouts = boardCategories[menuList]
+                if layouts then
+                    for _, name in ipairs(layouts) do
+                        info.text = name
+                        info.value = name
+                        info.func = function()
+                            KeyBindSettings.currentboard = name
+                            addon:RefreshKeys()
+                            UIDropDownMenu_SetText(KBChangeBoardDD, name)
+                            if maximizeFlag == true then
+                                KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
+                            else
+                                return
+                            end
+                        end
+                        UIDropDownMenu_AddButton(info, level)
+                    end
+                end
+            end
+        elseif level == 3 then
+            local layouts = boardCategories.DVORAK[menuList]
             if layouts then
                 for _, name in ipairs(layouts) do
                     info.text = name
