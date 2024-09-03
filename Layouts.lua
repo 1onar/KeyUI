@@ -3379,6 +3379,50 @@ KeyBindAllBoards = {
         { 'ESC', Keyboard, 378, -316, u, u },
     },
 
+    ['Azeron2'] = { 
+
+        { 'UP', Keyboard, 378, -6, u, u },
+
+        { 'Z', Keyboard, 68, -68, u, u },        
+        { 'X', Keyboard, 130, -68, u, u },
+        { 'C', Keyboard, 192, -68, u, u },
+        { 'V', Keyboard, 254, -68, u, u },
+        { 'LEFT', Keyboard, 316, -68, u, u },
+        { 'T', Keyboard, 378, -68, u, u },
+        { 'RIGHT', Keyboard, 440, -68, u, u },
+
+        { 'Q', Keyboard, 68, -130, u, u },
+        { 'G', Keyboard, 130, -130, u, u },
+        { 'R', Keyboard, 192, -130, u, u },
+        { 'E', Keyboard, 254, -130, u, u },
+        { 'DOWN', Keyboard, 378, -130, u, u },
+
+        { '0', Keyboard, 6, -192, u, u },
+        { '1', Keyboard, 68, -192, u, u },
+        { '2', Keyboard, 130, -192, u, u },
+        { '3', Keyboard, 192, -192, u, u },
+        { '4', Keyboard, 254, -192, u, u },
+        { 'F', Keyboard, 316, -192, u, u },
+        { 'Z', Keyboard, 502, -192, u, u },
+
+        --{ 'W', Keyboard, 470, -192, u, u },
+        --{ 'A', Keyboard, 440, -222, u, u },
+        --{ 'S', Keyboard, 470, -254, u, u },
+        --{ 'D', Keyboard, 502, -222, u, u },
+
+        { 'A', Keyboard, 68, -254, u, u },
+        { 'ALT', Keyboard, 130, -254, u, u },
+        { 'SHIFT', Keyboard, 192, -254, u, u },
+        { 'CTRL', Keyboard, 254, -254, u, u },
+        { 'ESC', Keyboard, 502, -254, u, u },
+        
+        { 'P', Keyboard, 68, -316, u, u },
+        { 'L', Keyboard, 130, -316, u, u },
+        { 'I', Keyboard, 192, -316, u, u },
+        { 'M', Keyboard, 254, -316, u, u },
+        { '=', Keyboard, 378, -316, u, u },
+    },
+
 --
 
 }

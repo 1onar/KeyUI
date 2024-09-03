@@ -1189,7 +1189,7 @@ function addon:CreateChangerDD()
             LeftHand = {"DVORAK_LEFT_PRIMARY", "DVORAK_LEFT_100%"}
         },
         Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
-        Azeron = {"Azeron"}
+        Azeron = {"Azeron", "Azeron2"}
     }
 
     local categoryOrder = {"QWERTZ", "QWERTY", "AZERTY", "DVORAK", "Razer", "Azeron"}
