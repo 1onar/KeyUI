@@ -414,7 +414,7 @@ function addon:CreateControls()
 
             Controls.LayoutName:Show() -- REVERSED
         end
-    end    
+    end
 
     Controls.Close = CreateFrame("Button", "$parentClose", Controls, "UIPanelCloseButton")
     Controls.Close:SetSize(26, 26)

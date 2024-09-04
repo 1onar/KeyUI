@@ -235,6 +235,8 @@ end
 -- Load all available spells and abilities of the player and store them in a table.
 function addon:LoadSpells()
     self.spells = {}
+
+    -- new API "C_SpellBook.GetNumSpellBookSkillLines()" doenst work in classic. Don't touch this for now. --
     for i = 1, GetNumSpellTabs() do
         local name, texture, offset, numSpells = GetSpellTabInfo(i)
         self.spells[name] = {}
@@ -250,6 +252,7 @@ function addon:LoadSpells()
             end
         end
     end
+    ---------------------------------------------------------------------------------------------------------
 end
 
 local function OnFrameHide(self)
@@ -513,6 +516,7 @@ function addon:NewButton(parent)
         end
     end)
 
+    -- this is need in wow classic to highlight. Don't touch it. --
     local glowBox = CreateFrame("Frame", nil, button, "GlowBoxTemplate")
     glowBox:SetSize(68, 68)
     glowBox:SetPoint("CENTER", button, "CENTER", 0, 0)
@@ -520,6 +524,7 @@ function addon:NewButton(parent)
     glowBox:SetFrameLevel(button:GetFrameLevel())
 
     button.glowBox = glowBox
+    ---------------------------------------------------------------
 
     return button
 end
@@ -811,16 +816,20 @@ function addon:SetKey(button)
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
         if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE"}, labelText) then
+
+        -- don't touch this ---------------------------------------------------------------------------------
             button:SetBackdropColor(1, 1, 1, 1)
             if button.glowBox then
                 button.glowBox:Show()
             end
+
         else
             button:SetBackdropColor(0, 0, 0, 1)
             if button.glowBox then
                 button.glowBox:Hide()
             end
         end
+        -----------------------------------------------------------------------------------------------------
     else
         button:SetBackdropColor(0, 0, 0, 1)  -- Reset to the default color if a binding is set
         if button.glowBox then

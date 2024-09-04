@@ -283,7 +283,7 @@ function addon:CreateMouseControls()
         if KBChangeBoardDDMouse then
             KBChangeBoardDDMouse:Show()
         end
-        
+
     end
 
     local function OnMinimizeMouse()
@@ -315,13 +315,13 @@ function addon:CreateMouseControls()
     end    
 
     MouseControls.Close = CreateFrame("Button", "$parentClose", MouseControls, "UIPanelCloseButton")
-    MouseControls.Close:SetSize(42, 42)
-    MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)
+    MouseControls.Close:SetSize(42, 42)                                             -- difference retail code
+    MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)                                  -- difference retail code
     MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouseholder:Hide() end)
 
     MouseControls.MinMax = CreateFrame("Frame", "#parentMinMax", MouseControls, "MaximizeMinimizeButtonFrameTemplate")
-    MouseControls.MinMax:SetSize(42, 42)
-    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)
+    MouseControls.MinMax:SetSize(42, 42)                                            -- difference retail code
+    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)      -- difference retail code
     MouseControls.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
     MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 
@@ -503,11 +503,13 @@ function addon:NewButtonMouse()
         end
     end)
 
+    -- difference retail code -------------------------------------------------
     local glowBox = CreateFrame("Frame", nil, Mousebutton, "GlowBoxTemplate")
     glowBox:SetSize(48, 48)
     glowBox:SetPoint("CENTER", Mousebutton, "CENTER", 0, 0)
     glowBox:Show()
     glowBox:SetFrameLevel(Mousebutton:GetFrameLevel())
+    ---------------------------------------------------------------------------
 
     Mousebutton.glowBox = glowBox
 

@@ -17,7 +17,7 @@ function addon:CreateKeyboard()
  
     Keyboard:SetWidth(1100)
     Keyboard:SetHeight(500)
-    Keyboard:SetBackdropColor(0, 0, 0, 0.7)
+    Keyboard:SetBackdropColor(0, 0, 0, 0.7)     -- difference retail code
 
     -- Load the saved position if it exists
     if KeyboardPosition.x and KeyboardPosition.y then
@@ -73,7 +73,7 @@ function addon:CreateControls()
     local function OnMaximize()
         maximizeFlag = true
 
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             KBControlsFrame:SetHeight(80)  
         else
             KBControlsFrame:SetHeight(210)
@@ -83,7 +83,7 @@ function addon:CreateControls()
         Controls.Layout = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         Controls.Layout:SetText("Layout")
         Controls.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.Layout:SetPoint("BOTTOM", KBChangeBoardDD, "CENTER", 0, 22)
         else
             Controls.Layout:SetPoint("RIGHT", KBChangeBoardDD, "LEFT", -20, 2)
@@ -94,7 +94,7 @@ function addon:CreateControls()
         Controls.EditBox = CreateFrame("EditBox", "KUI_EditBox1", Controls, "InputBoxTemplate")
         Controls.EditBox:SetWidth(60)
         Controls.EditBox:SetHeight(20)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 200, 2)
         else
             Controls.EditBox:SetPoint("BOTTOM", KBChangeBoardDD, "TOP", 0, 20)
@@ -158,7 +158,7 @@ function addon:CreateControls()
         Controls.Size = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         Controls.Size:SetText("Size")
         Controls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.Size:SetPoint("BOTTOM", Controls.EditBox, "CENTER", 0, 20)
         else
             Controls.Size:SetPoint("TOPLEFT", Controls.Layout, "TOPLEFT", 0, 44)
@@ -170,7 +170,7 @@ function addon:CreateControls()
         Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate")
         Controls.AltCB:SetSize(32, 36)
         Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 330, 2)
         else
             Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -26)
@@ -206,7 +206,7 @@ function addon:CreateControls()
         Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate")
         Controls.CtrlCB:SetSize(32, 36)
         Controls.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.CtrlCB:SetPoint("CENTER", Controls.AltCB, "CENTER", 50, 0)
         else
             Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -26)
@@ -242,7 +242,7 @@ function addon:CreateControls()
         Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate")
         Controls.ShiftCB:SetSize(32, 36)
         Controls.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.ShiftCB:SetPoint("CENTER", Controls.CtrlCB, "CENTER", 50, 0)
         else
             Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -26)
@@ -279,7 +279,7 @@ function addon:CreateControls()
     --Buttons start
         Controls.SwitchEmptyBinds = CreateFrame("Button", "SwitchEmptyBinds", Controls, "UIPanelButtonTemplate")
         Controls.SwitchEmptyBinds:SetSize(146, 26)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -200, 2)
         else
             Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.ShiftCB, "RIGHT", 28, -2)
@@ -318,7 +318,7 @@ function addon:CreateControls()
 
         Controls.SwitchInterfaceBinds = CreateFrame("Button", "SwitchInterfaceBinds", Controls, "UIPanelButtonTemplate")
         Controls.SwitchInterfaceBinds:SetSize(146, 26)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.SwitchInterfaceBinds:SetPoint("RIGHT", Controls.SwitchEmptyBinds, "LEFT", -6, 0)
         else
             Controls.SwitchInterfaceBinds:SetPoint("BOTTOM", Controls.SwitchEmptyBinds, "TOP", 0, 0)
@@ -377,7 +377,7 @@ function addon:CreateControls()
 
         Controls.SwitchEmptyBinds:Show()
         Controls.SwitchInterfaceBinds:Show()
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.Display:Show()
         else
             Controls.Display:Hide()
@@ -416,13 +416,13 @@ function addon:CreateControls()
     end
 
     Controls.Close = CreateFrame("Button", "$parentClose", Controls, "UIPanelCloseButton")
-    Controls.Close:SetSize(42, 42)
-    Controls.Close:SetPoint("TOPRIGHT", 8, 8)
+    Controls.Close:SetSize(42, 42)                                          -- difference retail code
+    Controls.Close:SetPoint("TOPRIGHT", 8, 8)                               -- difference retail code
     Controls.Close:SetScript("OnClick", function(s) KeyUIMainFrame:Hide() KBControlsFrame:Hide() end) -- Toggle the Keyboard frame show/hide
  
     Controls.MinMax = CreateFrame("Frame", "#parentMinMax", Controls, "MaximizeMinimizeButtonFrameTemplate")
-    Controls.MinMax:SetSize(42, 42)
-    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 18, 0)
+    Controls.MinMax:SetSize(42, 42)                                         -- difference retail code
+    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 18, 0)        -- difference retail code
     Controls.MinMax:SetOnMaximizedCallback(OnMaximize)
     Controls.MinMax:SetOnMinimizedCallback(OnMinimize)
     
