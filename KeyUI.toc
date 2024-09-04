@@ -23,7 +23,7 @@
 
 Libs\embeds.xml
 
-KeyMappings.lua
+Mappings.lua
 LayoutsKeyboard.lua
 LayoutsMouse.lua
 MouseFrame.lua
