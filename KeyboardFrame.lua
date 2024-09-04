@@ -6,6 +6,11 @@ AltCheckbox = false
 CtrlCheckbox = false
 ShiftCheckbox = false
 
+-- Initialize tutorialCompleted if it doesn't exist
+if tutorialCompleted == nil then
+    tutorialCompleted = false
+end
+
 function addon:SaveKeyboard()
     KeyboardPosition.x, KeyboardPosition.y = KeyUIMainFrame:GetCenter()
     KeyboardPosition.scale = KeyUIMainFrame:GetScale()
@@ -187,9 +192,6 @@ function addon:CreateControls()
                 modif.CTRL = ""
                 modif.SHIFT = ""
                 AltCheckbox = true
-                --print("AltCheckbox = true")
-                --print("CtrlCheckbox = false")
-                --print("ShiftCheckbox = false")
                 Controls.CtrlCB:SetChecked(false)
                 Controls.ShiftCB:SetChecked(false)
             else
@@ -197,7 +199,6 @@ function addon:CreateControls()
                 AltCheckbox = false
                 CtrlCheckbox = false
                 ShiftCheckbox = false
-                --print("AltCheckbox = false")
             end
             addon:RefreshKeys()
         end)
@@ -223,9 +224,6 @@ function addon:CreateControls()
                 modif.CTRL = "CTRL-"
                 modif.SHIFT = ""
                 CtrlCheckbox = true
-                --print("AltCheckbox = false")
-                --print("CtrlCheckbox = true")
-                --print("ShiftCheckbox = false")
                 Controls.AltCB:SetChecked(false)
                 Controls.ShiftCB:SetChecked(false)
             else
@@ -233,7 +231,6 @@ function addon:CreateControls()
                 AltCheckbox = false
                 CtrlCheckbox = false
                 ShiftCheckbox = false
-                --print("CtrlCheckbox = false")
             end
             addon:RefreshKeys()
         end)
@@ -259,9 +256,6 @@ function addon:CreateControls()
                 modif.CTRL = ""
                 modif.SHIFT = "SHIFT-"
                 ShiftCheckbox = true
-                --print("AltCheckbox = false")
-                --print("CtrlCheckbox = false")
-                --print("ShiftCheckbox = true")
                 Controls.AltCB:SetChecked(false)
                 Controls.CtrlCB:SetChecked(false)
             else
@@ -269,7 +263,6 @@ function addon:CreateControls()
                 AltCheckbox = false
                 CtrlCheckbox = false
                 ShiftCheckbox = false
-                --print("ShiftCheckbox = false")
             end
             addon:RefreshKeys()
         end)
@@ -430,10 +423,50 @@ function addon:CreateControls()
     Controls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
     Controls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
 
+    -- Show tutorial if not completed
+    if not tutorialCompleted then
+        ShowGlowAroundMinMax(Controls)
+    end
+
     Controls:SetScript("OnMouseDown", function(self) self:GetParent():StartMoving() end)
     Controls:SetScript("OnMouseUp", function(self) self:GetParent():StopMovingOrSizing() end)
 
     addon.controlsFrame = KBControlsFrame
 
     return Controls
+end
+
+-- Function to create a glowing tutorial highlight around the MinMax button
+function ShowGlowAroundMinMax(Controls)
+    local glowFrame = CreateFrame("Frame", "OVERLAY", Controls.MinMax, "GlowBoxTemplate")
+    glowFrame:SetPoint("TOPLEFT", -1, 1)
+    glowFrame:SetPoint("BOTTOMRIGHT", 1, 0)
+    glowFrame.Text = glowFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    glowFrame.Text:SetPoint("BOTTOM", glowFrame, "TOP", 0, 10)
+    glowFrame.Text:SetText("Click here to open settings")
+    glowFrame.Text:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+    glowFrame.Text:SetTextColor(1, 1, 0)
+
+    -- Attach to the MinimizeButton and MaximizeButton individually
+    local MinimizeButton = Controls.MinMax.MinimizeButton
+    local MaximizeButton = Controls.MinMax.MaximizeButton
+
+    -- Hook the click event for the MinimizeButton and MaximizeButton
+    if MinimizeButton then
+        MinimizeButton:HookScript("OnClick", function()
+            if glowFrame then
+                glowFrame:Hide()
+                tutorialCompleted = true -- Mark the tutorial as completed
+            end
+        end)
+    end
+
+    if MaximizeButton then
+        MaximizeButton:HookScript("OnClick", function()
+            if glowFrame then
+                glowFrame:Hide()
+                tutorialCompleted = true -- Mark the tutorial as completed
+            end
+        end)
+    end
 end

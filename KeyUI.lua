@@ -123,6 +123,7 @@ local options = {
                 KeyBindSettingsMouse = {}
                 MouseKeyEditLayouts = {}
                 CurrentLayout = {}
+                tutorialCompleted = nil
 
                 -- Save the reset settings
                 addon:SaveSettings()
