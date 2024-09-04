@@ -19,7 +19,8 @@ fighting = false
 -- Initialize SavedVariables for KeyUI settings
 KeyUI_Settings = KeyUI_Settings or {
     showKeyboard = true,  -- Default to true if not set
-    showMouse = true,      -- Default to true if not set
+    showMouse = true,
+    stayOpenInCombat = false,  -- Default to false if not set
 }
 
 -- Initialize modif table to avoid nil errors
@@ -38,6 +39,7 @@ local options = {
             type = "toggle",
             name = "Minimap Button",
             desc = "Show or hide the minimap button",
+            order = 1,
             get = function() return not MiniMapDB.hide end,
             set = function(_, value)
                 MiniMapDB.hide = not value
@@ -50,10 +52,24 @@ local options = {
                 end
             end,
         },
+        stayOpenInCombat = {
+            type = "toggle",
+            name = "Stay Open In Combat",
+            desc = "Allow KeyUI to stay open during combat",
+            order = 2,
+            get = function() return KeyUI_Settings.stayOpenInCombat end,
+            set = function(_, value)
+                KeyUI_Settings.stayOpenInCombat = value
+                addon:SaveSettings()
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Stay open in combat " .. status)
+            end,
+        },
         showKeyboard = {
             type = "toggle",
             name = "Show Keyboard",
             desc = "Show or hide the keyboard interface",
+            order = 4,
             get = function() return KeyUI_Settings.showKeyboard end,
             set = function(_, value)
                 KeyUI_Settings.showKeyboard = value
@@ -69,6 +85,7 @@ local options = {
             type = "toggle",
             name = "Show Mouse",
             desc = "Show or hide the mouse interface",
+            order = 5,
             get = function() return KeyUI_Settings.showMouse end,
             set = function(_, value)
                 KeyUI_Settings.showMouse = value
@@ -78,6 +95,40 @@ local options = {
                 if addonOpen then
                     addon:UpdateInterfaceVisibility()
                 end
+            end,
+        },
+        -- Add a button to reset all settings to defaults
+        resetSettings = {
+            type = "execute",
+            name = "Reset to Defaults",
+            desc = "Reset all settings to their default values",
+            order = 3,
+            confirm = true,  -- Ask for confirmation
+            confirmText = "Are you sure you want to reset all settings to default?",
+            func = function()
+                -- Reset all SavedVariables to their default values
+                KeyUI_Settings = {
+                    ["showMouse"] = true,
+                    ["stayOpenInCombat"] = false,
+                    ["showKeyboard"] = true,
+                }
+                MiniMapDB = {
+                    ["hide"] = false,
+                }
+                KeyboardPosition = {}
+                MousePosition = {}
+                ShowEmptyBinds = nil
+                ShowInterfaceBinds = nil
+                KeyBindSettings = {}
+                KeyBindSettingsMouse = {}
+                MouseKeyEditLayouts = {}
+                CurrentLayout = {}
+
+                -- Save the reset settings
+                addon:SaveSettings()
+
+                -- Reload the UI to apply the changes
+                ReloadUI()
             end,
         },
     },
@@ -97,12 +148,16 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addonOpen then
+                -- Close the addon regardless of the combat state
                 addon:HideAll()
                 addonOpen = false
             else
-                if not fighting then
+                -- Open the addon if stayOpenInCombat is true OR if not in combat
+                if not fighting or KeyUI_Settings.stayOpenInCombat then
                     addon:Load()
                     addonOpen = true
+                else
+                    print("KeyUI: Cannot open while in combat.")
                 end
             end
         elseif btn == "RightButton" then
@@ -174,7 +229,9 @@ function addon:UpdateInterfaceVisibility()
 end
 
 function addon:Load()
-    if fighting then
+    -- Allow loading if not in combat OR if stayOpenInCombat is true
+    if fighting and not KeyUI_Settings.stayOpenInCombat then
+        -- Prevent loading if fighting and stayOpenInCombat is false
         return
     else
         addonOpen = true
@@ -1278,8 +1335,8 @@ end
 function addon:BattleCheck(event)
     if event == "PLAYER_REGEN_DISABLED" then
         fighting = true
-        --print("fighting true")
-        if addonOpen then
+        -- Only close the addon if stayOpenInCombat is false
+        if not KeyUI_Settings.stayOpenInCombat and addonOpen then
             KeyUIMainFrame:Hide()
             KBControlsFrame:Hide()
             MouseControls:Hide()
@@ -1289,7 +1346,10 @@ function addon:BattleCheck(event)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         fighting = false
-        --print("fighting false")
+        -- reopen after combat ends
+        --if KeyUI_Settings.stayOpenInCombat and not addonOpen then
+        --    addon:Load()
+        --end
     end
 end
 
