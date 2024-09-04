@@ -19,12 +19,13 @@
 ## SavedVariables: KeyBindSettingsMouse
 ## SavedVariables: MouseKeyEditLayouts
 ## SavedVariables: CurrentLayout
+## SavedVariables: tutorialCompleted
 
 Libs\embeds.xml
 
-KeyMappings.lua
-Layouts.lua
+Mappings.lua
+LayoutsKeyboard.lua
 LayoutsMouse.lua
-MouseKeyUI.lua
-UIKeyboard.lua
+MouseFrame.lua
+KeyboardFrame.lua
 KeyUI.lua
