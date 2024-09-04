@@ -399,8 +399,8 @@ function addon:NewButton(parent)
     button.interfaceaction = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
     button.interfaceaction:SetTextColor(1, 1, 1)
-    button.interfaceaction:SetHeight(64)
-    button.interfaceaction:SetWidth(64)
+    button.interfaceaction:SetHeight(58)
+    button.interfaceaction:SetWidth(58)
     button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
     button.interfaceaction:SetText("")
 
@@ -520,7 +520,6 @@ function addon:NewButton(parent)
 end
 
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
-
 function addon:SwitchBoard(board)
     -- Clear the existing Keys array to avoid leftover data from previous layouts
     for i = 1, #Keys do
@@ -676,6 +675,18 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
+    -- Handling empty bindings early
+    if ShowEmptyBinds == true then
+        local labelText = button.label:GetText()
+        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
+            button:SetBackdropColor(1, 0, 0, 1)
+        else
+            button:SetBackdropColor(0, 0, 0, 1)
+        end
+    else
+        button:SetBackdropColor(0, 0, 0, 1)
+    end
+
     -- Standard ActionButton logic
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
@@ -701,103 +712,55 @@ function addon:SetKey(button)
         end
     end
 
-    -- Custom logic for ElvUI buttons
-    for barIndex = 1, 15 do
-        for buttonIndex = 1, 12 do
-            local elvUIButtonName = "ELVUIBAR" .. barIndex .. "BUTTON" .. buttonIndex
-            if spell == elvUIButtonName then
-                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                if elvUIButton then
-                    local actionID = elvUIButton._state_action
-                    if elvUIButton._state_type == "action" and actionID then
-                        button.icon:SetTexture(GetActionTexture(actionID))
-                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                        button.icon:Show()
-                        button.slot = actionID
-                    end
-                end
+    if spell:find("^ELVUIBAR%d+BUTTON%d+$") then
+        local barIndex, buttonIndex = spell:match("ELVUIBAR(%d+)BUTTON(%d+)")
+        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+        if elvUIButton then
+            local actionID = elvUIButton._state_action
+            if elvUIButton._state_type == "action" and actionID then
+                button.icon:SetTexture(GetActionTexture(actionID))
+                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                button.icon:Show()
+                button.slot = actionID
             end
         end
     end
 
     -- code for setting icons for other actions (movement, pets, etc.)
-    if spell == "EXTRAACTIONBUTTON1" then
-        button.icon:SetTexture(4200126)
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        button.icon:Show()
-    elseif spell == "MOVEFORWARD" then
-        button.icon:SetTexture(450907)
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        button.icon:Show()
-    elseif spell == "MOVEBACKWARD" then
-        button.icon:SetTexture(450905)
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        button.icon:Show()    
-    elseif spell == "STRAFELEFT" then
-        button.icon:SetTexture(450906)
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-        button.icon:Show()
-    elseif spell == "STRAFERIGHT" then
-        button.icon:SetTexture(450908)
+    local actionTextures = {
+        EXTRAACTIONBUTTON1 = 4200126,
+        MOVEFORWARD = 450907,
+        MOVEBACKWARD = 450905,
+        STRAFELEFT = 450906,
+        STRAFERIGHT = 450908
+    }
+
+    if actionTextures[spell] then
+        button.icon:SetTexture(actionTextures[spell])
         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()
     end
 
-    if PetHasActionBar() == true then
+    -- Pet Action Bar logic
+    if PetHasActionBar() then
         if spell:match("^BONUSACTIONBUTTON%d+$") then
             for i = 1, 10 do
                 local petspellName = "BONUSACTIONBUTTON" .. i
                 if spell:match(petspellName) then
-                    local pet = GetPetActionInfo(i)
-                    if pet then
-                        local petTexture = GetSpellTexture(pet)
-                        if petTexture then
-                            button.icon:SetTexture(petTexture)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = petTexture
-                        end
-                        if pet == "PET_ACTION_ATTACK" then
-                            button.icon:SetTexture(132152)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 132152
-                        elseif pet == "PET_MODE_DEFENSIVEASSIST" then
-                            button.icon:SetTexture(132110)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 132110
-                        elseif pet == "PET_MODE_PASSIVE" then
-                            button.icon:SetTexture(132311)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 132311
-                        elseif pet == "PET_MODE_ASSIST" then
-                            button.icon:SetTexture(524348)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 524348
-                        elseif pet == "PET_ACTION_FOLLOW" then
-                            button.icon:SetTexture(132328)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 132328
-                        elseif pet == "PET_ACTION_MOVE_TO" then
-                            button.icon:SetTexture(457329)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 457329
-                        elseif pet == "PET_ACTION_WAIT" then
-                            button.icon:SetTexture(136106)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 136106
-                        elseif pet == "PET_MODE_DEFENSIVE" then
-                            button.icon:SetTexture(132110)
-                            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                            button.icon:Show()
-                            button.slot = 132110
-                        end
+                    -- GetPetActionInfo returns multiple values, including texture/token
+                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i)
+                    
+                    -- If it's a token, use the token to get the texture
+                    if isToken then
+                        petTexture = _G[petTexture] or "Interface\\Icons\\" .. petTexture  -- Use WoW's icon folder as fallback
+                    end
+
+                    if petTexture then
+                        button.icon:SetTexture(petTexture)
+                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                        button.icon:Show()
+                        button.slot = spellID  -- Use spellID as the reference for the slot
+                        --print("Pet texture: ", petTexture)
                     else
                         button.icon:Hide()
                         button.slot = nil
@@ -811,23 +774,13 @@ function addon:SetKey(button)
             button.slot = nil
         end
     end
-    
-    -- handling empty bindings
-    if ShowEmptyBinds == true then
-        local labelText = button.label:GetText()
-        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
-            button:SetBackdropColor(1, 0, 0, 1)
-        else
-            button:SetBackdropColor(0, 0, 0, 1)
-        end
-    else
-        button:SetBackdropColor(0, 0, 0, 1)
-    end   
 
-	button.macro:SetText(spell) -- Macro = Blizzard Interface Command (e.g. STRAFE etc.) ////// Spell = Key (e.g. 1, 2, 3, ..., Q, W, E, R, T, Z,..)
+    -- Set macro text
+    button.macro:SetText(spell)
 
-    -- additional logic for interface bindings if needed
+    -- Interface action labels
     if button.interfaceaction then
+        button.interfaceaction:SetText(KeyMappings[button.macro:GetText()] or button.macro:GetText())
         if ShowInterfaceBinds == true then
             button.interfaceaction:Show()
         else
@@ -835,17 +788,7 @@ function addon:SetKey(button)
         end
     end
 
-    -- Get the current text from "button.macro"
-    local currentText = button.macro:GetText()
-    -- Look up the corresponding text in the "KeyMappings" table
-    local newText = KeyMappings[currentText] or currentText
-    -- Check if newText is nil (not found in KeyMappings)
-    if newText == nil then
-        newText = currentText  -- Use the original text if not found
-    end
-    -- Set the new text in "button.interfaceaction"
-    button.interfaceaction:SetText(newText)
-
+    -- Label Shortening
     if LabelMapping[button.label:GetText()] then
         button.label:Hide()
         button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
