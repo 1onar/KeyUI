@@ -25,6 +25,6 @@ Libs\embeds.xml
 KeyMappings.lua
 Layouts.lua
 LayoutsMouse.lua
-MouseKeyUI_Classic.lua
-UIKeyboard_Classic.lua
-KeyUI_Classic.lua
+MouseKeyUI.lua
+UIKeyboard.lua
+KeyUI.lua
