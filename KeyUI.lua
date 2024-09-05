@@ -733,6 +733,10 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
+    -- Define class and bonus bar offset
+    local classFilename = UnitClassBase("player")
+    local bonusBarOffset = GetBonusBarOffset()
+
     -- Handling empty bindings early
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
@@ -745,23 +749,51 @@ function addon:SetKey(button)
         button:SetBackdropColor(0, 0, 0, 1)
     end
 
+    -- Determine action button slot based on class and offset (for regular action buttons)
+    local function getActionButtonSlot(slot)
+        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 then
+            if bonusBarOffset == 1 then
+                return slot + 72 -- Maps to 73-84
+            elseif bonusBarOffset == 2 then
+                return slot -- No change for offset 2
+            elseif bonusBarOffset == 3 then
+                return slot + 96 -- Maps to 97-108
+            elseif bonusBarOffset == 4 then
+                return slot + 108 -- Maps to 109-120
+            elseif bonusBarOffset == 5 then
+                return slot -- No change for offset 5
+            end
+        end
+        return slot -- Default 1-12 for other classes and offset == 0
+    end
+
     -- Standard ActionButton logic
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if spell:find(a) then
             local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)")
             local bar, bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+
+            -- Handle MULTIACTIONBAR case
             if bar and bar2 then
-                if bar == "0" then slot = bar2 end
-                if bar == "1" then slot = 60 + bar2 end
-                if bar == "2" then slot = 48 + bar2 end
-                if bar == "3" then slot = 24 + bar2 end
-                if bar == "4" then slot = 36 + bar2 end
-                if bar == "5" then slot = 144 + bar2 end
-                if bar == "6" then slot = 156 + bar2 end
-                if bar == "7" then slot = 168 + bar2 end
+                if bar == "0" then slot = tonumber(bar2) end
+                if bar == "1" then slot = 60 + tonumber(bar2) end
+                if bar == "2" then slot = 48 + tonumber(bar2) end
+                if bar == "3" then slot = 24 + tonumber(bar2) end
+                if bar == "4" then slot = 36 + tonumber(bar2) end
+                if bar == "5" then slot = 144 + tonumber(bar2) end
+                if bar == "6" then slot = 156 + tonumber(bar2) end
+                if bar == "7" then slot = 168 + tonumber(bar2) end
             end
+
+            -- Apply class/bonus bar offset logic only for ACTIONBUTTON slots
             if slot then
+                -- Check if it's not a MULTIACTIONBAR case before applying bonusBarOffset
+                if not bar then
+                    slot = getActionButtonSlot(slot)
+                end
+
+                -- Set the action button texture
                 button.icon:SetTexture(GetActionTexture(slot))
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
@@ -1371,6 +1403,7 @@ local function OnEvent(self, event, ...)
                 local bonusBarOffset = GetBonusBarOffset()
                 --print("Class Filename:", classFilename)
                 --print("Bonus Bar Offset:", bonusBarOffset)
+                addon:RefreshKeys()
             end
         end
     end
