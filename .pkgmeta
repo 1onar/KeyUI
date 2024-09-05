@@ -1,21 +1,9 @@
 package-as: KeyUI
+
 enable-nolib-creation: yes
-
-game-version:
-  - 40400    # Cataclysm (4.0.0)
-  - 11502    # Vanilla Classic (1.15.0)
-
-manual-changelog:
-  filename: CHANGELOG.md
-  markup-type: markdown
 
 ignore:
   - .git
   - .github
   - tests
   - README.md
-
-externals:
-  Libs/SomeLib:
-    url: https://github.com/some/lib.git
-    tag: v1.0.0
