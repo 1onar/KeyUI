@@ -389,30 +389,41 @@ end
 -- ButtonMouseOver(button) - This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:ButtonMouseOver(button)
     local KBTooltip = self.tooltip
-    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4)
+    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4)  -- Position for the Addon Tooltip
     KBTooltip.title:SetText((button.label:GetText() or "") .. "\n" .. (button.interfaceaction:GetText() or ""))
     KBTooltip.title:SetTextColor(1, 1, 1)
     KBTooltip.title:SetFont("Fonts\\ARIALN.TTF", 16)
-        if button.slot then
-            GameTooltip:SetOwner(button, "ANCHOR_NONE")
-            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-            GameTooltip:SetAction(button.slot)
-            GameTooltip:Show()
-        elseif button.spellid then
-            GameTooltip:SetOwner(button, "ANCHOR_NONE")
-            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-            GameTooltip:SetSpellByID(button.spellid)
-            GameTooltip:Show()
-        end
-
     KBTooltip:SetWidth(KBTooltip.title:GetWidth() + 20)
     KBTooltip:SetHeight(KBTooltip.title:GetHeight() + 20)
-    
 
     if (KBTooltip:GetWidth() < 15) or button.macro:GetText() == "" then
         KBTooltip:Hide()
     else
         KBTooltip:Show()
+    end
+
+    -- Show GameTooltip for different types of actions
+    if button.slot then
+        -- For regular ActionButtons (ACTIONBUTTON1, ACTIONBUTTON2, etc.)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetAction(button.slot)  -- Use SetAction for ActionButtons
+        GameTooltip:Show()
+    elseif button.spellid then
+        -- For Pet Spells with a spellID (or regular spells)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetSpellByID(button.spellid)  -- Set tooltip for Pet Spells or regular spells
+        GameTooltip:Show()
+    elseif button.petActionIndex then
+        -- For pet modes (BONUSACTIONBUTTON for Wait, Move To, etc.)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetPetAction(button.petActionIndex)  -- Show the Pet Action Tooltip
+        GameTooltip:Show()
+    else
+        -- No tooltip for empty buttons
+        GameTooltip:Hide()
     end
 end
 
@@ -492,6 +503,14 @@ function addon:NewButton(parent)
                     local pickupstateaction = loadstring("return " .. button.stateaction)()
                     PickupAction(pickupstateaction)
                     addon:RefreshKeys()
+                elseif button.petActionIndex then
+                    -- Pickup a pet action
+                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                    return
+                elseif button.spellid then
+                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                    -- Pickup a pet spell
+                    return
                 elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
                     -- Handle ElvUI Buttons
                     local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
@@ -743,6 +762,10 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
+    -- Define class and bonus bar offset
+    local classFilename = UnitClassBase("player")
+    local bonusBarOffset = GetBonusBarOffset()
+
     -- Handling empty bindings early
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
@@ -867,11 +890,24 @@ function addon:SetKey(button)
                         button.icon:SetTexture(petTexture)
                         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                         button.icon:Show()
-                        button.slot = spellID  -- Use spellID as the reference for the slot
-                        --print("Pet texture: ", petTexture)
+
+                        -- Check if it's a Pet Spell (spellID is present)
+                        if spellID then
+                            button.slot = nil  -- No slot for Pet Spells
+                            button.spellid = spellID  -- Set spellID for Pet Spells
+                            button.petActionIndex = nil  -- Not a pet mode
+                        else
+                            -- For Pet Modes (e.g., Wait, Move To)
+                            button.slot = nil
+                            button.spellid = nil
+                            button.petActionIndex = i  -- Set petActionIndex for pet modes
+                        end
                     else
+                        -- Handle empty buttons by clearing the slot, spellID, and petActionIndex
                         button.icon:Hide()
                         button.slot = nil
+                        button.spellid = nil
+                        button.petActionIndex = nil
                     end
                 end
             end
@@ -880,6 +916,8 @@ function addon:SetKey(button)
         if spell:match("^BONUSACTIONBUTTON%d+$") then
             button.icon:Hide()
             button.slot = nil
+            button.spellid = nil
+            button.petActionIndex = nil  -- Clear petActionIndex when no pet action bar
         end
     end
 
@@ -1022,11 +1060,11 @@ local function DropDown_Initialize(self, level)
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-		info.text = "Interface"
-		info.value = "UIBind"
-		info.hasArrow = true
-		info.func = function() end
-		UIDropDownMenu_AddButton(info, level)
+        info.text = "Interface"
+        info.value = "UIBind"
+        info.hasArrow = true
+        info.func = function() end
+        UIDropDownMenu_AddButton(info, level)
 
         info.text = "Clear Action Button"
         info.value = 1
@@ -1037,6 +1075,9 @@ local function DropDown_Initialize(self, level)
             if actionSlot then
                 PickupAction(actionSlot)
                 ClearCursor()
+                local mappedName = KeyMappings[key] or "Unknown Action"
+                -- Print notification with the mapped name in purple
+                print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
                 addon:RefreshKeys()
             end
         end
@@ -1051,6 +1092,9 @@ local function DropDown_Initialize(self, level)
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
                 SaveBindings(2)
+                -- Print notification of key unbinding
+                local keyText = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
         UIDropDownMenu_AddButton(info, level)
@@ -1131,10 +1175,14 @@ local function DropDown_Initialize(self, level)
                         --print(key)            -- e.g. ACTIONBUTTON1
                         --print(actionSlot)     -- e.g. 1 (Actionslot)
                         ClearCursor()
+                        -- Print notification for new spell binding
+                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
                         addon:RefreshKeys()
                     else
                         SetBinding(key, command)
                         SaveBindings(2)
+                        -- Print notification for new spell binding
+                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
                         addon:RefreshKeys()
                     end
                 end
@@ -1160,6 +1208,8 @@ local function DropDown_Initialize(self, level)
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                             addon:RefreshKeys()
                         end
                     end
@@ -1187,6 +1237,8 @@ local function DropDown_Initialize(self, level)
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                             addon:RefreshKeys()
                         end
                     end
@@ -1203,6 +1255,8 @@ local function DropDown_Initialize(self, level)
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
+                    -- Print notification for interface binding
+                    print("KeyUI: Bound |cffa335ee" .. keybinding[1] .. "|r to |cffff8000" .. key .. "|r")
                     addon:RefreshKeys()
                 end
                 UIDropDownMenu_AddButton(info, level)
