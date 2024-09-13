@@ -18,9 +18,10 @@ fighting = false
 
 -- Initialize SavedVariables for KeyUI settings
 KeyUI_Settings = KeyUI_Settings or {
-    showKeyboard = true,  -- Default to true if not set
-    showMouse = true,
-    stayOpenInCombat = false,  -- Default to false if not set
+    showKeyboard = true,          -- Default to true if not set
+    showMouse = true,             -- Default to true if not set
+    stayOpenInCombat = true,      -- Default to true if not set
+    showPushedTexture = true,     -- Default to true for showing the PushedTexture
 }
 
 -- Initialize modif table to avoid nil errors
@@ -97,20 +98,35 @@ local options = {
                 end
             end,
         },
+        -- toggle to enable or disable PushedTexture functionality
+        showPushedTexture = {
+            type = "toggle",
+            name = "Highlight Action Buttons",
+            desc = "Enable or disable the highlight effect on action buttons",
+            order = 3,
+            get = function() return KeyUI_Settings.showPushedTexture end,
+            set = function(_, value)
+                KeyUI_Settings.showPushedTexture = value
+                addon:SaveSettings()
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Action button highlighting", status)
+            end,
+        },
         -- Add a button to reset all settings to defaults
         resetSettings = {
             type = "execute",
-            name = "Reset to Defaults",
+            name = "Reset Addon Settings",
             desc = "Reset all settings to their default values",
-            order = 3,
+            order = 6,
             confirm = true,  -- Ask for confirmation
             confirmText = "Are you sure you want to reset all settings to default?",
             func = function()
                 -- Reset all SavedVariables to their default values
                 KeyUI_Settings = {
                     ["showMouse"] = true,
-                    ["stayOpenInCombat"] = false,
+                    ["stayOpenInCombat"] = true,
                     ["showKeyboard"] = true,
+                    ["showPushedTexture"] = true,
                 }
                 MiniMapDB = {
                     ["hide"] = false,
@@ -481,10 +497,42 @@ function addon:NewButton(parent)
     -- Define the mouse hover behavior to show tooltips.
     button:SetScript("OnEnter", function()
         self:ButtonMouseOver(button)
+
+        -- Only show the PushedTexture if the setting is enabled
+        if KeyUI_Settings.showPushedTexture then
+            -- Look up the correct button in TextureMappings using the slot number
+            local mappedButton = TextureMappings[tostring(button.slot)]
+            if mappedButton then
+                local normalTexture = mappedButton:GetNormalTexture()
+                if normalTexture and normalTexture:IsVisible() then
+                    local pushedTexture = mappedButton:GetPushedTexture()
+                    if pushedTexture then
+                        pushedTexture:Show()  -- Show the pushed texture
+                        --print("Showing PushedTexture for button in slot", button.slot)
+                    end
+                --else
+                    --print("not visible")
+                end
+            end
+        end
     end)
+
     button:SetScript("OnLeave", function()
         GameTooltip:Hide()
         KeyUITooltip:Hide()
+
+        -- Only show the PushedTexture if the setting is enabled
+        if KeyUI_Settings.showPushedTexture then
+            -- Look up the correct button in TextureMappings using the slot number
+            local mappedButton = TextureMappings[tostring(button.slot)]
+            if mappedButton then
+                local pushedTexture = mappedButton:GetPushedTexture()
+                if pushedTexture then
+                    pushedTexture:Hide()  -- Hide the pushed texture
+                    --print("Hiding PushedTexture for button in slot", button.slot)
+                end
+            end
+        end
     end)
 
     -- Define behavior for mouse down actions (left-click).
