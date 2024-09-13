@@ -1038,11 +1038,11 @@ local function DropDown_Initialize(self, level)
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-		info.text = "Interface"
-		info.value = "UIBind"
-		info.hasArrow = true
-		info.func = function() end
-		UIDropDownMenu_AddButton(info, level)
+        info.text = "Interface"
+        info.value = "UIBind"
+        info.hasArrow = true
+        info.func = function() end
+        UIDropDownMenu_AddButton(info, level)
 
         info.text = "Clear Action Button"
         info.value = 1
@@ -1053,6 +1053,9 @@ local function DropDown_Initialize(self, level)
             if actionSlot then
                 PickupAction(actionSlot)
                 ClearCursor()
+                local mappedName = KeyMappings[key] or "Unknown Action"
+                -- Print notification with the mapped name in purple
+                print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
                 addon:RefreshKeys()
             end
         end
@@ -1067,6 +1070,9 @@ local function DropDown_Initialize(self, level)
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
                 SaveBindings(2)
+                -- Print notification of key unbinding
+                local keyText = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
         UIDropDownMenu_AddButton(info, level)
@@ -1147,10 +1153,14 @@ local function DropDown_Initialize(self, level)
                         --print(key)            -- e.g. ACTIONBUTTON1
                         --print(actionSlot)     -- e.g. 1 (Actionslot)
                         ClearCursor()
+                        -- Print notification for new spell binding
+                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
                         addon:RefreshKeys()
                     else
                         SetBinding(key, command)
                         SaveBindings(2)
+                        -- Print notification for new spell binding
+                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
                         addon:RefreshKeys()
                     end
                 end
@@ -1176,6 +1186,8 @@ local function DropDown_Initialize(self, level)
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                             addon:RefreshKeys()
                         end
                     end
@@ -1203,6 +1215,8 @@ local function DropDown_Initialize(self, level)
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                             addon:RefreshKeys()
                         end
                     end
@@ -1219,6 +1233,8 @@ local function DropDown_Initialize(self, level)
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
+                    -- Print notification for interface binding
+                    print("KeyUI: Bound |cffa335ee" .. keybinding[1] .. "|r to |cffff8000" .. key .. "|r")
                     addon:RefreshKeys()
                 end
                 UIDropDownMenu_AddButton(info, level)
