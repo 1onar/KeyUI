@@ -24,7 +24,7 @@ function addon:CreateMouseholder()
         Mouseholder:SetScale(MousePosition.scale)
     else
         Mouseholder:SetPoint("CENTER", UIParent, "CENTER", 580, 30)
-        Mouseholder:SetScale(1)
+        Mouseholder:SetScale(0.8)
     end
 
     Mouseholder:SetScript("OnMouseDown", function(self) self:StartMoving() end)

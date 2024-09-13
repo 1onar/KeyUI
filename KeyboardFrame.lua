@@ -30,7 +30,7 @@ function addon:CreateKeyboard()
         Keyboard:SetScale(KeyboardPosition.scale)
     else
         Keyboard:SetPoint("CENTER", UIParent, "CENTER", -300, 50)
-        Keyboard:SetScale(1)
+        Keyboard:SetScale(0.8)
     end
     
     Keyboard:SetScript("OnMouseDown", function(self) self:StartMoving() end)
