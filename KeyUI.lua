@@ -389,30 +389,41 @@ end
 -- ButtonMouseOver(button) - This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:ButtonMouseOver(button)
     local KBTooltip = self.tooltip
-    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4)
+    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4)  -- Position for the Addon Tooltip
     KBTooltip.title:SetText((button.label:GetText() or "") .. "\n" .. (button.interfaceaction:GetText() or ""))
     KBTooltip.title:SetTextColor(1, 1, 1)
     KBTooltip.title:SetFont("Fonts\\ARIALN.TTF", 16)
-        if button.slot then
-            GameTooltip:SetOwner(button, "ANCHOR_NONE")
-            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-            GameTooltip:SetAction(button.slot)
-            GameTooltip:Show()
-        elseif button.spellid then
-            GameTooltip:SetOwner(button, "ANCHOR_NONE")
-            GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-            GameTooltip:SetSpellByID(button.spellid)
-            GameTooltip:Show()
-        end
-
     KBTooltip:SetWidth(KBTooltip.title:GetWidth() + 20)
     KBTooltip:SetHeight(KBTooltip.title:GetHeight() + 20)
-    
 
     if (KBTooltip:GetWidth() < 15) or button.macro:GetText() == "" then
         KBTooltip:Hide()
     else
         KBTooltip:Show()
+    end
+
+    -- Show GameTooltip for different types of actions
+    if button.slot then
+        -- For regular ActionButtons (ACTIONBUTTON1, ACTIONBUTTON2, etc.)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetAction(button.slot)  -- Use SetAction for ActionButtons
+        GameTooltip:Show()
+    elseif button.spellid then
+        -- For Pet Spells with a spellID (or regular spells)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetSpellByID(button.spellid)  -- Set tooltip for Pet Spells or regular spells
+        GameTooltip:Show()
+    elseif button.petActionIndex then
+        -- For pet modes (BONUSACTIONBUTTON for Wait, Move To, etc.)
+        GameTooltip:SetOwner(button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetPetAction(button.petActionIndex)  -- Show the Pet Action Tooltip
+        GameTooltip:Show()
+    else
+        -- No tooltip for empty buttons
+        GameTooltip:Hide()
     end
 end
 
@@ -492,6 +503,14 @@ function addon:NewButton(parent)
                     local pickupstateaction = loadstring("return " .. button.stateaction)()
                     PickupAction(pickupstateaction)
                     addon:RefreshKeys()
+                elseif button.petActionIndex then
+                    -- Pickup a pet action
+                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                    return
+                elseif button.spellid then
+                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                    -- Pickup a pet spell
+                    return
                 elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
                     -- Handle ElvUI Buttons
                     local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
@@ -849,11 +868,24 @@ function addon:SetKey(button)
                         button.icon:SetTexture(petTexture)
                         button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                         button.icon:Show()
-                        button.slot = spellID  -- Use spellID as the reference for the slot
-                        --print("Pet texture: ", petTexture)
+
+                        -- Check if it's a Pet Spell (spellID is present)
+                        if spellID then
+                            button.slot = nil  -- No slot for Pet Spells
+                            button.spellid = spellID  -- Set spellID for Pet Spells
+                            button.petActionIndex = nil  -- Not a pet mode
+                        else
+                            -- For Pet Modes (e.g., Wait, Move To)
+                            button.slot = nil
+                            button.spellid = nil
+                            button.petActionIndex = i  -- Set petActionIndex for pet modes
+                        end
                     else
+                        -- Handle empty buttons by clearing the slot, spellID, and petActionIndex
                         button.icon:Hide()
                         button.slot = nil
+                        button.spellid = nil
+                        button.petActionIndex = nil
                     end
                 end
             end
@@ -862,6 +894,8 @@ function addon:SetKey(button)
         if spell:match("^BONUSACTIONBUTTON%d+$") then
             button.icon:Hide()
             button.slot = nil
+            button.spellid = nil
+            button.petActionIndex = nil  -- Clear petActionIndex when no pet action bar
         end
     end
 
