@@ -438,8 +438,8 @@ end
 -- Function to create a glowing tutorial highlight around the MinMax button
 function ShowGlowAroundMinMax(Controls)
     local glowFrame = CreateFrame("Frame", "OVERLAY", Controls.MinMax, "GlowBoxTemplate")
-    glowFrame:SetPoint("TOPLEFT", -1, 1)
-    glowFrame:SetPoint("BOTTOMRIGHT", 1, 0)
+    glowFrame:SetSize(27, 25)
+    glowFrame:SetPoint("CENTER", Controls.MinMax, "CENTER", -1, 0)
     glowFrame.Text = glowFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     glowFrame.Text:SetPoint("BOTTOM", glowFrame, "TOP", 0, 10)
     glowFrame.Text:SetText("Click here to open settings")
