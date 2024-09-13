@@ -1,4 +1,4 @@
-## Interface: 11502
+## Interface: 11504
 ## Author: Blandros
 ## Version: @project-version@
 ## X-Curse-Project-ID: 913973
