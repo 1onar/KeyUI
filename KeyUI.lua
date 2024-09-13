@@ -16,13 +16,14 @@ KeysMouse = {}
 addonOpen = false
 fighting = false
 
--- Initialize SavedVariables for KeyUI settings
-KeyUI_Settings = KeyUI_Settings or {
-    showKeyboard = true,          -- Default to true if not set
-    showMouse = true,             -- Default to true if not set
-    stayOpenInCombat = true,      -- Default to true if not set
-    showPushedTexture = true,     -- Default to true for showing the PushedTexture
-}
+-- Initialize SavedVariables for KeyUI settings and ensure all settings are present
+KeyUI_Settings = KeyUI_Settings or {}
+
+-- Ensure each setting is initialized if it doesn't exist (maintain existing settings)
+KeyUI_Settings.showKeyboard = KeyUI_Settings.showKeyboard ~= nil and KeyUI_Settings.showKeyboard or true
+KeyUI_Settings.showMouse = KeyUI_Settings.showMouse ~= nil and KeyUI_Settings.showMouse or true
+KeyUI_Settings.stayOpenInCombat = KeyUI_Settings.stayOpenInCombat ~= nil and KeyUI_Settings.stayOpenInCombat or true
+KeyUI_Settings.showPushedTexture = KeyUI_Settings.showPushedTexture ~= nil and KeyUI_Settings.showPushedTexture or true
 
 -- Initialize modif table to avoid nil errors
 local modif = modif or {}
