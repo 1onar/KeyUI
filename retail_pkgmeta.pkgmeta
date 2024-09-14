@@ -1,0 +1,10 @@
+
+package-as: KeyUI_Retail
+
+enable-nolib-creation: yes
+
+ignore:
+  - .git
+  - .github
+  - tests
+  - README.md
