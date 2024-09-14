@@ -1,6 +1,7 @@
 package-as: KeyUI
 
 enable-nolib-creation: yes
+enable-toc-creation: yes
 
 ignore:
   - .git
