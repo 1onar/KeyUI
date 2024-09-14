@@ -21,10 +21,6 @@ jobs:
 
       - name: Build Classic Versions
         uses: BigWigsMods/packager@v2
-        with:
-          args: -S # Enable multiple game type support
 
       - name: Upload Classic Versions
         uses: BigWigsMods/packager@v2
-        with:
-          args: -g "classic,wrath,bcc,cata"
