@@ -1,4 +1,4 @@
-package-as: KeyUI
+package-as: KeyUI_Classic
 
 enable-nolib-creation: yes
 enable-toc-creation: yes
