@@ -453,12 +453,43 @@ function addon:NewButtonMouse()
         self:EnableMouseWheel(true)
         self:SetScript("OnKeyDown", KeyDown)
         self:SetScript("OnMouseWheel", OnMouseWheel)
+
+        -- Only show the PushedTexture if the setting is enabled
+        if KeyUI_Settings.showPushedTexture then
+            -- Look up the correct button in TextureMappings using the slot number
+            local mappedButton = TextureMappings[tostring(Mousebutton.slot)]
+            if mappedButton then
+                local normalTexture = mappedButton:GetNormalTexture()
+                if normalTexture and normalTexture:IsVisible() then
+                    local pushedTexture = mappedButton:GetPushedTexture()
+                    if pushedTexture then
+                        pushedTexture:Show()  -- Show the pushed texture
+                        --print("Showing PushedTexture for button in slot", button.slot)
+                    end
+                --else
+                    --print("not visible")
+                end
+            end
+        end
     end)
+
     Mousebutton:SetScript("OnLeave", function(self)
         GameTooltip:Hide()
         KeyUITooltip:Hide()
         self:EnableKeyboard(false)
         self:SetScript("OnKeyDown", nil)
+
+        if KeyUI_Settings.showPushedTexture then
+            -- Look up the correct button in TextureMappings using the slot number
+            local mappedButton = TextureMappings[tostring(Mousebutton.slot)]
+            if mappedButton then
+                local pushedTexture = mappedButton:GetPushedTexture()
+                if pushedTexture then
+                    pushedTexture:Hide()  -- Hide the pushed texture
+                    --print("Hiding PushedTexture for button in slot", button.slot)
+                end
+            end
+        end
     end)
 
     Mousebutton:SetScript("OnMouseDown", function(self, button)
