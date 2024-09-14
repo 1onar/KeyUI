@@ -102,7 +102,7 @@ local options = {
         -- toggle to enable or disable PushedTexture functionality
         showPushedTexture = {
             type = "toggle",
-            name = "Highlight Action Buttons",
+            name = "Highlight Buttons",
             desc = "Enable or disable the highlight effect on action buttons",
             order = 3,
             get = function() return KeyUI_Settings.showPushedTexture end,
