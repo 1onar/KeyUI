@@ -1,6 +1,5 @@
-name: Release AddOn # description of this workflow, can be anything you want
+name: Release Classic AddOn
 
-# triggers when pushing a tag
 on:
   push:
     tags:
@@ -10,16 +9,22 @@ env:
   CF_API_KEY: ${{ secrets.CF_API_KEY }}
   WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
   WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
-  # for github releases, this secret is automatically provided to the workflow
-  # this must be explicitly configured with read-write permissions on the repository
   GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  release: # "release" is a job, you can name it anything you want
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # reads history for commit changelog
+          fetch-depth: 0 # read full history for changelog
 
-      - uses: BigWigsMods/packager@v2
+      - name: Build Classic Version
+        uses: BigWigsMods/packager@v2
+        with:
+          args: -game-version classic
+
+      - name: Upload Classic to CurseForge/WoWInterface
+        uses: BigWigsMods/packager@v2
+        with:
+          args: --toc Classic
