@@ -21,10 +21,6 @@ jobs:
 
       - name: Build Retail Version
         uses: BigWigsMods/packager@v2
-        with:
-          args: -game-version retail
 
       - name: Upload Retail to CurseForge/WoWInterface
         uses: BigWigsMods/packager@v2
-        with:
-          args: --toc Retail
