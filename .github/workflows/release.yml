@@ -17,14 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # read full history for changelog
+          fetch-depth: 0 # reads full history for commit changelog
 
-      - name: Build Classic Version
+      - name: Build Classic Versions
         uses: BigWigsMods/packager@v2
         with:
-          args: -game-version classic
+          args: -S # Enable multiple game type support
 
-      - name: Upload Classic to CurseForge/WoWInterface
+      - name: Upload Classic Versions
         uses: BigWigsMods/packager@v2
         with:
-          args: --toc Classic
+          args: -g "classic,wrath,bcc,cata"
