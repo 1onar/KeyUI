@@ -51,6 +51,10 @@ function addon:CreateMouseUI()
 
     addon.MouseFrame = MouseFrame
 
+    if KeyUI_Settings.showKeyboard == false then
+        addon:RefreshKeys()
+    end
+
     return MouseFrame
 end
 
@@ -259,12 +263,6 @@ function addon:CreateMouseControls()
             MouseControls.glowBoxLock:Hide()
             MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
         --Edit end
-
-        --Mouse.New = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-        --Mouse.New:SetSize(100,30)
-        --Mouse.New:SetPoint("TOPRIGHT", Mouse.Lock, "TOPLEFT", -20, 0)
-        --Mouse.New:SetText("New Key")
-        --Mouse.New:SetScript("OnClick", addon.NewButtonMouse)
 	
         MouseControls.EditBox:Show()
         MouseControls.LeftButton:Show()
