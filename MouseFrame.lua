@@ -517,7 +517,7 @@ function addon:NewButtonMouse()
             else
                 infoType, info1, info2 = GetCursorInfo()
                 if infoType == "spell" then
-                    local spellname = GetSpellBookItemName(info1, info2)
+                    local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
                     addon.currentKey = self
                     local key = addon.currentKey.macro:GetText()
                     local actionSlot = SlotMappings[key]
