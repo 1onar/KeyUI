@@ -1,2 +1,2 @@
 paypal: blandros.keyui@gmail.com
-custom: ['blandros.keyui@gmail.com']
+custom: ['https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=blandros.keyui@gmail.com']
