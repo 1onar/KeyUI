@@ -545,11 +545,34 @@ function addon:NewButtonMouse()
             else
                 addon.currentKey = self
                 local key = addon.currentKey.macro:GetText()
+
+                -- Define class and bonus bar offset and action bar page
+                local classFilename = UnitClassBase("player")
+                local bonusBarOffset = GetBonusBarOffset()
                 local currentActionBarPage = GetActionBarPage()
+
                 local actionSlot = SlotMappings[key]
+
                 if actionSlot then
                     -- Adjust action slot based on current action bar page
                     local adjustedSlot = tonumber(actionSlot)
+
+                    -- Handle bonus bar offsets for ROGUE and DRUID
+                    if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
+                        if bonusBarOffset == 1 then
+                            adjustedSlot = adjustedSlot + 72 -- Maps to 73-84
+                        elseif bonusBarOffset == 2 then
+                            adjustedSlot = adjustedSlot -- No change for offset 2
+                        elseif bonusBarOffset == 3 then
+                            adjustedSlot = adjustedSlot + 96 -- Maps to 97-108
+                        elseif bonusBarOffset == 4 then
+                            adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
+                        elseif bonusBarOffset == 5 then
+                            adjustedSlot = adjustedSlot -- No change for offset 5
+                        end
+                    end
+
+                    -- Adjust based on current action bar page
                     if currentActionBarPage == 2 then
                         adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
                     elseif currentActionBarPage == 3 then
@@ -561,9 +584,16 @@ function addon:NewButtonMouse()
                     elseif currentActionBarPage == 6 then
                         adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
                     end
-    
-                    PickupAction(adjustedSlot)
-                    addon:RefreshKeys()
+
+                    -- Ensure adjustedSlot is valid before picking up
+                    if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
+                        PickupAction(adjustedSlot)
+                        addon:RefreshKeys()
+                    else
+                        -- Optionally handle cases where the adjusted slot is out of range
+                        PickupAction(actionSlot)
+                        addon:RefreshKeys()
+                    end
                 end
             end
         else
