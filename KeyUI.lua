@@ -804,6 +804,7 @@ function addon:SetKey(button)
     -- Define class and bonus bar offset
     local classFilename = UnitClassBase("player")
     local bonusBarOffset = GetBonusBarOffset()
+    local currentActionBarPage = GetActionBarPage()
 
     -- Handling empty bindings early
     if ShowEmptyBinds == true then
@@ -817,9 +818,10 @@ function addon:SetKey(button)
         button:SetBackdropColor(0, 0, 0, 1)
     end
 
-    -- Determine action button slot based on class and offset (for regular action buttons)
+    -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
-        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 then
+        -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
+        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
             if bonusBarOffset == 1 then
                 return slot + 72 -- Maps to 73-84
             elseif bonusBarOffset == 2 then
@@ -832,7 +834,21 @@ function addon:SetKey(button)
                 return slot -- No change for offset 5
             end
         end
-        return slot -- Default 1-12 for other classes and offset == 0
+
+        -- Handle other action bar pages for all classes
+        if currentActionBarPage == 2 then
+            return slot + 12 -- Maps to 13-24
+        elseif currentActionBarPage == 3 then
+            return slot + 24 -- Maps to 25-36
+        elseif currentActionBarPage == 4 then
+            return slot + 36 -- Maps to 37-48
+        elseif currentActionBarPage == 5 then
+            return slot + 48 -- Maps to 49-60
+        elseif currentActionBarPage == 6 then
+            return slot + 60 -- Maps to 61-72
+        end
+
+        return slot -- Default 1-12
     end
 
     -- Standard ActionButton logic
@@ -1463,7 +1479,7 @@ function addon:CreateChangerDDMouse()
     return KBChangeBoardDDMouse
 end
 
--- BattleCheck(event) - Checks whether the player is in combat or not and adjusts the display accordingly.
+-- Function to check battle status
 function addon:BattleCheck(event)
     if event == "PLAYER_REGEN_DISABLED" then
         fighting = true
@@ -1478,62 +1494,49 @@ function addon:BattleCheck(event)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         fighting = false
-        -- reopen after combat ends
-        --if KeyUI_Settings.stayOpenInCombat and not addonOpen then
-        --    addon:Load()
-        --end
+        -- Optional: Reopen after combat ends
+        -- if KeyUI_Settings.stayOpenInCombat and not addonOpen then
+        --     addon:Load()
+        -- end
     end
 end
 
--- Create a frame to handle stance and stealth events
+-- Event frame to handle all relevant events
 local eventFrame = CreateFrame("Frame")
-
--- Register events for stance changes
 eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+eventFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
+eventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
+eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+eventFrame:RegisterEvent("UNIT_PET")
+eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 
--- Define a function to handle stance events
-local function OnEvent(self, event, ...)
+-- Shared event handler function
+eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addonOpen then 
-        local classFilename = UnitClassBase("player")
-        
         if event == "UPDATE_BONUS_ACTIONBAR" then
-            -- Check if the class is Rogue or Druid
+            local classFilename = UnitClassBase("player")
+            -- Check if the class is Druid or Rogue
             if classFilename == "DRUID" or classFilename == "ROGUE" then
                 local bonusBarOffset = GetBonusBarOffset()
-                --print("Class Filename:", classFilename)
-                --print("Bonus Bar Offset:", bonusBarOffset)
                 addon:RefreshKeys()
             end
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then
+            -- Update the current action bar page
+            local currentActionBarPage = GetActionBarPage()
+            addon:RefreshKeys() -- Optional, reload keys when action bar page changes
+        elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
+            -- Check the battle status
+            addon:BattleCheck(event)
+        else
+            -- Delay refresh of keys to ensure proper updates
+            C_Timer.After(0.01, function()
+                addon:RefreshKeys()
+            end)
         end
     end
-end
-
--- Set the event handler function
-eventFrame:SetScript("OnEvent", OnEvent)
-
--- Existing code to handle other events
-local f = CreateFrame("Frame")
-f:RegisterEvent("ACTIONBAR_SHOWGRID")
-f:RegisterEvent("ACTIONBAR_HIDEGRID")
-f:RegisterEvent("UNIT_PET")
-f:SetScript("OnEvent", function(_, event, ...)
-    if addonOpen then
-        C_Timer.After(0.01, function()
-            addon:RefreshKeys()
-        end)
-    end
 end)
-
--- SpecCheck - Monitors changes in the player's talents.
-local SpecCheck = CreateFrame("Frame", "BackdropTemplate")
-SpecCheck:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-SpecCheck:SetScript("OnEvent", function(self, spec) end)
-
--- EventCheck - Monitors various in-game events such as entering and leaving combat mode.
-local EventCheck = CreateFrame("Frame")
-EventCheck:RegisterEvent("PLAYER_REGEN_ENABLED")
-EventCheck:RegisterEvent("PLAYER_REGEN_DISABLED")
-EventCheck:SetScript("OnEvent", function(self, event) addon:BattleCheck(event) end)
 
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
