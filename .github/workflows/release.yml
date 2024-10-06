@@ -19,8 +19,5 @@ jobs:
         with:
           fetch-depth: 0 # reads full history for commit changelog
 
-      - name: Build Classic Versions
-        uses: BigWigsMods/packager@v2
-
-      - name: Upload Classic Versions
+      - name: Package and Release
         uses: BigWigsMods/packager@v2
