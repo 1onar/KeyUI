@@ -182,21 +182,35 @@ function addon:CreateMouseControls()
             MouseControls.Delete:SetSize(104, 26)
             MouseControls.Delete:SetPoint("LEFT", MouseControls.Save, "RIGHT", 5, 0)
 
-            MouseControls.Delete:SetScript("OnClick", function(self)                                        --select a default layout
+            MouseControls.Delete:SetScript("OnClick", function(self)
+                -- Check if KBChangeBoardDDMouse is not nil
+                if not KBChangeBoardDDMouse then
+                    print("Error: KBChangeBoardDDMouse is nil.")
+                    return -- Exit the function early if KBChangeBoardDDMouse is nil
+                end
+                
                 -- Get the text from the KBChangeBoardDDMouse dropdown menu.
                 local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDDMouse)
-                -- Remove the selected layout from the MouseKeyEditLayouts table.
-                MouseKeyEditLayouts[selectedLayout] = nil
-                -- Clear the text in the Mouse.Input field.
-                MouseControls.Input:SetText("")
-                -- Print a message indicating which layout was deleted.
-                print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
-
-                --CurrentLayout = {KeyBindAllBoardsMouse.Layout_4x3}
-                wipe(CurrentLayout)
-                UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
-                addon:RefreshKeys()
+            
+                -- Ensure selectedLayout is not nil before proceeding
+                if selectedLayout then
+                    -- Remove the selected layout from the MouseKeyEditLayouts table.
+                    MouseKeyEditLayouts[selectedLayout] = nil
+            
+                    -- Clear the text in the Mouse.Input field.
+                    MouseControls.Input:SetText("")
+            
+                    -- Print a message indicating which layout was deleted.
+                    print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+            
+                    wipe(CurrentLayout)
+                    UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
+                    addon:RefreshKeys()
+                else
+                    print("KeyUI: Error - No layout selected to delete.")
+                end
             end)
+            
             local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
             DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             DeleteText:SetPoint("CENTER", 0, 1)
