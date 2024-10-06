@@ -19,8 +19,5 @@ jobs:
         with:
           fetch-depth: 0 # read full history for changelog
 
-      - name: Build Retail Version
-        uses: BigWigsMods/packager@v2
-
-      - name: Upload Retail to CurseForge/WoWInterface
+      - name: Package and Release
         uses: BigWigsMods/packager@v2
