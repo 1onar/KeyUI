@@ -962,10 +962,10 @@ function addon:SetKey(button)
     end
 
     -- Label Shortening
-    if LabelMapping[button.label:GetText()] then
+    if button.ShortLabel and LabelMapping[button.label:GetText()] then
         button.label:Hide()
         button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
-    end
+    end    
 end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
