@@ -1269,7 +1269,7 @@ ElvUIMappings = {
 }
 
 TextureMappings = {
-    -- Action Bar 1
+    -- Action Bar 1 Page 1
     ["1"] = ActionButton1,
     ["2"] = ActionButton2,
     ["3"] = ActionButton3,
@@ -1282,6 +1282,20 @@ TextureMappings = {
     ["10"] = ActionButton10,
     ["11"] = ActionButton11,
     ["12"] = ActionButton12,
+
+    -- Action Bar 1 Page 2
+    ["13"] = ActionButton1,
+    ["14"] = ActionButton2,
+    ["15"] = ActionButton3,
+    ["16"] = ActionButton4,
+    ["17"] = ActionButton5,
+    ["18"] = ActionButton6,
+    ["19"] = ActionButton7,
+    ["20"] = ActionButton8,
+    ["21"] = ActionButton9,
+    ["22"] = ActionButton10,
+    ["23"] = ActionButton11,
+    ["24"] = ActionButton12,
 
     -- Bonus Bar 1
     ["73"] = ActionButton1,

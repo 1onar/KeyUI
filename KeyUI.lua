@@ -498,39 +498,69 @@ function addon:NewButton(parent)
     -- Define the mouse hover behavior to show tooltips.
     button:SetScript("OnEnter", function()
         self:ButtonMouseOver(button)
-
-        -- Only show the PushedTexture if the setting is enabled
+    
+        -- Get the current action bar page
+        local currentActionBarPage = GetActionBarPage()
+    
         if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(button.slot)]
-            if mappedButton then
-                local normalTexture = mappedButton:GetNormalTexture()
-                if normalTexture and normalTexture:IsVisible() then
-                    local pushedTexture = mappedButton:GetPushedTexture()
-                    if pushedTexture then
-                        pushedTexture:Show()  -- Show the pushed texture
-                        --print("Showing PushedTexture for button in slot", button.slot)
+            -- Only proceed if button.slot is valid
+            if button.slot then
+                -- Adjust the slot mapping based on the current action bar page
+                local adjustedSlot = button.slot
+    
+                if currentActionBarPage == 3 and button.slot >= 25 and button.slot <= 36 then
+                    adjustedSlot = button.slot - 24  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 4 and button.slot >= 37 and button.slot <= 48 then
+                    adjustedSlot = button.slot - 36  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 5 and button.slot >= 49 and button.slot <= 60 then
+                    adjustedSlot = button.slot - 48  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 6 and button.slot >= 61 and button.slot <= 72 then
+                    adjustedSlot = button.slot - 60  -- Map to ActionButton1-12
+                end
+    
+                -- Look up the correct button in TextureMappings using the adjusted slot number
+                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                if mappedButton then
+                    local normalTexture = mappedButton:GetNormalTexture()
+                    if normalTexture and normalTexture:IsVisible() then
+                        local pushedTexture = mappedButton:GetPushedTexture()
+                        if pushedTexture then
+                            pushedTexture:Show()  -- Show the pushed texture
+                        end
                     end
-                --else
-                    --print("not visible")
                 end
             end
         end
     end)
-
+    
     button:SetScript("OnLeave", function()
         GameTooltip:Hide()
         KeyUITooltip:Hide()
-
-        -- Only show the PushedTexture if the setting is enabled
+    
+        -- Get the current action bar page
+        local currentActionBarPage = GetActionBarPage()
+    
         if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(button.slot)]
-            if mappedButton then
-                local pushedTexture = mappedButton:GetPushedTexture()
-                if pushedTexture then
-                    pushedTexture:Hide()  -- Hide the pushed texture
-                    --print("Hiding PushedTexture for button in slot", button.slot)
+            -- Only proceed if button.slot is valid
+            if button.slot then
+                local adjustedSlot = button.slot
+    
+                if currentActionBarPage == 3 and button.slot >= 25 and button.slot <= 36 then
+                    adjustedSlot = button.slot - 24
+                elseif currentActionBarPage == 4 and button.slot >= 37 and button.slot <= 48 then
+                    adjustedSlot = button.slot - 36
+                elseif currentActionBarPage == 5 and button.slot >= 49 and button.slot <= 60 then
+                    adjustedSlot = button.slot - 48
+                elseif currentActionBarPage == 6 and button.slot >= 61 and button.slot <= 72 then
+                    adjustedSlot = button.slot - 60
+                end
+    
+                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                if mappedButton then
+                    local pushedTexture = mappedButton:GetPushedTexture()
+                    if pushedTexture then
+                        pushedTexture:Hide()  -- Hide the pushed texture
+                    end
                 end
             end
         end
@@ -541,16 +571,28 @@ function addon:NewButton(parent)
         if Mousebutton == "LeftButton" then
             addon.currentKey = self
             local key = addon.currentKey.macro:GetText()
+            local currentActionBarPage = GetActionBarPage()
 
             -- Check if 'key' is non-nil and non-empty before proceeding.
             if key and key ~= "" then
                 local actionSlot = SlotMappings[key]
                 if actionSlot then
-                    PickupAction(actionSlot)
-                    addon:RefreshKeys()
-                elseif button.stateaction then
-                    local pickupstateaction = loadstring("return " .. button.stateaction)()
-                    PickupAction(pickupstateaction)
+                    -- Adjust action slot based on current action bar page
+                    local adjustedSlot = tonumber(actionSlot)
+                    if currentActionBarPage == 2 then
+                        adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
+                    elseif currentActionBarPage == 3 then
+                        adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
+                    elseif currentActionBarPage == 4 then
+                        adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
+                    elseif currentActionBarPage == 5 then
+                        adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
+                    elseif currentActionBarPage == 6 then
+                        adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
+                    end
+    
+                    PickupAction(adjustedSlot)
+                    --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
                     addon:RefreshKeys()
                 elseif button.petActionIndex then
                     -- Pickup a pet action
