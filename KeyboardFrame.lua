@@ -101,7 +101,7 @@ function addon:CreateControls()
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.Layout:SetPoint("BOTTOM", KBChangeBoardDD, "CENTER", 0, 22)
         else
-            Controls.Layout:SetPoint("RIGHT", KBChangeBoardDD, "LEFT", -20, 2)
+            Controls.Layout:SetPoint("RIGHT", KBChangeBoardDD, "LEFT", -10, 2)
         end
         Controls.Layout:SetTextColor(1, 1, 1)
 
@@ -110,7 +110,7 @@ function addon:CreateControls()
         Controls.EditBox:SetWidth(60)
         Controls.EditBox:SetHeight(20)
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 200, 2)
+            Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 176, 2)
         else
             Controls.EditBox:SetPoint("BOTTOM", KBChangeBoardDD, "TOP", 0, 20)
         end
@@ -186,9 +186,9 @@ function addon:CreateControls()
         Controls.AltCB:SetSize(32, 36)
         Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 330, 2)
+            Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 290, 2)
         else
-            Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -26)
+            Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -50)
         end
         -- Create a font string for the text "Alt" and position it below the checkbutton
         local altText = Controls.AltCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -220,7 +220,7 @@ function addon:CreateControls()
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.CtrlCB:SetPoint("CENTER", Controls.AltCB, "CENTER", 50, 0)
         else
-            Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -26)
+            Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -50)
         end
         -- Create a font string for the text "Ctrl" and position it below the checkbutton
         local ctrlText = Controls.CtrlCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -252,7 +252,7 @@ function addon:CreateControls()
         if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
             Controls.ShiftCB:SetPoint("CENTER", Controls.CtrlCB, "CENTER", 50, 0)
         else
-            Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -26)
+            Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -50)
         end
         -- Create a font string for the text "Shift" and position it below the checkbutton
         local shiftText = Controls.ShiftCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
