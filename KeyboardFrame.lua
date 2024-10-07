@@ -20,7 +20,7 @@ function addon:CreateKeyboard()
     local Keyboard = CreateFrame("Frame", 'KeyUIMainFrame', UIParent, "TooltipBorderedFrameTemplate") -- the frame holding the keys
  
     -- Manage ESC key behavior based on the setting
-    if not KeyUI_Settings.preventEscClose then
+    if KeyUI_Settings.preventEscClose ~= false then
         tinsert(UISpecialFrames, "KeyUIMainFrame")
     end
 
@@ -59,7 +59,7 @@ function addon:CreateControls()
     local modif = self.modif
 
     -- Manage ESC key behavior based on the setting
-    if not KeyUI_Settings.preventEscClose then
+    if KeyUI_Settings.preventEscClose ~= false then
         tinsert(UISpecialFrames, "KBControlsFrame")
     end
 
