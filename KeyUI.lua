@@ -24,6 +24,7 @@ KeyUI_Settings.showKeyboard = KeyUI_Settings.showKeyboard ~= nil and KeyUI_Setti
 KeyUI_Settings.showMouse = KeyUI_Settings.showMouse ~= nil and KeyUI_Settings.showMouse or true
 KeyUI_Settings.stayOpenInCombat = KeyUI_Settings.stayOpenInCombat ~= nil and KeyUI_Settings.stayOpenInCombat or true
 KeyUI_Settings.showPushedTexture = KeyUI_Settings.showPushedTexture ~= nil and KeyUI_Settings.showPushedTexture or true
+KeyUI_Settings.preventEscClose = KeyUI_Settings.preventEscClose ~= nil and KeyUI_Settings.preventEscClose or true
 
 -- Initialize modif table to avoid nil errors
 local modif = modif or {}
@@ -31,6 +32,27 @@ modif.CTRL = modif.CTRL or ""
 modif.SHIFT = modif.SHIFT or ""
 modif.ALT = modif.ALT or ""
 addon.modif = modif
+
+local function SetEscCloseEnabled(frame, enabled)
+    if not frame or not frame:GetName() then return end
+
+    if enabled then
+        -- Remove the frame from UISpecialFrames if ESC closing is disabled
+        for i, frameName in ipairs(UISpecialFrames) do
+            if frameName == frame:GetName() then
+                tremove(UISpecialFrames, i)
+                --print(frame:GetName() .. " removed from UISpecialFrames")
+                break
+            end
+        end
+    else
+        -- Add the frame back to UISpecialFrames to allow ESC closing
+        if not tContains(UISpecialFrames, frame:GetName()) then
+            tinsert(UISpecialFrames, frame:GetName())
+            --print(frame:GetName() .. " added to UISpecialFrames")
+        end
+    end
+end
 
 -- Define the options table for AceConfig
 local options = {
@@ -118,7 +140,7 @@ local options = {
             type = "execute",
             name = "Reset Addon Settings",
             desc = "Reset all settings to their default values",
-            order = 6,
+            order = 7,
             confirm = true,  -- Ask for confirmation
             confirmText = "Are you sure you want to reset all settings to default?",
             func = function()
@@ -149,6 +171,27 @@ local options = {
                 ReloadUI()
             end,
         },
+        preventEscClose = {
+            type = "toggle",
+            name = "Enable ESC",
+            desc = "Prevent the addon window from closing when pressing ESC",
+            order = 6,
+            get = function() return KeyUI_Settings.preventEscClose end,
+            set = function(_, value)
+                KeyUI_Settings.preventEscClose = value
+                addon:SaveSettings()
+                
+                -- Immediately update the ESC closing behavior for all relevant frames
+                SetEscCloseEnabled(KeyUIMainFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(KBControlsFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(Mouseholder, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(MouseFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(MouseControls, not KeyUI_Settings.preventEscClose)
+                
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Closing with ESC " .. status)
+            end,
+        }        
     },
 }
 

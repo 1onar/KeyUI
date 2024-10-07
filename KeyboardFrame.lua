@@ -18,8 +18,12 @@ end
 
 function addon:CreateKeyboard()
     local Keyboard = CreateFrame("Frame", 'KeyUIMainFrame', UIParent, "TooltipBorderedFrameTemplate") -- the frame holding the keys
-    tinsert(UISpecialFrames, "KeyUIMainFrame")
  
+    -- Manage ESC key behavior based on the setting
+    if not KeyUI_Settings.preventEscClose then
+        tinsert(UISpecialFrames, "KeyUIMainFrame")
+    end
+
     Keyboard:SetWidth(1100)
     Keyboard:SetHeight(500)
     Keyboard:SetBackdropColor(0, 0, 0, 0.9)
@@ -50,9 +54,15 @@ end
 
 function addon:CreateControls()
     local Controls = CreateFrame("Frame", 'KBControlsFrame', KeyUIMainFrame, "TooltipBorderedFrameTemplate")
-    tinsert(UISpecialFrames, "KBControlsFrame")
+
     local Keyboard = addon.keyboardFrame
     local modif = self.modif
+
+    -- Manage ESC key behavior based on the setting
+    if not KeyUI_Settings.preventEscClose then
+        tinsert(UISpecialFrames, "KBControlsFrame")
+    end
+
     Controls:SetBackdropColor(0, 0, 0, 1)
     Controls:SetPoint("BOTTOM", Keyboard, "TOP", 0, -2)
 

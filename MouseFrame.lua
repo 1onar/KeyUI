@@ -12,7 +12,11 @@ end
 
 function addon:CreateMouseholder()
     local Mouseholder = CreateFrame("Frame", "Mouseholder", UIParent)
-    tinsert(UISpecialFrames, "Mouseholder")
+
+    -- Manage ESC key behavior based on the setting
+    if not KeyUI_Settings.preventEscClose then
+        tinsert(UISpecialFrames, "Mouseholder")
+    end
     
     Mouseholder:SetWidth(260)
     Mouseholder:SetHeight(400)
@@ -41,7 +45,11 @@ end
 
 function addon:CreateMouseUI()
     local MouseFrame = CreateFrame("Frame", "MouseFrame", Mouseholder)
-    tinsert(UISpecialFrames, "MouseFrame")
+
+    -- Manage ESC key behavior based on the setting
+    if not KeyUI_Settings.preventEscClose then
+        tinsert(UISpecialFrames, "MouseFrame")
+    end
 
     MouseFrame:SetWidth(50)
     MouseFrame:SetHeight(50)
@@ -60,7 +68,11 @@ end
 
 function addon:CreateMouseControls()
     local MouseControls = CreateFrame("Frame", "MouseControls", Mouseholder, "TooltipBorderedFrameTemplate")
-    tinsert(UISpecialFrames, "MouseControls")
+
+    -- Manage ESC key behavior based on the setting
+    if not KeyUI_Settings.preventEscClose then
+        tinsert(UISpecialFrames, "MouseControls")
+    end
 
     MouseControls:SetBackdropColor(0,0,0,1);
     MouseControls:SetPoint("BOTTOMRIGHT", Mouseholder, "TOPRIGHT", 0, -10)
