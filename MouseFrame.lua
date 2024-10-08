@@ -2,7 +2,7 @@ local name, addon = ...
 
 MousePosition = {}
 
-locked = true
+MouseLocked = true
 edited = false
 
 function addon:SaveMouse()
@@ -245,22 +245,22 @@ function addon:CreateMouseControls()
             local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
             LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             LockText:SetPoint("CENTER", 0, 1)
-            if locked == false then
+            if MouseLocked == false then
                 LockText:SetText("Lock")
             else
                 LockText:SetText("Unlock")
             end
 
             local function ToggleLock()
-                if locked then
-                    locked = false
+                if MouseLocked then
+                    MouseLocked = false
                     edited = true
                     LockText:SetText("Lock")
                     if MouseControls.glowBoxLock then
                         MouseControls.glowBoxLock:Show()
                     end
                 else
-                    locked = true
+                    MouseLocked = true
                     LockText:SetText("Unlock")
                     if MouseControls.glowBoxLock then
                         MouseControls.glowBoxLock:Hide()
@@ -298,7 +298,7 @@ function addon:CreateMouseControls()
         MouseControls.Delete:Show()
         MouseControls.Lock:Show()
 
-        if locked == false then
+        if MouseLocked == false then
             if MouseControls.glowBoxLock then
                 MouseControls.glowBoxLock:Show()
             end
@@ -362,8 +362,8 @@ end
 
 local function DragOrSize(self, Mousebutton)
     local x, y = GetCursorScaledPosition()
-    if locked then
-        return -- Do nothing if not locked is selected
+    if MouseLocked then
+        return -- Do nothing if not MouseLocked is selected
     end
     self:StartMoving()
     self.isMoving = true  -- Add a flag to indicate the frame is being moved
@@ -381,7 +381,7 @@ local function Release(self, Mousebutton)
 end
 
 local function KeyDown(self, key)
-    if not locked and not self.isMoving then
+    if not MouseLocked and not self.isMoving then
         if key == "RightButton" then
             return
         elseif key == "MiddleButton" then
@@ -394,7 +394,7 @@ local function KeyDown(self, key)
 end
 
 local function OnMouseWheel(self, delta)
-    if not locked and not self.isMoving then
+    if not MouseLocked and not self.isMoving then
         if delta > 0 then
             -- Mouse wheel scrolled up
             self.label:SetText("MouseWheelUp")
@@ -407,7 +407,7 @@ end
 
 function addon:SaveLayout()
     local msg = MouseControls.Input:GetText()
-    if locked == true then
+    if MouseLocked == true then
         if msg ~= "" then
             MouseControls.Input:SetText("")
             MouseControls.Input:ClearFocus()
@@ -524,12 +524,12 @@ function addon:NewButtonMouse()
     Mousebutton.icon:SetSize(40, 40)
     Mousebutton.icon:SetPoint("TOPLEFT", Mousebutton, "TOPLEFT", 5, -5)
 
-    Mousebutton:SetScript("OnEnter", function(self)
+    Mousebutton:SetScript("OnEnter", function()
         addon:ButtonMouseOver(Mousebutton)
-        self:EnableKeyboard(true)
-        self:EnableMouseWheel(true)
-        self:SetScript("OnKeyDown", KeyDown)
-        self:SetScript("OnMouseWheel", OnMouseWheel)
+        Mousebutton:EnableKeyboard(true)
+        Mousebutton:EnableMouseWheel(true)
+        Mousebutton:SetScript("OnKeyDown", KeyDown)
+        Mousebutton:SetScript("OnMouseWheel", OnMouseWheel)
     
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
@@ -566,11 +566,12 @@ function addon:NewButtonMouse()
         end
     end)
     
-    Mousebutton:SetScript("OnLeave", function(self)
+    Mousebutton:SetScript("OnLeave", function()
         GameTooltip:Hide()
         KeyUITooltip:Hide()
-        self:EnableKeyboard(false)
-        self:SetScript("OnKeyDown", nil)
+        Mousebutton:EnableKeyboard(false)
+        Mousebutton:EnableMouseWheel(false)
+        Mousebutton:SetScript("OnKeyDown", nil)
     
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
@@ -605,7 +606,7 @@ function addon:NewButtonMouse()
 
     Mousebutton:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
-            if locked == false then
+            if MouseLocked == false then
                 DragOrSize(self, button)
             else
                 addon.currentKey = self
@@ -668,7 +669,7 @@ function addon:NewButtonMouse()
 
     Mousebutton:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
-            if locked == false then  
+            if MouseLocked == false then  
                 Release(self, button)
             else
                 infoType, info1, info2 = GetCursorInfo()

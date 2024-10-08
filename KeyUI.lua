@@ -708,7 +708,7 @@ end
 function addon:RefreshKeys()
     --print("RefreshKeys function called")  -- Print statement
 
-    if not locked then
+    if KeyboardLocked == false or MouseLocked == false then
         return
     end
 

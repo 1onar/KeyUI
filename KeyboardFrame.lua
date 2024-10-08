@@ -2,6 +2,7 @@ local name, addon = ...
 
 KeyboardPosition = {}
 
+KeyboardLocked = true
 AltCheckbox = false
 CtrlCheckbox = false
 ShiftCheckbox = false
@@ -50,6 +51,11 @@ function addon:RefreshControls()
     if KBControlsFrame then
         KBControlsFrame.LayoutName:SetText(KeyBindSettings.currentboard)
     end
+end
+
+local function GetCursorScaledPosition()
+	local scale, x, y = UIParent:GetScale(), GetCursorPosition()
+	return x / scale, y / scale
 end
 
 function addon:CreateControls()
@@ -481,6 +487,31 @@ function ShowGlowAroundMinMax(Controls)
     end
 end
 
+local function KeyDown(self, key)
+    if not KeyboardLocked then
+        if key == "RightButton" then
+            return
+        elseif key == "MiddleButton" then
+            self.label:SetText("Button3")
+        else
+            -- For all other keys, set the label to the key itself
+            self.label:SetText(key)
+        end
+    end
+end
+
+local function OnMouseWheel(self, delta)
+    if not KeyboardLocked then
+        if delta > 0 then
+            -- Mouse wheel scrolled up
+            self.label:SetText("MouseWheelUp")
+        elseif delta < 0 then
+            -- Mouse wheel scrolled down
+            self.label:SetText("MouseWheelDown")
+        end
+    end
+end
+
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
 function addon:SwitchBoard(board)
     -- Clear the existing Keys array to avoid leftover data from previous layouts
@@ -552,8 +583,8 @@ function addon:NewButton(parent)
 
     -- Create a frame that acts as a button with a tooltip border.
     local button = CreateFrame("FRAME", nil, parent, "TooltipBorderedFrameTemplate")
-    button:SetMovable(true)
     button:EnableMouse(true)
+    button:EnableKeyboard(true)
     button:SetBackdropColor(0, 0, 0, 1)
 
     -- Create a label to display the full name of the action.
@@ -597,7 +628,11 @@ function addon:NewButton(parent)
 
     -- Define the mouse hover behavior to show tooltips.
     button:SetScript("OnEnter", function()
-        self:ButtonMouseOver(button)
+        addon:ButtonMouseOver(button)
+        button:EnableKeyboard(true)
+        button:EnableMouseWheel(true)
+        button:SetScript("OnKeyDown", KeyDown)
+        button:SetScript("OnMouseWheel", OnMouseWheel)
     
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
@@ -636,6 +671,9 @@ function addon:NewButton(parent)
     button:SetScript("OnLeave", function()
         GameTooltip:Hide()
         KeyUITooltip:Hide()
+        button:EnableKeyboard(false)
+        button:EnableMouseWheel(false)
+        button:SetScript("OnKeyDown", nil)
     
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
@@ -669,79 +707,83 @@ function addon:NewButton(parent)
     -- Define behavior for mouse down actions (left-click).
     button:SetScript("OnMouseDown", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
-            addon.currentKey = self
-            local key = addon.currentKey.macro:GetText()
+            if KeyboardLocked == false then
+                return
+            else
+                addon.currentKey = self
+                local key = addon.currentKey.macro:GetText()
 
-        -- Define class and bonus bar offset and action bar page
-        local classFilename = UnitClassBase("player")
-        local bonusBarOffset = GetBonusBarOffset()
-        local currentActionBarPage = GetActionBarPage()
+                -- Define class and bonus bar offset and action bar page
+                local classFilename = UnitClassBase("player")
+                local bonusBarOffset = GetBonusBarOffset()
+                local currentActionBarPage = GetActionBarPage()
 
-            -- Check if 'key' is non-nil and non-empty before proceeding.
-            if key and key ~= "" then
-                local actionSlot = SlotMappings[key]
-                if actionSlot then
-                    -- Adjust action slot based on current action bar page
-                    local adjustedSlot = tonumber(actionSlot)
+                -- Check if 'key' is non-nil and non-empty before proceeding.
+                if key and key ~= "" then
+                    local actionSlot = SlotMappings[key]
+                    if actionSlot then
+                        -- Adjust action slot based on current action bar page
+                        local adjustedSlot = tonumber(actionSlot)
 
-                    -- Handle bonus bar offsets for ROGUE and DRUID
-                    if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
-                        if bonusBarOffset == 1 then
-                            adjustedSlot = adjustedSlot + 72 -- Maps to 73-84
-                        elseif bonusBarOffset == 2 then
-                            adjustedSlot = adjustedSlot -- No change for offset 2
-                        elseif bonusBarOffset == 3 then
-                            adjustedSlot = adjustedSlot + 96 -- Maps to 97-108
-                        elseif bonusBarOffset == 4 then
-                            adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
-                        elseif bonusBarOffset == 5 then
-                            adjustedSlot = adjustedSlot -- No change for offset 5
+                        -- Handle bonus bar offsets for ROGUE and DRUID
+                        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
+                            if bonusBarOffset == 1 then
+                                adjustedSlot = adjustedSlot + 72 -- Maps to 73-84
+                            elseif bonusBarOffset == 2 then
+                                adjustedSlot = adjustedSlot -- No change for offset 2
+                            elseif bonusBarOffset == 3 then
+                                adjustedSlot = adjustedSlot + 96 -- Maps to 97-108
+                            elseif bonusBarOffset == 4 then
+                                adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
+                            elseif bonusBarOffset == 5 then
+                                adjustedSlot = adjustedSlot -- No change for offset 5
+                            end
+                        end
+
+                        -- Adjust based on current action bar page
+                        if currentActionBarPage == 2 then
+                            adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
+                        elseif currentActionBarPage == 3 then
+                            adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
+                        elseif currentActionBarPage == 4 then
+                            adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
+                        elseif currentActionBarPage == 5 then
+                            adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
+                        elseif currentActionBarPage == 6 then
+                            adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
+                        end
+
+                        -- Ensure adjustedSlot is valid before picking up
+                        if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
+                            PickupAction(adjustedSlot)
+                            --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
+                            addon:RefreshKeys()
+                        else
+                            -- Optionally handle cases where the adjusted slot is out of range
+                            PickupAction(actionSlot)
+                            addon:RefreshKeys()
+                        end
+                    elseif button.petActionIndex then
+                        -- Pickup a pet action
+                        print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                        return
+                    elseif button.spellid then
+                        print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                        -- Pickup a pet spell
+                        return
+                    elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
+                        -- Handle ElvUI Buttons
+                        local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
+                        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+                        if elvUIButton and elvUIButton._state_action then
+                            PickupAction(elvUIButton._state_action)
+                            addon:RefreshKeys()
                         end
                     end
-
-                    -- Adjust based on current action bar page
-                    if currentActionBarPage == 2 then
-                        adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
-                    elseif currentActionBarPage == 3 then
-                        adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
-                    elseif currentActionBarPage == 4 then
-                        adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
-                    elseif currentActionBarPage == 5 then
-                        adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
-                    elseif currentActionBarPage == 6 then
-                        adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
-                    end
-
-                    -- Ensure adjustedSlot is valid before picking up
-                    if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
-                        PickupAction(adjustedSlot)
-                        --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
-                        addon:RefreshKeys()
-                    else
-                        -- Optionally handle cases where the adjusted slot is out of range
-                        PickupAction(actionSlot)
-                        addon:RefreshKeys()
-                    end
-                elseif button.petActionIndex then
-                    -- Pickup a pet action
-                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                    return
-                elseif button.spellid then
-                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                    -- Pickup a pet spell
-                    return
-                elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                    -- Handle ElvUI Buttons
-                    local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                    local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                    if elvUIButton and elvUIButton._state_action then
-                        PickupAction(elvUIButton._state_action)
-                        addon:RefreshKeys()
-                    end
                 end
-            else
-                -- Handle the case where the key is nil or empty
             end
+        else
+            KeyDown(self, Mousebutton)
         end
     end)
 
