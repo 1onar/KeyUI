@@ -18,7 +18,9 @@
 ## SavedVariables: KeyBindSettings
 ## SavedVariables: KeyBindSettingsMouse
 ## SavedVariables: MouseKeyEditLayouts
-## SavedVariables: CurrentLayout
+## SavedVariables: KeyboardEditLayouts
+## SavedVariables: CurrentLayoutMouse
+## SavedVariables: CurrentLayoutKeyboard
 ## SavedVariables: tutorialCompleted
 
 Libs\embeds.xml

@@ -25,8 +25,8 @@ function addon:CreateKeyboard()
         tinsert(UISpecialFrames, "KeyUIMainFrame")
     end
 
-    Keyboard:SetWidth(1100)
-    Keyboard:SetHeight(500)
+    Keyboard:SetWidth(940)
+    Keyboard:SetHeight(382)
     Keyboard:SetBackdropColor(0, 0, 0, 0.9)
 
     -- Load the saved position if it exists
@@ -111,266 +111,393 @@ function addon:CreateControls()
         end
         Controls.Layout:SetTextColor(1, 1, 1)
 
-    --Size start
-        Controls.EditBox = CreateFrame("EditBox", "KUI_EditBox1", Controls, "InputBoxTemplate")
-        Controls.EditBox:SetWidth(60)
-        Controls.EditBox:SetHeight(20)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 176, 2)
-        else
-            Controls.EditBox:SetPoint("BOTTOM", KBChangeBoardDD, "TOP", 0, 20)
-        end
-        Controls.EditBox:SetMaxLetters(4)
-        Controls.EditBox:SetAutoFocus(false)
-        Controls.EditBox:SetText(string.format("%.2f", Keyboard:GetScale()))
-        Controls.EditBox:SetJustifyH("CENTER")
-        
-        -- Add a function to update the scale when the user types in the edit box
-        Controls.EditBox:SetScript("OnEnterPressed", function(self)
-            local value = tonumber(self:GetText())
-            if value then
-                if value < 0.5 then
-                    value = 0.5
-                elseif value > 1.5 then
-                    value = 1.5
+        --Size start
+            Controls.EditBox = CreateFrame("EditBox", "KUI_EditBox1", Controls, "InputBoxTemplate")
+            Controls.EditBox:SetWidth(60)
+            Controls.EditBox:SetHeight(20)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 176, 2)
+            else
+                Controls.EditBox:SetPoint("BOTTOM", KBChangeBoardDD, "TOP", 0, 20)
+            end
+            Controls.EditBox:SetMaxLetters(4)
+            Controls.EditBox:SetAutoFocus(false)
+            Controls.EditBox:SetText(string.format("%.2f", Keyboard:GetScale()))
+            Controls.EditBox:SetJustifyH("CENTER")
+            
+            -- Add a function to update the scale when the user types in the edit box
+            Controls.EditBox:SetScript("OnEnterPressed", function(self)
+                local value = tonumber(self:GetText())
+                if value then
+                    if value < 0.5 then
+                        value = 0.5
+                    elseif value > 1.5 then
+                        value = 1.5
+                    end
+                    Keyboard:SetScale(value)
+                    self:SetText(string.format("%.2f", value))
                 end
-                Keyboard:SetScale(value)
-                self:SetText(string.format("%.2f", value))
-            end
-            self:ClearFocus()
-        end)
+                self:ClearFocus()
+            end)
 
-        Controls.LeftButton = CreateFrame("Button", "KBControlLeftButton", Controls)
-        Controls.LeftButton:SetSize(32, 32)
-        Controls.LeftButton:SetPoint("CENTER", Controls.EditBox, "CENTER", -58, 0)
-        Controls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
-        Controls.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
-        Controls.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+            Controls.LeftButton = CreateFrame("Button", "KBControlLeftButton", Controls)
+            Controls.LeftButton:SetSize(32, 32)
+            Controls.LeftButton:SetPoint("CENTER", Controls.EditBox, "CENTER", -58, 0)
+            Controls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+            Controls.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+            Controls.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
-        Controls.RightButton = CreateFrame("Button", "KBControlRightButton", Controls)
-        Controls.RightButton:SetSize(32, 32)
-        Controls.RightButton:SetPoint("CENTER", Controls.EditBox, "CENTER", 54, 0)
-        Controls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
-        Controls.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
-        Controls.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-        
-        Controls.LeftButton:SetScript("OnClick", function()
-            local currentValue = Keyboard:GetScale()
-            local step = 0.05
-            local newValue = currentValue - step
-            if newValue < 0.5 then
-                newValue = 0.5
-            end
-            Keyboard:SetScale(newValue)
-            Controls.EditBox:SetText(string.format("%.2f", newValue))
-        end)
-        
-        Controls.RightButton:SetScript("OnClick", function()
-            local currentValue = Keyboard:GetScale()
-            local step = 0.05
-            local newValue = currentValue + step
-            if newValue > 1.5 then
-                newValue = 1.5
-            end
-            Keyboard:SetScale(newValue)
-            Controls.EditBox:SetText(string.format("%.2f", newValue))
-        end)
+            Controls.RightButton = CreateFrame("Button", "KBControlRightButton", Controls)
+            Controls.RightButton:SetSize(32, 32)
+            Controls.RightButton:SetPoint("CENTER", Controls.EditBox, "CENTER", 54, 0)
+            Controls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+            Controls.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+            Controls.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+            
+            Controls.LeftButton:SetScript("OnClick", function()
+                local currentValue = Keyboard:GetScale()
+                local step = 0.05
+                local newValue = currentValue - step
+                if newValue < 0.5 then
+                    newValue = 0.5
+                end
+                Keyboard:SetScale(newValue)
+                Controls.EditBox:SetText(string.format("%.2f", newValue))
+            end)
+            
+            Controls.RightButton:SetScript("OnClick", function()
+                local currentValue = Keyboard:GetScale()
+                local step = 0.05
+                local newValue = currentValue + step
+                if newValue > 1.5 then
+                    newValue = 1.5
+                end
+                Keyboard:SetScale(newValue)
+                Controls.EditBox:SetText(string.format("%.2f", newValue))
+            end)
 
-        Controls.Size = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        Controls.Size:SetText("Size")
-        Controls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.Size:SetPoint("BOTTOM", Controls.EditBox, "CENTER", 0, 20)
-        else
-            Controls.Size:SetPoint("TOPLEFT", Controls.Layout, "TOPLEFT", 0, 44)
-        end
-        Controls.Size:SetTextColor(1, 1, 1)
-    --Size end
-    
-    --Modifier start
-        Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate")
-        Controls.AltCB:SetSize(32, 36)
-        Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 290, 2)
-        else
-            Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -50)
-        end
-        -- Create a font string for the text "Alt" and position it below the checkbutton
-        local altText = Controls.AltCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        altText:SetText("Alt")
-        altText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        altText:SetPoint("BOTTOM", Controls.AltCB, "CENTER", 0, 20)
-        -- Set the OnClick script for the checkbutton
-        Controls.AltCB:SetScript("OnClick", function(s)
-            if s:GetChecked() then
-                modif.ALT = "ALT-"
-                modif.CTRL = ""
-                modif.SHIFT = ""
-                AltCheckbox = true
-                Controls.CtrlCB:SetChecked(false)
-                Controls.ShiftCB:SetChecked(false)
+            Controls.Size = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.Size:SetText("Size")
+            Controls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.Size:SetPoint("BOTTOM", Controls.EditBox, "CENTER", 0, 20)
             else
-                modif.ALT = ""
-                AltCheckbox = false
-                CtrlCheckbox = false
-                ShiftCheckbox = false
+                Controls.Size:SetPoint("TOPLEFT", Controls.Layout, "TOPLEFT", 0, 44)
             end
-            addon:RefreshKeys()
-        end)
-        SetCheckboxTooltip(Controls.AltCB, "Toggle Alt key modifier")
-
-        Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate")
-        Controls.CtrlCB:SetSize(32, 36)
-        Controls.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.CtrlCB:SetPoint("CENTER", Controls.AltCB, "CENTER", 50, 0)
-        else
-            Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -50)
-        end
-        -- Create a font string for the text "Ctrl" and position it below the checkbutton
-        local ctrlText = Controls.CtrlCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        ctrlText:SetText("Ctrl")
-        ctrlText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        ctrlText:SetPoint("BOTTOM", Controls.CtrlCB, "CENTER", 0, 20)
-        -- Set the OnClick script for the checkbutton
-        Controls.CtrlCB:SetScript("OnClick", function(s)
-            if s:GetChecked() then
-                modif.ALT = ""
-                modif.CTRL = "CTRL-"
-                modif.SHIFT = ""
-                CtrlCheckbox = true
-                Controls.AltCB:SetChecked(false)
-                Controls.ShiftCB:SetChecked(false)
+            Controls.Size:SetTextColor(1, 1, 1)
+        --Size end
+        
+        --Modifier start
+            Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate")
+            Controls.AltCB:SetSize(32, 36)
+            Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 290, 2)
             else
-                modif.CTRL = ""
-                AltCheckbox = false
-                CtrlCheckbox = false
-                ShiftCheckbox = false
+                Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -50)
             end
-            addon:RefreshKeys()
-        end)
-        SetCheckboxTooltip(Controls.CtrlCB, "Toggle Ctrl key modifier")
-        
-        Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate")
-        Controls.ShiftCB:SetSize(32, 36)
-        Controls.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.ShiftCB:SetPoint("CENTER", Controls.CtrlCB, "CENTER", 50, 0)
-        else
-            Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -50)
-        end
-        -- Create a font string for the text "Shift" and position it below the checkbutton
-        local shiftText = Controls.ShiftCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        shiftText:SetText("Shift")
-        shiftText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        shiftText:SetPoint("BOTTOM", Controls.ShiftCB, "CENTER", 0, 20)
-        -- Set the OnClick script for the checkbutton
-        Controls.ShiftCB:SetScript("OnClick", function(s)
-            if s:GetChecked() then
-                modif.ALT = ""
-                modif.CTRL = ""
-                modif.SHIFT = "SHIFT-"
-                ShiftCheckbox = true
-                Controls.AltCB:SetChecked(false)
-                Controls.CtrlCB:SetChecked(false)
+            -- Create a font string for the text "Alt" and position it below the checkbutton
+            local altText = Controls.AltCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            altText:SetText("Alt")
+            altText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            altText:SetPoint("BOTTOM", Controls.AltCB, "CENTER", 0, 20)
+            -- Set the OnClick script for the checkbutton
+            Controls.AltCB:SetScript("OnClick", function(s)
+                if s:GetChecked() then
+                    modif.ALT = "ALT-"
+                    modif.CTRL = ""
+                    modif.SHIFT = ""
+                    AltCheckbox = true
+                    Controls.CtrlCB:SetChecked(false)
+                    Controls.ShiftCB:SetChecked(false)
+                else
+                    modif.ALT = ""
+                    AltCheckbox = false
+                    CtrlCheckbox = false
+                    ShiftCheckbox = false
+                end
+                addon:RefreshKeys()
+            end)
+            SetCheckboxTooltip(Controls.AltCB, "Toggle Alt key modifier")
+
+            Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate")
+            Controls.CtrlCB:SetSize(32, 36)
+            Controls.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.CtrlCB:SetPoint("CENTER", Controls.AltCB, "CENTER", 50, 0)
             else
-                modif.SHIFT = ""
-                AltCheckbox = false
-                CtrlCheckbox = false
-                ShiftCheckbox = false
+                Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -50)
             end
-            addon:RefreshKeys()
-        end)
-        SetCheckboxTooltip(Controls.ShiftCB, "Toggle Shift key modifier")
-    --Modifier end
-        
-    --Buttons start
-        Controls.SwitchEmptyBinds = CreateFrame("Button", "SwitchEmptyBinds", Controls, "UIPanelButtonTemplate")
-        Controls.SwitchEmptyBinds:SetSize(146, 26)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -200, 2)
-        else
-            Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.ShiftCB, "RIGHT", 28, -2)
-        end
+            -- Create a font string for the text "Ctrl" and position it below the checkbutton
+            local ctrlText = Controls.CtrlCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            ctrlText:SetText("Ctrl")
+            ctrlText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            ctrlText:SetPoint("BOTTOM", Controls.CtrlCB, "CENTER", 0, 20)
+            -- Set the OnClick script for the checkbutton
+            Controls.CtrlCB:SetScript("OnClick", function(s)
+                if s:GetChecked() then
+                    modif.ALT = ""
+                    modif.CTRL = "CTRL-"
+                    modif.SHIFT = ""
+                    CtrlCheckbox = true
+                    Controls.AltCB:SetChecked(false)
+                    Controls.ShiftCB:SetChecked(false)
+                else
+                    modif.CTRL = ""
+                    AltCheckbox = false
+                    CtrlCheckbox = false
+                    ShiftCheckbox = false
+                end
+                addon:RefreshKeys()
+            end)
+            SetCheckboxTooltip(Controls.CtrlCB, "Toggle Ctrl key modifier")
+            
+            Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate")
+            Controls.ShiftCB:SetSize(32, 36)
+            Controls.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.ShiftCB:SetPoint("CENTER", Controls.CtrlCB, "CENTER", 50, 0)
+            else
+                Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -50)
+            end
+            -- Create a font string for the text "Shift" and position it below the checkbutton
+            local shiftText = Controls.ShiftCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            shiftText:SetText("Shift")
+            shiftText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            shiftText:SetPoint("BOTTOM", Controls.ShiftCB, "CENTER", 0, 20)
+            -- Set the OnClick script for the checkbutton
+            Controls.ShiftCB:SetScript("OnClick", function(s)
+                if s:GetChecked() then
+                    modif.ALT = ""
+                    modif.CTRL = ""
+                    modif.SHIFT = "SHIFT-"
+                    ShiftCheckbox = true
+                    Controls.AltCB:SetChecked(false)
+                    Controls.CtrlCB:SetChecked(false)
+                else
+                    modif.SHIFT = ""
+                    AltCheckbox = false
+                    CtrlCheckbox = false
+                    ShiftCheckbox = false
+                end
+                addon:RefreshKeys()
+            end)
+            SetCheckboxTooltip(Controls.ShiftCB, "Toggle Shift key modifier")
+        --Modifier end
+            
+        --Buttons start
+            Controls.SwitchEmptyBinds = CreateFrame("Button", "SwitchEmptyBinds", Controls, "UIPanelButtonTemplate")
+            Controls.SwitchEmptyBinds:SetSize(146, 26)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -200, 2)
+            else
+                Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.ShiftCB, "RIGHT", 28, -2)
+            end
 
-        local SwitchBindsText = Controls.SwitchEmptyBinds:CreateFontString(nil, "OVERLAY")
-        SwitchBindsText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-        SwitchBindsText:SetPoint("CENTER", 0, 0)
+            local SwitchBindsText = Controls.SwitchEmptyBinds:CreateFontString(nil, "OVERLAY")
+            SwitchBindsText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            SwitchBindsText:SetPoint("CENTER", 0, 0)
 
-        if ShowEmptyBinds == true then
-            SwitchBindsText:SetText("Hide empty Keys")
-        else
-            SwitchBindsText:SetText("Show empty Keys")
-        end 
-        
-        local function ToggleEmptyBinds()
-            if ShowEmptyBinds ~= true then
+            if ShowEmptyBinds == true then
                 SwitchBindsText:SetText("Hide empty Keys")
-                ShowEmptyBinds = true
             else
                 SwitchBindsText:SetText("Show empty Keys")
-                ShowEmptyBinds = false
+            end 
+            
+            local function ToggleEmptyBinds()
+                if ShowEmptyBinds ~= true then
+                    SwitchBindsText:SetText("Hide empty Keys")
+                    ShowEmptyBinds = true
+                else
+                    SwitchBindsText:SetText("Show empty Keys")
+                    ShowEmptyBinds = false
+                end
+                addon:RefreshKeys()
             end
-            addon:RefreshKeys()
-        end
-        
-        Controls.SwitchEmptyBinds:SetScript("OnClick", ToggleEmptyBinds)
-        Controls.SwitchEmptyBinds:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_TOP")
-            GameTooltip:SetText("Toggle highlighting of keys without keybinds")
-            GameTooltip:Show()
-        end)
-        Controls.SwitchEmptyBinds:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
+            
+            Controls.SwitchEmptyBinds:SetScript("OnClick", ToggleEmptyBinds)
+            Controls.SwitchEmptyBinds:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_TOP")
+                GameTooltip:SetText("Toggle highlighting of keys without keybinds")
+                GameTooltip:Show()
+            end)
+            Controls.SwitchEmptyBinds:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
 
-        Controls.SwitchInterfaceBinds = CreateFrame("Button", "SwitchInterfaceBinds", Controls, "UIPanelButtonTemplate")
-        Controls.SwitchInterfaceBinds:SetSize(146, 26)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.SwitchInterfaceBinds:SetPoint("RIGHT", Controls.SwitchEmptyBinds, "LEFT", -6, 0)
-        else
-            Controls.SwitchInterfaceBinds:SetPoint("BOTTOM", Controls.SwitchEmptyBinds, "TOP", 0, 0)
-        end
+            Controls.SwitchInterfaceBinds = CreateFrame("Button", "SwitchInterfaceBinds", Controls, "UIPanelButtonTemplate")
+            Controls.SwitchInterfaceBinds:SetSize(146, 26)
+            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
+                Controls.SwitchInterfaceBinds:SetPoint("RIGHT", Controls.SwitchEmptyBinds, "LEFT", -6, 0)
+            else
+                Controls.SwitchInterfaceBinds:SetPoint("BOTTOM", Controls.SwitchEmptyBinds, "TOP", 0, 0)
+            end
 
-        local SwitchInterfaceText = Controls.SwitchInterfaceBinds:CreateFontString(nil, "OVERLAY")
-        SwitchInterfaceText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-        SwitchInterfaceText:SetPoint("CENTER", 0, 0)
+            local SwitchInterfaceText = Controls.SwitchInterfaceBinds:CreateFontString(nil, "OVERLAY")
+            SwitchInterfaceText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            SwitchInterfaceText:SetPoint("CENTER", 0, 0)
 
-        if ShowInterfaceBinds == true then
-            SwitchInterfaceText:SetText("Hide Interface Binds")
-        else
-            SwitchInterfaceText:SetText("Show Interface Binds")
-        end 
-
-        local function ToggleInterfaceBinds()
-            if ShowInterfaceBinds ~= true then
+            if ShowInterfaceBinds == true then
                 SwitchInterfaceText:SetText("Hide Interface Binds")
-                ShowInterfaceBinds = true
             else
                 SwitchInterfaceText:SetText("Show Interface Binds")
-                ShowInterfaceBinds = false
+            end 
+
+            local function ToggleInterfaceBinds()
+                if ShowInterfaceBinds ~= true then
+                    SwitchInterfaceText:SetText("Hide Interface Binds")
+                    ShowInterfaceBinds = true
+                else
+                    SwitchInterfaceText:SetText("Show Interface Binds")
+                    ShowInterfaceBinds = false
+                end
+                addon:RefreshKeys()
             end
-            addon:RefreshKeys()
-        end
 
-        Controls.SwitchInterfaceBinds:SetScript("OnClick", ToggleInterfaceBinds)
-        Controls.SwitchInterfaceBinds:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_TOP")
-            GameTooltip:SetText("Show/Hide the Interface Action of Keys")
-            GameTooltip:Show()
-        end)
-        Controls.SwitchInterfaceBinds:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
+            Controls.SwitchInterfaceBinds:SetScript("OnClick", ToggleInterfaceBinds)
+            Controls.SwitchInterfaceBinds:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_TOP")
+                GameTooltip:SetText("Show/Hide the Interface Action of Keys")
+                GameTooltip:Show()
+            end)
+            Controls.SwitchInterfaceBinds:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
 
-        Controls.Display = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        Controls.Display:SetText("Display Options")
-        Controls.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        Controls.Display:SetPoint("BOTTOM", Controls.SwitchInterfaceBinds, "RIGHT", 2, 20)
-        Controls.Display:SetTextColor(1, 1, 1)
+            Controls.Display = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.Display:SetText("Display Options")
+            Controls.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            Controls.Display:SetPoint("BOTTOM", Controls.SwitchInterfaceBinds, "RIGHT", 2, 20)
+            Controls.Display:SetTextColor(1, 1, 1)
+        --Buttons end
 
-    --Buttons end
+        --Edit start
+            Controls.Input  = CreateFrame("EditBox", "KeyboardEditInput", Controls, "InputBoxInstructionsTemplate")
+            Controls.Input:SetSize(130, 30)
+            Controls.Input:SetPoint("TOP", Controls, "TOP", 0, 100)
+            Controls.Input:SetAutoFocus(false)
+            
+            Controls.Save = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
+            Controls.Save:SetSize(104, 26)
+            Controls.Save:SetPoint("CENTER", Controls, "CENTER", 0, 70)
+            Controls.Save:SetScript("OnClick", function() addon:KeyboardSaveLayout() end)
+            local SaveText = Controls.Save:CreateFontString(nil, "OVERLAY")
+            SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            SaveText:SetPoint("CENTER", 0, 1)
+            SaveText:SetText("Save")
+
+            Controls.Save:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Save the current layout.")
+                GameTooltip:Show()
+            end)
+            
+            Controls.Save:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+            
+            Controls.Delete = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
+            Controls.Delete:SetSize(104, 26)
+            Controls.Delete:SetPoint("LEFT", Controls.Save, "RIGHT", 5, 0)
+
+            Controls.Delete:SetScript("OnClick", function(self)
+                -- Check if KBChangeBoardDD is not nil
+                if not KBChangeBoardDD then
+                    print("Error: KBChangeBoardDD is nil.")
+                    return -- Exit the function early if KBChangeBoardDD is nil
+                end
+                
+                -- Get the text from the KBChangeBoardDD dropdown menu.
+                local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDD)
+            
+                -- Ensure selectedLayout is not nil before proceeding
+                if selectedLayout then
+                    -- Remove the selected layout from the KeyboardEditLayouts table.
+                    KeyboardEditLayouts[selectedLayout] = nil
+            
+                    -- Clear the text in the Mouse.Input field.
+                    Controls.Input:SetText("")
+            
+                    -- Print a message indicating which layout was deleted.
+                    print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+            
+                    wipe(CurrentLayoutKeyboard)
+                    UIDropDownMenu_SetText(KBChangeBoardDD, "")
+                    addon:RefreshKeys()
+                    KeyUIMainFrame:SetWidth(940)
+                    KeyUIMainFrame:SetHeight(382)
+                    Controls.MinMax:Minimize()
+                else
+                    print("KeyUI: Error - No layout selected to delete.")
+                end
+            end)
+            
+            local DeleteText = Controls.Delete:CreateFontString(nil, "OVERLAY")
+            DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            DeleteText:SetPoint("CENTER", 0, 1)
+            DeleteText:SetText("Delete")
+
+            Controls.Delete:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
+                GameTooltip:Show()
+            end)
+            
+            Controls.Delete:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+
+            Controls.Lock = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
+            Controls.Lock:SetSize(104, 26)
+            Controls.Lock:SetPoint("RIGHT", Controls.Save, "LEFT", -5, 0)
+
+            local LockText = Controls.Lock:CreateFontString(nil, "OVERLAY")
+            LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
+            LockText:SetPoint("CENTER", 0, 1)
+            if KeyboardLocked == false then
+                LockText:SetText("Lock")
+            else
+                LockText:SetText("Unlock")
+            end
+
+            local function ToggleLock()
+                if KeyboardLocked then
+                    KeyboardLocked = false
+                    edited = true
+                    LockText:SetText("Lock")
+                    if Controls.glowBoxLock then
+                        Controls.glowBoxLock:Show()
+                    end
+                else
+                    KeyboardLocked = true
+                    LockText:SetText("Unlock")
+                    if Controls.glowBoxLock then
+                        Controls.glowBoxLock:Hide()
+                    end  
+                end
+            end
+
+            Controls.Lock:SetScript("OnClick", function(self) ToggleLock() end)
+
+            Controls.Lock:SetScript("OnEnter", function(self)
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetText("Toggle Editor Mode")
+                GameTooltip:AddLine("- Drag the keys with left mouse")
+                GameTooltip:AddLine("- Delete keys with Shift + left-click mouse")
+                GameTooltip:AddLine("- Assign new keybindings by pushing keys")
+                GameTooltip:Show()
+            end)
+            
+            Controls.Lock:SetScript("OnLeave", function(self)
+                GameTooltip:Hide()
+            end)
+
+            Controls.glowBoxLock = CreateFrame("Frame", nil, Controls, "GlowBorderTemplate")
+            Controls.glowBoxLock:SetSize(106, 28)
+            Controls.glowBoxLock:SetPoint("CENTER", Controls.Lock, "CENTER", 0, 0)
+            Controls.glowBoxLock:Hide()
+            Controls.glowBoxLock:SetFrameLevel(Controls.Lock:GetFrameLevel()+1)
+        --Edit end
 
         if KBChangeBoardDD then
             KBChangeBoardDD:Show()
@@ -392,7 +519,18 @@ function addon:CreateControls()
             Controls.Display:Hide()
         end
 
+        Controls.Input:Show()
+        Controls.Save:Show()
+        Controls.Delete:Show()
+        Controls.Lock:Show()
+
         Controls.LayoutName:Hide() -- REVERSED
+
+        if KeyboardLocked == false then
+            if Controls.glowBoxLock then
+                Controls.glowBoxLock:Show()
+            end
+        end
     end
     
     local function OnMinimize()
@@ -416,10 +554,18 @@ function addon:CreateControls()
             Controls.CtrlCB:Hide()
             Controls.ShiftCB:Hide()
 
-
             Controls.SwitchEmptyBinds:Hide()
             Controls.SwitchInterfaceBinds:Hide()
             Controls.Display:Hide()
+
+            Controls.Input:Hide()
+            Controls.Save:Hide()
+            Controls.Delete:Hide()
+            Controls.Lock:Hide()
+
+            if Controls.glowBoxLock then
+                Controls.glowBoxLock:Hide()
+            end
 
             Controls.LayoutName:Show() -- REVERSED
         end
@@ -512,6 +658,38 @@ local function OnMouseWheel(self, delta)
     end
 end
 
+function addon:KeyboardSaveLayout()
+    local msg = KBControlsFrame.Input:GetText()
+    if KeyboardLocked == true then
+        if msg ~= "" then
+            KBControlsFrame.Input:SetText("")
+            KBControlsFrame.Input:ClearFocus()
+            print("KeyUI: Saved the new layout '" .. msg .. "'.")
+            KeyboardEditLayouts[msg] = {}
+            for _, button in ipairs(Keys) do
+                if button:IsVisible() then
+                    KeyboardEditLayouts[msg][#KeyboardEditLayouts[msg] + 1] = {
+                        button.label:GetText(),
+                        "Keyboard",
+                        floor(button:GetLeft() - KeyUIMainFrame:GetLeft() + 0.5),
+                        floor(button:GetTop() - KeyUIMainFrame:GetTop() + 0.5),
+                        floor(button:GetWidth() + 0.5),
+                        floor(button:GetHeight() + 0.5)
+                    }
+                end
+            end
+            wipe(CurrentLayoutKeyboard)
+            CurrentLayoutKeyboard[msg] = KeyboardEditLayouts[msg]
+            addon:RefreshKeys()
+            UIDropDownMenu_SetText(self.ddChanger, msg)
+        else
+            print("KeyUI: Please enter a name for the layout before saving.")
+        end
+    else
+        print("KeyUI: Please lock the binds to save.")
+    end
+end
+
 -- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
 function addon:SwitchBoard(board)
     -- Clear the existing Keys array to avoid leftover data from previous layouts
@@ -523,55 +701,60 @@ function addon:SwitchBoard(board)
 
     -- Proceed with setting up the new layout
 
-    if KeyBindAllBoards[board] and addonOpen == true and addon.keyboardFrame then
-        board = KeyBindAllBoards[board]
-        
+    if CurrentLayoutKeyboard and  addonOpen == true and addon.keyboardFrame then
+
         addon.keyboardFrame:SetWidth(100)
         addon.keyboardFrame:SetHeight(100)
 
-        local cx, cy = addon.keyboardFrame:GetCenter()
-        local left, right, top, bottom = cx, cx, cy, cy
+        if CurrentLayoutKeyboard then
+            
+            local cx, cy = addon.keyboardFrame:GetCenter()
+            local left, right, top, bottom = cx, cx, cy, cy
 
-        for i = 1, #board do
-            local Key = Keys[i] or self:NewButton()
+            for _, layoutData in pairs(CurrentLayoutKeyboard) do
+                for i = 1, #layoutData do
+                    local Key = Keys[i] or self:NewButton()
+                    local CurrentLayoutKeyboard = layoutData[i]
 
-            if board[i][5] then
-                Key:SetWidth(board[i][5])
-                Key:SetHeight(board[i][6])
-            else
-                Key:SetWidth(60)
-                Key:SetHeight(60)
+                    if CurrentLayoutKeyboard[5] then
+                        Key:SetWidth(CurrentLayoutKeyboard[5])
+                        Key:SetHeight(CurrentLayoutKeyboard[6])
+                    else
+                        Key:SetWidth(60)
+                        Key:SetHeight(60)
+                    end
+
+                    if not Keys[i] then
+                        Keys[i] = Key
+                    end
+
+                    Key:SetPoint("TOPLEFT", addon.keyboardFrame, "TOPLEFT", CurrentLayoutKeyboard[3], CurrentLayoutKeyboard[4])
+                    Key.label:SetText(CurrentLayoutKeyboard[1])
+                    local tempframe = Key
+                    tempframe:Show()
+
+                    local l, r, t, b = Key:GetLeft(), Key:GetRight(), Key:GetTop(), Key:GetBottom()
+
+                    if l < left then
+                        left = l
+                    end
+                    if r > right then
+                        right = r
+                    end
+                    if t > top then
+                        top = t
+                    end
+                    if b < bottom then
+                        bottom = b
+                    end
+                end
             end
 
-            if not Keys[i] then
-                Keys[i] = Key
-            end
+            addon.keyboardFrame:SetWidth(right - left + 12)
+            addon.keyboardFrame:SetHeight(top - bottom + 12)
+            KBControlsFrame:SetWidth(addon.keyboardFrame:GetWidth())
 
-            Key:SetPoint("TOPLEFT", self.keyboardFrame, "TOPLEFT", board[i][3], board[i][4])
-            Key.label:SetText(board[i][1])
-            local tempframe = Key
-            tempframe:Show()
-
-            local l, r, t, b = Key:GetLeft(), Key:GetRight(), Key:GetTop(), Key:GetBottom()
-
-            if l < left then
-                left = l
-            end
-            if r > right then
-                right = r
-            end
-            if t > top then
-                top = t
-            end
-            if b < bottom then
-                bottom = b
-            end
         end
-
-        self.keyboardFrame:SetWidth(right - left + 12)
-        self.keyboardFrame:SetHeight(top - bottom + 12)
-        KBControlsFrame:SetWidth(self.keyboardFrame:GetWidth())
-
     end
 end
 
@@ -865,83 +1048,163 @@ function addon:CreateChangerDD()
     KBChangeBoardDD:Hide()
 
     local boardCategories = {
-        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_HALF", "QWERTZ_1800", "QWERTZ_60%", "QWERTZ_75%", "QWERTZ_80%", "QWERTZ_96%", "QWERTZ_100%"},
-        QWERTY = {"QWERTY_PRIMARY", "QWERTY_HALF", "QWERTY_1800", "QWERTY_60%", "QWERTY_75%", "QWERTY_80%", "QWERTY_96%", "QWERTY_100%"},
-        AZERTY = {"AZERTY_PRIMARY", "AZERTY_HALF", "AZERTY_1800", "AZERTY_60%", "AZERTY_75%", "AZERTY_80%", "AZERTY_96%", "AZERTY_100%"},
-        DVORAK = {
-            Standard = {"DVORAK_PRIMARY", "DVORAK_100%"},
-            RightHand = {"DVORAK_RIGHT_PRIMARY", "DVORAK_RIGHT_100%"},
-            LeftHand = {"DVORAK_LEFT_PRIMARY", "DVORAK_LEFT_100%"}
+        ISO = {
+            QWERTZ = {"QWERTZ_100%", "QWERTZ_96%", "QWERTZ_80%", "QWERTZ_75%", "QWERTZ_60%", "QWERTZ_1800", "QWERTZ_HALF", "QWERTZ_PRIMARY"},
+            AZERTY = {"AZERTY_100%", "AZERTY_96%", "AZERTY_80%", "AZERTY_75%", "AZERTY_60%", "AZERTY_1800", "AZERTY_HALF", "AZERTY_PRIMARY"},
         },
-        Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
-        Azeron = {"Azeron", "Azeron2"}
+        ANSI = {
+            QWERTY = {"QWERTY_100%", "QWERTY_96%", "QWERTY_80%", "QWERTY_75%", "QWERTY_60%", "QWERTY_1800", "QWERTY_HALF", "QWERTY_PRIMARY"},
+        },
+        DVORAK = {
+            Standard = {"DVORAK_100%", "DVORAK_PRIMARY"},
+            RightHand = {"DVORAK_RIGHT_100%", "DVORAK_RIGHT_PRIMARY"},
+            LeftHand = {"DVORAK_LEFT_100%", "DVORAK_LEFT_PRIMARY"}
+        },
+        Razer = {"Tartarus_v1", "Tartarus_v2"},
+        Azeron = {"Cyborg", "Cyborg_II"}
     }
 
-    local categoryOrder = {"QWERTZ", "QWERTY", "AZERTY", "DVORAK", "Razer", "Azeron"}
+    local categoryOrder = {"ISO", "ANSI", "DVORAK", "Razer", "Azeron"}
 
-    local function ChangeBoardDD_Initialize(self, level, menuList)
+    local function ChangeBoardDD_Initialize(self, level)
         level = level or 1
         local info = UIDropDownMenu_CreateInfo()
     
         if level == 1 then
-            for _, category in ipairs(categoryOrder) do 
+            for _, category in ipairs(categoryOrder) do
                 info.text = category
                 info.value = category
                 info.hasArrow = true
                 info.notCheckable = true
-                info.menuList = category
                 UIDropDownMenu_AddButton(info, level)
             end
+    
+            -- Add custom layouts at the end of Level 1
+            if type(KeyboardEditLayouts) == "table" then
+                for name, layout in pairs(KeyboardEditLayouts) do
+                    info = UIDropDownMenu_CreateInfo() -- Reset info
+                    info.text = name
+                    info.value = name
+                    info.colorCode = "|cffff8000"
+                    info.notCheckable = true
+                    info.func = function()
+                        wipe(CurrentLayoutKeyboard)
+                        CurrentLayoutKeyboard[name] = layout
+                        addon:RefreshKeys()
+                        UIDropDownMenu_SetText(self, name)
+                        KBControlsFrame.Input:SetText("")
+                        KBControlsFrame.Input:ClearFocus()
+                    end
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            end
+    
         elseif level == 2 then
-            if menuList == "DVORAK" then
-                for subcategory, _ in pairs(boardCategories.DVORAK) do
-                    info.text = subcategory
+            local category = UIDROPDOWNMENU_MENU_VALUE
+            local layouts = boardCategories[category]
+            
+            if category == "ISO" or category == "ANSI" or category == "DVORAK" then
+                for subcategory, _ in pairs(layouts) do
+                    info = UIDropDownMenu_CreateInfo()
+        
+                    -- Check for special cases where you want to display different text
+                    if subcategory == "RightHand" then
+                        info.text = "Right Hand"  -- Display with space
+                    elseif subcategory == "LeftHand" then
+                        info.text = "Left Hand"  -- Display with space
+                    else
+                        info.text = subcategory
+                    end
+        
                     info.value = subcategory
                     info.hasArrow = true
                     info.notCheckable = true
-                    info.menuList = subcategory
                     UIDropDownMenu_AddButton(info, level)
                 end
-            else
-                local layouts = boardCategories[menuList]
-                if layouts then
-                    for _, name in ipairs(layouts) do
-                        info.text = name
-                        info.value = name
-                        info.func = function()
-                            KeyBindSettings.currentboard = name
-                            addon:RefreshKeys()
-                            UIDropDownMenu_SetText(KBChangeBoardDD, name)
-                            if maximizeFlag == true then
-                                KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-                            else
-                                return
-                            end
-                        end
-                        UIDropDownMenu_AddButton(info, level)
+            elseif layouts then
+                for _, layout in ipairs(layouts) do
+                    info = UIDropDownMenu_CreateInfo() -- Reset info
+
+                    -- Check if we are in QWERTZ and adjust the display text
+                    if layout == "Tartarus_v1" then
+                        info.text = "Tartarus v1"
+                    elseif layout == "Tartarus_v2" then
+                        info.text = "Tartarus v2"
+                    elseif layout == "Cyborg_II" then
+                        info.text = "Cyborg II"
+                    else
+                        info.text = layout  -- For other layouts, keep the original text
                     end
-                end
-            end
-        elseif level == 3 then
-            local layouts = boardCategories.DVORAK[menuList]
-            if layouts then
-                for _, name in ipairs(layouts) do
-                    info.text = name
-                    info.value = name
+
+                    info.value = layout  -- Keep the actual value as is
+                    info.notCheckable = true
                     info.func = function()
-                        KeyBindSettings.currentboard = name
+                        KeyBindSettings.currentboard = layout
+                        wipe(CurrentLayoutKeyboard)
+                        CurrentLayoutKeyboard[layout] = KeyBindAllBoards[layout]
                         addon:RefreshKeys()
-                        UIDropDownMenu_SetText(KBChangeBoardDD, name)
-                        if maximizeFlag == true then
-                            KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-                        else
-                            return
-                        end
+                        UIDropDownMenu_SetText(self, layout)
+                        KBControlsFrame.Input:SetText("")
+                        KBControlsFrame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        end
+    
+        elseif level == 3 then
+            local subcategory = UIDROPDOWNMENU_MENU_VALUE
+            local layouts
+            
+            if boardCategories["ISO"][subcategory] then
+                layouts = boardCategories["ISO"][subcategory]
+            elseif boardCategories["ANSI"][subcategory] then
+                layouts = boardCategories["ANSI"][subcategory]
+            elseif boardCategories["DVORAK"][subcategory] then
+                layouts = boardCategories["DVORAK"][subcategory]
+            end
+        
+            if layouts then
+                for _, layout in ipairs(layouts) do
+                    info = UIDropDownMenu_CreateInfo()
+        
+                    -- Check if we are in QWERTZ and adjust the display text
+                    if subcategory == "QWERTZ" then
+                        local displayText = layout:gsub("QWERTZ_", "")  -- Removes "QWERTZ_" from the layout name
+                        info.text = displayText
+                    elseif subcategory == "AZERTY" then
+                        local displayText = layout:gsub("AZERTY_", "")  -- Removes "AZERTY" from the layout name
+                        info.text = displayText
+                    elseif subcategory == "QWERTY" then
+                        local displayText = layout:gsub("QWERTY_", "")  -- Removes "QWERTY" from the layout name
+                        info.text = displayText
+                    elseif subcategory == "Standard" then
+                        local displayText = layout:gsub("DVORAK_", "")  -- Removes "QWERTY" from the layout name
+                        info.text = displayText
+                    elseif subcategory == "RightHand" then
+                        local displayText = layout:gsub("DVORAK_RIGHT_", "")  -- Removes "QWERTY" from the layout name
+                        info.text = displayText
+                    elseif subcategory == "LeftHand" then
+                        local displayText = layout:gsub("DVORAK_LEFT_", "")  -- Removes "QWERTY" from the layout name
+                        info.text = displayText
+                    else
+                        info.text = layout  -- For other subcategories, keep the original text
+                    end
+        
+                    info.value = layout  -- Keep the actual value as is
+                    info.notCheckable = true
+                    info.func = function()
+                        KeyBindSettings.currentboard = layout
+                        wipe(CurrentLayoutKeyboard)
+                        CurrentLayoutKeyboard[layout] = KeyBindAllBoards[layout]
+                        addon:RefreshKeys()
+                        UIDropDownMenu_SetText(self, layout)
+                        KBControlsFrame.Input:SetText("")
+                        KBControlsFrame.Input:ClearFocus()
+                    end
+                    UIDropDownMenu_AddButton(info, level)
+                end
+            end
+        end             
     end
 
     UIDropDownMenu_Initialize(KBChangeBoardDD, ChangeBoardDD_Initialize)

@@ -174,7 +174,7 @@ function addon:CreateMouseControls()
             MouseControls.Save = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
             MouseControls.Save:SetSize(104, 26)
             MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -16)
-            MouseControls.Save:SetScript("OnClick", function() addon:SaveLayout() end)
+            MouseControls.Save:SetScript("OnClick", function() addon:MouseSaveLayout() end)
             local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
             SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             SaveText:SetPoint("CENTER", 0, 1)
@@ -215,7 +215,7 @@ function addon:CreateMouseControls()
                     -- Print a message indicating which layout was deleted.
                     print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
             
-                    wipe(CurrentLayout)
+                    wipe(CurrentLayoutMouse)
                     UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
                     addon:RefreshKeys()
                 else
@@ -290,9 +290,14 @@ function addon:CreateMouseControls()
             MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
         --Edit end
 	
+        if KBChangeBoardDDMouse then
+            KBChangeBoardDDMouse:Show()
+        end
+
         MouseControls.EditBox:Show()
         MouseControls.LeftButton:Show()
         MouseControls.RightButton:Show()
+
         MouseControls.Input:Show()
         MouseControls.Save:Show()
         MouseControls.Delete:Show()
@@ -304,10 +309,6 @@ function addon:CreateMouseControls()
             end
         end
         
-        if KBChangeBoardDDMouse then
-            KBChangeBoardDDMouse:Show()
-        end
-
     end
 
     local function OnMinimizeMouse()
@@ -317,23 +318,24 @@ function addon:CreateMouseControls()
         MouseControls:SetHeight(26)
 
         if MouseControls.EditBox then
+            if KBChangeBoardDDMouse then
+                KBChangeBoardDDMouse:Hide()
+            end
             MouseControls.EditBox:Hide()
             MouseControls.LeftButton:Hide()
             MouseControls.RightButton:Hide()
+            MouseControls.Size:Hide()
+            
             MouseControls.Input:Hide()
             MouseControls.Save:Hide()
             MouseControls.Delete:Hide()
             MouseControls.Lock:Hide()
-            MouseControls.Size:Hide()
+
             MouseControls.Layout:Hide()
             MouseControls.Name:Hide()
 
             if MouseControls.glowBoxLock then
                 MouseControls.glowBoxLock:Hide()
-            end
-
-            if KBChangeBoardDDMouse then
-                KBChangeBoardDDMouse:Hide()
             end
         end
     end    
@@ -405,7 +407,7 @@ local function OnMouseWheel(self, delta)
     end
 end
 
-function addon:SaveLayout()
+function addon:MouseSaveLayout()
     local msg = MouseControls.Input:GetText()
     if MouseLocked == true then
         if msg ~= "" then
@@ -425,8 +427,8 @@ function addon:SaveLayout()
                     }
                 end
             end
-            wipe(CurrentLayout)
-            CurrentLayout[msg] = MouseKeyEditLayouts[msg]
+            wipe(CurrentLayoutMouse)
+            CurrentLayoutMouse[msg] = MouseKeyEditLayouts[msg]
             addon:RefreshKeys()
             UIDropDownMenu_SetText(self.ddChangerMouse, msg)
         else
@@ -439,20 +441,20 @@ end
 
 function addon:SwitchBoardMouse()
     if addonOpen == true and addon.MouseFrame then
-        if CurrentLayout then
+        if CurrentLayoutMouse then
             
             -- Calculate the center of the Mouse frame once
             local cx, cy = addon.MouseFrame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
-            for _, layoutData in pairs(CurrentLayout) do
+            for _, layoutData in pairs(CurrentLayoutMouse) do
                 for i = 1, #layoutData do
                     local MouseKey = KeysMouse[i] or self:NewButtonMouse()
-                    local currentLayout = layoutData[i]
+                    local CurrentLayoutMouse = layoutData[i]
 
-                    if currentLayout[5] then
-                        MouseKey:SetWidth(currentLayout[5])
-                        MouseKey:SetHeight(currentLayout[6])
+                    if CurrentLayoutMouse[5] then
+                        MouseKey:SetWidth(CurrentLayoutMouse[5])
+                        MouseKey:SetHeight(CurrentLayoutMouse[6])
                     else
                         MouseKey:SetWidth(85)
                         MouseKey:SetHeight(85)
@@ -462,8 +464,8 @@ function addon:SwitchBoardMouse()
                         KeysMouse[i] = MouseKey
                     end
 
-                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", currentLayout[3], currentLayout[4])
-                    MouseKey.label:SetText(currentLayout[1])
+                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", CurrentLayoutMouse[3], CurrentLayoutMouse[4])
+                    MouseKey.label:SetText(CurrentLayoutMouse[1])
                     local tempframe = MouseKey
                     tempframe:Show()
                 end
@@ -718,8 +720,8 @@ function addon:CreateChangerDDMouse()
             info.colorCode = "|cFFFFFFFF" -- white
             info.func = function()
                 KeyBindSettingsMouse.currentboard = name
-                wipe(CurrentLayout)
-                CurrentLayout = {[name] = KeyBindAllBoardsMouse[name]}
+                wipe(CurrentLayoutMouse)
+                CurrentLayoutMouse = {[name] = KeyBindAllBoardsMouse[name]}
                 addon:RefreshKeys()
                 UIDropDownMenu_SetText(self, name)
                 MouseControls.Input:SetText("")
@@ -732,10 +734,10 @@ function addon:CreateChangerDDMouse()
             for name, layout in pairs(MouseKeyEditLayouts) do
                 info.text = name
                 info.value = name
-                info.colorCode = "|cFF31BD22" -- green
+                info.colorCode = "|cffff8000"
                 info.func = function()
-                    wipe(CurrentLayout)
-                    CurrentLayout[name] = layout
+                    wipe(CurrentLayoutMouse)
+                    CurrentLayoutMouse[name] = layout
                     addon:RefreshKeys()
                     UIDropDownMenu_SetText(self, name)
                     MouseControls.Input:SetText("")
@@ -746,6 +748,7 @@ function addon:CreateChangerDDMouse()
         else
             return
         end
+        
         --info.text = "New Layout"
         --info.value = "New Layout"
         --info.colorCode = "|cFFFFFF00" -- Yellow
@@ -757,6 +760,7 @@ function addon:CreateChangerDDMouse()
         --    UIDropDownMenu_SetText(self, "New Layout")
         --end
         --UIDropDownMenu_AddButton(info, level)
+
     end
     UIDropDownMenu_Initialize(KBChangeBoardDDMouse, ChangeBoardDDMouse_Initialize)
     self.ddChangerMouse = KBChangeBoardDDMouse

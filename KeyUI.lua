@@ -9,8 +9,10 @@ local LDB = LibStub("LibDataBroker-1.1")
 -- Initialize global variables and SavedVariables
 KeyBindSettings = KeyBindSettings or {}
 KeyBindSettingsMouse = KeyBindSettingsMouse or {}
-CurrentLayout = CurrentLayout or {}
+CurrentLayoutMouse = CurrentLayoutMouse or {}
+CurrentLayoutKeyboard = CurrentLayoutKeyboard or {}
 MouseKeyEditLayouts = MouseKeyEditLayouts or {}
+KeyboardEditLayouts = KeyboardEditLayouts or {}
 Keys = {}
 KeysMouse = {}
 addonOpen = false
@@ -161,7 +163,9 @@ local options = {
                 KeyBindSettings = {}
                 KeyBindSettingsMouse = {}
                 MouseKeyEditLayouts = {}
-                CurrentLayout = {}
+                KeyboardEditLayouts = {}
+                CurrentLayoutMouse = {}
+                CurrentLayoutKeyboard = {}
                 tutorialCompleted = nil
 
                 -- Save the reset settings
@@ -304,10 +308,10 @@ function addon:Load()
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
         self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
 
-        local currentActiveBoard = KeyBindSettings.currentboard
+        local currentActiveBoard = next(CurrentLayoutKeyboard)
         UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
 
-        local layoutKey = next(CurrentLayout)
+        local layoutKey = next(CurrentLayoutMouse)
         UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
         
         self:LoadSpells()
