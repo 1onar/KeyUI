@@ -21,7 +21,7 @@ KeyUI is compatible with the following popular addons:
 - Type `/kui` or `/keyui`.
 - Click the Minimap Button.
 
-## Choose Your Keyboard Layout:
+## Keyboard Layouts (Pre-Made):
 - **ISO**
   - QWERTZ
   - AZERTY
@@ -38,7 +38,7 @@ KeyUI is compatible with the following popular addons:
   - Cyborg
   - Cyborg II
 
-## Choose Your Mouse Layout:
+## Mouse Layouts:
 With the pre-made layouts, the most common mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX** are covered. You can also rebuild your own mouse layout to better suit your preferences!
 
 ## Tutorial Videos:
