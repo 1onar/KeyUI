@@ -25,8 +25,8 @@ function addon:CreateKeyboard()
         tinsert(UISpecialFrames, "KeyUIMainFrame")
     end
 
-    Keyboard:SetWidth(940)
     Keyboard:SetHeight(382)
+    Keyboard:SetWidth(940)
     Keyboard:SetBackdropColor(0, 0, 0, 0.9)
 
     -- Load the saved position if it exists
@@ -411,9 +411,6 @@ function addon:CreateControls()
                     wipe(CurrentLayoutKeyboard)
                     UIDropDownMenu_SetText(KBChangeBoardDD, "")
                     addon:RefreshKeys()
-                    KeyUIMainFrame:SetWidth(940)
-                    KeyUIMainFrame:SetHeight(382)
-                    Controls.MinMax:Minimize()
                 else
                     print("KeyUI: Error - No layout selected to delete.")
                 end
@@ -692,25 +689,34 @@ function addon:SwitchBoard(board)
     Keys = {}
 
     -- Proceed with setting up the new layout
+    if CurrentLayoutKeyboard and addonOpen == true and addon.keyboardFrame then
 
-    if CurrentLayoutKeyboard and  addonOpen == true and addon.keyboardFrame then
-
+        -- Set default small size before calculating dynamic size
         addon.keyboardFrame:SetWidth(100)
         addon.keyboardFrame:SetHeight(100)
 
-        if CurrentLayoutKeyboard then
-            
+        -- Ensure the layout isn't empty
+        local layoutNotEmpty = false
+        for _, layoutData in pairs(CurrentLayoutKeyboard) do
+            if #layoutData > 0 then
+                layoutNotEmpty = true
+                break
+            end
+        end
+
+        -- Only proceed if there is a valid layout
+        if layoutNotEmpty then
             local cx, cy = addon.keyboardFrame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
             for _, layoutData in pairs(CurrentLayoutKeyboard) do
                 for i = 1, #layoutData do
                     local Key = Keys[i] or self:NewButton()
-                    local CurrentLayoutKeyboard = layoutData[i]
+                    local keyData = layoutData[i]
 
-                    if CurrentLayoutKeyboard[5] then
-                        Key:SetWidth(CurrentLayoutKeyboard[5])
-                        Key:SetHeight(CurrentLayoutKeyboard[6])
+                    if keyData[5] then
+                        Key:SetWidth(keyData[5])
+                        Key:SetHeight(keyData[6])
                     else
                         Key:SetWidth(60)
                         Key:SetHeight(60)
@@ -720,8 +726,8 @@ function addon:SwitchBoard(board)
                         Keys[i] = Key
                     end
 
-                    Key:SetPoint("TOPLEFT", addon.keyboardFrame, "TOPLEFT", CurrentLayoutKeyboard[3], CurrentLayoutKeyboard[4])
-                    Key.label:SetText(CurrentLayoutKeyboard[1])
+                    Key:SetPoint("TOPLEFT", addon.keyboardFrame, "TOPLEFT", keyData[3], keyData[4])
+                    Key.label:SetText(keyData[1])
                     local tempframe = Key
                     tempframe:Show()
 
@@ -742,9 +748,14 @@ function addon:SwitchBoard(board)
                 end
             end
 
+            -- Adjust the keyboardFrame size based on the keys' positions
             addon.keyboardFrame:SetWidth(right - left + 12)
             addon.keyboardFrame:SetHeight(top - bottom + 12)
 
+        else
+            -- Fallback size if the layout is empty
+            addon.keyboardFrame:SetHeight(382)
+            addon.keyboardFrame:SetWidth(940)
         end
     end
 end
