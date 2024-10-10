@@ -47,12 +47,6 @@ function addon:CreateKeyboard()
     return Keyboard
 end
 
-function addon:RefreshControls()
-    if KBControlsFrame then
-        KBControlsFrame.LayoutName:SetText(KeyBindSettings.currentboard)
-    end
-end
-
 local function GetCursorScaledPosition()
 	local scale, x, y = UIParent:GetScale(), GetCursorPosition()
 	return x / scale, y / scale
@@ -70,14 +64,7 @@ function addon:CreateControls()
     end
 
     Controls:SetBackdropColor(0, 0, 0, 1)
-    Controls:SetPoint("BOTTOM", Keyboard, "TOP", 0, -2)
-
-    Controls.LayoutName = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Controls.LayoutName:SetText(KeyBindSettings.currentboard)
-    Controls.LayoutName:SetPoint("CENTER", Controls)
-    Controls.LayoutName:SetTextColor(1, 1, 1)
-    Controls.LayoutName:SetAlpha(0.75)
-    Controls.LayoutName:Show()
+    Controls:SetPoint("BOTTOMRIGHT", Keyboard, "TOPRIGHT", 0, -2)
  
     local function SetCheckboxTooltip(checkbox, tooltipText)
         checkbox.tooltipText = tooltipText
@@ -94,32 +81,32 @@ function addon:CreateControls()
     local function OnMaximize()
         maximizeFlag = true
 
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            KBControlsFrame:SetHeight(80)  
-        else
-            KBControlsFrame:SetHeight(210)
-        end
-        Controls:SetWidth(Keyboard:GetWidth())
-        
+        Controls:SetHeight(260)
+        Controls:SetWidth(500)
+
+        -- Calculate 1/3 and 2/3 of the width of KBControlsFrame
+        local offsetOneThird = Controls:GetWidth() * (1/3)
+        local offsetTwoThirds = Controls:GetWidth() * (2/3)
+
+        -- Text "Layout"
         Controls.Layout = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         Controls.Layout:SetText("Layout")
         Controls.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.Layout:SetPoint("BOTTOM", KBChangeBoardDD, "CENTER", 0, 22)
-        else
-            Controls.Layout:SetPoint("RIGHT", KBChangeBoardDD, "LEFT", -10, 2)
-        end
+        Controls.Layout:SetPoint("CENTER", KBControlsFrame, "LEFT", 380, 25)
         Controls.Layout:SetTextColor(1, 1, 1)
 
-        --Size start
-            Controls.EditBox = CreateFrame("EditBox", "KUI_EditBox1", Controls, "InputBoxTemplate")
+        --Size
+
+            Controls.Size = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.Size:SetText("Size")
+            Controls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            Controls.Size:SetPoint("CENTER", KBControlsFrame, "LEFT", offsetOneThird, 25)
+            Controls.Size:SetTextColor(1, 1, 1)
+
+            Controls.EditBox = CreateFrame("EditBox", "KeyboardEditInput", Controls, "InputBoxTemplate")
             Controls.EditBox:SetWidth(60)
             Controls.EditBox:SetHeight(20)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.EditBox:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 176, 2)
-            else
-                Controls.EditBox:SetPoint("BOTTOM", KBChangeBoardDD, "TOP", 0, 20)
-            end
+            Controls.EditBox:SetPoint("CENTER", Controls.Size, "CENTER", 0, -29)
             Controls.EditBox:SetMaxLetters(4)
             Controls.EditBox:SetAutoFocus(false)
             Controls.EditBox:SetText(string.format("%.2f", Keyboard:GetScale()))
@@ -141,16 +128,16 @@ function addon:CreateControls()
             end)
 
             Controls.LeftButton = CreateFrame("Button", "KBControlLeftButton", Controls)
-            Controls.LeftButton:SetSize(32, 32)
+            Controls.LeftButton:SetSize(26, 26)
             Controls.LeftButton:SetPoint("CENTER", Controls.EditBox, "CENTER", -58, 0)
-            Controls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+            Controls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Disabled")
             Controls.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
             Controls.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
             Controls.RightButton = CreateFrame("Button", "KBControlRightButton", Controls)
-            Controls.RightButton:SetSize(32, 32)
+            Controls.RightButton:SetSize(26, 26)
             Controls.RightButton:SetPoint("CENTER", Controls.EditBox, "CENTER", 54, 0)
-            Controls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+            Controls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Disabled")
             Controls.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
             Controls.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
             
@@ -176,123 +163,19 @@ function addon:CreateControls()
                 Controls.EditBox:SetText(string.format("%.2f", newValue))
             end)
 
-            Controls.Size = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            Controls.Size:SetText("Size")
-            Controls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.Size:SetPoint("BOTTOM", Controls.EditBox, "CENTER", 0, 20)
-            else
-                Controls.Size:SetPoint("TOPLEFT", Controls.Layout, "TOPLEFT", 0, 44)
-            end
-            Controls.Size:SetTextColor(1, 1, 1)
-        --Size end
-        
-        --Modifier start
-            Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate")
-            Controls.AltCB:SetSize(32, 36)
-            Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.AltCB:SetPoint("CENTER", KBChangeBoardDD, "CENTER", 290, 2)
-            else
-                Controls.AltCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 10, -50)
-            end
-            -- Create a font string for the text "Alt" and position it below the checkbutton
-            local altText = Controls.AltCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            altText:SetText("Alt")
-            altText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            altText:SetPoint("BOTTOM", Controls.AltCB, "CENTER", 0, 20)
-            -- Set the OnClick script for the checkbutton
-            Controls.AltCB:SetScript("OnClick", function(s)
-                if s:GetChecked() then
-                    modif.ALT = "ALT-"
-                    modif.CTRL = ""
-                    modif.SHIFT = ""
-                    AltCheckbox = true
-                    Controls.CtrlCB:SetChecked(false)
-                    Controls.ShiftCB:SetChecked(false)
-                else
-                    modif.ALT = ""
-                    AltCheckbox = false
-                    CtrlCheckbox = false
-                    ShiftCheckbox = false
-                end
-                addon:RefreshKeys()
-            end)
-            SetCheckboxTooltip(Controls.AltCB, "Toggle Alt key modifier")
+        --Size
+      
+        --Buttons
 
-            Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate")
-            Controls.CtrlCB:SetSize(32, 36)
-            Controls.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.CtrlCB:SetPoint("CENTER", Controls.AltCB, "CENTER", 50, 0)
-            else
-                Controls.CtrlCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 50, -50)
-            end
-            -- Create a font string for the text "Ctrl" and position it below the checkbutton
-            local ctrlText = Controls.CtrlCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            ctrlText:SetText("Ctrl")
-            ctrlText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            ctrlText:SetPoint("BOTTOM", Controls.CtrlCB, "CENTER", 0, 20)
-            -- Set the OnClick script for the checkbutton
-            Controls.CtrlCB:SetScript("OnClick", function(s)
-                if s:GetChecked() then
-                    modif.ALT = ""
-                    modif.CTRL = "CTRL-"
-                    modif.SHIFT = ""
-                    CtrlCheckbox = true
-                    Controls.AltCB:SetChecked(false)
-                    Controls.ShiftCB:SetChecked(false)
-                else
-                    modif.CTRL = ""
-                    AltCheckbox = false
-                    CtrlCheckbox = false
-                    ShiftCheckbox = false
-                end
-                addon:RefreshKeys()
-            end)
-            SetCheckboxTooltip(Controls.CtrlCB, "Toggle Ctrl key modifier")
-            
-            Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate")
-            Controls.ShiftCB:SetSize(32, 36)
-            Controls.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.ShiftCB:SetPoint("CENTER", Controls.CtrlCB, "CENTER", 50, 0)
-            else
-                Controls.ShiftCB:SetPoint("TOPLEFT", Controls, "TOPLEFT", 90, -50)
-            end
-            -- Create a font string for the text "Shift" and position it below the checkbutton
-            local shiftText = Controls.ShiftCB:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-            shiftText:SetText("Shift")
-            shiftText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            shiftText:SetPoint("BOTTOM", Controls.ShiftCB, "CENTER", 0, 20)
-            -- Set the OnClick script for the checkbutton
-            Controls.ShiftCB:SetScript("OnClick", function(s)
-                if s:GetChecked() then
-                    modif.ALT = ""
-                    modif.CTRL = ""
-                    modif.SHIFT = "SHIFT-"
-                    ShiftCheckbox = true
-                    Controls.AltCB:SetChecked(false)
-                    Controls.CtrlCB:SetChecked(false)
-                else
-                    modif.SHIFT = ""
-                    AltCheckbox = false
-                    CtrlCheckbox = false
-                    ShiftCheckbox = false
-                end
-                addon:RefreshKeys()
-            end)
-            SetCheckboxTooltip(Controls.ShiftCB, "Toggle Shift key modifier")
-        --Modifier end
-            
-        --Buttons start
+            Controls.Display = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.Display:SetText("Display Options")
+            Controls.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            Controls.Display:SetPoint("CENTER", KBControlsFrame, "BOTTOMLEFT", offsetOneThird, 60)
+            Controls.Display:SetTextColor(1, 1, 1)
+
             Controls.SwitchEmptyBinds = CreateFrame("Button", "SwitchEmptyBinds", Controls, "UIPanelButtonTemplate")
-            Controls.SwitchEmptyBinds:SetSize(146, 26)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.SwitchEmptyBinds:SetPoint("CENTER", KBChangeBoardDD, "CENTER", -200, 2)
-            else
-                Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.ShiftCB, "RIGHT", 28, -2)
-            end
+            Controls.SwitchEmptyBinds:SetSize(150, 26)
+            Controls.SwitchEmptyBinds:SetPoint("LEFT", Controls.Display, "CENTER", 4, -30)
 
             local SwitchBindsText = Controls.SwitchEmptyBinds:CreateFontString(nil, "OVERLAY")
             SwitchBindsText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
@@ -326,12 +209,8 @@ function addon:CreateControls()
             end)
 
             Controls.SwitchInterfaceBinds = CreateFrame("Button", "SwitchInterfaceBinds", Controls, "UIPanelButtonTemplate")
-            Controls.SwitchInterfaceBinds:SetSize(146, 26)
-            if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-                Controls.SwitchInterfaceBinds:SetPoint("RIGHT", Controls.SwitchEmptyBinds, "LEFT", -6, 0)
-            else
-                Controls.SwitchInterfaceBinds:SetPoint("BOTTOM", Controls.SwitchEmptyBinds, "TOP", 0, 0)
-            end
+            Controls.SwitchInterfaceBinds:SetSize(150, 26)
+            Controls.SwitchInterfaceBinds:SetPoint("RIGHT", Controls.Display, "CENTER", -4, -30)
 
             local SwitchInterfaceText = Controls.SwitchInterfaceBinds:CreateFontString(nil, "OVERLAY")
             SwitchInterfaceText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
@@ -364,22 +243,130 @@ function addon:CreateControls()
                 GameTooltip:Hide()
             end)
 
-            Controls.Display = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            Controls.Display:SetText("Display Options")
-            Controls.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            Controls.Display:SetPoint("BOTTOM", Controls.SwitchInterfaceBinds, "RIGHT", 2, 20)
-            Controls.Display:SetTextColor(1, 1, 1)
-        --Buttons end
+        --Buttons
 
-        --Edit start
+        --Modifier
+
+            --alt
+                -- Create a font string for the text "Alt" and position it below the checkbutton
+                Controls.AltText = Controls:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+                Controls.AltText:SetText("Alt")
+                Controls.AltText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+                Controls.AltText:SetPoint("CENTER", Controls.Display, "CENTER", 192, 0)
+
+                Controls.AltCB = CreateFrame("CheckButton", "KeyBindAltCB", Controls, "ChatConfigCheckButtonTemplate")
+                Controls.AltCB:SetSize(32, 36)
+                Controls.AltCB:SetHitRectInsets(0, 0, 0, -10)
+                Controls.AltCB:SetPoint("CENTER", Controls.AltText, "CENTER", 0, -30)
+
+                -- Set the OnClick script for the checkbutton
+                Controls.AltCB:SetScript("OnClick", function(s)
+                    if s:GetChecked() then
+                        modif.ALT = "ALT-"
+                        modif.CTRL = ""
+                        modif.SHIFT = ""
+                        AltCheckbox = true
+                        Controls.CtrlCB:SetChecked(false)
+                        Controls.ShiftCB:SetChecked(false)
+                    else
+                        modif.ALT = ""
+                        AltCheckbox = false
+                        CtrlCheckbox = false
+                        ShiftCheckbox = false
+                    end
+                    addon:RefreshKeys()
+                end)
+                SetCheckboxTooltip(Controls.AltCB, "Toggle Alt key modifier")
+            --alt
+            
+            --ctrl
+                -- Create a font string for the text "Ctrl" and position it below the checkbutton
+                Controls.CtrlText = Controls:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+                Controls.CtrlText:SetText("Ctrl")
+                Controls.CtrlText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+                Controls.CtrlText:SetPoint("CENTER", Controls.AltText, "CENTER", 50, 0)
+
+                Controls.CtrlCB = CreateFrame("CheckButton", "KeyBindCtrlCB", Controls, "ChatConfigCheckButtonTemplate")
+                Controls.CtrlCB:SetSize(32, 36)
+                Controls.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
+                Controls.CtrlCB:SetPoint("CENTER", Controls.CtrlText, "CENTER", 0, -30)
+
+                -- Set the OnClick script for the checkbutton
+                Controls.CtrlCB:SetScript("OnClick", function(s)
+                    if s:GetChecked() then
+                        modif.ALT = ""
+                        modif.CTRL = "CTRL-"
+                        modif.SHIFT = ""
+                        CtrlCheckbox = true
+                        Controls.AltCB:SetChecked(false)
+                        Controls.ShiftCB:SetChecked(false)
+                    else
+                        modif.CTRL = ""
+                        AltCheckbox = false
+                        CtrlCheckbox = false
+                        ShiftCheckbox = false
+                    end
+                    addon:RefreshKeys()
+                end)
+                SetCheckboxTooltip(Controls.CtrlCB, "Toggle Ctrl key modifier")
+            --ctrl
+
+            --shift
+                -- Create a font string for the text "Shift" and position it below the checkbutton
+                Controls.ShiftText = Controls:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+                Controls.ShiftText:SetText("Shift")
+                Controls.ShiftText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+                Controls.ShiftText:SetPoint("CENTER", Controls.CtrlText, "CENTER", 50, 0)
+
+                Controls.ShiftCB = CreateFrame("CheckButton", "KeyBindShiftCB", Controls, "ChatConfigCheckButtonTemplate")
+                Controls.ShiftCB:SetSize(32, 36)
+                Controls.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
+                Controls.ShiftCB:SetPoint("CENTER", Controls.ShiftText, "CENTER", 0, -30)
+
+                -- Set the OnClick script for the checkbutton
+                Controls.ShiftCB:SetScript("OnClick", function(s)
+                    if s:GetChecked() then
+                        modif.ALT = ""
+                        modif.CTRL = ""
+                        modif.SHIFT = "SHIFT-"
+                        ShiftCheckbox = true
+                        Controls.AltCB:SetChecked(false)
+                        Controls.CtrlCB:SetChecked(false)
+                    else
+                        modif.SHIFT = ""
+                        AltCheckbox = false
+                        CtrlCheckbox = false
+                        ShiftCheckbox = false
+                    end
+                    addon:RefreshKeys()
+                end)
+                SetCheckboxTooltip(Controls.ShiftCB, "Toggle Shift key modifier")
+            --shift
+
+        --Modifier
+
+        --Edit Menu
+
+            Controls.InputText = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.InputText:SetText("Name")
+            Controls.InputText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            Controls.InputText:SetPoint("CENTER", KBControlsFrame, "TOPLEFT", 380, -20)
+            Controls.InputText:SetTextColor(1, 1, 1)
+
             Controls.Input  = CreateFrame("EditBox", "KeyboardEditInput", Controls, "InputBoxInstructionsTemplate")
             Controls.Input:SetSize(130, 30)
-            Controls.Input:SetPoint("TOP", Controls, "TOP", 0, 100)
+            Controls.Input:SetPoint("CENTER", Controls.InputText, "CENTER", 0, -30)
             Controls.Input:SetAutoFocus(false)
+
+            Controls.EditText = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            Controls.EditText:SetText("Edit Menu")
+            Controls.EditText:SetFont("Fonts\\FRIZQT__.TTF", 14)
+            Controls.EditText:SetPoint("CENTER", KBControlsFrame, "TOPLEFT", offsetOneThird, -20)
+            Controls.EditText:SetTextColor(1, 1, 1)
             
             Controls.Save = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
-            Controls.Save:SetSize(104, 26)
-            Controls.Save:SetPoint("CENTER", Controls, "CENTER", 0, 70)
+            Controls.Save:SetSize(70, 26)
+            Controls.Save:SetPoint("CENTER", Controls.EditText, "CENTER", 0, -30)
             Controls.Save:SetScript("OnClick", function() addon:KeyboardSaveLayout() end)
             local SaveText = Controls.Save:CreateFontString(nil, "OVERLAY")
             SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
@@ -397,7 +384,7 @@ function addon:CreateControls()
             end)
             
             Controls.Delete = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
-            Controls.Delete:SetSize(104, 26)
+            Controls.Delete:SetSize(70, 26)
             Controls.Delete:SetPoint("LEFT", Controls.Save, "RIGHT", 5, 0)
 
             Controls.Delete:SetScript("OnClick", function(self)
@@ -448,7 +435,7 @@ function addon:CreateControls()
             end)
 
             Controls.Lock = CreateFrame("Button", nil, Controls, "UIPanelButtonTemplate")
-            Controls.Lock:SetSize(104, 26)
+            Controls.Lock:SetSize(70, 26)
             Controls.Lock:SetPoint("RIGHT", Controls.Save, "LEFT", -5, 0)
 
             local LockText = Controls.Lock:CreateFontString(nil, "OVERLAY")
@@ -493,38 +480,39 @@ function addon:CreateControls()
             end)
 
             Controls.glowBoxLock = CreateFrame("Frame", nil, Controls, "GlowBorderTemplate")
-            Controls.glowBoxLock:SetSize(106, 28)
+            Controls.glowBoxLock:SetSize(72, 28)
             Controls.glowBoxLock:SetPoint("CENTER", Controls.Lock, "CENTER", 0, 0)
             Controls.glowBoxLock:Hide()
             Controls.glowBoxLock:SetFrameLevel(Controls.Lock:GetFrameLevel()+1)
-        --Edit end
+            
+        --Edit Menu
 
         if KBChangeBoardDD then
             KBChangeBoardDD:Show()
+            KBChangeBoardDD:SetPoint("CENTER", KBControlsFrame.Layout, "CENTER", 0, -30)
         end
 
         Controls.EditBox:Show()
         Controls.LeftButton:Show()
         Controls.RightButton:Show()
 
+        Controls.AltText:Show()
         Controls.AltCB:Show()
+        Controls.CtrlText:Show()
         Controls.CtrlCB:Show()
+        Controls.ShiftText:Show()
         Controls.ShiftCB:Show()
 
         Controls.SwitchEmptyBinds:Show()
         Controls.SwitchInterfaceBinds:Show()
-        if KeyBindSettings.currentboard ~= "Razer_Tartarus" and KeyBindSettings.currentboard ~= "Razer_Tartarus2" and KeyBindSettings.currentboard ~= "Azeron" and KeyBindSettings.currentboard ~= "Azeron2" and KeyBindSettings.currentboard ~= "QWERTZ_HALF" and KeyBindSettings.currentboard ~= "QWERTY_HALF" and KeyBindSettings.currentboard ~= "AZERTY_HALF" and KeyBindSettings.currentboard ~= "DVORAK_HALF" then
-            Controls.Display:Show()
-        else
-            Controls.Display:Hide()
-        end
+        Controls.Display:Show()
 
+        Controls.InputText:Show()
+        Controls.EditText:Show()
         Controls.Input:Show()
         Controls.Save:Show()
         Controls.Delete:Show()
         Controls.Lock:Show()
-
-        Controls.LayoutName:Hide() -- REVERSED
 
         if KeyboardLocked == false then
             if Controls.glowBoxLock then
@@ -536,7 +524,7 @@ function addon:CreateControls()
     local function OnMinimize()
         maximizeFlag = false
         
-        Controls:SetHeight(26)
+        Controls:SetHeight(22)
         Controls:SetWidth(Keyboard:GetWidth())
 
         if Controls.EditBox then
@@ -550,14 +538,19 @@ function addon:CreateControls()
             Controls.RightButton:Hide()
             Controls.Size:Hide()
 
+            Controls.AltText:Hide()
             Controls.AltCB:Hide()
+            Controls.CtrlText:Hide()
             Controls.CtrlCB:Hide()
+            Controls.ShiftText:Hide()
             Controls.ShiftCB:Hide()
 
             Controls.SwitchEmptyBinds:Hide()
             Controls.SwitchInterfaceBinds:Hide()
             Controls.Display:Hide()
 
+            Controls.InputText:Hide()
+            Controls.EditText:Hide()
             Controls.Input:Hide()
             Controls.Save:Hide()
             Controls.Delete:Hide()
@@ -567,17 +560,16 @@ function addon:CreateControls()
                 Controls.glowBoxLock:Hide()
             end
 
-            Controls.LayoutName:Show() -- REVERSED
         end
     end
 
     Controls.Close = CreateFrame("Button", "$parentClose", Controls, "UIPanelCloseButton")
-    Controls.Close:SetSize(26, 26)
+    Controls.Close:SetSize(22, 22)
     Controls.Close:SetPoint("TOPRIGHT", 0, 0)
     Controls.Close:SetScript("OnClick", function(s) KeyUIMainFrame:Hide() KBControlsFrame:Hide() end) -- Toggle the Keyboard frame show/hide
  
     Controls.MinMax = CreateFrame("Frame", "#parentMinMax", Controls, "MaximizeMinimizeButtonFrameTemplate")
-    Controls.MinMax:SetSize(26, 26)
+    Controls.MinMax:SetSize(22, 22)
     Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 2, 0)
     Controls.MinMax:SetOnMaximizedCallback(OnMaximize)
     Controls.MinMax:SetOnMinimizedCallback(OnMinimize)
@@ -590,8 +582,8 @@ function addon:CreateControls()
         ShowGlowAroundMinMax(Controls)
     end
 
-    Controls:SetScript("OnMouseDown", function(self) self:GetParent():StartMoving() end)
-    Controls:SetScript("OnMouseUp", function(self) self:GetParent():StopMovingOrSizing() end)
+    Controls:SetScript("OnMouseDown", function(self) Keyboard:StartMoving() end)
+    Controls:SetScript("OnMouseUp", function(self) Keyboard:StopMovingOrSizing() end)
 
     addon.controlsFrame = KBControlsFrame
 
@@ -752,7 +744,6 @@ function addon:SwitchBoard(board)
 
             addon.keyboardFrame:SetWidth(right - left + 12)
             addon.keyboardFrame:SetHeight(top - bottom + 12)
-            KBControlsFrame:SetWidth(addon.keyboardFrame:GetWidth())
 
         end
     end
@@ -1042,7 +1033,6 @@ end
 function addon:CreateChangerDD() 
     local KBChangeBoardDD = CreateFrame("Frame", "KBChangeBoardDD", KBControlsFrame, "UIDropDownMenuTemplate")
 
-    KBChangeBoardDD:SetPoint("BOTTOM", KBControlsFrame, "BOTTOM", 0, 14)
     UIDropDownMenu_SetWidth(KBChangeBoardDD, 120)
     UIDropDownMenu_SetButtonWidth(KBChangeBoardDD, 120)
     KBChangeBoardDD:Hide()

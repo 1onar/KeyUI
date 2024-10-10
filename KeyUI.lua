@@ -747,13 +747,15 @@ function addon:RefreshKeys()
     self:SwitchBoard(KeyBindSettings.currentboard)
     if edited == false then
         self:SwitchBoardMouse()
+        if maximizeFlag == false then
+            ControlsFrame:SetWidth(keyboardFrame:GetWidth())
+        end
     else
         wipe(KeysMouse)
         edited = false
         self:SwitchBoardMouse()
     end
     self:CheckModifiers()
-    addon:RefreshControls()
 
     -- Set the keys
     for i = 1, #Keys do
