@@ -3,10 +3,11 @@
 KeyUI displays your keyboard and mouse to show what each button is bound to. It helps you manage and adjust your key configurations, whether you're revisiting an old character, starting a new one, or simply looking to enhance your keybinds.
 
 ## Features:
-- **Drag and Drop Spells:** You can drag and drop spells from default action bars, the spell book, or within the addon, allowing flexible spell and keybinding management.
-- **Spell Highlighting:** When you hover over a spell, it is highlighted on the action bar, making it easier to locate.
 - **Pre-made Layouts:** Choose from various pre-made keyboard and mouse layouts.
 - **Customizable Keys:** Edit the keys for both your keyboard and mouse layouts for better representation of your setup.
+- **Direct Key Binding:** Right-click on keyboard or mouse buttons to access a dropdown menu where you can directly bind a spell to the key. You can also bind any interface actions or action bar buttons directly to the keys.
+- **Drag and Drop Spells:** You can drag and drop spells from default action bars, the spell book, or within the addon, allowing flexible spell and keybinding management.
+- **Spell Highlighting:** When you hover over a spell, it is highlighted on the action bar, making it easier to locate.
 - **Mouse Customization:** Move mouse buttons to accurately represent your mouse layout.
 - **Show Interface Actions:** Displays the Interface Action for each key, providing clear visibility of what each key does.
 - **Highlight Unused Keys:** Easily identify which keys are not bound to any actions.
