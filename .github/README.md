@@ -1,39 +1,62 @@
-**KeyUI shows your keyboard and mouse to see what each button is bound to. It helps you manage and adjust your key configurations, whether you're revisiting an old character, starting a new one, or simply want to enhance your Keybinds.**
+# KeyUI - Visualize Your Keyboard and Mouse Bindings
 
-**<ins>Open KeyUI</ins>**
-- Type "/kui" or "/keyui".
-- Click the MinimapButton.
+KeyUI displays your keyboard and mouse to show what each button is bound to. It helps you manage and adjust your key configurations, whether you're revisiting an old character, starting a new one, or simply looking to enhance your keybinds.
 
-**<ins>Choose Your Keyboard Layout</ins>**
-- "QWERTZ" (Primary, 60%, 80%, 100%)
-- "QWERTY" (Primary, 60%, 80%, 100%)
-- "AZERTY" (Primary, 60%, 80%, 100%)
-- "Razer Tartarus"
-- "Razer Tartarus 2"
-- "Azeron"
+## Features:
+- **Drag and Drop Spells:** You can drag and drop spells from default action bars, the spell book, or within the addon, allowing flexible spell and keybinding management.
+- **Spell Highlighting:** When you hover over a spell, it is highlighted on the action bar, making it easier to locate.
+- **Pre-made Layouts:** Choose from various pre-made keyboard and mouse layouts.
+- **Customizable Keys:** Edit the keys for both your keyboard and mouse layouts for better representation of your setup.
+- **Mouse Customization:** Move mouse buttons to accurately represent your mouse layout.
+- **Show Interface Actions:** Displays the Interface Action for each key, providing clear visibility of what each key does.
+- **Highlight Unused Keys:** Easily identify which keys are not bound to any actions.
 
-**<ins>Choose Your Mouse Layout</ins>**
-- "4x3"
-- "2+4x3"
-- "3x3"
-- "3x2"
-- "2x2"
-- "1+2x2"
-- "2x2"
-- "1x2"
-- "Circle"
-- [Create your layout as shown in the video](https://www.youtube.com/watch?v=ClGztJtR2rQ)
+## Supported Addons:
+KeyUI is compatible with the following popular addons:
+- **ElvUI**
+- **Bartender**
 
-**<ins>View Keybindings</ins>**
-- Hover over keys to see the assigned Spell, Macro or UI-Function
-- Highlight unused keys
-- Show the Interface Action for each key.
+## How to Open KeyUI:
+- Type `/kui` or `/keyui`.
+- Click the Minimap Button.
 
-**<ins>Edit Keyboard Keybinds</ins>**
+## Choose Your Keyboard Layout:
+- **ISO**
+  - QWERTZ
+  - AZERTY
+- **ANSI**
+  - QWERTY
+- **DVORAK**
+  - Standard
+  - Right Hand
+  - Left Hand
+- **Razer**
+  - Tartarus v1
+  - Tartarus v2
+- **Azeron**
+  - Cyborg
+  - Cyborg II
 
-[![YouTube Link](https://img.youtube.com/vi/4jNuNZVvpqY/0.jpg)](https://www.youtube.com/watch?v=4jNuNZVvpqY)
+## Choose Your Mouse Layout:
+With the pre-made layouts, the most common mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX** are covered. You can also rebuild your own mouse layout to better suit your preferences!
 
+## Tutorial Videos:
+[![YouTube](https://img.youtube.com/vi/4jNuNZVvpqY/0.jpg)](https://www.youtube.com/watch?v=4jNuNZVvpqY)
 
-**<ins>Edit Mouse Layout</ins>**
+[![YouTube](https://img.youtube.com/vi/ClGztJtR2rQ/0.jpg)](https://www.youtube.com/watch?v=ClGztJtR2rQ)
 
-[![YouTube Link](https://img.youtube.com/vi/ClGztJtR2rQ/0.jpg)](https://www.youtube.com/watch?v=ClGztJtR2rQ)
+## FAQ:
+**The addon is blank.**  
+&nbsp;&nbsp;You need to select a layout first.
+
+**The addon does not recognize my keyboard or mouse.**  
+&nbsp;&nbsp;KeyUI cannot detect your specific hardware model.
+
+**The addon layout does not display the keyboard layout for my region.**  
+&nbsp;&nbsp;To accurately reflect your regional keyboard layout that isn’t covered by the pre-made layouts, you’ll need to customize it manually.
+
+**The mouse frame displays the wrong mouse model.**  
+&nbsp;&nbsp;The mouse frame is a generic image of a gaming mouse and does not adjust to your specific mouse model.
+
+**Does it work with my keyboard or mouse software?**  
+&nbsp;&nbsp;KeyUI does not interact with your operating system or any mouse driver software.
