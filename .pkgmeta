@@ -1,7 +1,5 @@
 package-as: KeyUI
 
-enable-toc-creation: yes
-
 ignore:
   - .git
   - .github
