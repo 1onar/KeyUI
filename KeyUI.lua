@@ -534,7 +534,7 @@ function addon:SetKey(button)
     -- Handling empty bindings early
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
-        if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
+        if spell == "" and not tContains({"ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
             button:SetBackdropColor(1, 0, 0, 1)
         else
             button:SetBackdropColor(0, 0, 0, 1)
