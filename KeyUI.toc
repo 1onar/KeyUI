@@ -24,7 +24,7 @@
 ## SavedVariables: CurrentLayout
 ## SavedVariables: tutorialCompleted
 
-Libs\embeds.xml
+embeds.xml
 
 Mappings.lua
 LayoutsKeyboard.lua
