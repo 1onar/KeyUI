@@ -1,0 +1,10 @@
+package-as: KeyUI
+
+enable-toc-creation: yes
+
+ignore:
+  - .git
+  - .github
+  - tests
+  - README.md
+  - LICENSE
