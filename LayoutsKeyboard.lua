@@ -3293,7 +3293,7 @@ KeyBindAllBoards = {
 
 -- RAZER --
 
-    ['Razer_Tartarus'] = { 
+    ['Tartarus_v1'] = { 
 
         { 'TAB', Keyboard, 6, -16, u, u },   
         { 'Q', Keyboard, 68, -6, u, u },
@@ -3314,7 +3314,7 @@ KeyBindAllBoards = {
         { 'V', Keyboard, 254, -130, u, u },
     },
 
-    ['Razer_Tartarus2'] = { 
+    ['Tartarus_v2'] = { 
 
         { '1', Keyboard, 6, -16, u, u },   
         { '2', Keyboard, 68, -6, u, u },
@@ -3344,7 +3344,7 @@ KeyBindAllBoards = {
 
 -- AZERON --
 
-    ['Azeron'] = { 
+    ['Cyborg'] = { 
 
         { 'I', Keyboard, 130, -6, u, u },
         { 'M', Keyboard, 192, -6, u, u },
@@ -3379,7 +3379,7 @@ KeyBindAllBoards = {
         { 'ESC', Keyboard, 378, -316, u, u },
     },
 
-    ['Azeron2'] = { 
+    ['Cyborg_II'] = { 
 
         { 'UP', Keyboard, 378, -6, u, u },
 

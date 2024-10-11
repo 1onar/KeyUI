@@ -2,7 +2,7 @@ local name, addon = ...
 
 MousePosition = {}
 
-locked = true
+MouseLocked = true
 edited = false
 
 function addon:SaveMouse()
@@ -12,7 +12,11 @@ end
 
 function addon:CreateMouseholder()
     local Mouseholder = CreateFrame("Frame", "Mouseholder", UIParent)
-    tinsert(UISpecialFrames, "Mouseholder")
+
+    -- Manage ESC key behavior based on the setting
+    if KeyUI_Settings.preventEscClose ~= false then
+        tinsert(UISpecialFrames, "Mouseholder")
+    end
     
     Mouseholder:SetWidth(260)
     Mouseholder:SetHeight(400)
@@ -24,7 +28,7 @@ function addon:CreateMouseholder()
         Mouseholder:SetScale(MousePosition.scale)
     else
         Mouseholder:SetPoint("CENTER", UIParent, "CENTER", 580, 30)
-        Mouseholder:SetScale(0.8)
+        Mouseholder:SetScale(1)
     end
 
     Mouseholder:SetScript("OnMouseDown", function(self) self:StartMoving() end)
@@ -41,7 +45,11 @@ end
 
 function addon:CreateMouseUI()
     local MouseFrame = CreateFrame("Frame", "MouseFrame", Mouseholder)
-    tinsert(UISpecialFrames, "MouseFrame")
+
+    -- Manage ESC key behavior based on the setting
+    if KeyUI_Settings.preventEscClose ~= false then
+        tinsert(UISpecialFrames, "MouseFrame")
+    end
 
     MouseFrame:SetWidth(50)
     MouseFrame:SetHeight(50)
@@ -60,7 +68,11 @@ end
 
 function addon:CreateMouseControls()
     local MouseControls = CreateFrame("Frame", "MouseControls", Mouseholder, "TooltipBorderedFrameTemplate")
-    tinsert(UISpecialFrames, "MouseControls")
+
+    -- Manage ESC key behavior based on the setting
+    if KeyUI_Settings.preventEscClose ~= false then
+        tinsert(UISpecialFrames, "MouseControls")
+    end
 
     MouseControls:SetBackdropColor(0,0,0,1);
     MouseControls:SetPoint("BOTTOMRIGHT", Mouseholder, "TOPRIGHT", 0, -10)
@@ -162,7 +174,7 @@ function addon:CreateMouseControls()
             MouseControls.Save = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
             MouseControls.Save:SetSize(104, 26)
             MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -16)
-            MouseControls.Save:SetScript("OnClick", function() addon:SaveLayout() end)
+            MouseControls.Save:SetScript("OnClick", function() addon:MouseSaveLayout() end)
             local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
             SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             SaveText:SetPoint("CENTER", 0, 1)
@@ -182,21 +194,35 @@ function addon:CreateMouseControls()
             MouseControls.Delete:SetSize(104, 26)
             MouseControls.Delete:SetPoint("LEFT", MouseControls.Save, "RIGHT", 5, 0)
 
-            MouseControls.Delete:SetScript("OnClick", function(self)                                        --select a default layout
+            MouseControls.Delete:SetScript("OnClick", function(self)
+                -- Check if KBChangeBoardDDMouse is not nil
+                if not KBChangeBoardDDMouse then
+                    print("Error: KBChangeBoardDDMouse is nil.")
+                    return -- Exit the function early if KBChangeBoardDDMouse is nil
+                end
+                
                 -- Get the text from the KBChangeBoardDDMouse dropdown menu.
                 local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDDMouse)
-                -- Remove the selected layout from the MouseKeyEditLayouts table.
-                MouseKeyEditLayouts[selectedLayout] = nil
-                -- Clear the text in the Mouse.Input field.
-                MouseControls.Input:SetText("")
-                -- Print a message indicating which layout was deleted.
-                print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
-
-                --CurrentLayout = {KeyBindAllBoardsMouse.Layout_4x3}
-                wipe(CurrentLayout)
-                UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
-                addon:RefreshKeys()
+            
+                -- Ensure selectedLayout is not nil before proceeding
+                if selectedLayout then
+                    -- Remove the selected layout from the MouseKeyEditLayouts table.
+                    MouseKeyEditLayouts[selectedLayout] = nil
+            
+                    -- Clear the text in the Mouse.Input field.
+                    MouseControls.Input:SetText("")
+            
+                    -- Print a message indicating which layout was deleted.
+                    print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+            
+                    wipe(CurrentLayoutMouse)
+                    UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
+                    addon:RefreshKeys()
+                else
+                    print("KeyUI: Error - No layout selected to delete.")
+                end
             end)
+            
             local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
             DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             DeleteText:SetPoint("CENTER", 0, 1)
@@ -219,22 +245,22 @@ function addon:CreateMouseControls()
             local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
             LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             LockText:SetPoint("CENTER", 0, 1)
-            if locked == false then
+            if MouseLocked == false then
                 LockText:SetText("Lock")
             else
                 LockText:SetText("Unlock")
             end
 
             local function ToggleLock()
-                if locked then
-                    locked = false
+                if MouseLocked then
+                    MouseLocked = false
                     edited = true
                     LockText:SetText("Lock")
                     if MouseControls.glowBoxLock then
                         MouseControls.glowBoxLock:Show()
                     end
                 else
-                    locked = true
+                    MouseLocked = true
                     LockText:SetText("Unlock")
                     if MouseControls.glowBoxLock then
                         MouseControls.glowBoxLock:Hide()
@@ -264,24 +290,25 @@ function addon:CreateMouseControls()
             MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
         --Edit end
 	
+        if KBChangeBoardDDMouse then
+            KBChangeBoardDDMouse:Show()
+        end
+
         MouseControls.EditBox:Show()
         MouseControls.LeftButton:Show()
         MouseControls.RightButton:Show()
+
         MouseControls.Input:Show()
         MouseControls.Save:Show()
         MouseControls.Delete:Show()
         MouseControls.Lock:Show()
 
-        if locked == false then
+        if MouseLocked == false then
             if MouseControls.glowBoxLock then
                 MouseControls.glowBoxLock:Show()
             end
         end
         
-        if KBChangeBoardDDMouse then
-            KBChangeBoardDDMouse:Show()
-        end
-
     end
 
     local function OnMinimizeMouse()
@@ -291,40 +318,41 @@ function addon:CreateMouseControls()
         MouseControls:SetHeight(26)
 
         if MouseControls.EditBox then
+            if KBChangeBoardDDMouse then
+                KBChangeBoardDDMouse:Hide()
+            end
             MouseControls.EditBox:Hide()
             MouseControls.LeftButton:Hide()
             MouseControls.RightButton:Hide()
+            MouseControls.Size:Hide()
+            
             MouseControls.Input:Hide()
             MouseControls.Save:Hide()
             MouseControls.Delete:Hide()
             MouseControls.Lock:Hide()
-            MouseControls.Size:Hide()
+
             MouseControls.Layout:Hide()
             MouseControls.Name:Hide()
 
             if MouseControls.glowBoxLock then
                 MouseControls.glowBoxLock:Hide()
             end
-
-            if KBChangeBoardDDMouse then
-                KBChangeBoardDDMouse:Hide()
-            end
         end
     end    
 
     MouseControls.Close = CreateFrame("Button", "$parentClose", MouseControls, "UIPanelCloseButton")
-    MouseControls.Close:SetSize(42, 42)                                             -- difference retail code
-    MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)                                  -- difference retail code
+    MouseControls.Close:SetSize(26, 26)
+    MouseControls.Close:SetPoint("TOPRIGHT", 0, 0)
     MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouseholder:Hide() end)
 
     MouseControls.MinMax = CreateFrame("Frame", "#parentMinMax", MouseControls, "MaximizeMinimizeButtonFrameTemplate")
-    MouseControls.MinMax:SetSize(42, 42)                                            -- difference retail code
-    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)      -- difference retail code
+    MouseControls.MinMax:SetSize(26, 26)
+    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 2, 0)
     MouseControls.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
     MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 
-    MouseControls.MinMax:Maximize() -- Set the MinMax button & control frame size to Minimize
     MouseControls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
+    MouseControls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
 
     return MouseControls
 end
@@ -336,8 +364,8 @@ end
 
 local function DragOrSize(self, Mousebutton)
     local x, y = GetCursorScaledPosition()
-    if locked then
-        return -- Do nothing if not locked is selected
+    if MouseLocked then
+        return -- Do nothing if not MouseLocked is selected
     end
     self:StartMoving()
     self.isMoving = true  -- Add a flag to indicate the frame is being moved
@@ -355,7 +383,7 @@ local function Release(self, Mousebutton)
 end
 
 local function KeyDown(self, key)
-    if not locked and not self.isMoving then
+    if not MouseLocked and not self.isMoving then
         if key == "RightButton" then
             return
         elseif key == "MiddleButton" then
@@ -368,7 +396,7 @@ local function KeyDown(self, key)
 end
 
 local function OnMouseWheel(self, delta)
-    if not locked and not self.isMoving then
+    if not MouseLocked and not self.isMoving then
         if delta > 0 then
             -- Mouse wheel scrolled up
             self.label:SetText("MouseWheelUp")
@@ -379,9 +407,9 @@ local function OnMouseWheel(self, delta)
     end
 end
 
-function addon:SaveLayout()
+function addon:MouseSaveLayout()
     local msg = MouseControls.Input:GetText()
-    if locked == true then
+    if MouseLocked == true then
         if msg ~= "" then
             MouseControls.Input:SetText("")
             MouseControls.Input:ClearFocus()
@@ -399,8 +427,8 @@ function addon:SaveLayout()
                     }
                 end
             end
-            wipe(CurrentLayout)
-            CurrentLayout[msg] = MouseKeyEditLayouts[msg]
+            wipe(CurrentLayoutMouse)
+            CurrentLayoutMouse[msg] = MouseKeyEditLayouts[msg]
             addon:RefreshKeys()
             UIDropDownMenu_SetText(self.ddChangerMouse, msg)
         else
@@ -408,6 +436,59 @@ function addon:SaveLayout()
         end
     else
         print("KeyUI: Please lock the binds to save.")
+    end
+end
+
+function addon:SwitchBoardMouse()
+    if addonOpen == true and addon.MouseFrame then
+        if CurrentLayoutMouse then
+            
+            -- Calculate the center of the Mouse frame once
+            local cx, cy = addon.MouseFrame:GetCenter()
+            local left, right, top, bottom = cx, cx, cy, cy
+
+            for _, layoutData in pairs(CurrentLayoutMouse) do
+                for i = 1, #layoutData do
+                    local MouseKey = KeysMouse[i] or self:NewButtonMouse()
+                    local CurrentLayoutMouse = layoutData[i]
+
+                    if CurrentLayoutMouse[5] then
+                        MouseKey:SetWidth(CurrentLayoutMouse[5])
+                        MouseKey:SetHeight(CurrentLayoutMouse[6])
+                    else
+                        MouseKey:SetWidth(85)
+                        MouseKey:SetHeight(85)
+                    end
+
+                    if not KeysMouse[i] then
+                        KeysMouse[i] = MouseKey
+                    end
+
+                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", CurrentLayoutMouse[3], CurrentLayoutMouse[4])
+                    MouseKey.label:SetText(CurrentLayoutMouse[1])
+                    local tempframe = MouseKey
+                    tempframe:Show()
+                end
+            end
+
+            -- After all buttons are added, set the size of the Mouse frame
+            for i = 1, #KeysMouse do
+                local l, r, t, b = KeysMouse[i]:GetLeft(), KeysMouse[i]:GetRight(), KeysMouse[i]:GetTop(), KeysMouse[i]:GetBottom()
+
+                if l < left then
+                    left = l
+                end
+                if r > right then
+                    right = r
+                end
+                if t > top then
+                    top = t
+                end
+                if b < bottom then
+                    bottom = b
+                end
+            end
+        end
     end
 end
 
@@ -445,45 +526,81 @@ function addon:NewButtonMouse()
     Mousebutton.icon:SetSize(40, 40)
     Mousebutton.icon:SetPoint("TOPLEFT", Mousebutton, "TOPLEFT", 5, -5)
 
-    Mousebutton:SetScript("OnEnter", function(self)
+    Mousebutton:SetScript("OnEnter", function()
         addon:ButtonMouseOver(Mousebutton)
-        self:EnableKeyboard(true)
-        self:EnableMouseWheel(true)
-        self:SetScript("OnKeyDown", KeyDown)
-        self:SetScript("OnMouseWheel", OnMouseWheel)
-        
+        Mousebutton:EnableKeyboard(true)
+        Mousebutton:EnableMouseWheel(true)
+        Mousebutton:SetScript("OnKeyDown", KeyDown)
+        Mousebutton:SetScript("OnMouseWheel", OnMouseWheel)
+    
+        -- Get the current action bar page
+        local currentActionBarPage = GetActionBarPage()
+    
         -- Only show the PushedTexture if the setting is enabled
         if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(Mousebutton.slot)]
-            if mappedButton then
-                local normalTexture = mappedButton:GetNormalTexture()
-                if normalTexture and normalTexture:IsVisible() then
-                    local pushedTexture = mappedButton:GetPushedTexture()
-                    if pushedTexture then
-                        pushedTexture:Show()  -- Show the pushed texture
-                        --print("Showing PushedTexture for button in slot", button.slot)
+            -- Check if currentActionBarPage is valid and map it to adjustedSlot
+            if currentActionBarPage and Mousebutton.slot then
+                -- Calculate the adjustedSlot based on currentActionBarPage
+                local adjustedSlot = Mousebutton.slot
+                if currentActionBarPage == 3 and Mousebutton.slot >= 25 and Mousebutton.slot <= 36 then
+                    adjustedSlot = Mousebutton.slot - 24  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 4 and Mousebutton.slot >= 37 and Mousebutton.slot <= 48 then
+                    adjustedSlot = Mousebutton.slot - 36  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 5 and Mousebutton.slot >= 49 and Mousebutton.slot <= 60 then
+                    adjustedSlot = Mousebutton.slot - 48  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 6 and Mousebutton.slot >= 61 and Mousebutton.slot <= 72 then
+                    adjustedSlot = Mousebutton.slot - 60  -- Map to ActionButton1-12
+                end
+                
+                -- Look up the correct button in TextureMappings using the adjustedSlot
+                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                if mappedButton then
+                    local normalTexture = mappedButton:GetNormalTexture()
+                    if normalTexture and normalTexture:IsVisible() then
+                        local pushedTexture = mappedButton:GetPushedTexture()
+                        if pushedTexture then
+                            pushedTexture:Show()  -- Show the pushed texture
+                            --print("Showing PushedTexture for button in slot", Mousebutton.slot)
+                        end
                     end
-                --else
-                    --print("not visible")
                 end
             end
         end
     end)
-    Mousebutton:SetScript("OnLeave", function(self)
+    
+    Mousebutton:SetScript("OnLeave", function()
         GameTooltip:Hide()
         KeyUITooltip:Hide()
-        self:EnableKeyboard(false)
-        self:SetScript("OnKeyDown", nil)
-
+        Mousebutton:EnableKeyboard(false)
+        Mousebutton:EnableMouseWheel(false)
+        Mousebutton:SetScript("OnKeyDown", nil)
+    
+        -- Get the current action bar page
+        local currentActionBarPage = GetActionBarPage()
+    
         if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(Mousebutton.slot)]
-            if mappedButton then
-                local pushedTexture = mappedButton:GetPushedTexture()
-                if pushedTexture then
-                    pushedTexture:Hide()  -- Hide the pushed texture
-                    --print("Hiding PushedTexture for button in slot", button.slot)
+            -- Check if currentActionBarPage is valid and map it to adjustedSlot
+            if currentActionBarPage and Mousebutton.slot then
+                -- Calculate the adjustedSlot based on currentActionBarPage
+                local adjustedSlot = Mousebutton.slot
+                if currentActionBarPage == 3 and Mousebutton.slot >= 25 and Mousebutton.slot <= 36 then
+                    adjustedSlot = Mousebutton.slot - 24  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 4 and Mousebutton.slot >= 37 and Mousebutton.slot <= 48 then
+                    adjustedSlot = Mousebutton.slot - 36  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 5 and Mousebutton.slot >= 49 and Mousebutton.slot <= 60 then
+                    adjustedSlot = Mousebutton.slot - 48  -- Map to ActionButton1-12
+                elseif currentActionBarPage == 6 and Mousebutton.slot >= 61 and Mousebutton.slot <= 72 then
+                    adjustedSlot = Mousebutton.slot - 60  -- Map to ActionButton1-12
+                end
+    
+                -- Look up the correct button in TextureMappings using the adjustedSlot
+                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                if mappedButton then
+                    local pushedTexture = mappedButton:GetPushedTexture()
+                    if pushedTexture then
+                        pushedTexture:Hide()  -- Hide the pushed texture
+                        --print("Hiding PushedTexture for button in slot", Mousebutton.slot)
+                    end
                 end
             end
         end
@@ -491,15 +608,60 @@ function addon:NewButtonMouse()
 
     Mousebutton:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
-            if locked == false then
+            if MouseLocked == false then
                 DragOrSize(self, button)
             else
                 addon.currentKey = self
                 local key = addon.currentKey.macro:GetText()
+
+                -- Define class and bonus bar offset and action bar page
+                local classFilename = UnitClassBase("player")
+                local bonusBarOffset = GetBonusBarOffset()
+                local currentActionBarPage = GetActionBarPage()
+
                 local actionSlot = SlotMappings[key]
+
                 if actionSlot then
-                    PickupAction(actionSlot)
-                    addon:RefreshKeys()
+                    -- Adjust action slot based on current action bar page
+                    local adjustedSlot = tonumber(actionSlot)
+
+                    -- Handle bonus bar offsets for ROGUE and DRUID
+                    if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
+                        if bonusBarOffset == 1 then
+                            adjustedSlot = adjustedSlot + 72 -- Maps to 73-84
+                        elseif bonusBarOffset == 2 then
+                            adjustedSlot = adjustedSlot -- No change for offset 2
+                        elseif bonusBarOffset == 3 then
+                            adjustedSlot = adjustedSlot + 96 -- Maps to 97-108
+                        elseif bonusBarOffset == 4 then
+                            adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
+                        elseif bonusBarOffset == 5 then
+                            adjustedSlot = adjustedSlot -- No change for offset 5
+                        end
+                    end
+
+                    -- Adjust based on current action bar page
+                    if currentActionBarPage == 2 then
+                        adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
+                    elseif currentActionBarPage == 3 then
+                        adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
+                    elseif currentActionBarPage == 4 then
+                        adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
+                    elseif currentActionBarPage == 5 then
+                        adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
+                    elseif currentActionBarPage == 6 then
+                        adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
+                    end
+
+                    -- Ensure adjustedSlot is valid before picking up
+                    if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
+                        PickupAction(adjustedSlot)
+                        addon:RefreshKeys()
+                    else
+                        -- Optionally handle cases where the adjusted slot is out of range
+                        PickupAction(actionSlot)
+                        addon:RefreshKeys()
+                    end
                 end
             end
         else
@@ -509,12 +671,12 @@ function addon:NewButtonMouse()
 
     Mousebutton:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
-            if locked == false then  
+            if MouseLocked == false then  
                 Release(self, button)
             else
                 infoType, info1, info2 = GetCursorInfo()
                 if infoType == "spell" then
-                    local spellname = GetSpellBookItemName(info1, info2)
+                    local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
                     addon.currentKey = self
                     local key = addon.currentKey.macro:GetText()
                     local actionSlot = SlotMappings[key]
@@ -531,17 +693,76 @@ function addon:NewButtonMouse()
         end
     end)
 
-    -- difference retail code -------------------------------------------------
-    local glowBox = CreateFrame("Frame", nil, Mousebutton, "GlowBoxTemplate")
-    glowBox:SetSize(48, 48)
-    glowBox:SetPoint("CENTER", Mousebutton, "CENTER", 0, 0)
-    glowBox:Show()
-    glowBox:SetFrameLevel(Mousebutton:GetFrameLevel())
-    ---------------------------------------------------------------------------
-
-    Mousebutton.glowBox = glowBox
-
 	KeysMouse[Mousebutton] = Mousebutton
 	
 	return Mousebutton	
+end
+
+function addon:CreateChangerDDMouse()
+    local KBChangeBoardDDMouse = CreateFrame("Frame", "KBChangeBoardDDMouse", MouseControls, "UIDropDownMenuTemplate")
+
+    KBChangeBoardDDMouse:SetPoint("TOP", MouseControls, "TOP", -20, -10)
+    UIDropDownMenu_SetWidth(KBChangeBoardDDMouse, 120)
+    UIDropDownMenu_SetButtonWidth(KBChangeBoardDDMouse, 120)
+    KBChangeBoardDDMouse:Hide()
+
+    local boardOrder = {"Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle"}
+
+    local function ChangeBoardDDMouse_Initialize(self, level)
+        level = level or 1
+        local info = UIDropDownMenu_CreateInfo()
+        local value = UIDROPDOWNMENU_MENU_VALUE
+
+        for _, name in ipairs(boardOrder) do
+            local Mousebuttons = KeyBindAllBoardsMouse[name]
+            info.text = name
+            info.value = name
+            info.colorCode = "|cFFFFFFFF" -- white
+            info.func = function()
+                KeyBindSettingsMouse.currentboard = name
+                wipe(CurrentLayoutMouse)
+                CurrentLayoutMouse = {[name] = KeyBindAllBoardsMouse[name]}
+                addon:RefreshKeys()
+                UIDropDownMenu_SetText(self, name)
+                MouseControls.Input:SetText("")
+                MouseControls.Input:ClearFocus()
+            end
+            UIDropDownMenu_AddButton(info, level)
+        end
+
+        if type(MouseKeyEditLayouts) == "table" then
+            for name, layout in pairs(MouseKeyEditLayouts) do
+                info.text = name
+                info.value = name
+                info.colorCode = "|cffff8000"
+                info.func = function()
+                    wipe(CurrentLayoutMouse)
+                    CurrentLayoutMouse[name] = layout
+                    addon:RefreshKeys()
+                    UIDropDownMenu_SetText(self, name)
+                    MouseControls.Input:SetText("")
+                    MouseControls.Input:ClearFocus()
+                end
+                UIDropDownMenu_AddButton(info, level)
+            end
+        else
+            return
+        end
+        
+        --info.text = "New Layout"
+        --info.value = "New Layout"
+        --info.colorCode = "|cFFFFFF00" -- Yellow
+        --info.func = function()
+        --    Mouse.Input:SetText("New Layout")
+        --    for _, k in pairs(KeysMouse) do
+        --        k:Hide()
+        --    end
+        --    UIDropDownMenu_SetText(self, "New Layout")
+        --end
+        --UIDropDownMenu_AddButton(info, level)
+
+    end
+    UIDropDownMenu_Initialize(KBChangeBoardDDMouse, ChangeBoardDDMouse_Initialize)
+    self.ddChangerMouse = KBChangeBoardDDMouse
+    return KBChangeBoardDDMouse
 end

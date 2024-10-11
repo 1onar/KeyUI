@@ -9,8 +9,10 @@ local LDB = LibStub("LibDataBroker-1.1")
 -- Initialize global variables and SavedVariables
 KeyBindSettings = KeyBindSettings or {}
 KeyBindSettingsMouse = KeyBindSettingsMouse or {}
-CurrentLayout = CurrentLayout or {}
+CurrentLayoutMouse = CurrentLayoutMouse or {}
+CurrentLayoutKeyboard = CurrentLayoutKeyboard or {}
 MouseKeyEditLayouts = MouseKeyEditLayouts or {}
+KeyboardEditLayouts = KeyboardEditLayouts or {}
 Keys = {}
 KeysMouse = {}
 addonOpen = false
@@ -24,6 +26,7 @@ KeyUI_Settings.showKeyboard = KeyUI_Settings.showKeyboard ~= nil and KeyUI_Setti
 KeyUI_Settings.showMouse = KeyUI_Settings.showMouse ~= nil and KeyUI_Settings.showMouse or true
 KeyUI_Settings.stayOpenInCombat = KeyUI_Settings.stayOpenInCombat ~= nil and KeyUI_Settings.stayOpenInCombat or true
 KeyUI_Settings.showPushedTexture = KeyUI_Settings.showPushedTexture ~= nil and KeyUI_Settings.showPushedTexture or true
+KeyUI_Settings.preventEscClose = KeyUI_Settings.preventEscClose ~= nil and KeyUI_Settings.preventEscClose or true
 
 -- Initialize modif table to avoid nil errors
 local modif = modif or {}
@@ -31,6 +34,27 @@ modif.CTRL = modif.CTRL or ""
 modif.SHIFT = modif.SHIFT or ""
 modif.ALT = modif.ALT or ""
 addon.modif = modif
+
+local function SetEscCloseEnabled(frame, enabled)
+    if not frame or not frame:GetName() then return end
+
+    if enabled then
+        -- Remove the frame from UISpecialFrames if ESC closing is disabled
+        for i, frameName in ipairs(UISpecialFrames) do
+            if frameName == frame:GetName() then
+                tremove(UISpecialFrames, i)
+                --print(frame:GetName() .. " removed from UISpecialFrames")
+                break
+            end
+        end
+    else
+        -- Add the frame back to UISpecialFrames to allow ESC closing
+        if not tContains(UISpecialFrames, frame:GetName()) then
+            tinsert(UISpecialFrames, frame:GetName())
+            --print(frame:GetName() .. " added to UISpecialFrames")
+        end
+    end
+end
 
 -- Define the options table for AceConfig
 local options = {
@@ -118,7 +142,7 @@ local options = {
             type = "execute",
             name = "Reset Addon Settings",
             desc = "Reset all settings to their default values",
-            order = 6,
+            order = 7,
             confirm = true,  -- Ask for confirmation
             confirmText = "Are you sure you want to reset all settings to default?",
             func = function()
@@ -128,6 +152,7 @@ local options = {
                     ["stayOpenInCombat"] = true,
                     ["showKeyboard"] = true,
                     ["showPushedTexture"] = true,
+                    ["preventEscClose"] = true,
                 }
                 MiniMapDB = {
                     ["hide"] = false,
@@ -139,7 +164,9 @@ local options = {
                 KeyBindSettings = {}
                 KeyBindSettingsMouse = {}
                 MouseKeyEditLayouts = {}
-                CurrentLayout = {}
+                KeyboardEditLayouts = {}
+                CurrentLayoutMouse = {}
+                CurrentLayoutKeyboard = {}
                 tutorialCompleted = nil
 
                 -- Save the reset settings
@@ -149,6 +176,27 @@ local options = {
                 ReloadUI()
             end,
         },
+        preventEscClose = {
+            type = "toggle",
+            name = "Enable ESC",
+            desc = "Enable or disable the addon window closing when pressing ESC",
+            order = 6,
+            get = function() return KeyUI_Settings.preventEscClose end,
+            set = function(_, value)
+                KeyUI_Settings.preventEscClose = value
+                addon:SaveSettings()
+                
+                -- Immediately update the ESC closing behavior for all relevant frames
+                SetEscCloseEnabled(KeyUIMainFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(KBControlsFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(Mouseholder, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(MouseFrame, not KeyUI_Settings.preventEscClose)
+                SetEscCloseEnabled(MouseControls, not KeyUI_Settings.preventEscClose)
+                
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Closing with ESC " .. status)
+            end,
+        }        
     },
 }
 
@@ -261,14 +309,13 @@ function addon:Load()
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
         self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
 
-        local currentActiveBoard = KeyBindSettings.currentboard
+        local currentActiveBoard = next(CurrentLayoutKeyboard)
         UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
 
-        local layoutKey = next(CurrentLayout)
+        local layoutKey = next(CurrentLayoutMouse)
         UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
         
         self:LoadSpells()
-        self:LoadDropDown()
         self:RefreshKeys()
     end
 end
@@ -300,11 +347,6 @@ function addon:HideAll()
     Mouseholder:Hide()
     MouseFrame:Hide()
     MouseControls:Hide()
-end
-
--- LoadDropDown() - This function initializes the dropdown menu for key bindings.
-function addon:LoadDropDown()
-    self.menu = {}
 end
 
 -- Load all available spells and abilities of the player and store them in a table.
@@ -444,333 +486,6 @@ function addon:ButtonMouseOver(button)
     end
 end
 
--- Create a new button on the given parent frame or default to the main keyboard frame.
-function addon:NewButton(parent)
-    if not parent then
-        parent = self.keyboardFrame
-    end
-
-    -- Create a frame that acts as a button with a tooltip border.
-    local button = CreateFrame("FRAME", nil, parent, "TooltipBorderedFrameTemplate")
-    button:SetMovable(true)
-    button:EnableMouse(true)
-    button:SetBackdropColor(0, 0, 0, 1)
-
-    -- Create a label to display the full name of the action.
-    button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    button.label:SetTextColor(1, 1, 1, 0.9)
-    button.label:SetHeight(50)
-    button.label:SetWidth(100)
-    button.label:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
-    button.label:SetJustifyH("RIGHT")
-    button.label:SetJustifyV("TOP")
-
-    -- Create a shorter label, possibly for abbreviations or shorter texts.
-    button.ShortLabel = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
-    button.ShortLabel:SetHeight(50)
-    button.ShortLabel:SetWidth(100)
-    button.ShortLabel:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
-    button.ShortLabel:SetJustifyH("RIGHT")
-    button.ShortLabel:SetJustifyV("TOP")
-
-    -- Hidden font string to store the macro text.
-    button.macro = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.macro:SetText("")
-    button.macro:Hide()
-
-    -- Font string to display the interface action text.
-    button.interfaceaction = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    button.interfaceaction:SetTextColor(1, 1, 1)
-    button.interfaceaction:SetHeight(58)
-    button.interfaceaction:SetWidth(58)
-    button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
-    button.interfaceaction:SetText("")
-
-    -- Icon texture for the button.
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(50, 50)
-    button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 5, -5)
-
-    -- Define the mouse hover behavior to show tooltips.
-    button:SetScript("OnEnter", function()
-        self:ButtonMouseOver(button)
-
-        -- Only show the PushedTexture if the setting is enabled
-        if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(button.slot)]
-            if mappedButton then
-                local normalTexture = mappedButton:GetNormalTexture()
-                if normalTexture and normalTexture:IsVisible() then
-                    local pushedTexture = mappedButton:GetPushedTexture()
-                    if pushedTexture then
-                        pushedTexture:Show()  -- Show the pushed texture
-                        --print("Showing PushedTexture for button in slot", button.slot)
-                    end
-                --else
-                    --print("not visible")
-                end
-            end
-        end
-    end)
-
-    button:SetScript("OnLeave", function()
-        GameTooltip:Hide()
-        KeyUITooltip:Hide()
-
-        -- Only show the PushedTexture if the setting is enabled
-        if KeyUI_Settings.showPushedTexture then
-            -- Look up the correct button in TextureMappings using the slot number
-            local mappedButton = TextureMappings[tostring(button.slot)]
-            if mappedButton then
-                local pushedTexture = mappedButton:GetPushedTexture()
-                if pushedTexture then
-                    pushedTexture:Hide()  -- Hide the pushed texture
-                    --print("Hiding PushedTexture for button in slot", button.slot)
-                end
-            end
-        end
-    end)
-
-    -- Define behavior for mouse down actions (left-click).
-    button:SetScript("OnMouseDown", function(self, Mousebutton)
-        if Mousebutton == "LeftButton" then
-            addon.currentKey = self
-            local key = addon.currentKey.macro:GetText()
-
-            -- Check if 'key' is non-nil and non-empty before proceeding.
-            if key and key ~= "" then
-                local actionSlot = SlotMappings[key]
-                if actionSlot then
-                    PickupAction(actionSlot)
-                    addon:RefreshKeys()
-                elseif button.stateaction then
-                    local pickupstateaction = loadstring("return " .. button.stateaction)()
-                    PickupAction(pickupstateaction)
-                    addon:RefreshKeys()
-                elseif button.petActionIndex then
-                    -- Pickup a pet action
-                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                    return
-                elseif button.spellid then
-                    print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                    -- Pickup a pet spell
-                    return
-                elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                    -- Handle ElvUI Buttons
-                    local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                    local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                    if elvUIButton and elvUIButton._state_action then
-                        PickupAction(elvUIButton._state_action)
-                        addon:RefreshKeys()
-                    end
-                end
-            else
-                -- Handle the case where the key is nil or empty
-                --print("No valid macro text found for the button.")
-            end
-        end
-    end)
-
-    -- Define behavior for mouse up actions (left-click and right-click).
-    button:SetScript("OnMouseUp", function(self, Mousebutton)
-        if Mousebutton == "LeftButton" then
-            local infoType, info1, info2 = GetCursorInfo()
-
-            -- Debug output to check values (optional)
-            --print("infoType:", infoType)
-            --print("info1 (expected spellbook slot):", info1)
-            --print("info2 (expected spellbook type):", info2)
-
-            if infoType == "spell" then
-                local slotIndex = tonumber(info1)
-
-                -- Determine the correct spell book type based on info2.
-                local spellBookType
-                if info2 == "spell" then
-                    spellBookType = Enum.SpellBookSpellBank.Player  -- Default to player spells.
-                elseif info2 == "pet" then
-                    spellBookType = Enum.SpellBookSpellBank.Pet     -- For pet spells.
-                else
-                    --print("Unknown spell book type:", info2)
-                    return
-                end
-
-                -- Ensure slotIndex is valid before using it.
-                if slotIndex then
-                    local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(slotIndex, spellBookType)
-
-                    -- Check if spellBookItemInfo is valid before accessing its properties.
-                    if spellBookItemInfo then
-                        local spellname = spellBookItemInfo.name
-                        addon.currentKey = self
-                        local key = addon.currentKey.macro:GetText()
-                        if key and key ~= "" then
-                            local actionSlot = SlotMappings[key]
-                            if actionSlot then
-                                PlaceAction(actionSlot)
-                                ClearCursor()
-                                addon:RefreshKeys()
-                            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                                -- Handle ElvUI Buttons.
-                                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                                if elvUIButton and elvUIButton._state_action then
-                                    PlaceAction(elvUIButton._state_action)
-                                    ClearCursor()
-                                    addon:RefreshKeys()
-                                end
-                            end
-                        else
-                            -- Handle the case where the key is nil or empty
-                            --print("No valid macro text found for the button.")
-                        end
-                    else
-                        --print("spellBookItemInfo is nil")
-                    end
-                else
-                    --print("Invalid slotIndex:", slotIndex)
-                end
-            end
-        elseif Mousebutton == "RightButton" then
-            addon.currentKey = self
-            ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
-        end
-    end)
-
-    -- this is need in wow classic to highlight. Don't touch it. --
-    local glowBox = CreateFrame("Frame", nil, button, "GlowBoxTemplate")
-    glowBox:SetSize(58, 58)
-    glowBox:SetPoint("CENTER", button, "CENTER", 0, 0)
-    glowBox:Hide()
-    glowBox:SetFrameLevel(button:GetFrameLevel())
-
-    button.glowBox = glowBox
-    ---------------------------------------------------------------
-
-    return button
-end
-
--- SwitchBoard(board) - This function switches the key binding board to display different key bindings.
-function addon:SwitchBoard(board)
-    -- Clear the existing Keys array to avoid leftover data from previous layouts
-    for i = 1, #Keys do
-        Keys[i]:Hide()
-        Keys[i] = nil
-    end
-    Keys = {}
-
-    -- Proceed with setting up the new layout
-
-    if KeyBindAllBoards[board] and addonOpen == true and addon.keyboardFrame then
-        board = KeyBindAllBoards[board]
-        
-        addon.keyboardFrame:SetWidth(100)
-        addon.keyboardFrame:SetHeight(100)
-
-        local cx, cy = addon.keyboardFrame:GetCenter()
-        local left, right, top, bottom = cx, cx, cy, cy
-
-        for i = 1, #board do
-            local Key = Keys[i] or self:NewButton()
-
-            if board[i][5] then
-                Key:SetWidth(board[i][5])
-                Key:SetHeight(board[i][6])
-            else
-                Key:SetWidth(60)
-                Key:SetHeight(60)
-            end
-
-            if not Keys[i] then
-                Keys[i] = Key
-            end
-
-            Key:SetPoint("TOPLEFT", self.keyboardFrame, "TOPLEFT", board[i][3], board[i][4])
-            Key.label:SetText(board[i][1])
-            local tempframe = Key
-            tempframe:Show()
-
-            local l, r, t, b = Key:GetLeft(), Key:GetRight(), Key:GetTop(), Key:GetBottom()
-
-            if l < left then
-                left = l
-            end
-            if r > right then
-                right = r
-            end
-            if t > top then
-                top = t
-            end
-            if b < bottom then
-                bottom = b
-            end
-        end
-
-        self.keyboardFrame:SetWidth(right - left + 12)
-        self.keyboardFrame:SetHeight(top - bottom + 12)
-        KBControlsFrame:SetWidth(self.keyboardFrame:GetWidth())
-
-    end
-end
-
-function addon:SwitchBoardMouse()
-    if addonOpen == true and addon.MouseFrame then
-        if CurrentLayout then
-            
-            -- Calculate the center of the Mouse frame once
-            local cx, cy = addon.MouseFrame:GetCenter()
-            local left, right, top, bottom = cx, cx, cy, cy
-
-            for _, layoutData in pairs(CurrentLayout) do
-                for i = 1, #layoutData do
-                    local MouseKey = KeysMouse[i] or self:NewButtonMouse()
-                    local currentLayout = layoutData[i]
-
-                    if currentLayout[5] then
-                        MouseKey:SetWidth(currentLayout[5])
-                        MouseKey:SetHeight(currentLayout[6])
-                    else
-                        MouseKey:SetWidth(85)
-                        MouseKey:SetHeight(85)
-                    end
-
-                    if not KeysMouse[i] then
-                        KeysMouse[i] = MouseKey
-                    end
-
-                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", currentLayout[3], currentLayout[4])
-                    MouseKey.label:SetText(currentLayout[1])
-                    local tempframe = MouseKey
-                    tempframe:Show()
-                end
-            end
-
-            -- After all buttons are added, set the size of the Mouse frame
-            for i = 1, #KeysMouse do
-                local l, r, t, b = KeysMouse[i]:GetLeft(), KeysMouse[i]:GetRight(), KeysMouse[i]:GetTop(), KeysMouse[i]:GetBottom()
-
-                if l < left then
-                    left = l
-                end
-                if r > right then
-                    right = r
-                end
-                if t > top then
-                    top = t
-                end
-                if b < bottom then
-                    bottom = b
-                end
-            end
-        end
-    end
-end
-
 -- CheckModifiers() - Checks the modifier keys (Shift, Ctrl, Alt) and allows the player to toggle them on or off.
 function addon:CheckModifiers()
     for v, button in pairs(Keys) do
@@ -811,15 +526,16 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
-    -- Define class and bonus bar offset
+    -- Define class and bonus bar offset and action bar page
     local classFilename = UnitClassBase("player")
     local bonusBarOffset = GetBonusBarOffset()
+    local currentActionBarPage = GetActionBarPage()
 
     -- Handling empty bindings early
     if ShowEmptyBinds == true then
         local labelText = button.label:GetText()
         if spell == "" and not tContains({"ESC", "CAPS", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
-            -- don't touch this ---------------------------------------------------------------------------------
+    -- don't touch this ---------------------------------------------------------------------------------
             button:SetBackdropColor(1, 1, 1, 1)
             if button.glowBox then
                 button.glowBox:Show()
@@ -831,7 +547,7 @@ function addon:SetKey(button)
                 button.glowBox:Hide()
             end
         end
-        -----------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------
     else
         button:SetBackdropColor(0, 0, 0, 1)  -- Reset to the default color if a binding is set
         if button.glowBox then
@@ -839,9 +555,10 @@ function addon:SetKey(button)
         end
     end
 
-    -- Determine action button slot based on class and offset (for regular action buttons)
+    -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
-        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 then
+        -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
+        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
             if bonusBarOffset == 1 then
                 return slot + 72 -- Maps to 73-84
             elseif bonusBarOffset == 2 then
@@ -854,7 +571,21 @@ function addon:SetKey(button)
                 return slot -- No change for offset 5
             end
         end
-        return slot -- Default 1-12 for other classes and offset == 0
+
+        -- Handle other action bar pages for all classes
+        if currentActionBarPage == 2 then
+            return slot + 12 -- Maps to 13-24
+        elseif currentActionBarPage == 3 then
+            return slot + 24 -- Maps to 25-36
+        elseif currentActionBarPage == 4 then
+            return slot + 36 -- Maps to 37-48
+        elseif currentActionBarPage == 5 then
+            return slot + 48 -- Maps to 49-60
+        elseif currentActionBarPage == 6 then
+            return slot + 60 -- Maps to 61-72
+        end
+
+        return slot -- Default 1-12
     end
 
     -- Standard ActionButton logic
@@ -986,17 +717,17 @@ function addon:SetKey(button)
     end
 
     -- Label Shortening
-    if LabelMapping[button.label:GetText()] then
+    if button.ShortLabel and LabelMapping[button.label:GetText()] then
         button.label:Hide()
         button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
-    end
+    end    
 end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
     --print("RefreshKeys function called")  -- Print statement
 
-    if not locked then
+    if KeyboardLocked == false or MouseLocked == false then
         return
     end
 
@@ -1031,13 +762,15 @@ function addon:RefreshKeys()
     self:SwitchBoard(KeyBindSettings.currentboard)
     if edited == false then
         self:SwitchBoardMouse()
+        if maximizeFlag == false then
+            ControlsFrame:SetWidth(keyboardFrame:GetWidth())
+        end
     else
         wipe(KeysMouse)
         edited = false
         self:SwitchBoardMouse()
     end
     self:CheckModifiers()
-    addon:RefreshControls()
 
     -- Set the keys
     for i = 1, #Keys do
@@ -1327,167 +1060,7 @@ function addon:CreateDropDown()
     return DropDown
 end
 
-function addon:CreateChangerDD() 
-    local KBChangeBoardDD = CreateFrame("Frame", "KBChangeBoardDD", KBControlsFrame, "UIDropDownMenuTemplate")
-
-    KBChangeBoardDD:SetPoint("BOTTOM", KBControlsFrame, "BOTTOM", 0, 14)
-    UIDropDownMenu_SetWidth(KBChangeBoardDD, 120)
-    UIDropDownMenu_SetButtonWidth(KBChangeBoardDD, 120)
-    KBChangeBoardDD:Hide()
-
-    local boardCategories = {
-        QWERTZ = {"QWERTZ_PRIMARY", "QWERTZ_HALF", "QWERTZ_1800", "QWERTZ_60%", "QWERTZ_75%", "QWERTZ_80%", "QWERTZ_96%", "QWERTZ_100%"},
-        QWERTY = {"QWERTY_PRIMARY", "QWERTY_HALF", "QWERTY_1800", "QWERTY_60%", "QWERTY_75%", "QWERTY_80%", "QWERTY_96%", "QWERTY_100%"},
-        AZERTY = {"AZERTY_PRIMARY", "AZERTY_HALF", "AZERTY_1800", "AZERTY_60%", "AZERTY_75%", "AZERTY_80%", "AZERTY_96%", "AZERTY_100%"},
-        DVORAK = {
-            Standard = {"DVORAK_PRIMARY", "DVORAK_100%"},
-            RightHand = {"DVORAK_RIGHT_PRIMARY", "DVORAK_RIGHT_100%"},
-            LeftHand = {"DVORAK_LEFT_PRIMARY", "DVORAK_LEFT_100%"}
-        },
-        Razer = {"Razer_Tartarus", "Razer_Tartarus2"},
-        Azeron = {"Azeron", "Azeron2"}
-    }
-
-    local categoryOrder = {"QWERTZ", "QWERTY", "AZERTY", "DVORAK", "Razer", "Azeron"}
-
-    local function ChangeBoardDD_Initialize(self, level, menuList)
-        level = level or 1
-        local info = UIDropDownMenu_CreateInfo()
-    
-        if level == 1 then
-            for _, category in ipairs(categoryOrder) do 
-                info.text = category
-                info.value = category
-                info.hasArrow = true
-                info.notCheckable = true
-                info.menuList = category
-                UIDropDownMenu_AddButton(info, level)
-            end
-        elseif level == 2 then
-            if menuList == "DVORAK" then
-                for subcategory, _ in pairs(boardCategories.DVORAK) do
-                    info.text = subcategory
-                    info.value = subcategory
-                    info.hasArrow = true
-                    info.notCheckable = true
-                    info.menuList = subcategory
-                    UIDropDownMenu_AddButton(info, level)
-                end
-            else
-                local layouts = boardCategories[menuList]
-                if layouts then
-                    for _, name in ipairs(layouts) do
-                        info.text = name
-                        info.value = name
-                        info.func = function()
-                            KeyBindSettings.currentboard = name
-                            addon:RefreshKeys()
-                            UIDropDownMenu_SetText(KBChangeBoardDD, name)
-                            if maximizeFlag == true then
-                                KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-                            else
-                                return
-                            end
-                        end
-                        UIDropDownMenu_AddButton(info, level)
-                    end
-                end
-            end
-        elseif level == 3 then
-            local layouts = boardCategories.DVORAK[menuList]
-            if layouts then
-                for _, name in ipairs(layouts) do
-                    info.text = name
-                    info.value = name
-                    info.func = function()
-                        KeyBindSettings.currentboard = name
-                        addon:RefreshKeys()
-                        UIDropDownMenu_SetText(KBChangeBoardDD, name)
-                        if maximizeFlag == true then
-                            KBControlsFrame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-                        else
-                            return
-                        end
-                    end
-                    UIDropDownMenu_AddButton(info, level)
-                end
-            end
-        end
-    end
-
-    UIDropDownMenu_Initialize(KBChangeBoardDD, ChangeBoardDD_Initialize)
-    self.ddChanger = KBChangeBoardDD
-    return KBChangeBoardDD
-end
-
-function addon:CreateChangerDDMouse()
-    local KBChangeBoardDDMouse = CreateFrame("Frame", "KBChangeBoardDDMouse", MouseControls, "UIDropDownMenuTemplate")
-
-    KBChangeBoardDDMouse:SetPoint("TOP", MouseControls, "TOP", -20, -10)
-    UIDropDownMenu_SetWidth(KBChangeBoardDDMouse, 120)
-    UIDropDownMenu_SetButtonWidth(KBChangeBoardDDMouse, 120)
-    KBChangeBoardDDMouse:Hide()
-
-    local boardOrder = {"Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle"}
-
-    local function ChangeBoardDDMouse_Initialize(self, level)
-        level = level or 1
-        local info = UIDropDownMenu_CreateInfo()
-        local value = UIDROPDOWNMENU_MENU_VALUE
-
-        for _, name in ipairs(boardOrder) do
-            local Mousebuttons = KeyBindAllBoardsMouse[name]
-            info.text = name
-            info.value = name
-            info.colorCode = "|cFFFFFFFF" -- white
-            info.func = function()
-                KeyBindSettingsMouse.currentboard = name
-                wipe(CurrentLayout)
-                CurrentLayout = {[name] = KeyBindAllBoardsMouse[name]}
-                addon:RefreshKeys()
-                UIDropDownMenu_SetText(self, name)
-                MouseControls.Input:SetText("")
-                MouseControls.Input:ClearFocus()
-            end
-            UIDropDownMenu_AddButton(info, level)
-        end
-
-        if type(MouseKeyEditLayouts) == "table" then
-            for name, layout in pairs(MouseKeyEditLayouts) do
-                info.text = name
-                info.value = name
-                info.colorCode = "|cFF31BD22" -- green
-                info.func = function()
-                    wipe(CurrentLayout)
-                    CurrentLayout[name] = layout
-                    addon:RefreshKeys()
-                    UIDropDownMenu_SetText(self, name)
-                    MouseControls.Input:SetText("")
-                    MouseControls.Input:ClearFocus()
-                end
-                UIDropDownMenu_AddButton(info, level)
-            end
-        else
-            return
-        end
-        --info.text = "New Layout"
-        --info.value = "New Layout"
-        --info.colorCode = "|cFFFFFF00" -- Yellow
-        --info.func = function()
-        --    Mouse.Input:SetText("New Layout")
-        --    for _, k in pairs(KeysMouse) do
-        --        k:Hide()
-        --    end
-        --    UIDropDownMenu_SetText(self, "New Layout")
-        --end
-        --UIDropDownMenu_AddButton(info, level)
-    end
-    UIDropDownMenu_Initialize(KBChangeBoardDDMouse, ChangeBoardDDMouse_Initialize)
-    self.ddChangerMouse = KBChangeBoardDDMouse
-    return KBChangeBoardDDMouse
-end
-
--- BattleCheck(event) - Checks whether the player is in combat or not and adjusts the display accordingly.
+-- Function to check battle status
 function addon:BattleCheck(event)
     if event == "PLAYER_REGEN_DISABLED" then
         fighting = true
@@ -1502,62 +1075,49 @@ function addon:BattleCheck(event)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         fighting = false
-        -- reopen after combat ends
-        --if KeyUI_Settings.stayOpenInCombat and not addonOpen then
-        --    addon:Load()
-        --end
+        -- Optional: Reopen after combat ends
+        -- if KeyUI_Settings.stayOpenInCombat and not addonOpen then
+        --     addon:Load()
+        -- end
     end
 end
 
--- Create a frame to handle stance and stealth events
+-- Event frame to handle all relevant events
 local eventFrame = CreateFrame("Frame")
-
--- Register events for stance changes
 eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+eventFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
+eventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
+eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+eventFrame:RegisterEvent("UNIT_PET")
+eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 
--- Define a function to handle stance events
-local function OnEvent(self, event, ...)
+-- Shared event handler function
+eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addonOpen then 
-        local classFilename = UnitClassBase("player")
-        
         if event == "UPDATE_BONUS_ACTIONBAR" then
-            -- Check if the class is Rogue or Druid
+            local classFilename = UnitClassBase("player")
+            -- Check if the class is Druid or Rogue
             if classFilename == "DRUID" or classFilename == "ROGUE" then
                 local bonusBarOffset = GetBonusBarOffset()
-                --print("Class Filename:", classFilename)
-                --print("Bonus Bar Offset:", bonusBarOffset)
                 addon:RefreshKeys()
             end
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then
+            -- Update the current action bar page
+            local currentActionBarPage = GetActionBarPage()
+            addon:RefreshKeys() -- Optional, reload keys when action bar page changes
+        elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
+            -- Check the battle status
+            addon:BattleCheck(event)
+        else
+            -- Delay refresh of keys to ensure proper updates
+            C_Timer.After(0.01, function()
+                addon:RefreshKeys()
+            end)
         end
     end
-end
-
--- Set the event handler function
-eventFrame:SetScript("OnEvent", OnEvent)
-
--- Existing code to handle other events
-local f = CreateFrame("Frame")
-f:RegisterEvent("ACTIONBAR_SHOWGRID")
-f:RegisterEvent("ACTIONBAR_HIDEGRID")
-f:RegisterEvent("UNIT_PET")
-f:SetScript("OnEvent", function(_, event, ...)
-    if addonOpen then
-        C_Timer.After(0.01, function()
-            addon:RefreshKeys()
-        end)
-    end
 end)
-
--- SpecCheck - Monitors changes in the player's talents.
-local SpecCheck = CreateFrame("Frame", "BackdropTemplate")
-SpecCheck:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-SpecCheck:SetScript("OnEvent", function(self, spec) end)
-
--- EventCheck - Monitors various in-game events such as entering and leaving combat mode.
-local EventCheck = CreateFrame("Frame")
-EventCheck:RegisterEvent("PLAYER_REGEN_ENABLED")
-EventCheck:RegisterEvent("PLAYER_REGEN_DISABLED")
-EventCheck:SetScript("OnEvent", function(self, event) addon:BattleCheck(event) end)
 
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
