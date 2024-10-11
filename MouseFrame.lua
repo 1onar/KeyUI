@@ -341,18 +341,17 @@ function addon:CreateMouseControls()
     end    
 
     MouseControls.Close = CreateFrame("Button", "$parentClose", MouseControls, "UIPanelCloseButton")
-    MouseControls.Close:SetSize(26, 26)
-    MouseControls.Close:SetPoint("TOPRIGHT", 0, 0)
+    MouseControls.Close:SetSize(42, 42)                                             -- difference retail code
+    MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)                                  -- difference retail code
     MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouseholder:Hide() end)
 
     MouseControls.MinMax = CreateFrame("Frame", "#parentMinMax", MouseControls, "MaximizeMinimizeButtonFrameTemplate")
-    MouseControls.MinMax:SetSize(26, 26)
-    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 2, 0)
+    MouseControls.MinMax:SetSize(42, 42)                                            -- difference retail code
+    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)      -- difference retail code
     MouseControls.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
     MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 
     MouseControls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    Controls.MinMax:Maximize() -- Set the MinMax button & control frame size to Minimize
 
     return MouseControls
 end

@@ -559,18 +559,17 @@ function addon:CreateControls()
     end
 
     Controls.Close = CreateFrame("Button", "$parentClose", Controls, "UIPanelCloseButton")
-    Controls.Close:SetSize(42, 42)                                          -- difference retail code
-    Controls.Close:SetPoint("TOPRIGHT", 8, 8)                               -- difference retail code
+    Controls.Close:SetSize(34, 34)                                          -- difference retail code
+    Controls.Close:SetPoint("TOPRIGHT", 6, 6)                               -- difference retail code
     Controls.Close:SetScript("OnClick", function(s) KeyUIMainFrame:Hide() KBControlsFrame:Hide() end) -- Toggle the Keyboard frame show/hide
  
     Controls.MinMax = CreateFrame("Frame", "#parentMinMax", Controls, "MaximizeMinimizeButtonFrameTemplate")
-    Controls.MinMax:SetSize(42, 42)                                         -- difference retail code
-    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 18, 0)        -- difference retail code
+    Controls.MinMax:SetSize(34, 34)                                         -- difference retail code
+    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 14, 0)        -- difference retail code
     Controls.MinMax:SetOnMaximizedCallback(OnMaximize)
     Controls.MinMax:SetOnMinimizedCallback(OnMinimize)
     
     Controls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    Controls.MinMax:Maximize() -- Set the MinMax button & control frame size to Minimize      -- difference retail code
 
     -- Show tutorial if not completed
     if not tutorialCompleted then
