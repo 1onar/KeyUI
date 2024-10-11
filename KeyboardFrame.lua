@@ -27,7 +27,7 @@ function addon:CreateKeyboard()
 
     Keyboard:SetHeight(382)
     Keyboard:SetWidth(940)
-    Keyboard:SetBackdropColor(0, 0, 0, 0.9)
+    Keyboard:SetBackdropColor(0, 0, 0, 0.7)     -- difference retail code
 
     -- Load the saved position if it exists
     if KeyboardPosition.x and KeyboardPosition.y then
@@ -559,18 +559,18 @@ function addon:CreateControls()
     end
 
     Controls.Close = CreateFrame("Button", "$parentClose", Controls, "UIPanelCloseButton")
-    Controls.Close:SetSize(22, 22)
-    Controls.Close:SetPoint("TOPRIGHT", 0, 0)
+    Controls.Close:SetSize(42, 42)                                          -- difference retail code
+    Controls.Close:SetPoint("TOPRIGHT", 8, 8)                               -- difference retail code
     Controls.Close:SetScript("OnClick", function(s) KeyUIMainFrame:Hide() KBControlsFrame:Hide() end) -- Toggle the Keyboard frame show/hide
  
     Controls.MinMax = CreateFrame("Frame", "#parentMinMax", Controls, "MaximizeMinimizeButtonFrameTemplate")
-    Controls.MinMax:SetSize(22, 22)
-    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 2, 0)
+    Controls.MinMax:SetSize(42, 42)                                         -- difference retail code
+    Controls.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 18, 0)        -- difference retail code
     Controls.MinMax:SetOnMaximizedCallback(OnMaximize)
     Controls.MinMax:SetOnMinimizedCallback(OnMinimize)
     
     Controls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    Controls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
+    Controls.MinMax:Maximize() -- Set the MinMax button & control frame size to Minimize      -- difference retail code
 
     -- Show tutorial if not completed
     if not tutorialCompleted then

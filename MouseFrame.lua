@@ -352,7 +352,7 @@ function addon:CreateMouseControls()
     MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 
     MouseControls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    MouseControls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
+    Controls.MinMax:Maximize() -- Set the MinMax button & control frame size to Minimize
 
     return MouseControls
 end
