@@ -909,10 +909,12 @@ function addon:SetKey(button)
     -- code for setting icons for other actions (movement, pets, etc.)
     local actionTextures = {
         EXTRAACTIONBUTTON1 = 4200126,
-        MOVEFORWARD = 450907,
-        MOVEBACKWARD = 450905,
-        STRAFELEFT = 450906,
-        STRAFERIGHT = 450908
+        MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_up",
+        MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_down",
+        STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\arrow_left",
+        STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\arrow_right",
+        TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\circle_left",
+        TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\circle_right",
     }
 
     if actionTextures[spell] then
