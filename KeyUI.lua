@@ -152,6 +152,7 @@ local options = {
                     ["stayOpenInCombat"] = true,
                     ["showKeyboard"] = true,
                     ["showPushedTexture"] = true,
+                    ["preventEscClose"] = true,
                 }
                 MiniMapDB = {
                     ["hide"] = false,
