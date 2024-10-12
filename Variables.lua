@@ -6,7 +6,7 @@ KeyUI_Settings.show_keyboard = KeyUI_Settings.show_keyboard or true
 KeyUI_Settings.show_mouse = KeyUI_Settings.show_mouse or true
 KeyUI_Settings.stay_open_in_combat = KeyUI_Settings.stay_open_in_combat or true
 KeyUI_Settings.show_pushed_texture = KeyUI_Settings.show_pushed_texture or true
-KeyUI_Settings.prevent_esc_close = KeyUI_Settings.prevent_esc_close ~= nil and KeyUI_Settings.prevent_esc_close or true
+KeyUI_Settings.prevent_esc_close = KeyUI_Settings.prevent_esc_close or true
 KeyUI_Settings.keyboard_position = KeyUI_Settings.keyboard_position or {}
 KeyUI_Settings.mouse_position = KeyUI_Settings.mouse_position or {}
 KeyUI_Settings.minimap = KeyUI_Settings.minimap or { hide = false }
@@ -23,7 +23,6 @@ MouseKeyEditLayouts = MouseKeyEditLayouts or {}
 KeyboardEditLayouts = KeyboardEditLayouts or {}
 
 -- Initialize global variables
-
 Keys = {}
 KeysMouse = {}
 MousePosition = {}

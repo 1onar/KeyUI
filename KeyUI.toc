@@ -20,9 +20,9 @@
 embeds.xml
 
 Variables.lua
+KeyUI.lua
 Mappings.lua
 LayoutsKeyboard.lua
 LayoutsMouse.lua
 MouseFrame.lua
 KeyboardFrame.lua
-KeyUI.lua

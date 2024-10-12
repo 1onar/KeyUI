@@ -64,7 +64,6 @@ local options = {
             get = function() return KeyUI_Settings.stay_open_in_combat end,
             set = function(_, value)
                 KeyUI_Settings.stay_open_in_combat = value
-                addon:SaveSettings()
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Stay open in combat " .. status)
             end,
@@ -77,7 +76,6 @@ local options = {
             get = function() return KeyUI_Settings.show_keyboard end,
             set = function(_, value)
                 KeyUI_Settings.show_keyboard = value
-                addon:SaveSettings()
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Keyboard visibility", status)
                 if addonOpen then
@@ -93,7 +91,6 @@ local options = {
             get = function() return KeyUI_Settings.show_mouse end,
             set = function(_, value)
                 KeyUI_Settings.show_mouse = value
-                addon:SaveSettings()
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Mouse visibility", status)
                 if addonOpen then
@@ -110,7 +107,6 @@ local options = {
             get = function() return KeyUI_Settings.show_pushed_texture end,
             set = function(_, value)
                 KeyUI_Settings.show_pushed_texture = value
-                addon:SaveSettings()
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Action button highlighting", status)
             end,
@@ -145,9 +141,6 @@ local options = {
                 CurrentLayoutMouse = {}
                 CurrentLayoutKeyboard = {}
 
-                -- Save the reset settings
-                addon:SaveSettings()
-
                 -- Reload the UI to apply the changes
                 ReloadUI()
             end,
@@ -160,7 +153,6 @@ local options = {
             get = function() return KeyUI_Settings.prevent_esc_close end,
             set = function(_, value)
                 KeyUI_Settings.prevent_esc_close = value
-                addon:SaveSettings()
                 
                 -- Immediately update the ESC closing behavior for all relevant frames
                 SetEscCloseEnabled(KeyUIMainFrame, not KeyUI_Settings.prevent_esc_close)
@@ -225,9 +217,7 @@ local miniButton = LDB:NewDataObject("KeyUI", {
 
 -- Handle addon load event and initialize minimap button visibility
 EventUtil.ContinueOnAddOnLoaded(..., function()
-    -- Ensure minimap settings are loaded or initialized
-    KeyUI_Settings.minimap = KeyUI_Settings.minimap or { hide = false }
-
+    
     -- Update minimap button visibility based on the saved settings
     if KeyUI_Settings.minimap.hide then
         LibDBIcon:Hide("KeyUI")
@@ -238,8 +228,7 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     -- Register the minimap button using LibDBIcon
     LibDBIcon:Register("KeyUI", miniButton, KeyUI_Settings.minimap)
 
-    -- Load additional saved settings and update the UI
-    addon:LoadSettings()
+    -- Update the UI
     addon:UpdateInterfaceVisibility()
 end)
 
@@ -298,20 +287,6 @@ function addon:Load()
         self:LoadSpells()
         self:RefreshKeys()
     end
-end
-
--- Save the current settings to SavedVariables
-function addon:SaveSettings()
-    KeyUI_Settings = KeyUI_Settings or {}
-    KeyUI_Settings.show_keyboard = KeyUI_Settings.show_keyboard
-    KeyUI_Settings.show_mouse = KeyUI_Settings.show_mouse
-end
-
--- Load settings from SavedVariables
-function addon:LoadSettings()
-    KeyUI_Settings = KeyUI_Settings or {}
-    KeyUI_Settings.show_keyboard = KeyUI_Settings.show_keyboard ~= nil and KeyUI_Settings.show_keyboard or false
-    KeyUI_Settings.show_mouse = KeyUI_Settings.show_mouse ~= nil and KeyUI_Settings.show_mouse or false
 end
 
 -- Hides all UI elements when the addon is closed
