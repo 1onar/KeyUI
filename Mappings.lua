@@ -888,6 +888,7 @@ InterfaceMapping = {
 }
 
 LabelMapping = {
+    ["CAPSLOCK"] = "CAPS",
     ["PRINTSCREEN"] = "PRINT",
     ["SCROLLLOCK"] = "SCROLL",
     ["INSERT"] = "INS",

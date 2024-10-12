@@ -1,20 +1,18 @@
 local name, addon = ...
 
-MousePosition = {}
-
-MouseLocked = true
-edited = false
-
+-- Save the position and scale of the mouse holder
 function addon:SaveMouse()
-    MousePosition.x, MousePosition.y = Mouseholder:GetCenter()
-    MousePosition.scale = Mouseholder:GetScale()
+    local x, y = Mouseholder:GetCenter()
+    KeyUI_Settings.mouse_position.x = x
+    KeyUI_Settings.mouse_position.y = y
+    KeyUI_Settings.mouse_position.scale = Mouseholder:GetScale()
 end
 
 function addon:CreateMouseholder()
     local Mouseholder = CreateFrame("Frame", "Mouseholder", UIParent)
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
+    if KeyUI_Settings.prevent_esc_close ~= false then
         tinsert(UISpecialFrames, "Mouseholder")
     end
     
@@ -23,9 +21,15 @@ function addon:CreateMouseholder()
     Mouseholder:Hide()
 
     -- Load the saved position if it exists
-    if MousePosition.x and MousePosition.y then
-        Mouseholder:SetPoint("CENTER", UIParent, "BOTTOMLEFT", MousePosition.x, MousePosition.y)
-        Mouseholder:SetScale(MousePosition.scale)
+    if KeyUI_Settings.mouse_position.x and KeyUI_Settings.mouse_position.y then
+        Mouseholder:SetPoint(
+            "CENTER",
+            UIParent,
+            "BOTTOMLEFT",
+            KeyUI_Settings.mouse_position.x,
+            KeyUI_Settings.mouse_position.y
+        )
+        Mouseholder:SetScale(KeyUI_Settings.mouse_position.scale)
     else
         Mouseholder:SetPoint("CENTER", UIParent, "CENTER", 580, 30)
         Mouseholder:SetScale(1)
@@ -47,7 +51,7 @@ function addon:CreateMouseUI()
     local MouseFrame = CreateFrame("Frame", "MouseFrame", Mouseholder)
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
+    if KeyUI_Settings.prevent_esc_close ~= false then
         tinsert(UISpecialFrames, "MouseFrame")
     end
 
@@ -70,7 +74,7 @@ function addon:CreateMouseControls()
     local MouseControls = CreateFrame("Frame", "MouseControls", Mouseholder, "TooltipBorderedFrameTemplate")
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
+    if KeyUI_Settings.prevent_esc_close ~= false then
         tinsert(UISpecialFrames, "MouseControls")
     end
 
@@ -142,7 +146,7 @@ function addon:CreateMouseControls()
                 end
                 Mouseholder:SetScale(newValue)
                 MouseControls.EditBox:SetText(string.format("%.2f", newValue))
-            end)        
+            end)
         --Size end
 
         --Text start
@@ -352,7 +356,7 @@ function addon:CreateMouseControls()
     MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 
     MouseControls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    MouseControls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
+    --MouseControls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
 
     return MouseControls
 end
@@ -537,7 +541,7 @@ function addon:NewButtonMouse()
         local currentActionBarPage = GetActionBarPage()
     
         -- Only show the PushedTexture if the setting is enabled
-        if KeyUI_Settings.showPushedTexture then
+        if KeyUI_Settings.show_pushed_texture then
             -- Check if currentActionBarPage is valid and map it to adjustedSlot
             if currentActionBarPage and Mousebutton.slot then
                 -- Calculate the adjustedSlot based on currentActionBarPage
@@ -578,7 +582,7 @@ function addon:NewButtonMouse()
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
     
-        if KeyUI_Settings.showPushedTexture then
+        if KeyUI_Settings.show_pushed_texture then
             -- Check if currentActionBarPage is valid and map it to adjustedSlot
             if currentActionBarPage and Mousebutton.slot then
                 -- Calculate the adjustedSlot based on currentActionBarPage

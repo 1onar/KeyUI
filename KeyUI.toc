@@ -10,21 +10,16 @@
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
 ## SavedVariables: KeyUI_Settings
-## SavedVariables: MiniMapDB
-## SavedVariables: KeyboardPosition
-## SavedVariables: MousePosition
-## SavedVariables: ShowEmptyBinds
-## SavedVariables: ShowInterfaceBinds
 ## SavedVariables: KeyBindSettings
 ## SavedVariables: KeyBindSettingsMouse
 ## SavedVariables: MouseKeyEditLayouts
 ## SavedVariables: KeyboardEditLayouts
 ## SavedVariables: CurrentLayoutMouse
 ## SavedVariables: CurrentLayoutKeyboard
-## SavedVariables: tutorialCompleted
 
 embeds.xml
 
+Variables.lua
 Mappings.lua
 LayoutsKeyboard.lua
 LayoutsMouse.lua

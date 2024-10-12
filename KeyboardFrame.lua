@@ -1,27 +1,18 @@
 local name, addon = ...
 
-KeyboardPosition = {}
-
-KeyboardLocked = true
-AltCheckbox = false
-CtrlCheckbox = false
-ShiftCheckbox = false
-
--- Initialize tutorialCompleted if it doesn't exist
-if tutorialCompleted == nil then
-    tutorialCompleted = false
-end
-
+-- Function to save the keyboard's position and scale
 function addon:SaveKeyboard()
-    KeyboardPosition.x, KeyboardPosition.y = KeyUIMainFrame:GetCenter()
-    KeyboardPosition.scale = KeyUIMainFrame:GetScale()
+    local x, y = KeyUIMainFrame:GetCenter()
+    KeyUI_Settings.keyboard_position.x = x
+    KeyUI_Settings.keyboard_position.y = y
+    KeyUI_Settings.keyboard_position.scale = KeyUIMainFrame:GetScale()
 end
 
 function addon:CreateKeyboard()
     local Keyboard = CreateFrame("Frame", 'KeyUIMainFrame', UIParent, "TooltipBorderedFrameTemplate") -- the frame holding the keys
  
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
+    if KeyUI_Settings.prevent_esc_close ~= false then
         tinsert(UISpecialFrames, "KeyUIMainFrame")
     end
 
@@ -30,9 +21,15 @@ function addon:CreateKeyboard()
     Keyboard:SetBackdropColor(0, 0, 0, 0.9)
 
     -- Load the saved position if it exists
-    if KeyboardPosition.x and KeyboardPosition.y then
-        Keyboard:SetPoint("CENTER", UIParent, "BOTTOMLEFT", KeyboardPosition.x, KeyboardPosition.y)
-        Keyboard:SetScale(KeyboardPosition.scale)
+    if KeyUI_Settings.keyboard_position.x and KeyUI_Settings.keyboard_position.y then
+        Keyboard:SetPoint(
+            "CENTER",
+            UIParent,
+            "BOTTOMLEFT",
+            KeyUI_Settings.keyboard_position.x,
+            KeyUI_Settings.keyboard_position.y
+        )
+        Keyboard:SetScale(KeyUI_Settings.keyboard_position.scale)
     else
         Keyboard:SetPoint("CENTER", UIParent, "CENTER", -300, 50)
         Keyboard:SetScale(1)
@@ -59,7 +56,7 @@ function addon:CreateControls()
     local modif = self.modif
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
+    if KeyUI_Settings.prevent_esc_close ~= false then
         tinsert(UISpecialFrames, "KBControlsFrame")
     end
 
@@ -181,19 +178,21 @@ function addon:CreateControls()
             SwitchBindsText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             SwitchBindsText:SetPoint("CENTER", 0, 0)
 
-            if ShowEmptyBinds == true then
+            -- Check the state of show_empty_binds in KeyUI_Settings
+            if KeyUI_Settings.show_empty_binds == true then
                 SwitchBindsText:SetText("Hide empty Keys")
             else
                 SwitchBindsText:SetText("Show empty Keys")
             end 
-            
+
+            -- Function to toggle the empty binds setting
             local function ToggleEmptyBinds()
-                if ShowEmptyBinds ~= true then
+                if KeyUI_Settings.show_empty_binds ~= true then
                     SwitchBindsText:SetText("Hide empty Keys")
-                    ShowEmptyBinds = true
+                    KeyUI_Settings.show_empty_binds = true
                 else
                     SwitchBindsText:SetText("Show empty Keys")
-                    ShowEmptyBinds = false
+                    KeyUI_Settings.show_empty_binds = false
                 end
                 addon:RefreshKeys()
             end
@@ -216,19 +215,21 @@ function addon:CreateControls()
             SwitchInterfaceText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
             SwitchInterfaceText:SetPoint("CENTER", 0, 0)
 
-            if ShowInterfaceBinds == true then
+            -- Handle showing/hiding interface binds
+            if KeyUI_Settings.show_interface_binds then
                 SwitchInterfaceText:SetText("Hide Interface Binds")
             else
                 SwitchInterfaceText:SetText("Show Interface Binds")
-            end 
+            end
 
+            -- Function to toggle interface binds visibility
             local function ToggleInterfaceBinds()
-                if ShowInterfaceBinds ~= true then
+                if not KeyUI_Settings.show_interface_binds then
                     SwitchInterfaceText:SetText("Hide Interface Binds")
-                    ShowInterfaceBinds = true
+                    KeyUI_Settings.show_interface_binds = true
                 else
                     SwitchInterfaceText:SetText("Show Interface Binds")
-                    ShowInterfaceBinds = false
+                    KeyUI_Settings.show_interface_binds = false
                 end
                 addon:RefreshKeys()
             end
@@ -570,10 +571,10 @@ function addon:CreateControls()
     Controls.MinMax:SetOnMinimizedCallback(OnMinimize)
     
     Controls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
-    Controls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
+    --Controls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
 
     -- Show tutorial if not completed
-    if not tutorialCompleted then
+    if KeyUI_Settings.tutorial_completed ~= true then
         ShowGlowAroundMinMax(Controls)
     end
 
@@ -605,7 +606,7 @@ function ShowGlowAroundMinMax(Controls)
         MinimizeButton:HookScript("OnClick", function()
             if glowFrame then
                 glowFrame:Hide()
-                tutorialCompleted = true -- Mark the tutorial as completed
+                KeyUI_Settings.tutorial_completed = true -- Mark the tutorial as completed
             end
         end)
     end
@@ -614,7 +615,7 @@ function ShowGlowAroundMinMax(Controls)
         MaximizeButton:HookScript("OnClick", function()
             if glowFrame then
                 glowFrame:Hide()
-                tutorialCompleted = true -- Mark the tutorial as completed
+                KeyUI_Settings.tutorial_completed = true -- Mark the tutorial as completed
             end
         end)
     end
@@ -820,7 +821,7 @@ function addon:NewButton(parent)
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
     
-        if KeyUI_Settings.showPushedTexture then
+        if KeyUI_Settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
             if button.slot then
                 -- Adjust the slot mapping based on the current action bar page
@@ -861,7 +862,7 @@ function addon:NewButton(parent)
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
     
-        if KeyUI_Settings.showPushedTexture then
+        if KeyUI_Settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
             if button.slot then
                 local adjustedSlot = button.slot

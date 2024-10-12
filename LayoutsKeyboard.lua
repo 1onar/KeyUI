@@ -71,7 +71,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -224,7 +224,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -335,7 +335,7 @@ KeyBindAllBoards = {
 
             -- 4 row
 
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -455,7 +455,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -540,7 +540,7 @@ KeyBindAllBoards = {
 
             -- 3 row
 
-                { 'CAPS', Keyboard, 6, -130, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -130, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -130, u, u },
                 { 'S', Keyboard, 177, -130, u, u },
                 { 'D', Keyboard, 239, -130, u, u },
@@ -652,7 +652,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -741,7 +741,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -824,7 +824,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -1788,7 +1788,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -1939,7 +1939,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -2048,7 +2048,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -2165,7 +2165,7 @@ KeyBindAllBoards = {
             
             -- 4 row
         
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -2248,7 +2248,7 @@ KeyBindAllBoards = {
         
             -- 3 row
         
-                { 'CAPS', Keyboard, 6, -130, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -130, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -130, u, u },
                 { 'S', Keyboard, 177, -130, u, u },
                 { 'D', Keyboard, 239, -130, u, u },
@@ -2358,7 +2358,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -2445,7 +2445,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -2526,7 +2526,7 @@ KeyBindAllBoards = {
             
             -- 4 row
             
-                { 'CAPS', Keyboard, 6, -192, u1_75 + 2, u },
+                { 'CAPSLOCK', Keyboard, 6, -192, u1_75 + 2, u },
                 { 'A', Keyboard, 115, -192, u, u },
                 { 'S', Keyboard, 177, -192, u, u },
                 { 'D', Keyboard, 239, -192, u, u },
@@ -3301,7 +3301,7 @@ KeyBindAllBoards = {
         { 'E', Keyboard, 192, -6, u, u },
         { 'R', Keyboard, 254, -6, u, u },
             
-        { 'CAPS', Keyboard, 6, -78, u, u },
+        { 'CAPSLOCK', Keyboard, 6, -78, u, u },
         { 'A', Keyboard, 68, -68, u, u },
         { 'S', Keyboard, 130, -68, u, u },
         { 'D', Keyboard, 192, -68, u, u },
@@ -3328,7 +3328,7 @@ KeyBindAllBoards = {
         { 'E', Keyboard, 192, -68, u, u },
         { 'R', Keyboard, 254, -68, u, u },
                         
-        { 'CAPS', Keyboard, 6, -140, u, u },
+        { 'CAPSLOCK', Keyboard, 6, -140, u, u },
         { 'A', Keyboard, 68, -130, u, u },
         { 'S', Keyboard, 130, -130, u, u },
         { 'D', Keyboard, 192, -130, u, u },
