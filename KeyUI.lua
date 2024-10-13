@@ -6,12 +6,56 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
+-- Create the options frame and add it to the Interface Options
+local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
+
 -- Initialize modif table to avoid nil errors
 local modif = modif or {}
 modif.CTRL = modif.CTRL or ""
 modif.SHIFT = modif.SHIFT or ""
 modif.ALT = modif.ALT or ""
 addon.modif = modif
+
+-- Minimap button setup using LibDataBroker
+local miniButton = LDB:NewDataObject("KeyUI", {
+    type = "data source",
+    text = "KeyUI",
+    icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
+    OnClick = function(self, btn)
+        if btn == "LeftButton" then
+            if addonOpen then
+                -- Close the addon regardless of the combat state
+                addon:HideAll()
+                addonOpen = false
+            else
+                -- Open the addon if stay_open_in_combat is true OR if not in combat
+                if not fighting or KeyUI_Settings.stay_open_in_combat then
+                    addon:Load()
+                    addonOpen = true
+                else
+                    print("KeyUI: Cannot open while in combat.")
+                end
+            end
+        elseif btn == "RightButton" then
+            -- Open the Blizzard settings page
+            Settings.OpenToCategory("KeyUI")
+        end
+    end,
+    
+    OnTooltipShow = function(tooltip)
+        if not tooltip or not tooltip.AddLine then return end
+
+        -- Add the title
+        tooltip:AddLine("KeyUI")
+        
+        -- Add blank line for spacing
+        tooltip:AddLine(" ")
+
+        -- Add description lines with custom colors
+        tooltip:AddLine("|cffffffffLeft-Click|r |cFF00FF00to toggle addon|r")
+        tooltip:AddLine("|cffffffffRight-Click|r |cFF00FF00to open options|r")
+    end,
+})
 
 local function SetEscCloseEnabled(frame, enabled)
     if not frame or not frame:GetName() then return end
@@ -112,7 +156,7 @@ local options = {
             end,
         },
         -- Add a button to reset all settings to defaults
-        resetSettings = {
+        reset_settings = {
             type = "execute",
             name = "Reset Addon Settings",
             desc = "Reset all settings to their default values",
@@ -122,16 +166,16 @@ local options = {
             func = function()
                 -- Reset all SavedVariables to their default values
                 KeyUI_Settings = {
+                    ["show_keyboard"] = true,
                     ["show_mouse"] = true,
                     ["stay_open_in_combat"] = true,
-                    ["show_keyboard"] = true,
                     ["show_pushed_texture"] = true,
                     ["prevent_esc_close"] = true,
                     ["keyboard_position"] = {},
                     ["mouse_position"] = {},
                     ["minimap"] = {hide = false,},
                     ["show_empty_binds"] = true,
-                    ["show_empty_binds"] = true,
+                    ["show_interface_binds"] = true,
                     ["tutorial_completed"] = false,
                 }
                 KeyBindSettings = {}
@@ -168,68 +212,17 @@ local options = {
     },
 }
 
--- Register the options table
-AceConfig:RegisterOptionsTable("KeyUI", options)
-
--- Create the options frame and add it to the Interface Options
-local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
-
--- Minimap button setup using LibDataBroker
-local miniButton = LDB:NewDataObject("KeyUI", {
-    type = "data source",
-    text = "KeyUI",
-    icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
-    OnClick = function(self, btn)
-        if btn == "LeftButton" then
-            if addonOpen then
-                -- Close the addon regardless of the combat state
-                addon:HideAll()
-                addonOpen = false
-            else
-                -- Open the addon if stay_open_in_combat is true OR if not in combat
-                if not fighting or KeyUI_Settings.stay_open_in_combat then
-                    addon:Load()
-                    addonOpen = true
-                else
-                    print("KeyUI: Cannot open while in combat.")
-                end
-            end
-        elseif btn == "RightButton" then
-            -- Open the Blizzard settings page
-            Settings.OpenToCategory("KeyUI")
-        end
-    end,
-    
-    OnTooltipShow = function(tooltip)
-        if not tooltip or not tooltip.AddLine then return end
-
-        -- Add the title
-        tooltip:AddLine("KeyUI")
-        
-        -- Add blank line for spacing
-        tooltip:AddLine(" ")
-
-        -- Add description lines with custom colors
-        tooltip:AddLine("|cffffffffLeft-Click|r |cFF00FF00to toggle addon|r")
-        tooltip:AddLine("|cffffffffRight-Click|r |cFF00FF00to open options|r")
-    end,
-})
-
--- Handle addon load event and initialize minimap button visibility
+-- Handle addon load event and initialize
 EventUtil.ContinueOnAddOnLoaded(..., function()
-    
+    -- Load additional saved settings and update the UI
+    addon:InitializeSettings()
+
     -- Register the minimap button using LibDBIcon
     LibDBIcon:Register("KeyUI", miniButton, KeyUI_Settings.minimap)
 
-    -- Update minimap button visibility based on the saved settings
-    if KeyUI_Settings.minimap.hide then
-        LibDBIcon:Hide("KeyUI")
-    else
-        LibDBIcon:Show("KeyUI")
-    end
+    -- Register the options table
+    AceConfig:RegisterOptionsTable("KeyUI", options)
 
-    -- Load additional saved settings and update the UI
-    addon:LoadSettings()
     addon:UpdateInterfaceVisibility()
 end)
 
@@ -290,17 +283,6 @@ function addon:Load()
     end
 end
 
--- Load settings from SavedVariables
-function addon:LoadSettings()
-    -- Fallback in case KeyUI_Settings is missing entirely
-    KeyUI_Settings = KeyUI_Settings or {}
-
-    -- Only safeguard structures and deeply nested values
-    KeyUI_Settings.keyboard_position = KeyUI_Settings.keyboard_position or {}
-    KeyUI_Settings.mouse_position = KeyUI_Settings.mouse_position or {}
-    KeyUI_Settings.minimap = KeyUI_Settings.minimap or { hide = false }
-end
-
 -- Hides all UI elements when the addon is closed
 function addon:HideAll()
     local keyboard = self:GetKeyboard()
@@ -340,7 +322,7 @@ function addon:LoadSpells()
 end
 
 local function OnFrameHide(self)
-    if not keyboardFrameVisible and not MouseholderFrameVisible then
+    if not keyboardFrameVisible or not MouseholderFrameVisible then
         addonOpen = false
     end
 end
@@ -522,8 +504,6 @@ function addon:SetKey(button)
                 return slot + 96 -- Maps to 97-108
             elseif bonusBarOffset == 4 then
                 return slot + 108 -- Maps to 109-120
-            elseif bonusBarOffset == 5 then
-                return slot -- No change for offset 5
             end
         end
 
@@ -538,6 +518,11 @@ function addon:SetKey(button)
             return slot + 48 -- Maps to 49-60
         elseif currentActionBarPage == 6 then
             return slot + 60 -- Maps to 61-72
+        end
+
+        -- Check if Dragonriding
+        if bonusBarOffset == 5 and currentActionBarPage == 1 then
+            return slot + 120 -- Maps to 121-132
         end
 
         return slot -- Default 1-12
@@ -1047,6 +1032,7 @@ eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+eventFrame:RegisterEvent("PLAYER_LOGOUT")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -1065,6 +1051,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
             -- Check the battle status
             addon:BattleCheck(event)
+        elseif event == "PLAYER_LOGOUT" then
+            -- Save Keyboard and Mouse Position when logging out
+            addon:SaveKeyboard()
+            addon:SaveMouse()
         else
             -- Delay refresh of keys to ensure proper updates
             C_Timer.After(0.01, function()

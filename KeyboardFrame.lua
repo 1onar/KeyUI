@@ -937,8 +937,13 @@ function addon:NewButton(parent)
                             adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
                         end
 
+                        -- Check if Dragonriding
+                        if bonusBarOffset == 5 and currentActionBarPage == 1 then
+                            adjustedSlot = adjustedSlot + 120 -- Maps to 121-132
+                        end
+
                         -- Ensure adjustedSlot is valid before picking up
-                        if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
+                        if adjustedSlot >= 1 and adjustedSlot <= 132 then  -- Adjust the upper limit as necessary
                             PickupAction(adjustedSlot)
                             --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
                             addon:RefreshKeys()

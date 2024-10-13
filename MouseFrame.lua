@@ -63,7 +63,7 @@ function addon:CreateMouseUI()
 
     addon.MouseFrame = MouseFrame
 
-    if KeyUI_Settings.showKeyboard == false then
+    if KeyUI_Settings.show_keyboard == false then
         addon:RefreshKeys()
     end
 
@@ -657,8 +657,13 @@ function addon:NewButtonMouse()
                         adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
                     end
 
+                    -- Check if Dragonriding
+                    if bonusBarOffset == 5 and currentActionBarPage == 1 then
+                        adjustedSlot = adjustedSlot + 120 -- Maps to 121-132
+                    end
+
                     -- Ensure adjustedSlot is valid before picking up
-                    if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
+                    if adjustedSlot >= 1 and adjustedSlot <= 132 then  -- Adjust the upper limit as necessary
                         PickupAction(adjustedSlot)
                         addon:RefreshKeys()
                     else

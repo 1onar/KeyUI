@@ -1,26 +1,37 @@
--- Initialize SavedVariables for KeyUI settings and ensure all settings are present
+-- Initialize SavedVariables for KeyUI settings
 KeyUI_Settings = KeyUI_Settings or {}
 
--- Ensure each setting is initialized if it doesn't exist
-KeyUI_Settings.show_keyboard = KeyUI_Settings.show_keyboard or true
-KeyUI_Settings.show_mouse = KeyUI_Settings.show_mouse or true
-KeyUI_Settings.stay_open_in_combat = KeyUI_Settings.stay_open_in_combat or true
-KeyUI_Settings.show_pushed_texture = KeyUI_Settings.show_pushed_texture or true
-KeyUI_Settings.prevent_esc_close = KeyUI_Settings.prevent_esc_close or true
-KeyUI_Settings.keyboard_position = KeyUI_Settings.keyboard_position or {}
-KeyUI_Settings.mouse_position = KeyUI_Settings.mouse_position or {}
-KeyUI_Settings.minimap = KeyUI_Settings.minimap or { hide = false }
-KeyUI_Settings.show_empty_binds = KeyUI_Settings.show_empty_binds or false
-KeyUI_Settings.show_interface_binds = KeyUI_Settings.show_interface_binds or false
-KeyUI_Settings.tutorial_completed = KeyUI_Settings.tutorial_completed or false
+local name, addon = ...
+
+local function set_if_nil(setting, default)
+    if KeyUI_Settings[setting] == nil then
+        KeyUI_Settings[setting] = default
+    end
+end
 
 -- Initialize SavedVariables
-KeyBindSettings = KeyBindSettings or {}
-KeyBindSettingsMouse = KeyBindSettingsMouse or {}
-CurrentLayoutMouse = CurrentLayoutMouse or {}
-CurrentLayoutKeyboard = CurrentLayoutKeyboard or {}
-MouseKeyEditLayouts = MouseKeyEditLayouts or {}
-KeyboardEditLayouts = KeyboardEditLayouts or {}
+function addon:InitializeSettings()
+    -- Set default values only if they are nil
+    set_if_nil("show_keyboard", true)
+    set_if_nil("show_mouse", true)
+    set_if_nil("stay_open_in_combat", true)
+    set_if_nil("show_pushed_texture", true)
+    set_if_nil("prevent_esc_close", true)
+    set_if_nil("keyboard_position", {})
+    set_if_nil("mouse_position", {})
+    set_if_nil("minimap", { hide = false })
+    set_if_nil("show_empty_binds", false)
+    set_if_nil("show_interface_binds", false)
+    set_if_nil("tutorial_completed", false)
+
+    -- Initialize other SavedVariables
+    KeyBindSettings = KeyBindSettings or {}
+    KeyBindSettingsMouse = KeyBindSettingsMouse or {}
+    CurrentLayoutMouse = CurrentLayoutMouse or {}
+    CurrentLayoutKeyboard = CurrentLayoutKeyboard or {}
+    MouseKeyEditLayouts = MouseKeyEditLayouts or {}
+    KeyboardEditLayouts = KeyboardEditLayouts or {}
+end
 
 -- Initialize global variables
 Keys = {}

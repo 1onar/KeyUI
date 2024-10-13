@@ -1437,4 +1437,18 @@ TextureMappings = {
     ["178"] = MultiBar7Button10,
     ["179"] = MultiBar7Button11,
     ["180"] = MultiBar7Button12,
+
+    -- Dragonriding
+    ["121"] = ActionButton1,
+    ["122"] = ActionButton2,
+    ["123"] = ActionButton3,
+    ["124"] = ActionButton4,
+    ["125"] = ActionButton5,
+    ["126"] = ActionButton6,
+    ["127"] = ActionButton7,
+    ["128"] = ActionButton8,
+    ["129"] = ActionButton9,
+    ["130"] = ActionButton10,
+    ["131"] = ActionButton11,
+    ["132"] = ActionButton12,
 }
