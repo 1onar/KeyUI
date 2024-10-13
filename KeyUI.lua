@@ -218,6 +218,9 @@ local miniButton = LDB:NewDataObject("KeyUI", {
 -- Handle addon load event and initialize minimap button visibility
 EventUtil.ContinueOnAddOnLoaded(..., function()
     
+    -- Register the minimap button using LibDBIcon
+    LibDBIcon:Register("KeyUI", miniButton, KeyUI_Settings.minimap)
+
     -- Update minimap button visibility based on the saved settings
     if KeyUI_Settings.minimap.hide then
         LibDBIcon:Hide("KeyUI")
@@ -225,10 +228,8 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
         LibDBIcon:Show("KeyUI")
     end
 
-    -- Register the minimap button using LibDBIcon
-    LibDBIcon:Register("KeyUI", miniButton, KeyUI_Settings.minimap)
-
-    -- Update the UI
+    -- Load additional saved settings and update the UI
+    addon:LoadSettings()
     addon:UpdateInterfaceVisibility()
 end)
 
@@ -287,6 +288,17 @@ function addon:Load()
         self:LoadSpells()
         self:RefreshKeys()
     end
+end
+
+-- Load settings from SavedVariables
+function addon:LoadSettings()
+    -- Fallback in case KeyUI_Settings is missing entirely
+    KeyUI_Settings = KeyUI_Settings or {}
+
+    -- Only safeguard structures and deeply nested values
+    KeyUI_Settings.keyboard_position = KeyUI_Settings.keyboard_position or {}
+    KeyUI_Settings.mouse_position = KeyUI_Settings.mouse_position or {}
+    KeyUI_Settings.minimap = KeyUI_Settings.minimap or { hide = false }
 end
 
 -- Hides all UI elements when the addon is closed
