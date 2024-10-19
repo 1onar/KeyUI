@@ -2,46 +2,46 @@ local name, addon = ...
 
 -- Function to save the keyboard's position and scale
 function addon:SaveKeyboard()
-    local x, y = KeyUIMainFrame:GetCenter()
+    local x, y = addon.keyboard_frame:GetCenter()
     keyui_settings.keyboard_position.x = x
     keyui_settings.keyboard_position.y = y
-    keyui_settings.keyboard_position.scale = KeyUIMainFrame:GetScale()
+    keyui_settings.keyboard_position.scale = addon.keyboard_frame:GetScale()
 end
 
 function addon:CreateKeyboard()
-    local Keyboard = CreateFrame("Frame", 'KeyUIMainFrame', UIParent, "TooltipBorderedFrameTemplate") -- the frame holding the keys
+    -- Create the keyboard frame and assign it to the addon table
+    local keyboard_frame = CreateFrame("Frame", "KeyUI_Keyboard", UIParent, "TooltipBorderedFrameTemplate")
+    addon.keyboard_frame = keyboard_frame
 
     -- Manage ESC key behavior based on the setting
     if keyui_settings.prevent_esc_close ~= false then
-        tinsert(UISpecialFrames, "KeyUIMainFrame")
+        tinsert(UISpecialFrames, "KeyUI_Keyboard")
     end
 
-    Keyboard:SetHeight(382)
-    Keyboard:SetWidth(940)
-    Keyboard:SetBackdropColor(0, 0, 0, 0.9)
+    keyboard_frame:SetHeight(382)
+    keyboard_frame:SetWidth(940)
+    keyboard_frame:SetBackdropColor(0, 0, 0, 0.9)
 
     -- Load the saved position if it exists
     if keyui_settings.keyboard_position.x and keyui_settings.keyboard_position.y then
-        Keyboard:SetPoint(
+        keyboard_frame:SetPoint(
             "CENTER",
             UIParent,
             "BOTTOMLEFT",
             keyui_settings.keyboard_position.x,
             keyui_settings.keyboard_position.y
         )
-        Keyboard:SetScale(keyui_settings.keyboard_position.scale)
+        keyboard_frame:SetScale(keyui_settings.keyboard_position.scale)
     else
-        Keyboard:SetPoint("CENTER", UIParent, "CENTER", -300, 50)
-        Keyboard:SetScale(1)
+        keyboard_frame:SetPoint("CENTER", UIParent, "CENTER", -300, 50)
+        keyboard_frame:SetScale(1)
     end
 
-    Keyboard:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    Keyboard:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
-    Keyboard:SetMovable(true)
+    keyboard_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
+    keyboard_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    keyboard_frame:SetMovable(true)
 
-    addon.keyboardFrame = Keyboard
-
-    return Keyboard
+    return keyboard_frame
 end
 
 local function GetCursorScaledPosition()
@@ -50,9 +50,9 @@ local function GetCursorScaledPosition()
 end
 
 function addon:CreateControls()
-    local Controls = CreateFrame("Frame", 'KBControlsFrame', KeyUIMainFrame, "TooltipBorderedFrameTemplate")
+    local Controls = CreateFrame("Frame", "KBControlsFrame", addon.keyboard_frame, "TooltipBorderedFrameTemplate")
 
-    local Keyboard = addon.keyboardFrame
+    local Keyboard = addon.keyboard_frame
     local modif = self.modif
 
     -- Manage ESC key behavior based on the setting
@@ -76,7 +76,7 @@ function addon:CreateControls()
     end
 
     local function OnMaximize()
-        maximizeFlag = true
+        addon.keyboard_maximize_flag = true
 
         Controls:SetHeight(260)
         Controls:SetWidth(500)
@@ -448,7 +448,7 @@ function addon:CreateControls()
         local function ToggleLock()
             if addon.keyboard_locked then
                 addon.keyboard_locked = false
-                addon.keys_edited = true
+                addon.keys_keyboard_edited = true
                 LockText:SetText("Lock")
                 if Controls.glowBoxLock then
                     Controls.glowBoxLock:Show()
@@ -518,7 +518,7 @@ function addon:CreateControls()
     end
 
     local function OnMinimize()
-        maximizeFlag = false
+        addon.keyboard_maximize_flag = false
 
         Controls:SetHeight(22)
         Controls:SetWidth(Keyboard:GetWidth())
@@ -562,7 +562,7 @@ function addon:CreateControls()
     Controls.Close:SetSize(22, 22)
     Controls.Close:SetPoint("TOPRIGHT", 0, 0)
     Controls.Close:SetScript("OnClick", function(s)
-        KeyUIMainFrame:Hide()
+        addon.keyboard_frame:Hide()
         KBControlsFrame:Hide()
     end) -- Toggle the Keyboard frame show/hide
 
@@ -661,8 +661,8 @@ function addon:KeyboardSaveLayout()
                     layout_edited_keyboard[msg][#layout_edited_keyboard[msg] + 1] = {
                         button.label:GetText(),
                         "Keyboard",
-                        floor(button:GetLeft() - KeyUIMainFrame:GetLeft() + 0.5),
-                        floor(button:GetTop() - KeyUIMainFrame:GetTop() + 0.5),
+                        floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5),
+                        floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),
                         floor(button:GetWidth() + 0.5),
                         floor(button:GetHeight() + 0.5)
                     }
@@ -690,10 +690,10 @@ function addon:SwitchBoard(board)
     addon.keys_keyboard = {}
 
     -- Proceed with setting up the new layout
-    if layout_current_keyboard and addon.open == true and addon.keyboardFrame then
+    if layout_current_keyboard and addon.open == true and addon.keyboard_frame then
         -- Set default small size before calculating dynamic size
-        addon.keyboardFrame:SetWidth(100)
-        addon.keyboardFrame:SetHeight(100)
+        addon.keyboard_frame:SetWidth(100)
+        addon.keyboard_frame:SetHeight(100)
 
         -- Ensure the layout isn't empty
         local layoutNotEmpty = false
@@ -706,7 +706,7 @@ function addon:SwitchBoard(board)
 
         -- Only proceed if there is a valid layout
         if layoutNotEmpty then
-            local cx, cy = addon.keyboardFrame:GetCenter()
+            local cx, cy = addon.keyboard_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
             for _, layoutData in pairs(layout_current_keyboard) do
@@ -726,7 +726,7 @@ function addon:SwitchBoard(board)
                         addon.keys_keyboard[i] = Key
                     end
 
-                    Key:SetPoint("TOPLEFT", addon.keyboardFrame, "TOPLEFT", keyData[3], keyData[4])
+                    Key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", keyData[3], keyData[4])
                     Key.label:SetText(keyData[1])
                     local tempframe = Key
                     tempframe:Show()
@@ -748,13 +748,13 @@ function addon:SwitchBoard(board)
                 end
             end
 
-            -- Adjust the keyboardFrame size based on the keys' positions
-            addon.keyboardFrame:SetWidth(right - left + 12)
-            addon.keyboardFrame:SetHeight(top - bottom + 12)
+            -- Adjust the Keyboard Frame size based on the keys' positions
+            addon.keyboard_frame:SetWidth(right - left + 12)
+            addon.keyboard_frame:SetHeight(top - bottom + 12)
         else
             -- Fallback size if the layout is empty
-            addon.keyboardFrame:SetHeight(382)
-            addon.keyboardFrame:SetWidth(940)
+            addon.keyboard_frame:SetHeight(382)
+            addon.keyboard_frame:SetWidth(940)
         end
     end
 end
@@ -762,7 +762,7 @@ end
 -- Create a new button on the given parent frame or default to the main keyboard frame.
 function addon:NewButton(parent)
     if not parent then
-        parent = self.keyboardFrame
+        parent = self.keyboard_frame
     end
 
     -- Create a frame that acts as a button with a tooltip border.

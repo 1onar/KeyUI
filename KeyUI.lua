@@ -199,7 +199,7 @@ local options = {
                 keyui_settings.prevent_esc_close = value
 
                 -- Immediately update the ESC closing behavior for all relevant frames
-                SetEscCloseEnabled(KeyUIMainFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(KBControlsFrame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(Mouseholder, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(MouseFrame, not keyui_settings.prevent_esc_close)
@@ -322,24 +322,24 @@ function addon:LoadSpells()
 end
 
 local function OnFrameHide(self)
-    if not keyboardFrameVisible or not MouseholderFrameVisible then
+    if not keyboardFrameVisible and not MouseholderFrameVisible then
         addon.open = false
     end
 end
 
 function addon:GetKeyboard()
-    if not keyboardFrame then
-        keyboardFrame = self:CreateKeyboard()
-        keyboardFrame:SetScript("OnHide", function()
+    if not keyboard_frame then
+        keyboard_frame = self:CreateKeyboard()
+        keyboard_frame:SetScript("OnHide", function()
             addon:SaveKeyboard()
             keyboardFrameVisible = false
             OnFrameHide()
         end)
-        keyboardFrame:SetScript("OnShow", function()
+        keyboard_frame:SetScript("OnShow", function()
             keyboardFrameVisible = true
         end)
     end
-    return keyboardFrame
+    return keyboard_frame
 end
 
 function addon:GetControls()
@@ -682,16 +682,6 @@ function addon:RefreshKeys()
         return
     end
 
-    if MouseEditInput then
-        if MouseControls.Input:HasFocus() then
-            return
-        end
-    end
-
-    -- Initialize Keys and KeysMouse if not already
-    addon.keys_keyboard = addon.keys_keyboard or {}
-    addon.keys_mouse = addon.keys_mouse or {}
-
     -- Hide all keys
     for i = 1, #addon.keys_keyboard do
         addon.keys_keyboard[i]:Hide()
@@ -701,18 +691,25 @@ function addon:RefreshKeys()
         addon.keys_mouse[j]:Hide()
     end
 
-    -- Switch the board and create buttons based on the updated layout
-    self:SwitchBoard(key_bind_settings_keyboard.currentboard)
-    if addon.keys_edited == false then
-        self:SwitchBoardMouse()
-        if maximizeFlag == false then
-            ControlsFrame:SetWidth(keyboardFrame:GetWidth())
-        end
+    if addon.keys_keyboard_edited ~= false then
+        wipe(addon.keys_keyboard)
+        addon.keys_keyboard_edited = false
+        self:SwitchBoard(key_bind_settings_keyboard.currentboard)
     else
-        wipe(addon.keys_mouse)
-        addon.keys_edited = false
-        self:SwitchBoardMouse()
+        self:SwitchBoard(key_bind_settings_keyboard.currentboard)
+        if addon.keyboard_maximize_flag == false then
+            ControlsFrame:SetWidth(addon.keyboard_frame:GetWidth())
+        end
     end
+
+    if addon.keys_mouse_edited ~= false then
+        wipe(addon.keys_mouse)
+        addon.keys_mouse_edited = false
+        self:SwitchBoardMouse(key_bind_settings_mouse.currentboard)
+    else
+        self:SwitchBoardMouse(key_bind_settings_mouse.currentboard)
+    end
+
     self:CheckModifiers()
 
     -- Set the keys
@@ -990,7 +987,7 @@ end
 
 -- CreateDropDown() - Creates the dropdown menu for selecting key bindings.
 function addon:CreateDropDown()
-    local DropDown = CreateFrame("Frame", "KBDropDown", self.keyboardFrame, "UIDropDownMenuTemplate")
+    local DropDown = CreateFrame("Frame", "KBDropDown", self.keyboard_frame, "UIDropDownMenuTemplate")
     UIDropDownMenu_SetWidth(DropDown, 60)
     UIDropDownMenu_SetButtonWidth(DropDown, 20)
     DropDown:Hide()
@@ -1005,7 +1002,7 @@ function addon:BattleCheck(event)
         addon.in_combat = true
         -- Only close the addon if stay_open_in_combat is false
         if not keyui_settings.stay_open_in_combat and addon.open then
-            KeyUIMainFrame:Hide()
+            addon.keyboard_frame:Hide()
             KBControlsFrame:Hide()
             MouseControls:Hide()
             Mouseholder:Hide()

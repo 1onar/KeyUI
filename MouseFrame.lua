@@ -84,7 +84,7 @@ function addon:CreateMouseControls()
     MouseControls:SetScript("OnMouseUp", function(self) self:GetParent():StopMovingOrSizing() end)
 
     local function OnMaximizeMouse()
-        maximizeFlag = true
+        addon.mouse_maximize_flag = true
 
         MouseControls:SetWidth((Mouseholder:GetWidth() + 100))
         MouseControls:SetHeight(190)
@@ -258,7 +258,7 @@ function addon:CreateMouseControls()
         local function ToggleLock()
             if addon.mouse_locked then
                 addon.mouse_locked = false
-                addon.keys_edited = true
+                addon.keys_mouse_edited = true
                 LockText:SetText("Lock")
                 if MouseControls.glowBoxLock then
                     MouseControls.glowBoxLock:Show()
@@ -315,7 +315,7 @@ function addon:CreateMouseControls()
     end
 
     local function OnMinimizeMouse()
-        maximizeFlag = false
+        addon.mouse_maximize_flag = false
 
         MouseControls:SetWidth(50)
         MouseControls:SetHeight(26)
