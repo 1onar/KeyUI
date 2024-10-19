@@ -23,15 +23,15 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
     OnClick = function(self, btn)
         if btn == "LeftButton" then
-            if addonOpen then
+            if addon.open then
                 -- Close the addon regardless of the combat state
                 addon:HideAll()
-                addonOpen = false
+                addon.open = false
             else
                 -- Open the addon if stay_open_in_combat is true OR if not in combat
-                if not fighting or KeyUI_Settings.stay_open_in_combat then
+                if not addon.in_combat or keyui_settings.stay_open_in_combat then
                     addon:Load()
-                    addonOpen = true
+                    addon.open = true
                 else
                     print("KeyUI: Cannot open while in combat.")
                 end
@@ -41,13 +41,13 @@ local miniButton = LDB:NewDataObject("KeyUI", {
             Settings.OpenToCategory("KeyUI")
         end
     end,
-    
+
     OnTooltipShow = function(tooltip)
         if not tooltip or not tooltip.AddLine then return end
 
         -- Add the title
         tooltip:AddLine("KeyUI")
-        
+
         -- Add blank line for spacing
         tooltip:AddLine(" ")
 
@@ -88,9 +88,9 @@ local options = {
             name = "Minimap Button",
             desc = "Show or hide the minimap button",
             order = 1,
-            get = function() return not KeyUI_Settings.minimap.hide end,
+            get = function() return not keyui_settings.minimap.hide end,
             set = function(_, value)
-                KeyUI_Settings.minimap.hide = not value
+                keyui_settings.minimap.hide = not value
                 if value then
                     LibDBIcon:Show("KeyUI")
                     print("KeyUI: Minimap button enabled")
@@ -105,9 +105,9 @@ local options = {
             name = "Stay Open In Combat",
             desc = "Allow KeyUI to stay open during combat",
             order = 2,
-            get = function() return KeyUI_Settings.stay_open_in_combat end,
+            get = function() return keyui_settings.stay_open_in_combat end,
             set = function(_, value)
-                KeyUI_Settings.stay_open_in_combat = value
+                keyui_settings.stay_open_in_combat = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Stay open in combat " .. status)
             end,
@@ -117,12 +117,12 @@ local options = {
             name = "Show Keyboard",
             desc = "Show or hide the keyboard interface",
             order = 4,
-            get = function() return KeyUI_Settings.show_keyboard end,
+            get = function() return keyui_settings.show_keyboard end,
             set = function(_, value)
-                KeyUI_Settings.show_keyboard = value
+                keyui_settings.show_keyboard = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Keyboard visibility", status)
-                if addonOpen then
+                if addon.open then
                     addon:UpdateInterfaceVisibility()
                 end
             end,
@@ -132,12 +132,12 @@ local options = {
             name = "Show Mouse",
             desc = "Show or hide the mouse interface",
             order = 5,
-            get = function() return KeyUI_Settings.show_mouse end,
+            get = function() return keyui_settings.show_mouse end,
             set = function(_, value)
-                KeyUI_Settings.show_mouse = value
+                keyui_settings.show_mouse = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Mouse visibility", status)
-                if addonOpen then
+                if addon.open then
                     addon:UpdateInterfaceVisibility()
                 end
             end,
@@ -148,9 +148,9 @@ local options = {
             name = "Highlight Buttons",
             desc = "Enable or disable the highlight effect on action buttons",
             order = 3,
-            get = function() return KeyUI_Settings.show_pushed_texture end,
+            get = function() return keyui_settings.show_pushed_texture end,
             set = function(_, value)
-                KeyUI_Settings.show_pushed_texture = value
+                keyui_settings.show_pushed_texture = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Action button highlighting", status)
             end,
@@ -161,11 +161,11 @@ local options = {
             name = "Reset Addon Settings",
             desc = "Reset all settings to their default values",
             order = 7,
-            confirm = true,  -- Ask for confirmation
+            confirm = true, -- Ask for confirmation
             confirmText = "Are you sure you want to reset all settings to default?",
             func = function()
                 -- Reset all SavedVariables to their default values
-                KeyUI_Settings = {
+                keyui_settings = {
                     ["show_keyboard"] = true,
                     ["show_mouse"] = true,
                     ["stay_open_in_combat"] = true,
@@ -173,17 +173,17 @@ local options = {
                     ["prevent_esc_close"] = true,
                     ["keyboard_position"] = {},
                     ["mouse_position"] = {},
-                    ["minimap"] = {hide = false,},
+                    ["minimap"] = { hide = false, },
                     ["show_empty_binds"] = true,
                     ["show_interface_binds"] = true,
                     ["tutorial_completed"] = false,
                 }
-                KeyBindSettings = {}
-                KeyBindSettingsMouse = {}
-                MouseKeyEditLayouts = {}
-                KeyboardEditLayouts = {}
-                CurrentLayoutMouse = {}
-                CurrentLayoutKeyboard = {}
+                key_bind_settings_keyboard = {}
+                key_bind_settings_mouse = {}
+                layout_current_keyboard = {}
+                layout_current_mouse = {}
+                layout_edited_keyboard = {}
+                layout_edited_mouse = {}
 
                 -- Reload the UI to apply the changes
                 ReloadUI()
@@ -194,17 +194,17 @@ local options = {
             name = "Enable ESC",
             desc = "Enable or disable the addon window closing when pressing ESC",
             order = 6,
-            get = function() return KeyUI_Settings.prevent_esc_close end,
+            get = function() return keyui_settings.prevent_esc_close end,
             set = function(_, value)
-                KeyUI_Settings.prevent_esc_close = value
-                
+                keyui_settings.prevent_esc_close = value
+
                 -- Immediately update the ESC closing behavior for all relevant frames
-                SetEscCloseEnabled(KeyUIMainFrame, not KeyUI_Settings.prevent_esc_close)
-                SetEscCloseEnabled(KBControlsFrame, not KeyUI_Settings.prevent_esc_close)
-                SetEscCloseEnabled(Mouseholder, not KeyUI_Settings.prevent_esc_close)
-                SetEscCloseEnabled(MouseFrame, not KeyUI_Settings.prevent_esc_close)
-                SetEscCloseEnabled(MouseControls, not KeyUI_Settings.prevent_esc_close)
-                
+                SetEscCloseEnabled(KeyUIMainFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(KBControlsFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(Mouseholder, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(MouseFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(MouseControls, not keyui_settings.prevent_esc_close)
+
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Closing with ESC " .. status)
             end,
@@ -218,7 +218,7 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     addon:InitializeSettings()
 
     -- Register the minimap button using LibDBIcon
-    LibDBIcon:Register("KeyUI", miniButton, KeyUI_Settings.minimap)
+    LibDBIcon:Register("KeyUI", miniButton, keyui_settings.minimap)
 
     -- Register the options table
     AceConfig:RegisterOptionsTable("KeyUI", options)
@@ -228,7 +228,7 @@ end)
 
 -- Update the visibility of keyboard and mouse based on settings, only if addon is open
 function addon:UpdateInterfaceVisibility()
-    if not addonOpen then
+    if not addon.open then
         return
     end
 
@@ -238,7 +238,7 @@ function addon:UpdateInterfaceVisibility()
     local MouseFrame = self:GetMouseFrame()
     local MouseControls = self:GetMouseControls()
 
-    if KeyUI_Settings.show_keyboard then
+    if keyui_settings.show_keyboard then
         keyboard:Show()
         Controls:Show()
     else
@@ -246,7 +246,7 @@ function addon:UpdateInterfaceVisibility()
         Controls:Hide()
     end
 
-    if KeyUI_Settings.show_mouse then
+    if keyui_settings.show_mouse then
         Mouseholder:Show()
         MouseFrame:Show()
         MouseControls:Show()
@@ -259,11 +259,11 @@ end
 
 function addon:Load()
     -- Allow loading if not in combat OR if stay_open_in_combat is true
-    if fighting and not KeyUI_Settings.stay_open_in_combat then
+    if addon.in_combat and not keyui_settings.stay_open_in_combat then
         -- Prevent loading if fighting and stay_open_in_combat is false
         return
     else
-        addonOpen = true
+        addon.open = true
         self:UpdateInterfaceVisibility()
 
         local dropdown = self.dropdown or self:CreateDropDown()
@@ -272,12 +272,12 @@ function addon:Load()
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
         self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
 
-        local currentActiveBoard = next(CurrentLayoutKeyboard)
+        local currentActiveBoard = next(layout_current_keyboard)
         UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
 
-        local layoutKey = next(CurrentLayoutMouse)
+        local layoutKey = next(layout_current_mouse)
         UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
-        
+
         self:LoadSpells()
         self:RefreshKeys()
     end
@@ -323,7 +323,7 @@ end
 
 local function OnFrameHide(self)
     if not keyboardFrameVisible or not MouseholderFrameVisible then
-        addonOpen = false
+        addon.open = false
     end
 end
 
@@ -385,11 +385,11 @@ function addon:CreateTooltip()
     KBTooltip:SetHeight(25)
     KBTooltip:SetScale(1)
     KBTooltip:SetFrameStrata("TOOLTIP")
-    
+
     KBTooltip.title = KBTooltip:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     KBTooltip.title:SetPoint("TOPLEFT", KBTooltip, "TOPLEFT", 10, -10)
     KBTooltip:SetScript("OnHide", function(self) GameTooltip:Hide() end) -- Hide the GameTooltip when this tooltip hides
-    
+
     addon.tooltip = KBTooltip
     return KBTooltip
 end
@@ -397,7 +397,7 @@ end
 -- ButtonMouseOver(button) - This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:ButtonMouseOver(button)
     local KBTooltip = self.tooltip
-    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4)  -- Position for the Addon Tooltip
+    KBTooltip:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4) -- Position for the Addon Tooltip
     KBTooltip.title:SetText((button.label:GetText() or "") .. "\n" .. (button.interfaceaction:GetText() or ""))
     KBTooltip.title:SetTextColor(1, 1, 1)
     KBTooltip.title:SetFont("Fonts\\ARIALN.TTF", 16)
@@ -415,19 +415,19 @@ function addon:ButtonMouseOver(button)
         -- For regular ActionButtons (ACTIONBUTTON1, ACTIONBUTTON2, etc.)
         GameTooltip:SetOwner(button, "ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetAction(button.slot)  -- Use SetAction for ActionButtons
+        GameTooltip:SetAction(button.slot) -- Use SetAction for ActionButtons
         GameTooltip:Show()
     elseif button.spellid then
         -- For Pet Spells with a spellID (or regular spells)
         GameTooltip:SetOwner(button, "ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetSpellByID(button.spellid)  -- Set tooltip for Pet Spells or regular spells
+        GameTooltip:SetSpellByID(button.spellid) -- Set tooltip for Pet Spells or regular spells
         GameTooltip:Show()
     elseif button.petActionIndex then
         -- For pet modes (BONUSACTIONBUTTON for Wait, Move To, etc.)
         GameTooltip:SetOwner(button, "ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetPetAction(button.petActionIndex)  -- Show the Pet Action Tooltip
+        GameTooltip:SetPetAction(button.petActionIndex) -- Show the Pet Action Tooltip
         GameTooltip:Show()
     else
         -- No tooltip for empty buttons
@@ -437,7 +437,7 @@ end
 
 -- CheckModifiers() - Checks the modifier keys (Shift, Ctrl, Alt) and allows the player to toggle them on or off.
 function addon:CheckModifiers()
-    for v, button in pairs(Keys) do
+    for v, button in pairs(addon.keys_keyboard) do
         if self.modif[button.label:GetText()] then
             button:SetScript("OnEnter", nil)
             button:SetScript("OnLeave", nil)
@@ -481,9 +481,9 @@ function addon:SetKey(button)
     local currentActionBarPage = GetActionBarPage()
 
     -- Handling empty bindings based on the show_empty_binds setting
-    if KeyUI_Settings.show_empty_binds == true then
+    if keyui_settings.show_empty_binds == true then
         local labelText = button.label:GetText()
-        if spell == "" and not tContains({"ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU"}, labelText) then
+        if spell == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
             button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
         else
             button:SetBackdropColor(0, 0, 0, 1) -- Default color
@@ -497,11 +497,11 @@ function addon:SetKey(button)
         -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
         if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
             if bonusBarOffset == 1 then
-                return slot + 72 -- Maps to 73-84
+                return slot + 72  -- Maps to 73-84
             elseif bonusBarOffset == 2 then
-                return slot -- No change for offset 2
+                return slot       -- No change for offset 2
             elseif bonusBarOffset == 3 then
-                return slot + 96 -- Maps to 97-108
+                return slot + 96  -- Maps to 97-108
             elseif bonusBarOffset == 4 then
                 return slot + 108 -- Maps to 109-120
             end
@@ -601,11 +601,14 @@ function addon:SetKey(button)
                 local petspellName = "BONUSACTIONBUTTON" .. i
                 if spell:match(petspellName) then
                     -- GetPetActionInfo returns multiple values, including texture/token
-                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i)
-                    
+                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID =
+                        GetPetActionInfo(i)
+
                     -- If it's a token, use the token to get the texture
                     if isToken then
-                        petTexture = _G[petTexture] or "Interface\\Icons\\" .. petTexture  -- Use WoW's icon folder as fallback
+                        petTexture = _G[petTexture] or
+                            "Interface\\Icons\\" ..
+                            petTexture                     -- Use WoW's icon folder as fallback
                     end
 
                     if petTexture then
@@ -615,14 +618,14 @@ function addon:SetKey(button)
 
                         -- Check if it's a Pet Spell (spellID is present)
                         if spellID then
-                            button.slot = nil  -- No slot for Pet Spells
-                            button.spellid = spellID  -- Set spellID for Pet Spells
-                            button.petActionIndex = nil  -- Not a pet mode
+                            button.slot = nil           -- No slot for Pet Spells
+                            button.spellid = spellID    -- Set spellID for Pet Spells
+                            button.petActionIndex = nil -- Not a pet mode
                         else
                             -- For Pet Modes (e.g., Wait, Move To)
                             button.slot = nil
                             button.spellid = nil
-                            button.petActionIndex = i  -- Set petActionIndex for pet modes
+                            button.petActionIndex = i -- Set petActionIndex for pet modes
                         end
                     else
                         -- Handle empty buttons by clearing the slot, spellID, and petActionIndex
@@ -639,7 +642,7 @@ function addon:SetKey(button)
             button.icon:Hide()
             button.slot = nil
             button.spellid = nil
-            button.petActionIndex = nil  -- Clear petActionIndex when no pet action bar
+            button.petActionIndex = nil -- Clear petActionIndex when no pet action bar
         end
     end
 
@@ -649,7 +652,7 @@ function addon:SetKey(button)
     -- Interface action labels
     if button.interfaceaction then
         button.interfaceaction:SetText(KeyMappings[button.macro:GetText()] or button.macro:GetText())
-        if KeyUI_Settings.show_interface_binds then
+        if keyui_settings.show_interface_binds then
             button.interfaceaction:Show()
         else
             button.interfaceaction:Hide()
@@ -667,11 +670,11 @@ end
 function addon:RefreshKeys()
     --print("RefreshKeys function called")  -- Print statement
 
-    if KeyboardLocked == false or MouseLocked == false then
+    if addon.keyboard_locked == false or addon.mouse_locked == false then
         return
     end
 
-    if addonOpen == false then
+    if addon.open == false then
         return
     end
 
@@ -686,39 +689,39 @@ function addon:RefreshKeys()
     end
 
     -- Initialize Keys and KeysMouse if not already
-    Keys = Keys or {}
-    KeysMouse = KeysMouse or {}
+    addon.keys_keyboard = addon.keys_keyboard or {}
+    addon.keys_mouse = addon.keys_mouse or {}
 
     -- Hide all keys
-    for i = 1, #Keys do
-        Keys[i]:Hide()
+    for i = 1, #addon.keys_keyboard do
+        addon.keys_keyboard[i]:Hide()
     end
 
-    for j = 1, #KeysMouse do
-        KeysMouse[j]:Hide()
+    for j = 1, #addon.keys_mouse do
+        addon.keys_mouse[j]:Hide()
     end
 
     -- Switch the board and create buttons based on the updated layout
-    self:SwitchBoard(KeyBindSettings.currentboard)
-    if edited == false then
+    self:SwitchBoard(key_bind_settings_keyboard.currentboard)
+    if addon.keys_edited == false then
         self:SwitchBoardMouse()
         if maximizeFlag == false then
             ControlsFrame:SetWidth(keyboardFrame:GetWidth())
         end
     else
-        wipe(KeysMouse)
-        edited = false
+        wipe(addon.keys_mouse)
+        addon.keys_edited = false
         self:SwitchBoardMouse()
     end
     self:CheckModifiers()
 
     -- Set the keys
-    for i = 1, #Keys do
-        self:SetKey(Keys[i])
+    for i = 1, #addon.keys_keyboard do
+        self:SetKey(addon.keys_keyboard[i])
     end
 
-    for j = 1, #KeysMouse do
-        self:SetKey(KeysMouse[j])
+    for j = 1, #addon.keys_mouse do
+        self:SetKey(addon.keys_mouse[j])
     end
 end
 
@@ -748,10 +751,10 @@ end
 
 -- Register for key events
 local frame = CreateFrame("Frame")
-    frame:RegisterEvent("MODIFIER_STATE_CHANGED")
-    frame:SetScript("OnEvent", function(_, event, key, state)
-    if addonOpen then
-        if AltCheckbox == false and CtrlCheckbox == false and ShiftCheckbox == false then
+frame:RegisterEvent("MODIFIER_STATE_CHANGED")
+frame:SetScript("OnEvent", function(_, event, key, state)
+    if addon.open then
+        if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
             if event == "MODIFIER_STATE_CHANGED" then
                 if state == 1 then
                     -- Key press event
@@ -771,7 +774,6 @@ local function DropDown_Initialize(self, level)
     local value = UIDROPDOWNMENU_MENU_VALUE
 
     if level == 1 then
-
         info.text = "Spell"
         info.value = "Spell"
         info.hasArrow = true
@@ -822,7 +824,6 @@ local function DropDown_Initialize(self, level)
             end
         end
         UIDropDownMenu_AddButton(info, level)
-
     elseif level == 2 then
         if value == "Spell" then
             for tabName, v in pairs(addon.spells) do
@@ -878,8 +879,7 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        end          
-        
+        end
     elseif level == 3 then
         if value:find("^tab:") then
             local tabName = value:match('^tab:(.+)')
@@ -940,7 +940,6 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-
         elseif value == "Player Macro" then
             for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
                 local title, iconTexture, body = GetMacroInfo(i)
@@ -1003,18 +1002,18 @@ end
 -- Function to check battle status
 function addon:BattleCheck(event)
     if event == "PLAYER_REGEN_DISABLED" then
-        fighting = true
+        addon.in_combat = true
         -- Only close the addon if stay_open_in_combat is false
-        if not KeyUI_Settings.stay_open_in_combat and addonOpen then
+        if not keyui_settings.stay_open_in_combat and addon.open then
             KeyUIMainFrame:Hide()
             KBControlsFrame:Hide()
             MouseControls:Hide()
             Mouseholder:Hide()
             MouseFrame:Hide()
-            addonOpen = false
+            addon.open = false
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
-        fighting = false
+        addon.in_combat = false
         -- Optional: Reopen after combat ends
         -- if KeyUI_Settings.stay_open_in_combat and not addonOpen then
         --     addon:Load()
@@ -1036,7 +1035,7 @@ eventFrame:RegisterEvent("PLAYER_LOGOUT")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if addonOpen then 
+    if addon.open then
         if event == "UPDATE_BONUS_ACTIONBAR" then
             local classFilename = UnitClassBase("player")
             -- Check if the class is Druid or Rogue

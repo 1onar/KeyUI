@@ -9,13 +9,13 @@
 ## Notes: Visualize your keyboard, mouse and keybinds.
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
-## SavedVariables: KeyUI_Settings
-## SavedVariables: KeyBindSettings
-## SavedVariables: KeyBindSettingsMouse
-## SavedVariables: MouseKeyEditLayouts
-## SavedVariables: KeyboardEditLayouts
-## SavedVariables: CurrentLayoutMouse
-## SavedVariables: CurrentLayoutKeyboard
+## SavedVariables: keyui_settings
+## SavedVariables: key_bind_settings_keyboard
+## SavedVariables: key_bind_settings_mouse
+## SavedVariables: layout_current_keyboard
+## SavedVariables: layout_current_mouse
+## SavedVariables: layout_edited_keyboard
+## SavedVariables: layout_edited_mouse
 
 embeds.xml
 

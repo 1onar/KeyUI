@@ -1,11 +1,11 @@
 -- Initialize SavedVariables for KeyUI settings
-KeyUI_Settings = KeyUI_Settings or {}
+keyui_settings = keyui_settings or {}
 
 local name, addon = ...
 
 local function set_if_nil(setting, default)
-    if KeyUI_Settings[setting] == nil then
-        KeyUI_Settings[setting] = default
+    if keyui_settings[setting] == nil then
+        keyui_settings[setting] = default
     end
 end
 
@@ -25,23 +25,22 @@ function addon:InitializeSettings()
     set_if_nil("tutorial_completed", false)
 
     -- Initialize other SavedVariables
-    KeyBindSettings = KeyBindSettings or {}
-    KeyBindSettingsMouse = KeyBindSettingsMouse or {}
-    CurrentLayoutMouse = CurrentLayoutMouse or {}
-    CurrentLayoutKeyboard = CurrentLayoutKeyboard or {}
-    MouseKeyEditLayouts = MouseKeyEditLayouts or {}
-    KeyboardEditLayouts = KeyboardEditLayouts or {}
+    key_bind_settings_keyboard = key_bind_settings_keyboard or {}
+    key_bind_settings_mouse = key_bind_settings_mouse or {}
+    layout_current_keyboard = layout_current_keyboard or {}
+    layout_current_mouse = layout_current_mouse or {}
+    layout_edited_keyboard = layout_edited_keyboard or {}
+    layout_edited_mouse = layout_edited_mouse or {}
 end
 
 -- Initialize global variables
-Keys = {}
-KeysMouse = {}
-MousePosition = {}
-KeyboardLocked = true
-AltCheckbox = false
-CtrlCheckbox = false
-ShiftCheckbox = false
-MouseLocked = true
-edited = false
-addonOpen = false
-fighting = false
+addon.keys_keyboard = {}
+addon.keys_mouse = {}
+addon.keyboard_locked = true
+addon.mouse_locked = true
+addon.alt_checkbox = false
+addon.ctrl_checkbox = false
+addon.shift_checkbox = false
+addon.keys_edited = false
+addon.open = false
+addon.in_combat = false
