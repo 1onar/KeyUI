@@ -10,12 +10,6 @@
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
 ## SavedVariables: keyui_settings
-## SavedVariables: key_bind_settings_keyboard
-## SavedVariables: key_bind_settings_mouse
-## SavedVariables: layout_current_keyboard
-## SavedVariables: layout_current_mouse
-## SavedVariables: layout_edited_keyboard
-## SavedVariables: layout_edited_mouse
 
 embeds.xml
 

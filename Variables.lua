@@ -24,13 +24,13 @@ function addon:InitializeSettings()
     set_if_nil("show_interface_binds", false)
     set_if_nil("tutorial_completed", false)
 
-    -- Initialize other SavedVariables
-    key_bind_settings_keyboard = key_bind_settings_keyboard or {}
-    key_bind_settings_mouse = key_bind_settings_mouse or {}
-    layout_current_keyboard = layout_current_keyboard or {}
-    layout_current_mouse = layout_current_mouse or {}
-    layout_edited_keyboard = layout_edited_keyboard or {}
-    layout_edited_mouse = layout_edited_mouse or {}
+    -- Initialize other SavedVariables in keyui_settings
+    keyui_settings.key_bind_settings_keyboard = keyui_settings.key_bind_settings_keyboard or {}
+    keyui_settings.key_bind_settings_mouse = keyui_settings.key_bind_settings_mouse or {}
+    keyui_settings.layout_current_keyboard = keyui_settings.layout_current_keyboard or {}
+    keyui_settings.layout_current_mouse = keyui_settings.layout_current_mouse or {}
+    keyui_settings.layout_edited_keyboard = keyui_settings.layout_edited_keyboard or {}
+    keyui_settings.layout_edited_mouse = keyui_settings.layout_edited_mouse or {}
 end
 
 -- Initialize global variables

@@ -1,5 +1,4 @@
----@diagnostic disable: undefined-global
-KeyMappings = {
+action_labels = {
     --Movement Keys
     MOVEANDSTEER = "Move and Steer",
     MOVEFORWARD = "Move Forward",
@@ -533,7 +532,7 @@ KeyMappings = {
     ELVUIBAR15BUTTON12 = "ElvUI Bar 15 Button 12",
 }
 
-InterfaceMapping = {
+action_mapping = {
 
     ["Movement Keys"] = {
         { "Move and Steer",         "MOVEANDSTEER" },
@@ -888,7 +887,7 @@ InterfaceMapping = {
     },
 }
 
-LabelMapping = {
+shortcut_labels = {
     ["CAPSLOCK"] = "CAPS",
     ["PRINTSCREEN"] = "PRINT",
     ["SCROLLLOCK"] = "SCROLL",
@@ -915,7 +914,7 @@ LabelMapping = {
     ["NUMPADDOT"] = "."
 }
 
-SlotMappings = {
+action_slot_mapping = {
     --Action Bar 1
     ACTIONBUTTON1 = "1",
     ACTIONBUTTON2 = "2",
@@ -1029,248 +1028,7 @@ SlotMappings = {
     MULTIACTIONBAR7BUTTON12 = "180",
 }
 
-ElvUIMappings = {
-
-    -- Buttons Bar 1
-    { "ELVUIBAR1BUTTON1",   "ElvUI_Bar1Button1" },
-    { "ELVUIBAR1BUTTON2",   "ElvUI_Bar1Button2" },
-    { "ELVUIBAR1BUTTON3",   "ElvUI_Bar1Button3" },
-    { "ELVUIBAR1BUTTON4",   "ElvUI_Bar1Button4" },
-    { "ELVUIBAR1BUTTON5",   "ElvUI_Bar1Button5" },
-    { "ELVUIBAR1BUTTON6",   "ElvUI_Bar1Button6" },
-    { "ELVUIBAR1BUTTON7",   "ElvUI_Bar1Button7" },
-    { "ELVUIBAR1BUTTON8",   "ElvUI_Bar1Button8" },
-    { "ELVUIBAR1BUTTON9",   "ElvUI_Bar1Button9" },
-    { "ELVUIBAR1BUTTON10",  "ElvUI_Bar1Button10" },
-    { "ELVUIBAR1BUTTON11",  "ElvUI_Bar1Button11" },
-    { "ELVUIBAR1BUTTON12",  "ElvUI_Bar1Button12" },
-
-    -- Buttons Bar 2
-    { "ELVUIBAR2BUTTON1",   "ElvUI_Bar2Button1" },
-    { "ELVUIBAR2BUTTON2",   "ElvUI_Bar2Button2" },
-    { "ELVUIBAR2BUTTON3",   "ElvUI_Bar2Button3" },
-    { "ELVUIBAR2BUTTON4",   "ElvUI_Bar2Button4" },
-    { "ELVUIBAR2BUTTON5",   "ElvUI_Bar2Button5" },
-    { "ELVUIBAR2BUTTON6",   "ElvUI_Bar2Button6" },
-    { "ELVUIBAR2BUTTON7",   "ElvUI_Bar2Button7" },
-    { "ELVUIBAR2BUTTON8",   "ElvUI_Bar2Button8" },
-    { "ELVUIBAR2BUTTON9",   "ElvUI_Bar2Button9" },
-    { "ELVUIBAR2BUTTON10",  "ElvUI_Bar2Button10" },
-    { "ELVUIBAR2BUTTON11",  "ElvUI_Bar2Button11" },
-    { "ELVUIBAR2BUTTON12",  "ElvUI_Bar2Button12" },
-
-    -- Buttons Bar 3
-    { "ELVUIBAR3BUTTON1",   "ElvUI_Bar3Button1" },
-    { "ELVUIBAR3BUTTON2",   "ElvUI_Bar3Button2" },
-    { "ELVUIBAR3BUTTON3",   "ElvUI_Bar3Button3" },
-    { "ELVUIBAR3BUTTON4",   "ElvUI_Bar3Button4" },
-    { "ELVUIBAR3BUTTON5",   "ElvUI_Bar3Button5" },
-    { "ELVUIBAR3BUTTON6",   "ElvUI_Bar3Button6" },
-    { "ELVUIBAR3BUTTON7",   "ElvUI_Bar3Button7" },
-    { "ELVUIBAR3BUTTON8",   "ElvUI_Bar3Button8" },
-    { "ELVUIBAR3BUTTON9",   "ElvUI_Bar3Button9" },
-    { "ELVUIBAR3BUTTON10",  "ElvUI_Bar3Button10" },
-    { "ELVUIBAR3BUTTON11",  "ElvUI_Bar3Button11" },
-    { "ELVUIBAR3BUTTON12",  "ElvUI_Bar3Button12" },
-
-    -- Buttons Bar 4
-    { "ELVUIBAR4BUTTON1",   "ElvUI_Bar4Button1" },
-    { "ELVUIBAR4BUTTON2",   "ElvUI_Bar4Button2" },
-    { "ELVUIBAR4BUTTON3",   "ElvUI_Bar4Button3" },
-    { "ELVUIBAR4BUTTON4",   "ElvUI_Bar4Button4" },
-    { "ELVUIBAR4BUTTON5",   "ElvUI_Bar4Button5" },
-    { "ELVUIBAR4BUTTON6",   "ElvUI_Bar4Button6" },
-    { "ELVUIBAR4BUTTON7",   "ElvUI_Bar4Button7" },
-    { "ELVUIBAR4BUTTON8",   "ElvUI_Bar4Button8" },
-    { "ELVUIBAR4BUTTON9",   "ElvUI_Bar4Button9" },
-    { "ELVUIBAR4BUTTON10",  "ElvUI_Bar4Button10" },
-    { "ELVUIBAR4BUTTON11",  "ElvUI_Bar4Button11" },
-    { "ELVUIBAR4BUTTON12",  "ElvUI_Bar4Button12" },
-
-    -- Buttons Bar 5
-    { "ELVUIBAR5BUTTON1",   "ElvUI_Bar5Button1" },
-    { "ELVUIBAR5BUTTON2",   "ElvUI_Bar5Button2" },
-    { "ELVUIBAR5BUTTON3",   "ElvUI_Bar5Button3" },
-    { "ELVUIBAR5BUTTON4",   "ElvUI_Bar5Button4" },
-    { "ELVUIBAR5BUTTON5",   "ElvUI_Bar5Button5" },
-    { "ELVUIBAR5BUTTON6",   "ElvUI_Bar5Button6" },
-    { "ELVUIBAR5BUTTON7",   "ElvUI_Bar5Button7" },
-    { "ELVUIBAR5BUTTON8",   "ElvUI_Bar5Button8" },
-    { "ELVUIBAR5BUTTON9",   "ElvUI_Bar5Button9" },
-    { "ELVUIBAR5BUTTON10",  "ElvUI_Bar5Button10" },
-    { "ELVUIBAR5BUTTON11",  "ElvUI_Bar5Button11" },
-    { "ELVUIBAR5BUTTON12",  "ElvUI_Bar5Button12" },
-
-    -- Buttons Bar 6
-    { "ELVUIBAR6BUTTON1",   "ElvUI_Bar6Button1" },
-    { "ELVUIBAR6BUTTON2",   "ElvUI_Bar6Button2" },
-    { "ELVUIBAR6BUTTON3",   "ElvUI_Bar6Button3" },
-    { "ELVUIBAR6BUTTON4",   "ElvUI_Bar6Button4" },
-    { "ELVUIBAR6BUTTON5",   "ElvUI_Bar6Button5" },
-    { "ELVUIBAR6BUTTON6",   "ElvUI_Bar6Button6" },
-    { "ELVUIBAR6BUTTON7",   "ElvUI_Bar6Button7" },
-    { "ELVUIBAR6BUTTON8",   "ElvUI_Bar6Button8" },
-    { "ELVUIBAR6BUTTON9",   "ElvUI_Bar6Button9" },
-    { "ELVUIBAR6BUTTON10",  "ElvUI_Bar6Button10" },
-    { "ELVUIBAR6BUTTON11",  "ElvUI_Bar6Button11" },
-    { "ELVUIBAR6BUTTON12",  "ElvUI_Bar6Button12" },
-
-    -- Buttons Bar 7
-    { "ELVUIBAR7BUTTON1",   "ElvUI_Bar7Button1" },
-    { "ELVUIBAR7BUTTON2",   "ElvUI_Bar7Button2" },
-    { "ELVUIBAR7BUTTON3",   "ElvUI_Bar7Button3" },
-    { "ELVUIBAR7BUTTON4",   "ElvUI_Bar7Button4" },
-    { "ELVUIBAR7BUTTON5",   "ElvUI_Bar7Button5" },
-    { "ELVUIBAR7BUTTON6",   "ElvUI_Bar7Button6" },
-    { "ELVUIBAR7BUTTON7",   "ElvUI_Bar7Button7" },
-    { "ELVUIBAR7BUTTON8",   "ElvUI_Bar7Button8" },
-    { "ELVUIBAR7BUTTON9",   "ElvUI_Bar7Button9" },
-    { "ELVUIBAR7BUTTON10",  "ElvUI_Bar7Button10" },
-    { "ELVUIBAR7BUTTON11",  "ElvUI_Bar7Button11" },
-    { "ELVUIBAR7BUTTON12",  "ElvUI_Bar7Button12" },
-
-    -- Buttons Bar 8
-    { "ELVUIBAR8BUTTON1",   "ElvUI_Bar8Button1" },
-    { "ELVUIBAR8BUTTON2",   "ElvUI_Bar8Button2" },
-    { "ELVUIBAR8BUTTON3",   "ElvUI_Bar8Button3" },
-    { "ELVUIBAR8BUTTON4",   "ElvUI_Bar8Button4" },
-    { "ELVUIBAR8BUTTON5",   "ElvUI_Bar8Button5" },
-    { "ELVUIBAR8BUTTON6",   "ElvUI_Bar8Button6" },
-    { "ELVUIBAR8BUTTON7",   "ElvUI_Bar8Button7" },
-    { "ELVUIBAR8BUTTON8",   "ElvUI_Bar8Button8" },
-    { "ELVUIBAR8BUTTON9",   "ElvUI_Bar8Button9" },
-    { "ELVUIBAR8BUTTON10",  "ElvUI_Bar8Button10" },
-    { "ELVUIBAR8BUTTON11",  "ElvUI_Bar8Button11" },
-    { "ELVUIBAR8BUTTON12",  "ElvUI_Bar8Button12" },
-
-    -- Buttons Bar 7
-    { "ELVUIBAR7BUTTON1",   "ElvUI_Bar7Button1" },
-    { "ELVUIBAR7BUTTON2",   "ElvUI_Bar7Button2" },
-    { "ELVUIBAR7BUTTON3",   "ElvUI_Bar7Button3" },
-    { "ELVUIBAR7BUTTON4",   "ElvUI_Bar7Button4" },
-    { "ELVUIBAR7BUTTON5",   "ElvUI_Bar7Button5" },
-    { "ELVUIBAR7BUTTON6",   "ElvUI_Bar7Button6" },
-    { "ELVUIBAR7BUTTON7",   "ElvUI_Bar7Button7" },
-    { "ELVUIBAR7BUTTON8",   "ElvUI_Bar7Button8" },
-    { "ELVUIBAR7BUTTON9",   "ElvUI_Bar7Button9" },
-    { "ELVUIBAR7BUTTON10",  "ElvUI_Bar7Button10" },
-    { "ELVUIBAR7BUTTON11",  "ElvUI_Bar7Button11" },
-    { "ELVUIBAR7BUTTON12",  "ElvUI_Bar7Button12" },
-
-    -- Buttons Bar 8
-    { "ELVUIBAR8BUTTON1",   "ElvUI_Bar8Button1" },
-    { "ELVUIBAR8BUTTON2",   "ElvUI_Bar8Button2" },
-    { "ELVUIBAR8BUTTON3",   "ElvUI_Bar8Button3" },
-    { "ELVUIBAR8BUTTON4",   "ElvUI_Bar8Button4" },
-    { "ELVUIBAR8BUTTON5",   "ElvUI_Bar8Button5" },
-    { "ELVUIBAR8BUTTON6",   "ElvUI_Bar8Button6" },
-    { "ELVUIBAR8BUTTON7",   "ElvUI_Bar8Button7" },
-    { "ELVUIBAR8BUTTON8",   "ElvUI_Bar8Button8" },
-    { "ELVUIBAR8BUTTON9",   "ElvUI_Bar8Button9" },
-    { "ELVUIBAR8BUTTON10",  "ElvUI_Bar8Button10" },
-    { "ELVUIBAR8BUTTON11",  "ElvUI_Bar8Button11" },
-    { "ELVUIBAR8BUTTON12",  "ElvUI_Bar8Button12" },
-
-    -- Buttons Bar 9
-    { "ELVUIBAR9BUTTON1",   "ElvUI_Bar9Button1" },
-    { "ELVUIBAR9BUTTON2",   "ElvUI_Bar9Button2" },
-    { "ELVUIBAR9BUTTON3",   "ElvUI_Bar9Button3" },
-    { "ELVUIBAR9BUTTON4",   "ElvUI_Bar9Button4" },
-    { "ELVUIBAR9BUTTON5",   "ElvUI_Bar9Button5" },
-    { "ELVUIBAR9BUTTON6",   "ElvUI_Bar9Button6" },
-    { "ELVUIBAR9BUTTON7",   "ElvUI_Bar9Button7" },
-    { "ELVUIBAR9BUTTON8",   "ElvUI_Bar9Button8" },
-    { "ELVUIBAR9BUTTON9",   "ElvUI_Bar9Button9" },
-    { "ELVUIBAR9BUTTON10",  "ElvUI_Bar9Button10" },
-    { "ELVUIBAR9BUTTON11",  "ElvUI_Bar9Button11" },
-    { "ELVUIBAR9BUTTON12",  "ElvUI_Bar9Button12" },
-
-    -- Buttons Bar 10
-    { "ELVUIBAR10BUTTON1",  "ElvUI_Bar10Button1" },
-    { "ELVUIBAR10BUTTON2",  "ElvUI_Bar10Button2" },
-    { "ELVUIBAR10BUTTON3",  "ElvUI_Bar10Button3" },
-    { "ELVUIBAR10BUTTON4",  "ElvUI_Bar10Button4" },
-    { "ELVUIBAR10BUTTON5",  "ElvUI_Bar10Button5" },
-    { "ELVUIBAR10BUTTON6",  "ElvUI_Bar10Button6" },
-    { "ELVUIBAR10BUTTON7",  "ElvUI_Bar10Button7" },
-    { "ELVUIBAR10BUTTON8",  "ElvUI_Bar10Button8" },
-    { "ELVUIBAR10BUTTON9",  "ElvUI_Bar10Button9" },
-    { "ELVUIBAR10BUTTON10", "ElvUI_Bar10Button10" },
-    { "ELVUIBAR10BUTTON11", "ElvUI_Bar10Button11" },
-    { "ELVUIBAR10BUTTON12", "ElvUI_Bar10Button12" },
-
-    -- Buttons Bar 11
-    { "ELVUIBAR11BUTTON1",  "ElvUI_Bar11Button1" },
-    { "ELVUIBAR11BUTTON2",  "ElvUI_Bar11Button2" },
-    { "ELVUIBAR11BUTTON3",  "ElvUI_Bar11Button3" },
-    { "ELVUIBAR11BUTTON4",  "ElvUI_Bar11Button4" },
-    { "ELVUIBAR11BUTTON5",  "ElvUI_Bar11Button5" },
-    { "ELVUIBAR11BUTTON6",  "ElvUI_Bar11Button6" },
-    { "ELVUIBAR11BUTTON7",  "ElvUI_Bar11Button7" },
-    { "ELVUIBAR11BUTTON8",  "ElvUI_Bar11Button8" },
-    { "ELVUIBAR11BUTTON9",  "ElvUI_Bar11Button9" },
-    { "ELVUIBAR11BUTTON10", "ElvUI_Bar11Button10" },
-    { "ELVUIBAR11BUTTON11", "ElvUI_Bar11Button11" },
-    { "ELVUIBAR11BUTTON12", "ElvUI_Bar11Button12" },
-
-    -- Buttons Bar 12
-    { "ELVUIBAR12BUTTON1",  "ElvUI_Bar12Button1" },
-    { "ELVUIBAR12BUTTON2",  "ElvUI_Bar12Button2" },
-    { "ELVUIBAR12BUTTON3",  "ElvUI_Bar12Button3" },
-    { "ELVUIBAR12BUTTON4",  "ElvUI_Bar12Button4" },
-    { "ELVUIBAR12BUTTON5",  "ElvUI_Bar12Button5" },
-    { "ELVUIBAR12BUTTON6",  "ElvUI_Bar12Button6" },
-    { "ELVUIBAR12BUTTON7",  "ElvUI_Bar12Button7" },
-    { "ELVUIBAR12BUTTON8",  "ElvUI_Bar12Button8" },
-    { "ELVUIBAR12BUTTON9",  "ElvUI_Bar12Button9" },
-    { "ELVUIBAR12BUTTON10", "ElvUI_Bar12Button10" },
-    { "ELVUIBAR12BUTTON11", "ElvUI_Bar12Button11" },
-    { "ELVUIBAR12BUTTON12", "ElvUI_Bar12Button12" },
-
-    -- Buttons Bar 13
-    { "ELVUIBAR13BUTTON1",  "ElvUI_Bar13Button1" },
-    { "ELVUIBAR13BUTTON2",  "ElvUI_Bar13Button2" },
-    { "ELVUIBAR13BUTTON3",  "ElvUI_Bar13Button3" },
-    { "ELVUIBAR13BUTTON4",  "ElvUI_Bar13Button4" },
-    { "ELVUIBAR13BUTTON5",  "ElvUI_Bar13Button5" },
-    { "ELVUIBAR13BUTTON6",  "ElvUI_Bar13Button6" },
-    { "ELVUIBAR13BUTTON7",  "ElvUI_Bar13Button7" },
-    { "ELVUIBAR13BUTTON8",  "ElvUI_Bar13Button8" },
-    { "ELVUIBAR13BUTTON9",  "ElvUI_Bar13Button9" },
-    { "ELVUIBAR13BUTTON10", "ElvUI_Bar13Button10" },
-    { "ELVUIBAR13BUTTON11", "ElvUI_Bar13Button11" },
-    { "ELVUIBAR13BUTTON12", "ElvUI_Bar13Button12" },
-
-    -- Buttons Bar 14
-    { "ELVUIBAR14BUTTON1",  "ElvUI_Bar14Button1" },
-    { "ELVUIBAR14BUTTON2",  "ElvUI_Bar14Button2" },
-    { "ELVUIBAR14BUTTON3",  "ElvUI_Bar14Button3" },
-    { "ELVUIBAR14BUTTON4",  "ElvUI_Bar14Button4" },
-    { "ELVUIBAR14BUTTON5",  "ElvUI_Bar14Button5" },
-    { "ELVUIBAR14BUTTON6",  "ElvUI_Bar14Button6" },
-    { "ELVUIBAR14BUTTON7",  "ElvUI_Bar14Button7" },
-    { "ELVUIBAR14BUTTON8",  "ElvUI_Bar14Button8" },
-    { "ELVUIBAR14BUTTON9",  "ElvUI_Bar14Button9" },
-    { "ELVUIBAR14BUTTON10", "ElvUI_Bar14Button10" },
-    { "ELVUIBAR14BUTTON11", "ElvUI_Bar14Button11" },
-    { "ELVUIBAR14BUTTON12", "ElvUI_Bar14Button12" },
-
-    -- Buttons Bar 15
-    { "ELVUIBAR15BUTTON1",  "ElvUI_Bar15Button1" },
-    { "ELVUIBAR15BUTTON2",  "ElvUI_Bar15Button2" },
-    { "ELVUIBAR15BUTTON3",  "ElvUI_Bar15Button3" },
-    { "ELVUIBAR15BUTTON4",  "ElvUI_Bar15Button4" },
-    { "ELVUIBAR15BUTTON5",  "ElvUI_Bar15Button5" },
-    { "ELVUIBAR15BUTTON6",  "ElvUI_Bar15Button6" },
-    { "ELVUIBAR15BUTTON7",  "ElvUI_Bar15Button7" },
-    { "ELVUIBAR15BUTTON8",  "ElvUI_Bar15Button8" },
-    { "ELVUIBAR15BUTTON9",  "ElvUI_Bar15Button9" },
-    { "ELVUIBAR15BUTTON10", "ElvUI_Bar15Button10" },
-    { "ELVUIBAR15BUTTON11", "ElvUI_Bar15Button11" },
-    { "ELVUIBAR15BUTTON12", "ElvUI_Bar15Button12" },
-}
-
-TextureMappings = {
+button_texture_mapping = {
     -- Action Bar 1 Page 1
     ["1"] = ActionButton1,
     ["2"] = ActionButton2,

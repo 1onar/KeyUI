@@ -401,7 +401,7 @@ function addon:CreateControls()
             -- Ensure selectedLayout is not nil before proceeding
             if selectedLayout then
                 -- Remove the selected layout from the KeyboardEditLayouts table.
-                layout_edited_keyboard[selectedLayout] = nil
+                keyui_settings.layout_edited_keyboard[selectedLayout] = nil
 
                 -- Clear the text in the Mouse.Input field.
                 Controls.Input:SetText("")
@@ -409,7 +409,7 @@ function addon:CreateControls()
                 -- Print a message indicating which layout was deleted.
                 print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
 
-                wipe(layout_current_keyboard)
+                wipe(keyui_settings.layout_current_keyboard)
                 UIDropDownMenu_SetText(KBChangeBoardDD, "")
                 addon:RefreshKeys()
             else
@@ -650,26 +650,37 @@ end
 
 function addon:KeyboardSaveLayout()
     local msg = KBControlsFrame.Input:GetText()
+
     if addon.keyboard_locked == true then
         if msg ~= "" then
+            -- Clear the input field and focus
             KBControlsFrame.Input:SetText("")
             KBControlsFrame.Input:ClearFocus()
+
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
-            layout_edited_keyboard[msg] = {}
+
+            -- Initialize a new table for the saved layout
+            keyui_settings.layout_edited_keyboard[msg] = {}
+
+            -- Iterate through all keyboard buttons to save their data
             for _, button in ipairs(addon.keys_keyboard) do
                 if button:IsVisible() then
-                    layout_edited_keyboard[msg][#layout_edited_keyboard[msg] + 1] = {
-                        button.label:GetText(),
-                        "Keyboard",
-                        floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5),
-                        floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),
-                        floor(button:GetWidth() + 0.5),
-                        floor(button:GetHeight() + 0.5)
+                    -- Save button properties: label, position, width, and height
+                    keyui_settings.layout_edited_keyboard[msg][#keyui_settings.layout_edited_keyboard[msg] + 1] = {
+                        button.label:GetText(),                                         -- Button name
+                        floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position
+                        floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position
+                        floor(button:GetWidth() + 0.5),                                 -- Width
+                        floor(button:GetHeight() + 0.5)                                 -- Height
                     }
                 end
             end
-            wipe(layout_current_keyboard)
-            layout_current_keyboard[msg] = layout_edited_keyboard[msg]
+
+            -- Clear the current layout and assign the new one
+            wipe(keyui_settings.layout_current_keyboard)
+            keyui_settings.layout_current_keyboard[msg] = keyui_settings.layout_edited_keyboard[msg]
+
+            -- Refresh the keys and update the dropdown menu
             addon:RefreshKeys()
             UIDropDownMenu_SetText(self.ddChanger, msg)
         else
@@ -690,14 +701,14 @@ function addon:SwitchBoard(board)
     addon.keys_keyboard = {}
 
     -- Proceed with setting up the new layout
-    if layout_current_keyboard and addon.open == true and addon.keyboard_frame then
+    if keyui_settings.layout_current_keyboard and addon.open == true and addon.keyboard_frame then
         -- Set default small size before calculating dynamic size
         addon.keyboard_frame:SetWidth(100)
         addon.keyboard_frame:SetHeight(100)
 
         -- Ensure the layout isn't empty
         local layoutNotEmpty = false
-        for _, layoutData in pairs(layout_current_keyboard) do
+        for _, layoutData in pairs(keyui_settings.layout_current_keyboard) do
             if #layoutData > 0 then
                 layoutNotEmpty = true
                 break
@@ -709,14 +720,14 @@ function addon:SwitchBoard(board)
             local cx, cy = addon.keyboard_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
-            for _, layoutData in pairs(layout_current_keyboard) do
+            for _, layoutData in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layoutData do
                     local Key = addon.keys_keyboard[i] or self:NewButton()
                     local keyData = layoutData[i]
 
-                    if keyData[5] then
-                        Key:SetWidth(keyData[5])
-                        Key:SetHeight(keyData[6])
+                    if keyData[4] then
+                        Key:SetWidth(keyData[4])
+                        Key:SetHeight(keyData[5])
                     else
                         Key:SetWidth(60)
                         Key:SetHeight(60)
@@ -726,7 +737,7 @@ function addon:SwitchBoard(board)
                         addon.keys_keyboard[i] = Key
                     end
 
-                    Key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", keyData[3], keyData[4])
+                    Key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", keyData[2], keyData[3])
                     Key.label:SetText(keyData[1])
                     local tempframe = Key
                     tempframe:Show()
@@ -838,7 +849,7 @@ function addon:NewButton(parent)
                 end
 
                 -- Look up the correct button in TextureMappings using the adjusted slot number
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local normalTexture = mappedButton:GetNormalTexture()
                     if normalTexture and normalTexture:IsVisible() then
@@ -877,7 +888,7 @@ function addon:NewButton(parent)
                     adjustedSlot = button.slot - 60
                 end
 
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
@@ -904,7 +915,7 @@ function addon:NewButton(parent)
 
                 -- Check if 'key' is non-nil and non-empty before proceeding.
                 if key and key ~= "" then
-                    local actionSlot = SlotMappings[key]
+                    local actionSlot = action_slot_mapping[key]
                     if actionSlot then
                         -- Adjust action slot based on current action bar page
                         local adjustedSlot = tonumber(actionSlot)
@@ -1012,7 +1023,7 @@ function addon:NewButton(parent)
                         addon.currentKey = self
                         local key = addon.currentKey.macro:GetText()
                         if key and key ~= "" then
-                            local actionSlot = SlotMappings[key]
+                            local actionSlot = action_slot_mapping[key]
                             if actionSlot then
                                 PlaceAction(actionSlot)
                                 ClearCursor()
@@ -1087,16 +1098,16 @@ function addon:CreateChangerDD()
             end
 
             -- Add custom layouts at the end of Level 1
-            if type(layout_edited_keyboard) == "table" then
-                for name, layout in pairs(layout_edited_keyboard) do
+            if type(keyui_settings.layout_edited_keyboard) == "table" then
+                for name, layout in pairs(keyui_settings.layout_edited_keyboard) do
                     info = UIDropDownMenu_CreateInfo() -- Reset info
                     info.text = name
                     info.value = name
                     info.colorCode = "|cffff8000"
                     info.notCheckable = true
                     info.func = function()
-                        wipe(layout_current_keyboard)
-                        layout_current_keyboard[name] = layout
+                        wipe(keyui_settings.layout_current_keyboard)
+                        keyui_settings.layout_current_keyboard[name] = layout
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, name)
                         KBControlsFrame.Input:SetText("")
@@ -1145,9 +1156,9 @@ function addon:CreateChangerDD()
                     info.value = layout -- Keep the actual value as is
                     info.notCheckable = true
                     info.func = function()
-                        key_bind_settings_keyboard.currentboard = layout
-                        wipe(layout_current_keyboard)
-                        layout_current_keyboard[layout] = KeyBindAllBoards[layout]
+                        keyui_settings.key_bind_settings_keyboard.currentboard = layout
+                        wipe(keyui_settings.layout_current_keyboard)
+                        keyui_settings.layout_current_keyboard[layout] = default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
                         KBControlsFrame.Input:SetText("")
@@ -1198,9 +1209,9 @@ function addon:CreateChangerDD()
                     info.value = layout -- Keep the actual value as is
                     info.notCheckable = true
                     info.func = function()
-                        key_bind_settings_keyboard.currentboard = layout
-                        wipe(layout_current_keyboard)
-                        layout_current_keyboard[layout] = KeyBindAllBoards[layout]
+                        keyui_settings.key_bind_settings_keyboard.currentboard = layout
+                        wipe(keyui_settings.layout_current_keyboard)
+                        keyui_settings.layout_current_keyboard[layout] = default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
                         KBControlsFrame.Input:SetText("")

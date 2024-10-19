@@ -166,25 +166,31 @@ local options = {
             func = function()
                 -- Reset all SavedVariables to their default values
                 keyui_settings = {
-                    ["show_keyboard"] = true,
-                    ["show_mouse"] = true,
-                    ["stay_open_in_combat"] = true,
-                    ["show_pushed_texture"] = true,
-                    ["prevent_esc_close"] = true,
-                    ["keyboard_position"] = {},
-                    ["mouse_position"] = {},
-                    ["minimap"] = { hide = false, },
-                    ["show_empty_binds"] = true,
-                    ["show_interface_binds"] = true,
-                    ["tutorial_completed"] = false,
+                    show_keyboard = true,
+                    show_mouse = true,
+                    stay_open_in_combat = true,
+                    show_pushed_texture = true,
+                    prevent_esc_close = true,
+                    keyboard_position = {},
+                    mouse_position = {},
+                    minimap = { hide = false },
+                    show_empty_binds = false,
+                    show_interface_binds = false,
+                    tutorial_completed = false,
+                    key_bind_settings = {
+                        keyboard = {},
+                        mouse = {},
+                    },
+                    layout_current = {
+                        keyboard = {},
+                        mouse = {},
+                    },
+                    layout_edited = {
+                        keyboard = {},
+                        mouse = {},
+                    },
                 }
-                key_bind_settings_keyboard = {}
-                key_bind_settings_mouse = {}
-                layout_current_keyboard = {}
-                layout_current_mouse = {}
-                layout_edited_keyboard = {}
-                layout_edited_mouse = {}
-
+                
                 -- Reload the UI to apply the changes
                 ReloadUI()
             end,
@@ -272,10 +278,10 @@ function addon:Load()
         self.ddChanger = self.ddChanger or self:CreateChangerDD()
         self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
 
-        local currentActiveBoard = next(layout_current_keyboard)
+        local currentActiveBoard = next(keyui_settings.layout_current_keyboard)
         UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
 
-        local layoutKey = next(layout_current_mouse)
+        local layoutKey = next(keyui_settings.layout_current_mouse)
         UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
 
         self:LoadSpells()
@@ -608,7 +614,7 @@ function addon:SetKey(button)
                     if isToken then
                         petTexture = _G[petTexture] or
                             "Interface\\Icons\\" ..
-                            petTexture                     -- Use WoW's icon folder as fallback
+                            petTexture -- Use WoW's icon folder as fallback
                     end
 
                     if petTexture then
@@ -651,7 +657,7 @@ function addon:SetKey(button)
 
     -- Interface action labels
     if button.interfaceaction then
-        button.interfaceaction:SetText(KeyMappings[button.macro:GetText()] or button.macro:GetText())
+        button.interfaceaction:SetText(action_labels[button.macro:GetText()] or button.macro:GetText())
         if keyui_settings.show_interface_binds then
             button.interfaceaction:Show()
         else
@@ -660,9 +666,9 @@ function addon:SetKey(button)
     end
 
     -- Label Shortening
-    if button.ShortLabel and LabelMapping[button.label:GetText()] then
+    if button.ShortLabel and shortcut_labels[button.label:GetText()] then
         button.label:Hide()
-        button.ShortLabel:SetText(LabelMapping[button.label:GetText()])
+        button.ShortLabel:SetText(shortcut_labels[button.label:GetText()])
     end
 end
 
@@ -694,9 +700,9 @@ function addon:RefreshKeys()
     if addon.keys_keyboard_edited ~= false then
         wipe(addon.keys_keyboard)
         addon.keys_keyboard_edited = false
-        self:SwitchBoard(key_bind_settings_keyboard.currentboard)
+        self:SwitchBoard(keyui_settings.key_bind_settings_keyboard.currentboard)
     else
-        self:SwitchBoard(key_bind_settings_keyboard.currentboard)
+        self:SwitchBoard(keyui_settings.key_bind_settings_keyboard.currentboard)
         if addon.keyboard_maximize_flag == false then
             ControlsFrame:SetWidth(addon.keyboard_frame:GetWidth())
         end
@@ -705,9 +711,9 @@ function addon:RefreshKeys()
     if addon.keys_mouse_edited ~= false then
         wipe(addon.keys_mouse)
         addon.keys_mouse_edited = false
-        self:SwitchBoardMouse(key_bind_settings_mouse.currentboard)
+        self:SwitchBoardMouse(keyui_settings.key_bind_settings_mouse.currentboard)
     else
-        self:SwitchBoardMouse(key_bind_settings_mouse.currentboard)
+        self:SwitchBoardMouse(keyui_settings.key_bind_settings_mouse.currentboard)
     end
 
     self:CheckModifiers()
@@ -794,11 +800,11 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function(self)
             local key = addon.currentKey.macro:GetText()
-            local actionSlot = SlotMappings[key]
+            local actionSlot = action_slot_mapping[key]
             if actionSlot then
                 PickupAction(actionSlot)
                 ClearCursor()
-                local mappedName = KeyMappings[key] or "Unknown Action"
+                local mappedName = action_labels[key] or "Unknown Action"
                 -- Print notification with the mapped name in purple
                 print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
                 addon:RefreshKeys()
@@ -867,7 +873,7 @@ local function DropDown_Initialize(self, level)
                 "Miscellaneous",
             }
             for _, category in ipairs(categories) do
-                local keybindings = InterfaceMapping[category]
+                local keybindings = action_mapping[category]
                 if keybindings then
                     local info = UIDropDownMenu_CreateInfo()
                     info.text = category
@@ -886,7 +892,7 @@ local function DropDown_Initialize(self, level)
                 info.hasArrow = false
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
-                    local actionSlot = SlotMappings[actionbutton]
+                    local actionSlot = action_slot_mapping[actionbutton]
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
@@ -918,7 +924,7 @@ local function DropDown_Initialize(self, level)
                     info.hasArrow = false
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
-                        local actionSlot = SlotMappings[actionbutton]
+                        local actionSlot = action_slot_mapping[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
@@ -946,7 +952,7 @@ local function DropDown_Initialize(self, level)
                     info.hasArrow = false
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
-                        local actionSlot = SlotMappings[actionbutton]
+                        local actionSlot = action_slot_mapping[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
@@ -965,8 +971,8 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        elseif InterfaceMapping[value] then
-            local keybindings = InterfaceMapping[value]
+        elseif action_mapping[value] then
+            local keybindings = action_mapping[value]
             for index, keybinding in ipairs(keybindings) do
                 info.text = keybinding[1]
                 info.value = keybinding[2]

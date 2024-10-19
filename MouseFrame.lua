@@ -180,7 +180,7 @@ function addon:CreateMouseControls()
         MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -16)
         MouseControls.Save:SetScript("OnClick", function() addon:MouseSaveLayout() end)
         local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
-        SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)     -- Set your preferred font and size
+        SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
         SaveText:SetPoint("CENTER", 0, 1)
         SaveText:SetText("Save")
 
@@ -202,7 +202,7 @@ function addon:CreateMouseControls()
             -- Check if KBChangeBoardDDMouse is not nil
             if not KBChangeBoardDDMouse then
                 print("Error: KBChangeBoardDDMouse is nil.")
-                return     -- Exit the function early if KBChangeBoardDDMouse is nil
+                return -- Exit the function early if KBChangeBoardDDMouse is nil
             end
 
             -- Get the text from the KBChangeBoardDDMouse dropdown menu.
@@ -211,7 +211,7 @@ function addon:CreateMouseControls()
             -- Ensure selectedLayout is not nil before proceeding
             if selectedLayout then
                 -- Remove the selected layout from the MouseKeyEditLayouts table.
-                layout_edited_mouse[selectedLayout] = nil
+                keyui_settings.layout_edited_mouse[selectedLayout] = nil
 
                 -- Clear the text in the Mouse.Input field.
                 MouseControls.Input:SetText("")
@@ -219,7 +219,7 @@ function addon:CreateMouseControls()
                 -- Print a message indicating which layout was deleted.
                 print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
 
-                wipe(layout_current_mouse)
+                wipe(keyui_settings.layout_current_mouse)
                 UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
                 addon:RefreshKeys()
             else
@@ -228,7 +228,7 @@ function addon:CreateMouseControls()
         end)
 
         local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
-        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)     -- Set your preferred font and size
+        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
         DeleteText:SetPoint("CENTER", 0, 1)
         DeleteText:SetText("Delete")
 
@@ -247,7 +247,7 @@ function addon:CreateMouseControls()
         MouseControls.Lock:SetPoint("RIGHT", MouseControls.Save, "LEFT", -5, 0)
 
         local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
-        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)     -- Set your preferred font and size
+        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
         LockText:SetPoint("CENTER", 0, 1)
         if addon.mouse_locked == false then
             LockText:SetText("Lock")
@@ -415,26 +415,37 @@ end
 
 function addon:MouseSaveLayout()
     local msg = MouseControls.Input:GetText()
+
     if addon.mouse_locked == true then
         if msg ~= "" then
+            -- Clear the input field and focus
             MouseControls.Input:SetText("")
             MouseControls.Input:ClearFocus()
+
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
-            layout_edited_mouse[msg] = {}
+
+            -- Initialize a new table for the saved layout
+            keyui_settings.layout_edited_mouse[msg] = {}
+
+            -- Iterate through all mouse buttons to save their data
             for _, Mousebutton in ipairs(addon.keys_mouse) do
                 if Mousebutton:IsVisible() then
-                    layout_edited_mouse[msg][#layout_edited_mouse[msg] + 1] = {
-                        Mousebutton.label:GetText(),
-                        "Mouse",
-                        floor(Mousebutton:GetLeft() - MouseFrame:GetLeft() + 0.5),
-                        floor(Mousebutton:GetTop() - MouseFrame:GetTop() + 0.5),
-                        floor(Mousebutton:GetWidth() + 0.5),
-                        floor(Mousebutton:GetHeight() + 0.5)
+                    -- Save button properties: label, position, width, and height
+                    keyui_settings.layout_edited_mouse[msg][#keyui_settings.layout_edited_mouse[msg] + 1] = {
+                        Mousebutton.label:GetText(),                               -- Button name
+                        floor(Mousebutton:GetLeft() - MouseFrame:GetLeft() + 0.5), -- X position
+                        floor(Mousebutton:GetTop() - MouseFrame:GetTop() + 0.5),   -- Y position
+                        floor(Mousebutton:GetWidth() + 0.5),                       -- Width
+                        floor(Mousebutton:GetHeight() + 0.5)                       -- Height
                     }
                 end
             end
-            wipe(layout_current_mouse)
-            layout_current_mouse[msg] = layout_edited_mouse[msg]
+
+            -- Clear the current layout and assign the new one
+            wipe(keyui_settings.layout_current_mouse)
+            keyui_settings.layout_current_mouse[msg] = keyui_settings.layout_edited_mouse[msg]
+
+            -- Refresh the keys and update the dropdown menu
             addon:RefreshKeys()
             UIDropDownMenu_SetText(self.ddChangerMouse, msg)
         else
@@ -447,19 +458,19 @@ end
 
 function addon:SwitchBoardMouse()
     if addon.open == true and addon.MouseFrame then
-        if layout_current_mouse then
+        if keyui_settings.layout_current_mouse then
             -- Calculate the center of the Mouse frame once
             local cx, cy = addon.MouseFrame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
-            for _, layoutData in pairs(layout_current_mouse) do
+            for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
                 for i = 1, #layoutData do
                     local MouseKey = addon.keys_mouse[i] or self:NewButtonMouse()
                     local CurrentLayoutMouse = layoutData[i]
 
-                    if CurrentLayoutMouse[5] then
-                        MouseKey:SetWidth(CurrentLayoutMouse[5])
-                        MouseKey:SetHeight(CurrentLayoutMouse[6])
+                    if CurrentLayoutMouse[4] then
+                        MouseKey:SetWidth(CurrentLayoutMouse[4])
+                        MouseKey:SetHeight(CurrentLayoutMouse[5])
                     else
                         MouseKey:SetWidth(85)
                         MouseKey:SetHeight(85)
@@ -469,8 +480,8 @@ function addon:SwitchBoardMouse()
                         addon.keys_mouse[i] = MouseKey
                     end
 
-                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", CurrentLayoutMouse[3],
-                        CurrentLayoutMouse[4])
+                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", CurrentLayoutMouse[2],
+                        CurrentLayoutMouse[3])
                     MouseKey.label:SetText(CurrentLayoutMouse[1])
                     local tempframe = MouseKey
                     tempframe:Show()
@@ -560,7 +571,7 @@ function addon:NewButtonMouse()
                 end
 
                 -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local normalTexture = mappedButton:GetNormalTexture()
                     if normalTexture and normalTexture:IsVisible() then
@@ -601,7 +612,7 @@ function addon:NewButtonMouse()
                 end
 
                 -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
+                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
@@ -626,7 +637,7 @@ function addon:NewButtonMouse()
                 local bonusBarOffset = GetBonusBarOffset()
                 local currentActionBarPage = GetActionBarPage()
 
-                local actionSlot = SlotMappings[key]
+                local actionSlot = action_slot_mapping[key]
 
                 if actionSlot then
                     -- Adjust action slot based on current action bar page
@@ -691,7 +702,7 @@ function addon:NewButtonMouse()
                     local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
                     addon.currentKey = self
                     local key = addon.currentKey.macro:GetText()
-                    local actionSlot = SlotMappings[key]
+                    local actionSlot = action_slot_mapping[key]
                     if actionSlot then
                         PlaceAction(actionSlot)
                         ClearCursor()
@@ -727,14 +738,14 @@ function addon:CreateChangerDDMouse()
         local value = UIDROPDOWNMENU_MENU_VALUE
 
         for _, name in ipairs(boardOrder) do
-            local Mousebuttons = KeyBindAllBoardsMouse[name]
+            local Mousebuttons = default_mouse_layouts[name]
             info.text = name
             info.value = name
             info.colorCode = "|cFFFFFFFF" -- white
             info.func = function()
-                key_bind_settings_mouse.currentboard = name
-                wipe(layout_current_mouse)
-                layout_current_mouse = { [name] = KeyBindAllBoardsMouse[name] }
+                keyui_settings.key_bind_settings_mouse.currentboard = name
+                wipe(keyui_settings.layout_current_mouse)
+                keyui_settings.layout_current_mouse = { [name] = default_mouse_layouts[name] }
                 addon:RefreshKeys()
                 UIDropDownMenu_SetText(self, name)
                 MouseControls.Input:SetText("")
@@ -743,14 +754,14 @@ function addon:CreateChangerDDMouse()
             UIDropDownMenu_AddButton(info, level)
         end
 
-        if type(layout_edited_mouse) == "table" then
-            for name, layout in pairs(layout_edited_mouse) do
+        if type(keyui_settings.layout_edited_mouse) == "table" then
+            for name, layout in pairs(keyui_settings.layout_edited_mouse) do
                 info.text = name
                 info.value = name
                 info.colorCode = "|cffff8000"
                 info.func = function()
-                    wipe(layout_current_mouse)
-                    layout_current_mouse[name] = layout
+                    wipe(keyui_settings.layout_current_mouse)
+                    keyui_settings.layout_current_mouse[name] = layout
                     addon:RefreshKeys()
                     UIDropDownMenu_SetText(self, name)
                     MouseControls.Input:SetText("")
