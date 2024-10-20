@@ -9,13 +9,6 @@ local LDB = LibStub("LibDataBroker-1.1")
 -- Create the options frame and add it to the Interface Options
 local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
 
--- Initialize modif table to avoid nil errors
-local modif = modif or {}
-modif.CTRL = modif.CTRL or ""
-modif.SHIFT = modif.SHIFT or ""
-modif.ALT = modif.ALT or ""
-addon.modif = modif
-
 -- Minimap button setup using LibDataBroker
 local miniButton = LDB:NewDataObject("KeyUI", {
     type = "data source",
@@ -464,11 +457,11 @@ function addon:CheckModifiers()
             button:SetScript("OnMouseUp", function(self)
                 if self.active then
                     self.active = false
-                    modif[button.label:GetText()] = ""
+                    addon.modif[button.label:GetText()] = ""
                     addon:RefreshKeys()
                 else
                     self.active = true
-                    modif[button.label:GetText()] = button.label:GetText() .. "-"
+                    addon.modif[button.label:GetText()] = button.label:GetText() .. "-"
                     addon:RefreshKeys()
                 end
             end)
@@ -478,7 +471,7 @@ end
 
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
-    local spell = GetBindingAction(modif.CTRL .. modif.SHIFT .. modif.ALT .. (button.label:GetText() or "")) or ""
+    local spell = GetBindingAction(addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (button.label:GetText() or "")) or ""
 
     button.icon:Hide()
 
@@ -727,11 +720,11 @@ end
 -- Define a function to handle key press events
 local function HandleKeyPress(key)
     if key == "LSHIFT" or key == "RSHIFT" then
-        modif.SHIFT = "SHIFT-"
+        addon.modif.SHIFT = "SHIFT-"
     elseif key == "LCTRL" or key == "RCTRL" then
-        modif.CTRL = "CTRL-"
+        addon.modif.CTRL = "CTRL-"
     elseif key == "LALT" or key == "RALT" then
-        modif.ALT = "ALT-"
+        addon.modif.ALT = "ALT-"
     end
     addon:RefreshKeys()
 end
@@ -739,11 +732,11 @@ end
 -- Define a function to handle key release events
 local function HandleKeyRelease(key)
     if key == "LSHIFT" or key == "RSHIFT" then
-        modif.SHIFT = ""
+        addon.modif.SHIFT = ""
     elseif key == "LCTRL" or key == "RCTRL" then
-        modif.CTRL = ""
+        addon.modif.CTRL = ""
     elseif key == "LALT" or key == "RALT" then
-        modif.ALT = ""
+        addon.modif.ALT = ""
     end
     addon:RefreshKeys()
 end
@@ -813,12 +806,12 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function()
             if addon.currentKey.label ~= "" then
-                SetBinding(modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or ""))
+                SetBinding(addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
                 SaveBindings(2)
                 -- Print notification of key unbinding
-                local keyText = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                local keyText = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                 print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
@@ -889,7 +882,7 @@ local function DropDown_Initialize(self, level)
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
                     local actionSlot = addon.action_slot_mapping[actionbutton]
-                    local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
                         C_Spell.PickupSpell(spellName)
@@ -921,7 +914,7 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -949,7 +942,7 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -974,7 +967,7 @@ local function DropDown_Initialize(self, level)
                 info.value = keybinding[2]
                 info.hasArrow = false
                 info.func = function(self)
-                    local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
                     -- Print notification for interface binding

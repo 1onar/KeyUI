@@ -53,7 +53,6 @@ function addon:CreateControls()
     local Controls = CreateFrame("Frame", "KBControlsFrame", addon.keyboard_frame, "TooltipBorderedFrameTemplate")
 
     local Keyboard = addon.keyboard_frame
-    local modif = self.modif
 
     -- Manage ESC key behavior based on the setting
     if keyui_settings.prevent_esc_close ~= false then
@@ -263,14 +262,14 @@ function addon:CreateControls()
         -- Set the OnClick script for the checkbutton
         Controls.AltCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                modif.ALT = "ALT-"
-                modif.CTRL = ""
-                modif.SHIFT = ""
+                addon.modif.ALT = "ALT-"
+                addon.modif.CTRL = ""
+                addon.modif.SHIFT = ""
                 addon.alt_checkbox = true
                 Controls.CtrlCB:SetChecked(false)
                 Controls.ShiftCB:SetChecked(false)
             else
-                modif.ALT = ""
+                addon.modif.ALT = ""
                 addon.alt_checkbox = false
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false
@@ -295,14 +294,14 @@ function addon:CreateControls()
         -- Set the OnClick script for the checkbutton
         Controls.CtrlCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                modif.ALT = ""
-                modif.CTRL = "CTRL-"
-                modif.SHIFT = ""
+                addon.modif.ALT = ""
+                addon.modif.CTRL = "CTRL-"
+                addon.modif.SHIFT = ""
                 addon.ctrl_checkbox = true
                 Controls.AltCB:SetChecked(false)
                 Controls.ShiftCB:SetChecked(false)
             else
-                modif.CTRL = ""
+                addon.modif.CTRL = ""
                 addon.alt_checkbox = false
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false
@@ -327,14 +326,14 @@ function addon:CreateControls()
         -- Set the OnClick script for the checkbutton
         Controls.ShiftCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                modif.ALT = ""
-                modif.CTRL = ""
-                modif.SHIFT = "SHIFT-"
+                addon.modif.ALT = ""
+                addon.modif.CTRL = ""
+                addon.modif.SHIFT = "SHIFT-"
                 addon.shift_checkbox = true
                 Controls.AltCB:SetChecked(false)
                 Controls.CtrlCB:SetChecked(false)
             else
-                modif.SHIFT = ""
+                addon.modif.SHIFT = ""
                 addon.alt_checkbox = false
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false

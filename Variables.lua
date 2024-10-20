@@ -43,15 +43,24 @@ end
 -- Initialize global variables
 addon.keys_keyboard = {}
 addon.keys_mouse = {}
+
 addon.keyboard_locked = true
 addon.mouse_locked = true
-addon.alt_checkbox = false
-addon.ctrl_checkbox = false
-addon.shift_checkbox = false
+
 addon.keys_keyboard_edited = false
 addon.keys_mouse_edited = false
+
 addon.open = false
 addon.in_combat = false
+
 addon.bonusbar_offset = {}
 addon.current_actionbar_page = {}
 addon.class_name = {}
+
+addon.modif = addon.modif or {}
+addon.modif.CTRL = addon.modif.CTRL or ""
+addon.modif.SHIFT = addon.modif.SHIFT or ""
+addon.modif.ALT = addon.modif.ALT or ""
+addon.alt_checkbox = false
+addon.ctrl_checkbox = false
+addon.shift_checkbox = false
