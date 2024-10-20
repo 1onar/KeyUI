@@ -1,4 +1,6 @@
-action_labels = {
+local name, addon = ...
+
+addon.action_labels = {
     --Movement Keys
     MOVEANDSTEER = "Move and Steer",
     MOVEFORWARD = "Move Forward",
@@ -532,7 +534,7 @@ action_labels = {
     ELVUIBAR15BUTTON12 = "ElvUI Bar 15 Button 12",
 }
 
-action_mapping = {
+addon.action_mapping = {
 
     ["Movement Keys"] = {
         { "Move and Steer",         "MOVEANDSTEER" },
@@ -887,7 +889,7 @@ action_mapping = {
     },
 }
 
-shortcut_labels = {
+addon.shortcut_labels = {
     ["CAPSLOCK"] = "CAPS",
     ["PRINTSCREEN"] = "PRINT",
     ["SCROLLLOCK"] = "SCROLL",
@@ -914,7 +916,7 @@ shortcut_labels = {
     ["NUMPADDOT"] = "."
 }
 
-action_slot_mapping = {
+addon.action_slot_mapping = {
     --Action Bar 1
     ACTIONBUTTON1 = "1",
     ACTIONBUTTON2 = "2",
@@ -1028,7 +1030,7 @@ action_slot_mapping = {
     MULTIACTIONBAR7BUTTON12 = "180",
 }
 
-button_texture_mapping = {
+addon.button_texture_mapping = {
     -- Action Bar 1 Page 1
     ["1"] = ActionButton1,
     ["2"] = ActionButton2,

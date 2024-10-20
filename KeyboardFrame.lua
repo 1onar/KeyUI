@@ -849,7 +849,7 @@ function addon:NewButton(parent)
                 end
 
                 -- Look up the correct button in TextureMappings using the adjusted slot number
-                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
+                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local normalTexture = mappedButton:GetNormalTexture()
                     if normalTexture and normalTexture:IsVisible() then
@@ -888,7 +888,7 @@ function addon:NewButton(parent)
                     adjustedSlot = button.slot - 60
                 end
 
-                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
+                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
@@ -915,7 +915,7 @@ function addon:NewButton(parent)
 
                 -- Check if 'key' is non-nil and non-empty before proceeding.
                 if key and key ~= "" then
-                    local actionSlot = action_slot_mapping[key]
+                    local actionSlot = addon.action_slot_mapping[key]
                     if actionSlot then
                         -- Adjust action slot based on current action bar page
                         local adjustedSlot = tonumber(actionSlot)
@@ -1023,7 +1023,7 @@ function addon:NewButton(parent)
                         addon.currentKey = self
                         local key = addon.currentKey.macro:GetText()
                         if key and key ~= "" then
-                            local actionSlot = action_slot_mapping[key]
+                            local actionSlot = addon.action_slot_mapping[key]
                             if actionSlot then
                                 PlaceAction(actionSlot)
                                 ClearCursor()
@@ -1158,7 +1158,7 @@ function addon:CreateChangerDD()
                     info.func = function()
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
-                        keyui_settings.layout_current_keyboard[layout] = default_keyboard_layouts[layout]
+                        keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
                         KBControlsFrame.Input:SetText("")
@@ -1211,7 +1211,7 @@ function addon:CreateChangerDD()
                     info.func = function()
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
-                        keyui_settings.layout_current_keyboard[layout] = default_keyboard_layouts[layout]
+                        keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
                         KBControlsFrame.Input:SetText("")

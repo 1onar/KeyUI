@@ -190,7 +190,7 @@ local options = {
                         mouse = {},
                     },
                 }
-                
+
                 -- Reload the UI to apply the changes
                 ReloadUI()
             end,
@@ -657,7 +657,7 @@ function addon:SetKey(button)
 
     -- Interface action labels
     if button.interfaceaction then
-        button.interfaceaction:SetText(action_labels[button.macro:GetText()] or button.macro:GetText())
+        button.interfaceaction:SetText(addon.action_labels[button.macro:GetText()] or button.macro:GetText())
         if keyui_settings.show_interface_binds then
             button.interfaceaction:Show()
         else
@@ -666,9 +666,9 @@ function addon:SetKey(button)
     end
 
     -- Label Shortening
-    if button.ShortLabel and shortcut_labels[button.label:GetText()] then
+    if button.ShortLabel and addon.shortcut_labels[button.label:GetText()] then
         button.label:Hide()
-        button.ShortLabel:SetText(shortcut_labels[button.label:GetText()])
+        button.ShortLabel:SetText(addon.shortcut_labels[button.label:GetText()])
     end
 end
 
@@ -800,11 +800,11 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function(self)
             local key = addon.currentKey.macro:GetText()
-            local actionSlot = action_slot_mapping[key]
+            local actionSlot = addon.action_slot_mapping[key]
             if actionSlot then
                 PickupAction(actionSlot)
                 ClearCursor()
-                local mappedName = action_labels[key] or "Unknown Action"
+                local mappedName = addon.action_labels[key] or "Unknown Action"
                 -- Print notification with the mapped name in purple
                 print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
                 addon:RefreshKeys()
@@ -873,7 +873,7 @@ local function DropDown_Initialize(self, level)
                 "Miscellaneous",
             }
             for _, category in ipairs(categories) do
-                local keybindings = action_mapping[category]
+                local keybindings = addon.action_mapping[category]
                 if keybindings then
                     local info = UIDropDownMenu_CreateInfo()
                     info.text = category
@@ -892,7 +892,7 @@ local function DropDown_Initialize(self, level)
                 info.hasArrow = false
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
-                    local actionSlot = action_slot_mapping[actionbutton]
+                    local actionSlot = addon.action_slot_mapping[actionbutton]
                     local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
@@ -924,7 +924,7 @@ local function DropDown_Initialize(self, level)
                     info.hasArrow = false
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
-                        local actionSlot = action_slot_mapping[actionbutton]
+                        local actionSlot = addon.action_slot_mapping[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
@@ -952,7 +952,7 @@ local function DropDown_Initialize(self, level)
                     info.hasArrow = false
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
-                        local actionSlot = action_slot_mapping[actionbutton]
+                        local actionSlot = addon.action_slot_mapping[actionbutton]
                         local key = modif.CTRL .. modif.SHIFT .. modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
@@ -971,8 +971,8 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-        elseif action_mapping[value] then
-            local keybindings = action_mapping[value]
+        elseif addon.action_mapping[value] then
+            local keybindings = addon.action_mapping[value]
             for index, keybinding in ipairs(keybindings) do
                 info.text = keybinding[1]
                 info.value = keybinding[2]

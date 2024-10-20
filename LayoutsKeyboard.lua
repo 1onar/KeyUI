@@ -1,3 +1,5 @@
+local name, addon = ...
+
 -- Define key sizes
 local u = 60
 local u1_25 = 1.25 * u
@@ -8,7 +10,7 @@ local u2_25 = 2.25 * u
 local u2_75 = 2.75 * u
 local u6_25 = 6.25 * u + 8
 
-default_keyboard_layouts = {
+addon.default_keyboard_layouts = {
 
     -- ISO --
 

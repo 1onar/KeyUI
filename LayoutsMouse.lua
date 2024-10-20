@@ -1,4 +1,6 @@
-default_mouse_layouts = {
+local name, addon = ...
+
+addon.default_mouse_layouts = {
 
     ['Layout_4x3'] = {
 

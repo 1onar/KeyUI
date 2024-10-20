@@ -571,7 +571,7 @@ function addon:NewButtonMouse()
                 end
 
                 -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
+                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local normalTexture = mappedButton:GetNormalTexture()
                     if normalTexture and normalTexture:IsVisible() then
@@ -612,7 +612,7 @@ function addon:NewButtonMouse()
                 end
 
                 -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = button_texture_mapping[tostring(adjustedSlot)]
+                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
                 if mappedButton then
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
@@ -637,7 +637,7 @@ function addon:NewButtonMouse()
                 local bonusBarOffset = GetBonusBarOffset()
                 local currentActionBarPage = GetActionBarPage()
 
-                local actionSlot = action_slot_mapping[key]
+                local actionSlot = addon.action_slot_mapping[key]
 
                 if actionSlot then
                     -- Adjust action slot based on current action bar page
@@ -702,7 +702,7 @@ function addon:NewButtonMouse()
                     local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
                     addon.currentKey = self
                     local key = addon.currentKey.macro:GetText()
-                    local actionSlot = action_slot_mapping[key]
+                    local actionSlot = addon.action_slot_mapping[key]
                     if actionSlot then
                         PlaceAction(actionSlot)
                         ClearCursor()
@@ -738,14 +738,14 @@ function addon:CreateChangerDDMouse()
         local value = UIDROPDOWNMENU_MENU_VALUE
 
         for _, name in ipairs(boardOrder) do
-            local Mousebuttons = default_mouse_layouts[name]
+            local Mousebuttons = addon.default_mouse_layouts[name]
             info.text = name
             info.value = name
             info.colorCode = "|cFFFFFFFF" -- white
             info.func = function()
                 keyui_settings.key_bind_settings_mouse.currentboard = name
                 wipe(keyui_settings.layout_current_mouse)
-                keyui_settings.layout_current_mouse = { [name] = default_mouse_layouts[name] }
+                keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
                 addon:RefreshKeys()
                 UIDropDownMenu_SetText(self, name)
                 MouseControls.Input:SetText("")

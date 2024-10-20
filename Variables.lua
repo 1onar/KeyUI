@@ -1,7 +1,7 @@
+local name, addon = ...
+
 -- Initialize SavedVariables for KeyUI settings
 keyui_settings = keyui_settings or {}
-
-local name, addon = ...
 
 local function set_if_nil(setting, default)
     if keyui_settings[setting] == nil then
@@ -9,9 +9,8 @@ local function set_if_nil(setting, default)
     end
 end
 
--- Initialize SavedVariables
-function addon:InitializeSettings()
-    -- Set default values only if they are nil
+-- Initialize general settings with default values if they are nil
+function addon:InitializeGeneralSettings()
     set_if_nil("show_keyboard", true)
     set_if_nil("show_mouse", true)
     set_if_nil("stay_open_in_combat", true)
@@ -23,14 +22,22 @@ function addon:InitializeSettings()
     set_if_nil("show_empty_binds", false)
     set_if_nil("show_interface_binds", false)
     set_if_nil("tutorial_completed", false)
+end
 
-    -- Initialize other SavedVariables in keyui_settings
+-- Initialize key binding and layout settings
+function addon:InitializeKeyBindSettings()
     keyui_settings.key_bind_settings_keyboard = keyui_settings.key_bind_settings_keyboard or {}
     keyui_settings.key_bind_settings_mouse = keyui_settings.key_bind_settings_mouse or {}
     keyui_settings.layout_current_keyboard = keyui_settings.layout_current_keyboard or {}
     keyui_settings.layout_current_mouse = keyui_settings.layout_current_mouse or {}
     keyui_settings.layout_edited_keyboard = keyui_settings.layout_edited_keyboard or {}
     keyui_settings.layout_edited_mouse = keyui_settings.layout_edited_mouse or {}
+end
+
+-- Initialize all settings
+function addon:InitializeSettings()
+    self:InitializeGeneralSettings()
+    self:InitializeKeyBindSettings()
 end
 
 -- Initialize global variables
