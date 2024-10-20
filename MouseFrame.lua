@@ -548,7 +548,9 @@ function addon:NewButtonMouse()
         addon:ButtonMouseOver(Mousebutton)
         Mousebutton:EnableKeyboard(true)
         Mousebutton:EnableMouseWheel(true)
-        Mousebutton:SetScript("OnKeyDown", KeyDown)
+        if not addon.mouse_locked and not self.isMoving then    -- insure modifier work when locked and hovering a key
+            Mousebutton:SetScript("OnKeyDown", KeyDown)
+        end
         Mousebutton:SetScript("OnMouseWheel", OnMouseWheel)
 
         -- Get the current action bar page
@@ -591,7 +593,9 @@ function addon:NewButtonMouse()
         KeyUITooltip:Hide()
         Mousebutton:EnableKeyboard(false)
         Mousebutton:EnableMouseWheel(false)
-        Mousebutton:SetScript("OnKeyDown", nil)
+        if not addon.mouse_locked and not self.isMoving then    -- insure modifier work when locked and hovering a key
+            Mousebutton:SetScript("OnKeyDown", nil)
+        end
 
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()

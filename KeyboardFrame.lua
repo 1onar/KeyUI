@@ -8,6 +8,41 @@ function addon:SaveKeyboard()
     keyui_settings.keyboard_position.scale = addon.keyboard_frame:GetScale()
 end
 
+-- Function to create a glowing tutorial highlight around the MinMax button
+local function ShowGlowAroundMinMax(Controls)
+    local glowFrame = CreateFrame("Frame", "OVERLAY", Controls.MinMax, "GlowBoxTemplate")
+    glowFrame:SetPoint("TOPLEFT", -1, 1)
+    glowFrame:SetPoint("BOTTOMRIGHT", 1, 0)
+    glowFrame.Text = glowFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    glowFrame.Text:SetPoint("BOTTOM", glowFrame, "TOP", 0, 10)
+    glowFrame.Text:SetText("Click here to open settings")
+    glowFrame.Text:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
+    glowFrame.Text:SetTextColor(1, 1, 0)
+
+    -- Attach to the MinimizeButton and MaximizeButton individually
+    local MinimizeButton = Controls.MinMax.MinimizeButton
+    local MaximizeButton = Controls.MinMax.MaximizeButton
+
+    -- Hook the click event for the MinimizeButton and MaximizeButton
+    if MinimizeButton then
+        MinimizeButton:HookScript("OnClick", function()
+            if glowFrame then
+                glowFrame:Hide()
+                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
+            end
+        end)
+    end
+
+    if MaximizeButton then
+        MaximizeButton:HookScript("OnClick", function()
+            if glowFrame then
+                glowFrame:Hide()
+                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
+            end
+        end)
+    end
+end
+
 function addon:CreateKeyboard()
     -- Create the keyboard frame and assign it to the addon table
     local keyboard_frame = CreateFrame("Frame", "KeyUI_Keyboard", UIParent, "TooltipBorderedFrameTemplate")
@@ -42,11 +77,6 @@ function addon:CreateKeyboard()
     keyboard_frame:SetMovable(true)
 
     return keyboard_frame
-end
-
-local function GetCursorScaledPosition()
-    local scale, x, y = UIParent:GetScale(), GetCursorPosition()
-    return x / scale, y / scale
 end
 
 function addon:CreateControls()
@@ -587,41 +617,6 @@ function addon:CreateControls()
     return Controls
 end
 
--- Function to create a glowing tutorial highlight around the MinMax button
-function ShowGlowAroundMinMax(Controls)
-    local glowFrame = CreateFrame("Frame", "OVERLAY", Controls.MinMax, "GlowBoxTemplate")
-    glowFrame:SetPoint("TOPLEFT", -1, 1)
-    glowFrame:SetPoint("BOTTOMRIGHT", 1, 0)
-    glowFrame.Text = glowFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    glowFrame.Text:SetPoint("BOTTOM", glowFrame, "TOP", 0, 10)
-    glowFrame.Text:SetText("Click here to open settings")
-    glowFrame.Text:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
-    glowFrame.Text:SetTextColor(1, 1, 0)
-
-    -- Attach to the MinimizeButton and MaximizeButton individually
-    local MinimizeButton = Controls.MinMax.MinimizeButton
-    local MaximizeButton = Controls.MinMax.MaximizeButton
-
-    -- Hook the click event for the MinimizeButton and MaximizeButton
-    if MinimizeButton then
-        MinimizeButton:HookScript("OnClick", function()
-            if glowFrame then
-                glowFrame:Hide()
-                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
-            end
-        end)
-    end
-
-    if MaximizeButton then
-        MaximizeButton:HookScript("OnClick", function()
-            if glowFrame then
-                glowFrame:Hide()
-                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
-            end
-        end)
-    end
-end
-
 local function KeyDown(self, key)
     if not addon.keyboard_locked then
         if key == "RightButton" then
@@ -825,8 +820,11 @@ function addon:NewButton(parent)
         addon:ButtonMouseOver(button)
         button:EnableKeyboard(true)
         button:EnableMouseWheel(true)
-        button:SetScript("OnKeyDown", KeyDown)
+        if not addon.keyboard_locked then   -- insure modifier work when locked and hovering a key
+            button:SetScript("OnKeyDown", KeyDown)
+        end
         button:SetScript("OnMouseWheel", OnMouseWheel)
+
 
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
@@ -867,7 +865,9 @@ function addon:NewButton(parent)
         KeyUITooltip:Hide()
         button:EnableKeyboard(false)
         button:EnableMouseWheel(false)
-        button:SetScript("OnKeyDown", nil)
+        if not addon.keyboard_locked then   -- insure modifier work when locked and hovering a key
+            button:SetScript("OnKeyDown", nil)
+        end
 
         -- Get the current action bar page
         local currentActionBarPage = GetActionBarPage()
