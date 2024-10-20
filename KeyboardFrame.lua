@@ -908,11 +908,6 @@ function addon:NewButton(parent)
                 addon.currentKey = self
                 local key = addon.currentKey.macro:GetText()
 
-                -- Define class and bonus bar offset and action bar page
-                local classFilename = UnitClassBase("player")
-                local bonusBarOffset = GetBonusBarOffset()
-                local currentActionBarPage = GetActionBarPage()
-
                 -- Check if 'key' is non-nil and non-empty before proceeding.
                 if key and key ~= "" then
                     local actionSlot = addon.action_slot_mapping[key]
@@ -921,35 +916,33 @@ function addon:NewButton(parent)
                         local adjustedSlot = tonumber(actionSlot)
 
                         -- Handle bonus bar offsets for ROGUE and DRUID
-                        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
-                            if bonusBarOffset == 1 then
+                        if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
+                            if addon.bonusbar_offset == 1 then
                                 adjustedSlot = adjustedSlot + 72  -- Maps to 73-84
-                            elseif bonusBarOffset == 2 then
+                            elseif addon.bonusbar_offset == 2 then
                                 adjustedSlot = adjustedSlot       -- No change for offset 2
-                            elseif bonusBarOffset == 3 then
+                            elseif addon.bonusbar_offset == 3 then
                                 adjustedSlot = adjustedSlot + 96  -- Maps to 97-108
-                            elseif bonusBarOffset == 4 then
+                            elseif addon.bonusbar_offset == 4 then
                                 adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
-                            elseif bonusBarOffset == 5 then
-                                adjustedSlot = adjustedSlot       -- No change for offset 5
                             end
                         end
 
                         -- Adjust based on current action bar page
-                        if currentActionBarPage == 2 then
+                        if addon.current_actionbar_page == 2 then
                             adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
-                        elseif currentActionBarPage == 3 then
+                        elseif addon.current_actionbar_page == 3 then
                             adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
-                        elseif currentActionBarPage == 4 then
+                        elseif addon.current_actionbar_page == 4 then
                             adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
-                        elseif currentActionBarPage == 5 then
+                        elseif addon.current_actionbar_page == 5 then
                             adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
-                        elseif currentActionBarPage == 6 then
+                        elseif addon.current_actionbar_page == 6 then
                             adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
                         end
 
                         -- Check if Dragonriding
-                        if bonusBarOffset == 5 and currentActionBarPage == 1 then
+                        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
                             adjustedSlot = adjustedSlot + 120 -- Maps to 121-132
                         end
 

@@ -52,3 +52,6 @@ addon.keys_keyboard_edited = false
 addon.keys_mouse_edited = false
 addon.open = false
 addon.in_combat = false
+addon.bonusbar_offset = {}
+addon.current_actionbar_page = {}
+addon.class_name = {}

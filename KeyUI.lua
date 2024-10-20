@@ -270,6 +270,7 @@ function addon:Load()
         return
     else
         addon.open = true
+
         self:UpdateInterfaceVisibility()
 
         local dropdown = self.dropdown or self:CreateDropDown()
@@ -481,11 +482,6 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
-    -- Define class and bonus bar offset and action bar page
-    local classFilename = UnitClassBase("player")
-    local bonusBarOffset = GetBonusBarOffset()
-    local currentActionBarPage = GetActionBarPage()
-
     -- Handling empty bindings based on the show_empty_binds setting
     if keyui_settings.show_empty_binds == true then
         local labelText = button.label:GetText()
@@ -501,33 +497,33 @@ function addon:SetKey(button)
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
         -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
-        if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
-            if bonusBarOffset == 1 then
+        if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
+            if addon.bonusbar_offset == 1 then
                 return slot + 72  -- Maps to 73-84
-            elseif bonusBarOffset == 2 then
+            elseif addon.bonusbar_offset == 2 then
                 return slot       -- No change for offset 2
-            elseif bonusBarOffset == 3 then
+            elseif addon.bonusbar_offset == 3 then
                 return slot + 96  -- Maps to 97-108
-            elseif bonusBarOffset == 4 then
+            elseif addon.bonusbar_offset == 4 then
                 return slot + 108 -- Maps to 109-120
             end
         end
 
         -- Handle other action bar pages for all classes
-        if currentActionBarPage == 2 then
+        if addon.current_actionbar_page == 2 then
             return slot + 12 -- Maps to 13-24
-        elseif currentActionBarPage == 3 then
+        elseif addon.current_actionbar_page == 3 then
             return slot + 24 -- Maps to 25-36
-        elseif currentActionBarPage == 4 then
+        elseif addon.current_actionbar_page == 4 then
             return slot + 36 -- Maps to 37-48
-        elseif currentActionBarPage == 5 then
+        elseif addon.current_actionbar_page == 5 then
             return slot + 48 -- Maps to 49-60
-        elseif currentActionBarPage == 6 then
+        elseif addon.current_actionbar_page == 6 then
             return slot + 60 -- Maps to 61-72
         end
 
         -- Check if Dragonriding
-        if bonusBarOffset == 5 and currentActionBarPage == 1 then
+        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
             return slot + 120 -- Maps to 121-132
         end
 
@@ -1035,21 +1031,19 @@ eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addon.open then
         if event == "UPDATE_BONUS_ACTIONBAR" then
-            local classFilename = UnitClassBase("player")
-            -- Check if the class is Druid or Rogue
-            if classFilename == "DRUID" or classFilename == "ROGUE" then
-                local bonusBarOffset = GetBonusBarOffset()
-                addon:RefreshKeys()
-            end
+            -- Check the BonusBarOffset
+            addon.bonusbar_offset  = GetBonusBarOffset()
+            addon:RefreshKeys()
         elseif event == "ACTIONBAR_PAGE_CHANGED" then
             -- Update the current action bar page
-            local currentActionBarPage = GetActionBarPage()
-            addon:RefreshKeys() -- Optional, reload keys when action bar page changes
+            addon.current_actionbar_page = GetActionBarPage()
+            addon:RefreshKeys()
         elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
             -- Check the battle status
             addon:BattleCheck(event)
@@ -1062,6 +1056,17 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             C_Timer.After(0.01, function()
                 addon:RefreshKeys()
             end)
+        end
+    else
+        if event == "UPDATE_BONUS_ACTIONBAR" then
+            -- Check the BonusBarOffset
+            addon.bonusbar_offset  = GetBonusBarOffset()
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then
+            -- Update the current action bar page
+            addon.current_actionbar_page = GetActionBarPage()
+        elseif event == "PLAYER_LOGIN" then
+            -- Check which class
+            addon.class_name = UnitClassBase("player")
         end
     end
 end)
