@@ -199,7 +199,7 @@ local options = {
 
                 -- Immediately update the ESC closing behavior for all relevant frames
                 SetEscCloseEnabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(KBControlsFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(addon.keyboard_control_frame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(Mouseholder, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(MouseFrame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(MouseControls, not keyui_settings.prevent_esc_close)
@@ -225,82 +225,41 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     addon:UpdateInterfaceVisibility()
 end)
 
--- Update the visibility of keyboard and mouse based on settings, only if addon is open
-function addon:UpdateInterfaceVisibility()
-    if not addon.open then
-        return
-    end
-
-    local keyboard = self:GetKeyboard()
-    local Controls = self:GetControls()
-    local Mouseholder = self:GetMouseholder()
-    local MouseFrame = self:GetMouseFrame()
-    local MouseControls = self:GetMouseControls()
-
-    if keyui_settings.show_keyboard then
-        keyboard:Show()
-        Controls:Show()
-    else
-        keyboard:Hide()
-        Controls:Hide()
-    end
-
-    if keyui_settings.show_mouse then
-        Mouseholder:Show()
-        MouseFrame:Show()
-        MouseControls:Show()
-    else
-        Mouseholder:Hide()
-        MouseFrame:Hide()
-        MouseControls:Hide()
-    end
-end
-
+-- Load() - Main function to load the addon.
 function addon:Load()
-    -- Allow loading if not in combat OR if stay_open_in_combat is true
+    
+    -- Prevent loading if in combat and 'stay_open_in_combat' is false.
     if addon.in_combat and not keyui_settings.stay_open_in_combat then
-        -- Prevent loading if fighting and stay_open_in_combat is false
         return
-    else
-        addon.open = true
-
-        self:UpdateInterfaceVisibility()
-
-        local dropdown = self.dropdown or self:CreateDropDown()
-        local tooltip = self.tooltip or self:CreateTooltip()
-
-        self.ddChanger = self.ddChanger or self:CreateChangerDD()
-        self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
-
-        local currentActiveBoard = next(keyui_settings.layout_current_keyboard)
-        UIDropDownMenu_SetText(self.ddChanger, currentActiveBoard)
-
-        local layoutKey = next(keyui_settings.layout_current_mouse)
-        UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
-
-        self:LoadSpells()
-        self:RefreshKeys()
     end
-end
 
--- Hides all UI elements when the addon is closed
-function addon:HideAll()
-    local keyboard = self:GetKeyboard()
-    local Controls = self:GetControls()
-    local Mouseholder = self:GetMouseholder()
-    local MouseFrame = self:GetMouseFrame()
-    local MouseControls = self:GetMouseControls()
+    addon.open = true -- Mark the addon as open
+    addon:UpdateInterfaceVisibility()
 
-    keyboard:Hide()
-    Controls:Hide()
-    Mouseholder:Hide()
-    MouseFrame:Hide()
-    MouseControls:Hide()
+    -- Initialize the keyboard layout selector if not already created.
+    addon.keyboard_selector = addon.keyboard_selector or addon:KeyboardLayoutSelecter()
+    local currentActiveBoard = next(keyui_settings.layout_current_keyboard)
+    UIDropDownMenu_SetText(addon.keyboard_selector, currentActiveBoard)
+
+    -- Initialize the mouse layout selector if not already created.
+    self.ddChangerMouse = self.ddChangerMouse or self:CreateChangerDDMouse()
+    local layoutKey = next(keyui_settings.layout_current_mouse)
+    UIDropDownMenu_SetText(self.ddChangerMouse, layoutKey)
+
+    -- Ensure the dropdown menu is created.
+    addon:CreateDropDown()
+
+    -- Initialize the tooltip if not already created.
+    addon.tooltip = addon.tooltip or addon:CreateTooltip()
+
+    -- Load spells and refresh the key bindings.
+    addon:LoadSpells()
+    addon:RefreshKeys()
 end
 
 -- Load all available spells and abilities of the player and store them in a table.
 function addon:LoadSpells()
-    self.spells = {}
+    addon.spells = {}
     for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
         local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
         local name = skillLineInfo.name
@@ -308,57 +267,111 @@ function addon:LoadSpells()
 
         -- Ensure the skill line has a name before proceeding.
         if name then
-            self.spells[name] = {}
+            addon.spells[name] = {}
 
             for j = offset + 1, offset + numSlots do
                 local spellName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
                 local isPassive = C_SpellBook.IsSpellBookItemPassive(j, Enum.SpellBookSpellBank.Player)
                 if spellName and not isPassive then
-                    table.insert(self.spells[name], spellName)
+                    table.insert(addon.spells[name], spellName)
                 end
             end
         end
     end
 end
 
+-- Update the visibility of keyboard and mouse based on settings, only if addon is open
+function addon:UpdateInterfaceVisibility()
+    if not addon.open then
+        return
+    end
+
+    local keyboard_frame = addon:GetKeyboardFrame()
+    local keyboard_control = addon:GetKeyboardControl()
+    local mouse_image = addon:GetMouseImage()
+    local mouse_frame = addon:GetMouseFrame()
+    local mouse_control = addon:GetMouseControl()
+
+    if keyui_settings.show_keyboard then
+        keyboard_frame:Show()
+        keyboard_control:Show()
+    else
+        keyboard_frame:Hide()
+        keyboard_control:Hide()
+    end
+
+    if keyui_settings.show_mouse then
+        mouse_image:Show()
+        mouse_frame:Show()
+        mouse_control:Show()
+    else
+        mouse_image:Hide()
+        mouse_frame:Hide()
+        mouse_control:Hide()
+    end
+end
+
+-- Hides all UI elements when the addon is closed
+function addon:HideAll()
+    local keyboard_frame = addon:GetKeyboardFrame()
+    local keyboard_control = addon:GetKeyboardControl()
+    local mouse_image = addon:GetMouseImage()
+    local mouse_frame = addon:GetMouseFrame()
+    local mouse_control = addon:GetMouseControl()
+
+    keyboard_frame:Hide()
+    keyboard_control:Hide()
+    mouse_image:Hide()
+    mouse_frame:Hide()
+    mouse_control:Hide()
+end
+
 local function OnFrameHide(self)
-    if not keyboardFrameVisible and not MouseholderFrameVisible then
+    if not is_keyboard_frame_visible and not is_mouse_image_visible then
         addon.open = false
     end
 end
 
-function addon:GetKeyboard()
-    if not keyboard_frame then
-        keyboard_frame = self:CreateKeyboard()
-        keyboard_frame:SetScript("OnHide", function()
-            addon:SaveKeyboard()
-            keyboardFrameVisible = false
+-- Function to get or create the keyboard frame
+function addon:GetKeyboardFrame()
+    -- Check if the keyboard_frame already exists
+    if not addon.keyboard_frame then
+        -- Create the keyboard frame and assign it to the addon table
+        addon.keyboard_frame = addon:CreateKeyboardFrame()
+        
+        addon.keyboard_frame:SetScript("OnHide", function()
+            addon:SaveKeyboardPosition()
+            is_keyboard_frame_visible = false
             OnFrameHide()
         end)
-        keyboard_frame:SetScript("OnShow", function()
-            keyboardFrameVisible = true
+        
+        addon.keyboard_frame:SetScript("OnShow", function()
+            is_keyboard_frame_visible = true
         end)
     end
-    return keyboard_frame
+    return addon.keyboard_frame
 end
 
-function addon:GetControls()
-    if not ControlsFrame then
-        ControlsFrame = self:CreateControls()
+-- Function to get or create the keyboard control
+function addon:GetKeyboardControl()
+    -- Check if the keyboard_control already exists
+    if not addon.keyboard_control_frame then
+        -- Create the keyboard control and assign it to the addon table
+        addon.keyboard_control_frame = addon:CreateKeyboardControl()
     end
-    return ControlsFrame
+    return addon.keyboard_control_frame
 end
 
-function addon:GetMouseholder()
+function addon:GetMouseImage()
     if not MouseholderFrame then
         MouseholderFrame = self:CreateMouseholder()
         MouseholderFrame:SetScript("OnHide", function()
-            addon:SaveMouse()
-            MouseholderFrameVisible = false
+            addon:SaveMousePosition()
+            is_mouse_image_visible = false
             OnFrameHide()
         end)
         MouseholderFrame:SetScript("OnShow", function()
-            MouseholderFrameVisible = true
+            is_mouse_image_visible = true
         end)
     end
     return MouseholderFrame
@@ -371,7 +384,7 @@ function addon:GetMouseFrame()
     return MouseFrame
 end
 
-function addon:GetMouseControls()
+function addon:GetMouseControl()
     if not MouseControlsFrame then
         MouseControlsFrame = self:CreateMouseControls()
     end
@@ -379,18 +392,23 @@ function addon:GetMouseControls()
 end
 
 function addon:CreateTooltip()
-    local KBTooltip = CreateFrame("Frame", "KeyUITooltip", UIParent, "GlowBoxTemplate") -- Create the tooltip frame
+    -- Create the tooltip frame with the GlowBoxTemplate.
+    local KBTooltip = CreateFrame("Frame", "KeyUITooltip", UIParent, "GlowBoxTemplate")
+    addon.tooltip = KBTooltip -- Save the tooltip to the addon table for reuse.
 
+    -- Set the dimensions and appearance.
     KBTooltip:SetWidth(200)
     KBTooltip:SetHeight(25)
     KBTooltip:SetScale(1)
     KBTooltip:SetFrameStrata("TOOLTIP")
 
+    -- Add a title to the tooltip.
     KBTooltip.title = KBTooltip:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     KBTooltip.title:SetPoint("TOPLEFT", KBTooltip, "TOPLEFT", 10, -10)
-    KBTooltip:SetScript("OnHide", function(self) GameTooltip:Hide() end) -- Hide the GameTooltip when this tooltip hides
 
-    addon.tooltip = KBTooltip
+    -- Hide the GameTooltip when this custom tooltip hides.
+    KBTooltip:SetScript("OnHide", function() GameTooltip:Hide() end)
+
     return KBTooltip
 end
 
@@ -471,7 +489,8 @@ end
 
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
-    local spell = GetBindingAction(addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (button.label:GetText() or "")) or ""
+    local spell = GetBindingAction(addon.modif.CTRL ..
+        addon.modif.SHIFT .. addon.modif.ALT .. (button.label:GetText() or "")) or ""
 
     button.icon:Hide()
 
@@ -673,7 +692,7 @@ function addon:RefreshKeys()
         return
     end
 
-    if keyboardFrameVisible == false and MouseholderFrameVisible == false then
+    if is_keyboard_frame_visible == false and is_mouse_image_visible == false then
         return
     end
 
@@ -689,11 +708,11 @@ function addon:RefreshKeys()
     if addon.keys_keyboard_edited ~= false then
         wipe(addon.keys_keyboard)
         addon.keys_keyboard_edited = false
-        self:SwitchBoard(keyui_settings.key_bind_settings_keyboard.currentboard)
+        self:UpdateKeyboardLayout(keyui_settings.key_bind_settings_keyboard.currentboard)
     else
-        self:SwitchBoard(keyui_settings.key_bind_settings_keyboard.currentboard)
+        self:UpdateKeyboardLayout(keyui_settings.key_bind_settings_keyboard.currentboard)
         if addon.keyboard_maximize_flag == false then
-            ControlsFrame:SetWidth(addon.keyboard_frame:GetWidth())
+            addon.keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
         end
     end
 
@@ -806,12 +825,14 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function()
             if addon.currentKey.label ~= "" then
-                SetBinding(addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or ""))
+                SetBinding(addon.modif.CTRL ..
+                    addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
                 SaveBindings(2)
                 -- Print notification of key unbinding
-                local keyText = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                local keyText = addon.modif.CTRL ..
+                    addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                 print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
@@ -882,7 +903,8 @@ local function DropDown_Initialize(self, level)
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
                     local actionSlot = addon.action_slot_mapping[actionbutton]
-                    local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.CTRL ..
+                        addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
                         C_Spell.PickupSpell(spellName)
@@ -914,7 +936,8 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.CTRL ..
+                            addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -942,7 +965,8 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.CTRL ..
+                            addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -967,7 +991,8 @@ local function DropDown_Initialize(self, level)
                 info.value = keybinding[2]
                 info.hasArrow = false
                 info.func = function(self)
-                    local key = addon.modif.CTRL .. addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.CTRL ..
+                        addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
                     -- Print notification for interface binding
@@ -982,13 +1007,15 @@ end
 
 -- CreateDropDown() - Creates the dropdown menu for selecting key bindings.
 function addon:CreateDropDown()
-    local DropDown = CreateFrame("Frame", "KBDropDown", self.keyboard_frame, "UIDropDownMenuTemplate")
-    UIDropDownMenu_SetWidth(DropDown, 60)
-    UIDropDownMenu_SetButtonWidth(DropDown, 20)
-    DropDown:Hide()
-    self.dropdown = DropDown
-    UIDropDownMenu_Initialize(DropDown, DropDown_Initialize, "MENU")
-    return DropDown
+    if not addon.dropdown then
+        local dropdown = CreateFrame("Frame", "KBDropDown", addon.keyboard_frame, "UIDropDownMenuTemplate")
+        UIDropDownMenu_SetWidth(dropdown, 60)
+        UIDropDownMenu_SetButtonWidth(dropdown, 20)
+        UIDropDownMenu_Initialize(dropdown, DropDown_Initialize, "MENU")
+        dropdown:Hide()
+        addon.dropdown = dropdown -- Save the dropdown for later use
+    end
+    return addon.dropdown
 end
 
 -- Function to check battle status
@@ -998,7 +1025,7 @@ function addon:BattleCheck(event)
         -- Only close the addon if stay_open_in_combat is false
         if not keyui_settings.stay_open_in_combat and addon.open then
             addon.keyboard_frame:Hide()
-            KBControlsFrame:Hide()
+            addon.keyboard_control_frame:Hide()
             MouseControls:Hide()
             Mouseholder:Hide()
             MouseFrame:Hide()
@@ -1031,7 +1058,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addon.open then
         if event == "UPDATE_BONUS_ACTIONBAR" then
             -- Check the BonusBarOffset
-            addon.bonusbar_offset  = GetBonusBarOffset()
+            addon.bonusbar_offset = GetBonusBarOffset()
             addon:RefreshKeys()
         elseif event == "ACTIONBAR_PAGE_CHANGED" then
             -- Update the current action bar page
@@ -1042,8 +1069,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon:BattleCheck(event)
         elseif event == "PLAYER_LOGOUT" then
             -- Save Keyboard and Mouse Position when logging out
-            addon:SaveKeyboard()
-            addon:SaveMouse()
+            addon:SaveKeyboardPosition()
+            addon:SaveMousePosition()
         else
             -- Delay refresh of keys to ensure proper updates
             C_Timer.After(0.01, function()
@@ -1053,7 +1080,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     else
         if event == "UPDATE_BONUS_ACTIONBAR" then
             -- Check the BonusBarOffset
-            addon.bonusbar_offset  = GetBonusBarOffset()
+            addon.bonusbar_offset = GetBonusBarOffset()
         elseif event == "ACTIONBAR_PAGE_CHANGED" then
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()

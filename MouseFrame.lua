@@ -1,7 +1,7 @@
 local name, addon = ...
 
 -- Save the position and scale of the mouse holder
-function addon:SaveMouse()
+function addon:SaveMousePosition()
     local x, y = Mouseholder:GetCenter()
     keyui_settings.mouse_position.x = x
     keyui_settings.mouse_position.y = y
