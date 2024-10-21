@@ -390,7 +390,7 @@ function addon:CreateMouseControl()
         mouse_control_frame:SetWidth(42)
         mouse_control_frame:SetHeight(22)
 
-        if addon.mouse_locked == false then
+        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             -- Discard any Editor Changes
             addon:DiscardMouseChanges()
         end
@@ -497,8 +497,8 @@ function addon:SaveMouseLayout()
             addon.keys_mouse_edited = false
 
             -- Remove Save Button and Input Field Glow
-            addon.keyboard_control_frame.glowBoxSave:Hide()
-            addon.keyboard_control_frame.glowBoxInput:Hide()
+            addon.mouse_control_frame.glowBoxSave:Hide()
+            addon.mouse_control_frame.glowBoxInput:Hide()
 
             -- Refresh the keys and update the dropdown menu
             addon:RefreshKeys()

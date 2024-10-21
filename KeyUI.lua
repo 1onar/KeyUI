@@ -329,7 +329,7 @@ local function OnFrameHide(self)
     if not addon.is_keyboard_frame_visible and not addon.is_mouse_image_visible then
         addon.open = false
         
-        if addon.mouse_locked == false or addon.keyboard_locked == false or addon.keys_mouse_edited == true or addon.keys_keyboard_edited == true then
+        if addon.keyboard_locked == false or addon.mouse_locked == false or addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
             -- Discard any Editor Changes
             addon:DiscardMouseChanges()
             addon:DiscardKeyboardChanges()

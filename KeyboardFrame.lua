@@ -620,7 +620,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame:SetHeight(22)
         keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
 
-        if addon.keyboard_locked == false then
+        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
             -- Discard any Editor Changes
             addon:DiscardKeyboardChanges()
         end
