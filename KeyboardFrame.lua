@@ -157,14 +157,14 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.LeftButton = CreateFrame("Button", nil, keyboard_control_frame)
         keyboard_control_frame.LeftButton:SetSize(26, 26)
         keyboard_control_frame.LeftButton:SetPoint("CENTER", keyboard_control_frame.EditBox, "CENTER", -58, 0)
-        keyboard_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Disabled")
+        keyboard_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
         keyboard_control_frame.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
         keyboard_control_frame.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
         keyboard_control_frame.RightButton = CreateFrame("Button", nil, keyboard_control_frame)
         keyboard_control_frame.RightButton:SetSize(26, 26)
         keyboard_control_frame.RightButton:SetPoint("CENTER", keyboard_control_frame.EditBox, "CENTER", 54, 0)
-        keyboard_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Disabled")
+        keyboard_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
         keyboard_control_frame.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
         keyboard_control_frame.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
@@ -419,47 +419,61 @@ function addon:CreateKeyboardControl()
             GameTooltip:Hide()
         end)
 
-        keyboard_control_frame.Delete = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelButtonTemplate")
-        keyboard_control_frame.Delete:SetSize(70, 26)
-        keyboard_control_frame.Delete:SetPoint("LEFT", keyboard_control_frame.Save, "RIGHT", 5, 0)
+        -- Define the confirmation dialog
+        StaticPopupDialogs["KEYUI_KEYBOARD_CONFIRM_DELETE"] = {
+            text = "Are you sure you want to delete the selected layout?",
+            button1 = "Yes",
+            button2 = "No",
+            OnAccept = function()
+                -- delete edited changes and remove glowboxes
+                addon:DiscardKeyboardChanges()
 
+                -- Function to delete the selected layout
+                local selectedLayout = UIDropDownMenu_GetText(addon.keyboard_selector)
+
+                -- Ensure selectedLayout is not nil before proceeding
+                if selectedLayout then
+                    -- Remove the selected layout from the KeyboardEditLayouts table.
+                    keyui_settings.layout_edited_keyboard[selectedLayout] = nil
+
+                    -- Clear the text in the Mouse.Input field.
+                    keyboard_control_frame.Input:SetText("")
+
+                    -- Print a message indicating which layout was deleted.
+                    print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+
+                    wipe(keyui_settings.layout_current_keyboard)
+                    UIDropDownMenu_SetText(addon.keyboard_selector, "")
+                    addon:RefreshKeys()
+                else
+                    print("KeyUI: Error - No layout selected to delete.")
+                end
+            end,
+            timeout = 0,
+            whileDead = true,
+            hideOnEscape = true,
+            preferredIndex = 3, -- Avoids conflicts with other popups
+        }
+
+        keyboard_control_frame.Delete = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelSquareButton")
+        keyboard_control_frame.Delete:SetSize(28, 28)
+        keyboard_control_frame.Delete:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", -12, 2)  
+
+        -- OnClick handler to show confirmation dialog
         keyboard_control_frame.Delete:SetScript("OnClick", function(self)
-            -- Check if KeyboardLayoutSelecter is not nil
             if not addon.keyboard_selector then
-                print("Error: KeyboardLayoutSelecter is nil.")
-                return -- Exit the function early if KeyboardLayoutSelecter is nil
+                print("KeyUI: Error - No layout selected.")
+                return
             end
 
-            -- Get the text from the KeyboardLayoutSelecter dropdown menu.
-            local selectedLayout = UIDropDownMenu_GetText(addon.keyboard_selector)
-
-            -- Ensure selectedLayout is not nil before proceeding
-            if selectedLayout then
-                -- Remove the selected layout from the KeyboardEditLayouts table.
-                keyui_settings.layout_edited_keyboard[selectedLayout] = nil
-
-                -- Clear the text in the Mouse.Input field.
-                keyboard_control_frame.Input:SetText("")
-
-                -- Print a message indicating which layout was deleted.
-                print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
-
-                wipe(keyui_settings.layout_current_keyboard)
-                UIDropDownMenu_SetText(addon.keyboard_selector, "")
-                addon:RefreshKeys()
-            else
-                print("KeyUI: Error - No layout selected to delete.")
-            end
+            -- Show the confirmation dialog
+            StaticPopup_Show("KEYUI_KEYBOARD_CONFIRM_DELETE")
         end)
-
-        local DeleteText = keyboard_control_frame.Delete:CreateFontString(nil, "OVERLAY")
-        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        DeleteText:SetPoint("CENTER", 0, 1)
-        DeleteText:SetText("Delete")
 
         keyboard_control_frame.Delete:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
+            GameTooltip:SetText("Delete Layout")
+            GameTooltip:AddLine("- Remove the current layout if it's custom", 1, 1, 1)
             GameTooltip:Show()
         end)
 
@@ -471,28 +485,41 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Lock:SetSize(70, 26)
         keyboard_control_frame.Lock:SetPoint("RIGHT", keyboard_control_frame.Save, "LEFT", -5, 0)
 
-        local LockText = keyboard_control_frame.Lock:CreateFontString(nil, "OVERLAY")
-        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
-        LockText:SetPoint("CENTER", 0, 1)
+        -- Create and store the LockText in the frame table
+        keyboard_control_frame.LockText = keyboard_control_frame.Lock:CreateFontString(nil, "OVERLAY")
+        keyboard_control_frame.LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
+        keyboard_control_frame.LockText:SetPoint("CENTER", 0, 1)
+
         if addon.keyboard_locked == false then
-            LockText:SetText("Lock")
+            keyboard_control_frame.LockText:SetText("Lock")
         else
-            LockText:SetText("Unlock")
+            keyboard_control_frame.LockText:SetText("Unlock")
         end
 
         local function ToggleLock()
             if addon.keyboard_locked then
                 addon.keyboard_locked = false
-                addon.keys_keyboard_edited = true
-                LockText:SetText("Lock")
+                keyboard_control_frame.LockText:SetText("Lock")
                 if keyboard_control_frame.glowBoxLock then
                     keyboard_control_frame.glowBoxLock:Show()
+                    keyboard_control_frame.glowBoxSave:Hide()
+                    keyboard_control_frame.glowBoxInput:Hide()
                 end
+                print("KeyUI: The keyboard is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
             else
                 addon.keyboard_locked = true
-                LockText:SetText("Unlock")
+                keyboard_control_frame.LockText:SetText("Unlock")
                 if keyboard_control_frame.glowBoxLock then
                     keyboard_control_frame.glowBoxLock:Hide()
+                end
+                if addon.keys_keyboard_edited == true then
+                    keyboard_control_frame.glowBoxSave:Show()
+                    keyboard_control_frame.glowBoxInput:Show()
+                    print("KeyUI: Changes are now locked. Please enter a name and save your layout.")
+                else
+                    keyboard_control_frame.glowBoxSave:Hide()
+                    keyboard_control_frame.glowBoxInput:Hide()
+                    print("KeyUI: No Changes detected.")
                 end
             end
         end
@@ -502,7 +529,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Lock:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText("Toggle Editor Mode")
-            GameTooltip:AddLine("- Assign new keybindings by pushing keys")
+            GameTooltip:AddLine("- Assign new keybindings by pushing keys", 1, 1, 1)
             GameTooltip:Show()
         end)
 
@@ -510,17 +537,57 @@ function addon:CreateKeyboardControl()
             GameTooltip:Hide()
         end)
 
+        -- Create the Discard button
+        keyboard_control_frame.Discard = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelButtonTemplate")
+        keyboard_control_frame.Discard:SetSize(70, 26)  -- Set the size of the button
+        keyboard_control_frame.Discard:SetPoint("LEFT", keyboard_control_frame.Save, "RIGHT", 5, 0)
+
+        -- Create the font string for the button text
+        local DiscardText = keyboard_control_frame.Discard:CreateFontString(nil, "OVERLAY")
+        DiscardText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set the font
+        DiscardText:SetPoint("CENTER", 0, 1)  -- Center the text in the button
+        DiscardText:SetText("Discard")  -- Set the button text
+
+        -- Set the script to call the Discard function when clicked
+        keyboard_control_frame.Discard:SetScript("OnClick", function()
+            addon:DiscardKeyboardChanges()  -- Call the DiscardKeyboardChanges function
+        end)
+
+        keyboard_control_frame.Discard:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Discard Changes")
+            GameTooltip:AddLine("- Revert any unsaved keybinding changes", 1, 1, 1)
+            GameTooltip:AddLine("- Reset the keyboard layout to the last saved state", 1, 1, 1)
+            GameTooltip:Show()
+        end)
+        
+        keyboard_control_frame.Discard:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
         keyboard_control_frame.glowBoxLock = CreateFrame("Frame", nil, keyboard_control_frame, "GlowBorderTemplate")
-        keyboard_control_frame.glowBoxLock:SetSize(72, 28)
+        keyboard_control_frame.glowBoxLock:SetSize(68, 24)
         keyboard_control_frame.glowBoxLock:SetPoint("CENTER", keyboard_control_frame.Lock, "CENTER", 0, 0)
         keyboard_control_frame.glowBoxLock:Hide()
-        keyboard_control_frame.glowBoxLock:SetFrameLevel(keyboard_control_frame.Lock:GetFrameLevel() + 1)
+        keyboard_control_frame.glowBoxLock:SetFrameLevel(keyboard_control_frame.Lock:GetFrameLevel() - 1)
+
+        keyboard_control_frame.glowBoxSave = CreateFrame("Frame", nil, keyboard_control_frame, "GlowBorderTemplate")
+        keyboard_control_frame.glowBoxSave:SetSize(68, 24)
+        keyboard_control_frame.glowBoxSave:SetPoint("CENTER", keyboard_control_frame.Save, "CENTER", 0, 0)
+        keyboard_control_frame.glowBoxSave:Hide()
+        keyboard_control_frame.glowBoxSave:SetFrameLevel(keyboard_control_frame.Save:GetFrameLevel() - 1)
+
+        keyboard_control_frame.glowBoxInput = CreateFrame("Frame", nil, keyboard_control_frame, "GlowBorderTemplate")
+        keyboard_control_frame.glowBoxInput:SetSize(136, 18)
+        keyboard_control_frame.glowBoxInput:SetPoint("CENTER", keyboard_control_frame.Input, "CENTER", -2, 0)
+        keyboard_control_frame.glowBoxInput:Hide()
+        keyboard_control_frame.glowBoxInput:SetFrameLevel(keyboard_control_frame.Input:GetFrameLevel() - 1)
 
         --Edit Menu
 
         if addon.keyboard_selector then
             addon.keyboard_selector:Show()
-            addon.keyboard_selector:SetPoint("CENTER", keyboard_control_frame.Layout, "CENTER", 0, -30)
+            addon.keyboard_selector:SetPoint("CENTER", keyboard_control_frame.Layout, "CENTER", -18, -30)
         end
 
         keyboard_control_frame.EditBox:Show()
@@ -544,12 +611,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Save:Show()
         keyboard_control_frame.Delete:Show()
         keyboard_control_frame.Lock:Show()
-
-        if addon.keyboard_locked == false then
-            if keyboard_control_frame.glowBoxLock then
-                keyboard_control_frame.glowBoxLock:Show()
-            end
-        end
+        keyboard_control_frame.Discard:Show()
     end
 
     local function OnMinimize()
@@ -557,6 +619,11 @@ function addon:CreateKeyboardControl()
 
         keyboard_control_frame:SetHeight(22)
         keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
+
+        if addon.keyboard_locked == false then
+            -- Discard any Editor Changes
+            addon:DiscardKeyboardChanges()
+        end
 
         if keyboard_control_frame.EditBox then
             if addon.keyboard_selector then
@@ -586,10 +653,7 @@ function addon:CreateKeyboardControl()
             keyboard_control_frame.Save:Hide()
             keyboard_control_frame.Delete:Hide()
             keyboard_control_frame.Lock:Hide()
-
-            if keyboard_control_frame.glowBoxLock then
-                keyboard_control_frame.glowBoxLock:Hide()
-            end
+            keyboard_control_frame.Discard:Hide()
         end
     end
 
@@ -597,6 +661,7 @@ function addon:CreateKeyboardControl()
     keyboard_control_frame.Close:SetSize(22, 22)
     keyboard_control_frame.Close:SetPoint("TOPRIGHT", 0, 0)
     keyboard_control_frame.Close:SetScript("OnClick", function(s)
+        addon:DiscardKeyboardChanges()
         addon.keyboard_frame:Hide()
         keyboard_control_frame:Hide()
     end) -- Toggle the Keyboard frame show/hide
@@ -651,6 +716,13 @@ function addon:SaveKeyboardLayout()
             wipe(keyui_settings.layout_current_keyboard)
             keyui_settings.layout_current_keyboard[msg] = keyui_settings.layout_edited_keyboard[msg]
 
+            -- Remove Keyboard edited flag
+            addon.keys_keyboard_edited = false
+
+            -- Remove Save Button and Input Field Glow
+            addon.keyboard_control_frame.glowBoxSave:Hide()
+            addon.keyboard_control_frame.glowBoxInput:Hide()
+
             -- Refresh the keys and update the dropdown menu
             addon:RefreshKeys()
             UIDropDownMenu_SetText(addon.keyboard_selector, msg)
@@ -660,6 +732,39 @@ function addon:SaveKeyboardLayout()
     else
         print("KeyUI: Please lock the binds to save.")
     end
+end
+
+-- Discards any changes made to the keyboard layout and resets the Control UI state
+function addon:DiscardKeyboardChanges()
+
+    if addon.keys_keyboard_edited == true then
+        -- Print message to the player
+        print("KeyUI: Changes discarded. The keyboard is reset and locked.")
+    end
+
+    -- Remove Keyboard locked flag
+    addon.keyboard_locked = true
+
+    -- Remove Keyboard edited flag
+    addon.keys_keyboard_edited = false
+
+    -- Remove Lock Button, Save Button and Input Field Glow
+    if addon.keyboard_control_frame.glowBoxLock then
+        addon.keyboard_control_frame.glowBoxLock:Hide()
+    end
+    if addon.keyboard_control_frame.glowBoxSave then
+        addon.keyboard_control_frame.glowBoxSave:Hide()
+    end
+    if addon.keyboard_control_frame.glowBoxInput then
+        addon.keyboard_control_frame.glowBoxInput:Hide()
+    end
+
+    -- Update the Lock button text
+    if addon.keyboard_control_frame.LockText then
+        addon.keyboard_control_frame.LockText:SetText("Unlock")
+    end
+
+    addon:RefreshKeys()
 end
 
 -- This function switches the key binding board to display different key bindings.
@@ -793,11 +898,13 @@ function addon:CreateKeyboardButtons()
             -- Ensure modifiers work when the keyboard is not locked and the key is hovered
             keyboard_button:SetScript("OnKeyDown", function(_, key)
                 addon:HandleKeyDown(keyboard_button, key)
+                addon.keys_keyboard_edited = true
             end)
         end
         
         keyboard_button:SetScript("OnMouseWheel", function(_, delta)
             addon:HandleMouseWheel(keyboard_button, delta)
+            addon.keys_keyboard_edited = true
         end)
 
 
@@ -953,6 +1060,7 @@ function addon:CreateKeyboardButtons()
             end
         else
             addon:HandleKeyDown(self, Mousebutton) -- Use the shared handler directly
+            addon.keys_keyboard_edited = true
         end
     end)
 

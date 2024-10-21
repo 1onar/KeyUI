@@ -121,14 +121,14 @@ function addon:CreateMouseControl()
         mouse_control_frame.LeftButton = CreateFrame("Button", nil, mouse_control_frame)
         mouse_control_frame.LeftButton:SetSize(26, 26)
         mouse_control_frame.LeftButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", -58, 0)
-        mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Disabled")
+        mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
         mouse_control_frame.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
         mouse_control_frame.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
         mouse_control_frame.RightButton = CreateFrame("Button", nil, mouse_control_frame)
         mouse_control_frame.RightButton:SetSize(26, 26)
         mouse_control_frame.RightButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", 54, 0)
-        mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Disabled")
+        mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
         mouse_control_frame.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
         mouse_control_frame.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
@@ -200,47 +200,61 @@ function addon:CreateMouseControl()
             GameTooltip:Hide()
         end)
 
-        mouse_control_frame.Delete = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
-        mouse_control_frame.Delete:SetSize(70, 26)
-        mouse_control_frame.Delete:SetPoint("LEFT", mouse_control_frame.Save, "RIGHT", 5, 0)
+        -- Define the confirmation dialog
+        StaticPopupDialogs["KEYUI_MOUSE_CONFIRM_DELETE"] = {
+            text = "Are you sure you want to delete the selected layout?",
+            button1 = "Yes",
+            button2 = "No",
+            OnAccept = function()
+                -- delete edited changes and remove glowboxes
+                addon:DiscardMouseChanges()
 
+                -- Function to delete the selected layout
+                local selectedLayout = UIDropDownMenu_GetText(addon.mouse_selector)
+
+                -- Ensure selectedLayout is not nil before proceeding
+                if selectedLayout then
+                    -- Remove the selected layout from the KeyboardEditLayouts table.
+                    keyui_settings.layout_edited_mouse[selectedLayout] = nil
+
+                    -- Clear the text in the Mouse.Input field.
+                    mouse_control_frame.Input:SetText("")
+
+                    -- Print a message indicating which layout was deleted.
+                    print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+
+                    wipe(keyui_settings.layout_current_mouse)
+                    UIDropDownMenu_SetText(addon.mouse_selector, "")
+                    addon:RefreshKeys()
+                else
+                    print("KeyUI: Error - No layout selected to delete.")
+                end
+            end,
+            timeout = 0,
+            whileDead = true,
+            hideOnEscape = true,
+            preferredIndex = 3, -- Avoids conflicts with other popups
+        }
+
+        mouse_control_frame.Delete = CreateFrame("Button", nil, mouse_control_frame, "UIPanelSquareButton")
+        mouse_control_frame.Delete:SetSize(28, 28)
+        mouse_control_frame.Delete:SetPoint("LEFT", addon.mouse_selector, "RIGHT", -12, 2)  
+
+        -- OnClick handler to show confirmation dialog
         mouse_control_frame.Delete:SetScript("OnClick", function(self)
-            -- Check if MouseLayoutSelecter is not nil
             if not addon.mouse_selector then
-                print("Error: MouseLayoutSelecter is nil.")
-                return -- Exit the function early if MouseLayoutSelecter is nil
+                print("KeyUI: Error - No layout selected.")
+                return
             end
 
-            -- Get the text from the MouseLayoutSelecter dropdown menu.
-            local selectedLayout = UIDropDownMenu_GetText(addon.mouse_selector)
-
-            -- Ensure selectedLayout is not nil before proceeding
-            if selectedLayout then
-                -- Remove the selected layout from the MouseKeyEditLayouts table.
-                keyui_settings.layout_edited_mouse[selectedLayout] = nil
-
-                -- Clear the text in the Mouse.Input field.
-                mouse_control_frame.Input:SetText("")
-
-                -- Print a message indicating which layout was deleted.
-                print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
-
-                wipe(keyui_settings.layout_current_mouse)
-                UIDropDownMenu_SetText(addon.mouse_selector, "")
-                addon:RefreshKeys()
-            else
-                print("KeyUI: Error - No layout selected to delete.")
-            end
+            -- Show the confirmation dialog
+            StaticPopup_Show("KEYUI_MOUSE_CONFIRM_DELETE")
         end)
-
-        local DeleteText = mouse_control_frame.Delete:CreateFontString(nil, "OVERLAY")
-        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
-        DeleteText:SetPoint("CENTER", 0, 1)
-        DeleteText:SetText("Delete")
 
         mouse_control_frame.Delete:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
+            GameTooltip:SetText("Delete Layout")
+            GameTooltip:AddLine("- Remove the current layout if it's custom", 1, 1, 1)
             GameTooltip:Show()
         end)
 
@@ -252,28 +266,41 @@ function addon:CreateMouseControl()
         mouse_control_frame.Lock:SetSize(70, 26)
         mouse_control_frame.Lock:SetPoint("RIGHT", mouse_control_frame.Save, "LEFT", -5, 0)
 
-        local LockText = mouse_control_frame.Lock:CreateFontString(nil, "OVERLAY")
-        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
-        LockText:SetPoint("CENTER", 0, 1)
+        -- Create and store the LockText in the frame table
+        mouse_control_frame.LockText = mouse_control_frame.Lock:CreateFontString(nil, "OVERLAY")
+        mouse_control_frame.LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
+        mouse_control_frame.LockText:SetPoint("CENTER", 0, 1)
+
         if addon.mouse_locked == false then
-            LockText:SetText("Lock")
+            mouse_control_frame.LockText:SetText("Lock")
         else
-            LockText:SetText("Unlock")
+            mouse_control_frame.LockText:SetText("Unlock")
         end
 
         local function ToggleLock()
             if addon.mouse_locked then
                 addon.mouse_locked = false
-                addon.keys_mouse_edited = true
-                LockText:SetText("Lock")
+                mouse_control_frame.LockText:SetText("Lock")
                 if mouse_control_frame.glowBoxLock then
                     mouse_control_frame.glowBoxLock:Show()
+                    mouse_control_frame.glowBoxSave:Hide()
+                    mouse_control_frame.glowBoxInput:Hide()
                 end
+                print("KeyUI: The mouse is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
             else
                 addon.mouse_locked = true
-                LockText:SetText("Unlock")
+                mouse_control_frame.LockText:SetText("Unlock")
                 if mouse_control_frame.glowBoxLock then
                     mouse_control_frame.glowBoxLock:Hide()
+                end
+                if addon.keys_mouse_edited == true then
+                    mouse_control_frame.glowBoxSave:Show()
+                    mouse_control_frame.glowBoxInput:Show()
+                    print("KeyUI: Changes are now locked. Please enter a name and save your layout.")
+                else
+                    mouse_control_frame.glowBoxSave:Hide()
+                    mouse_control_frame.glowBoxInput:Hide()
+                    print("KeyUI: No Changes detected.")
                 end
             end
         end
@@ -283,9 +310,9 @@ function addon:CreateMouseControl()
         mouse_control_frame.Lock:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText("Toggle Editor Mode")
-            GameTooltip:AddLine("- Drag the keys with left mouse")
-            GameTooltip:AddLine("- Delete keys with Shift + left-click mouse")
-            GameTooltip:AddLine("- Assign new keybindings by pushing keys")
+            GameTooltip:AddLine("- Drag the keys with left mouse", 1, 1, 1)
+            GameTooltip:AddLine("- Delete keys with Shift + left-click mouse", 1, 1, 1)
+            GameTooltip:AddLine("- Assign new keybindings by pushing keys", 1, 1, 1)
             GameTooltip:Show()
         end)
 
@@ -293,11 +320,52 @@ function addon:CreateMouseControl()
             GameTooltip:Hide()
         end)
 
+        -- Create the Discard button
+        mouse_control_frame.Discard = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
+        mouse_control_frame.Discard:SetSize(70, 26)  -- Set the size of the button
+        mouse_control_frame.Discard:SetPoint("LEFT", mouse_control_frame.Save, "RIGHT", 5, 0)
+
+        -- Create the font string for the button text
+        local DiscardText = mouse_control_frame.Discard:CreateFontString(nil, "OVERLAY")
+        DiscardText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set the font
+        DiscardText:SetPoint("CENTER", 0, 1)  -- Center the text in the button
+        DiscardText:SetText("Discard")  -- Set the button text
+
+        -- Set the script to call the Discard function when clicked
+        mouse_control_frame.Discard:SetScript("OnClick", function()
+            addon:DiscardMouseChanges()  -- Call the DiscardMouseChanges function
+        end)
+
+        mouse_control_frame.Discard:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Discard Changes")
+            GameTooltip:AddLine("- Revert any unsaved keybinding changes", 1, 1, 1)
+            GameTooltip:AddLine("- Reset the keyboard layout to the last saved state", 1, 1, 1)
+            GameTooltip:Show()
+        end)
+        
+        mouse_control_frame.Discard:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
         mouse_control_frame.glowBoxLock = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
-        mouse_control_frame.glowBoxLock:SetSize(72, 28)
+        mouse_control_frame.glowBoxLock:SetSize(68, 24)
         mouse_control_frame.glowBoxLock:SetPoint("CENTER", mouse_control_frame.Lock, "CENTER", 0, 0)
         mouse_control_frame.glowBoxLock:Hide()
-        mouse_control_frame.glowBoxLock:SetFrameLevel(mouse_control_frame.Lock:GetFrameLevel() + 1)
+        mouse_control_frame.glowBoxLock:SetFrameLevel(mouse_control_frame.Lock:GetFrameLevel() - 1)
+        
+        mouse_control_frame.glowBoxSave = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
+        mouse_control_frame.glowBoxSave:SetSize(68, 24)
+        mouse_control_frame.glowBoxSave:SetPoint("CENTER", mouse_control_frame.Save, "CENTER", 0, 0)
+        mouse_control_frame.glowBoxSave:Hide()
+        mouse_control_frame.glowBoxSave:SetFrameLevel(mouse_control_frame.Save:GetFrameLevel() - 1)
+        
+        mouse_control_frame.glowBoxInput = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
+        mouse_control_frame.glowBoxInput:SetSize(136, 18)
+        mouse_control_frame.glowBoxInput:SetPoint("CENTER", mouse_control_frame.Input, "CENTER", -2, 0)
+        mouse_control_frame.glowBoxInput:Hide()
+        mouse_control_frame.glowBoxInput:SetFrameLevel(mouse_control_frame.Input:GetFrameLevel() - 1)
+        
         --Edit end
 
         if addon.mouse_selector then
@@ -313,12 +381,7 @@ function addon:CreateMouseControl()
         mouse_control_frame.Save:Show()
         mouse_control_frame.Delete:Show()
         mouse_control_frame.Lock:Show()
-
-        if addon.mouse_locked == false then
-            if mouse_control_frame.glowBoxLock then
-                mouse_control_frame.glowBoxLock:Show()
-            end
-        end
+        mouse_control_frame.Discard:Show()
     end
 
     local function OnMinimizeMouse()
@@ -326,6 +389,11 @@ function addon:CreateMouseControl()
 
         mouse_control_frame:SetWidth(42)
         mouse_control_frame:SetHeight(22)
+
+        if addon.mouse_locked == false then
+            -- Discard any Editor Changes
+            addon:DiscardMouseChanges()
+        end
 
         if mouse_control_frame.EditBox then
             if addon.mouse_selector then
@@ -340,13 +408,10 @@ function addon:CreateMouseControl()
             mouse_control_frame.Save:Hide()
             mouse_control_frame.Delete:Hide()
             mouse_control_frame.Lock:Hide()
+            mouse_control_frame.Discard:Hide()
 
             mouse_control_frame.Layout:Hide()
             mouse_control_frame.Name:Hide()
-
-            if mouse_control_frame.glowBoxLock then
-                mouse_control_frame.glowBoxLock:Hide()
-            end
         end
     end
 
@@ -354,6 +419,7 @@ function addon:CreateMouseControl()
     mouse_control_frame.Close:SetSize(22, 22)
     mouse_control_frame.Close:SetPoint("TOPRIGHT", 0, 0)
     mouse_control_frame.Close:SetScript("OnClick", function(s)
+        addon:DiscardMouseChanges()
         mouse_control_frame:Hide()
         addon.mouse_image:Hide()
     end)
@@ -427,6 +493,13 @@ function addon:SaveMouseLayout()
             wipe(keyui_settings.layout_current_mouse)
             keyui_settings.layout_current_mouse[msg] = keyui_settings.layout_edited_mouse[msg]
 
+            -- Remove Keyboard edited flag
+            addon.keys_mouse_edited = false
+
+            -- Remove Save Button and Input Field Glow
+            addon.keyboard_control_frame.glowBoxSave:Hide()
+            addon.keyboard_control_frame.glowBoxInput:Hide()
+
             -- Refresh the keys and update the dropdown menu
             addon:RefreshKeys()
             UIDropDownMenu_SetText(addon.mouse_selector, msg)
@@ -436,6 +509,39 @@ function addon:SaveMouseLayout()
     else
         print("KeyUI: Please lock the binds to save.")
     end
+end
+
+-- Discards any changes made to the mouse layout and resets the Control UI state
+function addon:DiscardMouseChanges()
+    
+    if addon.keys_mouse_edited == true then
+        -- Print message to the player
+        print("KeyUI: Changes discarded. The mouse is reset and locked.")
+    end
+
+    -- Remove mouse locked flag
+    addon.mouse_locked = true
+
+    -- Remove mouse edited flag
+    addon.keys_mouse_edited = false
+
+    -- Remove Lock Button, Save Button and Input Field Glow
+    if addon.mouse_control_frame.glowBoxLock then
+        addon.mouse_control_frame.glowBoxLock:Hide()
+    end
+    if addon.mouse_control_frame.glowBoxSave then
+        addon.mouse_control_frame.glowBoxSave:Hide()
+    end
+    if addon.mouse_control_frame.glowBoxInput then
+        addon.mouse_control_frame.glowBoxInput:Hide()
+    end
+
+    -- Update the Lock button text
+    if addon.mouse_control_frame.LockText then
+        addon.mouse_control_frame.LockText:SetText("Unlock")
+    end
+
+    addon:RefreshKeys()
 end
 
 -- This function switches the key binding board to display different mouse key bindings.
@@ -541,11 +647,13 @@ function addon:CreateMouseButtons()
         if not addon.mouse_locked and not self.isMoving then -- insure modifier work when locked and hovering a key
             mouse_button:SetScript("OnKeyDown", function(_, key)
                 addon:HandleKeyDown(mouse_button, key)
+                addon.keys_mouse_edited = true
             end)
         end
         
         mouse_button:SetScript("OnMouseWheel", function(_, delta)
             addon:HandleMouseWheel(mouse_button, delta)
+            addon.keys_mouse_edited = true
         end)
 
         -- Get the current action bar page
@@ -627,6 +735,7 @@ function addon:CreateMouseButtons()
         if button == "LeftButton" then
             if addon.mouse_locked == false then
                 DragOrSize(self, button)
+                addon.keys_mouse_edited = true
             else
                 addon.currentKey = self
                 local key = addon.currentKey.macro:GetText()
@@ -681,6 +790,7 @@ function addon:CreateMouseButtons()
             end
         else
             addon:HandleKeyDown(self, button) -- Use the shared handler directly
+            addon.keys_mouse_edited = true
         end
     end)
 

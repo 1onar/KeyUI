@@ -201,7 +201,7 @@ local options = {
                 SetEscCloseEnabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(addon.keyboard_control_frame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(addon.mouse_image, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(MouseFrame, not keyui_settings.prevent_esc_close)
+                SetEscCloseEnabled(addon.mouse_frame, not keyui_settings.prevent_esc_close)
                 SetEscCloseEnabled(addon.mouse_control_frame, not keyui_settings.prevent_esc_close)
 
                 local status = value and "enabled" or "disabled"
@@ -328,6 +328,12 @@ end
 local function OnFrameHide(self)
     if not addon.is_keyboard_frame_visible and not addon.is_mouse_image_visible then
         addon.open = false
+        
+        if addon.mouse_locked == false or addon.keyboard_locked == false or addon.keys_mouse_edited == true or addon.keys_keyboard_edited == true then
+            -- Discard any Editor Changes
+            addon:DiscardMouseChanges()
+            addon:DiscardKeyboardChanges()
+        end
     end
 end
 
@@ -693,7 +699,13 @@ end
 function addon:RefreshKeys()
     --print("RefreshKeys function called")  -- Print statement
 
-    if addon.keyboard_locked == false or addon.mouse_locked == false then
+    --if addon.keyboard_locked == false or addon.mouse_locked == false then
+    --    print("KeyUI: Please lock the keyboard or mouse before proceeding.")
+    --    return
+    --end
+    
+    if addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
+        print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
         return
     end
 
