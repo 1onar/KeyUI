@@ -88,13 +88,17 @@ function addon:CreateMouseControl()
     local function OnMaximizeMouse()
         addon.mouse_maximize_flag = true
 
-        mouse_control_frame:SetWidth((addon.mouse_image:GetWidth() + 100))
+        mouse_control_frame:SetWidth((addon.mouse_image:GetWidth() + 40))
         mouse_control_frame:SetHeight(190)
+
+        -- Calculate 1/2 of the width of keyui_mouse_control_frame
+        local offset_half = mouse_control_frame:GetWidth() * (1 / 2)
 
         --Size start
         mouse_control_frame.EditBox = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxTemplate")
-        mouse_control_frame.EditBox:SetSize(60, 12)
-        mouse_control_frame.EditBox:SetPoint("BOTTOM", mouse_control_frame, "BOTTOM", 0, 26)
+        mouse_control_frame.EditBox:SetWidth(60)
+        mouse_control_frame.EditBox:SetHeight(20)
+        mouse_control_frame.EditBox:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 30)
         mouse_control_frame.EditBox:SetMaxLetters(4)
         mouse_control_frame.EditBox:SetAutoFocus(false)
         mouse_control_frame.EditBox:SetText(string.format("%.2f", addon.mouse_image:GetScale()))
@@ -115,16 +119,16 @@ function addon:CreateMouseControl()
         end)
 
         mouse_control_frame.LeftButton = CreateFrame("Button", nil, mouse_control_frame)
-        mouse_control_frame.LeftButton:SetSize(34, 34)
+        mouse_control_frame.LeftButton:SetSize(26, 26)
         mouse_control_frame.LeftButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", -58, 0)
-        mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+        mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Disabled")
         mouse_control_frame.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
         mouse_control_frame.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
         mouse_control_frame.RightButton = CreateFrame("Button", nil, mouse_control_frame)
-        mouse_control_frame.RightButton:SetSize(34, 34)
+        mouse_control_frame.RightButton:SetSize(26, 26)
         mouse_control_frame.RightButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", 54, 0)
-        mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+        mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Disabled")
         mouse_control_frame.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
         mouse_control_frame.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
 
@@ -155,31 +159,31 @@ function addon:CreateMouseControl()
         mouse_control_frame.Layout = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         mouse_control_frame.Layout:SetText("Layout")
         mouse_control_frame.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        mouse_control_frame.Layout:SetPoint("RIGHT", addon.mouse_selector, "LEFT", 0, 2)
+        mouse_control_frame.Layout:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 160)
         mouse_control_frame.Layout:SetTextColor(1, 1, 1)
 
         mouse_control_frame.Name = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         mouse_control_frame.Name:SetText("Name")
         mouse_control_frame.Name:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        mouse_control_frame.Name:SetPoint("TOPLEFT", mouse_control_frame.Layout, "TOPLEFT", 0, -44)
+        mouse_control_frame.Name:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 110)
         mouse_control_frame.Name:SetTextColor(1, 1, 1)
 
         mouse_control_frame.Size = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         mouse_control_frame.Size:SetText("Size")
         mouse_control_frame.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        mouse_control_frame.Size:SetPoint("TOPLEFT", mouse_control_frame.Name, "TOPLEFT", 0, -90)
+        mouse_control_frame.Size:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 30)
         mouse_control_frame.Size:SetTextColor(1, 1, 1)
         --Text end
 
         --Edit start
         mouse_control_frame.Input = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxInstructionsTemplate")
         mouse_control_frame.Input:SetSize(130, 30)
-        mouse_control_frame.Input:SetPoint("TOP", mouse_control_frame, "TOP", -16, -54)
+        mouse_control_frame.Input:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 110)
         mouse_control_frame.Input:SetAutoFocus(false)
 
         mouse_control_frame.Save = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
-        mouse_control_frame.Save:SetSize(104, 26)
-        mouse_control_frame.Save:SetPoint("CENTER", mouse_control_frame, "CENTER", 0, -16)
+        mouse_control_frame.Save:SetSize(70, 26)
+        mouse_control_frame.Save:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 75)
         mouse_control_frame.Save:SetScript("OnClick", function() addon:SaveMouseLayout() end)
         local SaveText = mouse_control_frame.Save:CreateFontString(nil, "OVERLAY")
         SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
@@ -197,7 +201,7 @@ function addon:CreateMouseControl()
         end)
 
         mouse_control_frame.Delete = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
-        mouse_control_frame.Delete:SetSize(104, 26)
+        mouse_control_frame.Delete:SetSize(70, 26)
         mouse_control_frame.Delete:SetPoint("LEFT", mouse_control_frame.Save, "RIGHT", 5, 0)
 
         mouse_control_frame.Delete:SetScript("OnClick", function(self)
@@ -245,7 +249,7 @@ function addon:CreateMouseControl()
         end)
 
         mouse_control_frame.Lock = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
-        mouse_control_frame.Lock:SetSize(104, 26)
+        mouse_control_frame.Lock:SetSize(70, 26)
         mouse_control_frame.Lock:SetPoint("RIGHT", mouse_control_frame.Save, "LEFT", -5, 0)
 
         local LockText = mouse_control_frame.Lock:CreateFontString(nil, "OVERLAY")
@@ -290,7 +294,7 @@ function addon:CreateMouseControl()
         end)
 
         mouse_control_frame.glowBoxLock = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
-        mouse_control_frame.glowBoxLock:SetSize(106, 28)
+        mouse_control_frame.glowBoxLock:SetSize(72, 28)
         mouse_control_frame.glowBoxLock:SetPoint("CENTER", mouse_control_frame.Lock, "CENTER", 0, 0)
         mouse_control_frame.glowBoxLock:Hide()
         mouse_control_frame.glowBoxLock:SetFrameLevel(mouse_control_frame.Lock:GetFrameLevel() + 1)
@@ -298,7 +302,7 @@ function addon:CreateMouseControl()
 
         if addon.mouse_selector then
             addon.mouse_selector:Show()
-            addon.mouse_selector:SetPoint("TOP", addon.mouse_control_frame, "TOP", -20, -10)
+            addon.mouse_selector:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 160)
         end
 
         mouse_control_frame.EditBox:Show()
@@ -320,8 +324,8 @@ function addon:CreateMouseControl()
     local function OnMinimizeMouse()
         addon.mouse_maximize_flag = false
 
-        mouse_control_frame:SetWidth(50)
-        mouse_control_frame:SetHeight(26)
+        mouse_control_frame:SetWidth(42)
+        mouse_control_frame:SetHeight(22)
 
         if mouse_control_frame.EditBox then
             if addon.mouse_selector then
@@ -347,7 +351,7 @@ function addon:CreateMouseControl()
     end
 
     mouse_control_frame.Close = CreateFrame("Button", nil, mouse_control_frame, "UIPanelCloseButton")
-    mouse_control_frame.Close:SetSize(26, 26)
+    mouse_control_frame.Close:SetSize(22, 22)
     mouse_control_frame.Close:SetPoint("TOPRIGHT", 0, 0)
     mouse_control_frame.Close:SetScript("OnClick", function(s)
         mouse_control_frame:Hide()
@@ -355,7 +359,7 @@ function addon:CreateMouseControl()
     end)
 
     mouse_control_frame.MinMax = CreateFrame("Frame", nil, mouse_control_frame, "MaximizeMinimizeButtonFrameTemplate")
-    mouse_control_frame.MinMax:SetSize(26, 26)
+    mouse_control_frame.MinMax:SetSize(22, 22)
     mouse_control_frame.MinMax:SetPoint("RIGHT", mouse_control_frame.Close, "LEFT", 2, 0)
     mouse_control_frame.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
     mouse_control_frame.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)

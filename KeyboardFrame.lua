@@ -112,8 +112,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame:SetWidth(500)
 
         -- Calculate 1/3 and 2/3 of the width of keyboard_control_frame
-        local offsetOneThird = keyboard_control_frame:GetWidth() * (1 / 3)
-        local offsetTwoThirds = keyboard_control_frame:GetWidth() * (2 / 3)
+        local offset_one_third = keyboard_control_frame:GetWidth() * (1 / 3)
+        local offset_two_thirds = keyboard_control_frame:GetWidth() * (2 / 3)
 
         -- Text "Layout"
         keyboard_control_frame.Layout = keyboard_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -127,7 +127,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Size = keyboard_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         keyboard_control_frame.Size:SetText("Size")
         keyboard_control_frame.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        keyboard_control_frame.Size:SetPoint("CENTER", keyboard_control_frame, "LEFT", offsetOneThird, 25)
+        keyboard_control_frame.Size:SetPoint("CENTER", keyboard_control_frame, "LEFT", offset_one_third, 25)
         keyboard_control_frame.Size:SetTextColor(1, 1, 1)
 
         keyboard_control_frame.EditBox = CreateFrame("EditBox", nil, keyboard_control_frame, "InputBoxTemplate")
@@ -197,7 +197,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Display = keyboard_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         keyboard_control_frame.Display:SetText("Display Options")
         keyboard_control_frame.Display:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        keyboard_control_frame.Display:SetPoint("CENTER", keyboard_control_frame, "BOTTOMLEFT", offsetOneThird, 60)
+        keyboard_control_frame.Display:SetPoint("CENTER", keyboard_control_frame, "BOTTOMLEFT", offset_one_third, 60)
         keyboard_control_frame.Display:SetTextColor(1, 1, 1)
 
         keyboard_control_frame.SwitchEmptyBinds = CreateFrame("Button", nil, keyboard_control_frame,
@@ -397,7 +397,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.EditText = keyboard_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         keyboard_control_frame.EditText:SetText("Edit Menu")
         keyboard_control_frame.EditText:SetFont("Fonts\\FRIZQT__.TTF", 14)
-        keyboard_control_frame.EditText:SetPoint("CENTER", keyboard_control_frame, "TOPLEFT", offsetOneThird, -20)
+        keyboard_control_frame.EditText:SetPoint("CENTER", keyboard_control_frame, "TOPLEFT", offset_one_third, -20)
         keyboard_control_frame.EditText:SetTextColor(1, 1, 1)
 
         keyboard_control_frame.Save = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelButtonTemplate")
@@ -453,7 +453,7 @@ function addon:CreateKeyboardControl()
         end)
 
         local DeleteText = keyboard_control_frame.Delete:CreateFontString(nil, "OVERLAY")
-        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
+        DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)
         DeleteText:SetPoint("CENTER", 0, 1)
         DeleteText:SetText("Delete")
 
@@ -472,7 +472,7 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Lock:SetPoint("RIGHT", keyboard_control_frame.Save, "LEFT", -5, 0)
 
         local LockText = keyboard_control_frame.Lock:CreateFontString(nil, "OVERLAY")
-        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
+        LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
         LockText:SetPoint("CENTER", 0, 1)
         if addon.keyboard_locked == false then
             LockText:SetText("Lock")
@@ -750,7 +750,7 @@ function addon:CreateKeyboardButtons()
     keyboard_button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     keyboard_button.label:SetTextColor(1, 1, 1, 0.9)
     keyboard_button.label:SetHeight(50)
-    keyboard_button.label:SetWidth(100)
+    keyboard_button.label:SetWidth(56)
     keyboard_button.label:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
     keyboard_button.label:SetJustifyH("RIGHT")
     keyboard_button.label:SetJustifyV("TOP")
