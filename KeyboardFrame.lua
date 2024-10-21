@@ -90,6 +90,8 @@ function addon:CreateKeyboardControl()
 
     keyboard_control_frame:SetBackdropColor(0, 0, 0, 1)
     keyboard_control_frame:SetPoint("BOTTOMRIGHT", addon.keyboard_frame, "TOPRIGHT", 0, -2)
+    keyboard_control_frame:SetScript("OnMouseDown", function(self) addon.keyboard_frame:StartMoving() end)
+    keyboard_control_frame:SetScript("OnMouseUp", function(self) addon.keyboard_frame:StopMovingOrSizing() end)
 
     local function SetCheckboxTooltip(checkbox, tooltipText)
         checkbox.tooltipText = tooltipText
@@ -198,7 +200,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Display:SetPoint("CENTER", keyboard_control_frame, "BOTTOMLEFT", offsetOneThird, 60)
         keyboard_control_frame.Display:SetTextColor(1, 1, 1)
 
-        keyboard_control_frame.SwitchEmptyBinds = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelButtonTemplate")
+        keyboard_control_frame.SwitchEmptyBinds = CreateFrame("Button", nil, keyboard_control_frame,
+            "UIPanelButtonTemplate")
         keyboard_control_frame.SwitchEmptyBinds:SetSize(150, 26)
         keyboard_control_frame.SwitchEmptyBinds:SetPoint("LEFT", keyboard_control_frame.Display, "CENTER", 4, -30)
 
@@ -235,7 +238,8 @@ function addon:CreateKeyboardControl()
             GameTooltip:Hide()
         end)
 
-        keyboard_control_frame.SwitchInterfaceBinds = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelButtonTemplate")
+        keyboard_control_frame.SwitchInterfaceBinds = CreateFrame("Button", nil, keyboard_control_frame,
+            "UIPanelButtonTemplate")
         keyboard_control_frame.SwitchInterfaceBinds:SetSize(150, 26)
         keyboard_control_frame.SwitchInterfaceBinds:SetPoint("RIGHT", keyboard_control_frame.Display, "CENTER", -4, -30)
 
@@ -283,7 +287,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.AltText:SetFont("Fonts\\FRIZQT__.TTF", 14)
         keyboard_control_frame.AltText:SetPoint("CENTER", keyboard_control_frame.Display, "CENTER", 192, 0)
 
-        keyboard_control_frame.AltCB = CreateFrame("CheckButton", nil, keyboard_control_frame, "ChatConfigCheckButtonTemplate")
+        keyboard_control_frame.AltCB = CreateFrame("CheckButton", nil, keyboard_control_frame,
+            "ChatConfigCheckButtonTemplate")
         keyboard_control_frame.AltCB:SetSize(32, 36)
         keyboard_control_frame.AltCB:SetHitRectInsets(0, 0, 0, -10)
         keyboard_control_frame.AltCB:SetPoint("CENTER", keyboard_control_frame.AltText, "CENTER", 0, -30)
@@ -315,7 +320,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.CtrlText:SetFont("Fonts\\FRIZQT__.TTF", 14)
         keyboard_control_frame.CtrlText:SetPoint("CENTER", keyboard_control_frame.AltText, "CENTER", 50, 0)
 
-        keyboard_control_frame.CtrlCB = CreateFrame("CheckButton", nil, keyboard_control_frame, "ChatConfigCheckButtonTemplate")
+        keyboard_control_frame.CtrlCB = CreateFrame("CheckButton", nil, keyboard_control_frame,
+            "ChatConfigCheckButtonTemplate")
         keyboard_control_frame.CtrlCB:SetSize(32, 36)
         keyboard_control_frame.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
         keyboard_control_frame.CtrlCB:SetPoint("CENTER", keyboard_control_frame.CtrlText, "CENTER", 0, -30)
@@ -347,7 +353,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.ShiftText:SetFont("Fonts\\FRIZQT__.TTF", 14)
         keyboard_control_frame.ShiftText:SetPoint("CENTER", keyboard_control_frame.CtrlText, "CENTER", 50, 0)
 
-        keyboard_control_frame.ShiftCB = CreateFrame("CheckButton", nil, keyboard_control_frame, "ChatConfigCheckButtonTemplate")
+        keyboard_control_frame.ShiftCB = CreateFrame("CheckButton", nil, keyboard_control_frame,
+            "ChatConfigCheckButtonTemplate")
         keyboard_control_frame.ShiftCB:SetSize(32, 36)
         keyboard_control_frame.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
         keyboard_control_frame.ShiftCB:SetPoint("CENTER", keyboard_control_frame.ShiftText, "CENTER", 0, -30)
@@ -417,14 +424,14 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame.Delete:SetPoint("LEFT", keyboard_control_frame.Save, "RIGHT", 5, 0)
 
         keyboard_control_frame.Delete:SetScript("OnClick", function(self)
-            -- Check if KBChangeBoardDD is not nil
-            if not KBChangeBoardDD then
-                print("Error: KBChangeBoardDD is nil.")
-                return -- Exit the function early if KBChangeBoardDD is nil
+            -- Check if KeyboardLayoutSelecter is not nil
+            if not addon.keyboard_selector then
+                print("Error: KeyboardLayoutSelecter is nil.")
+                return -- Exit the function early if KeyboardLayoutSelecter is nil
             end
 
-            -- Get the text from the KBChangeBoardDD dropdown menu.
-            local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDD)
+            -- Get the text from the KeyboardLayoutSelecter dropdown menu.
+            local selectedLayout = UIDropDownMenu_GetText(addon.keyboard_selector)
 
             -- Ensure selectedLayout is not nil before proceeding
             if selectedLayout then
@@ -438,7 +445,7 @@ function addon:CreateKeyboardControl()
                 print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
 
                 wipe(keyui_settings.layout_current_keyboard)
-                UIDropDownMenu_SetText(KBChangeBoardDD, "")
+                UIDropDownMenu_SetText(addon.keyboard_selector, "")
                 addon:RefreshKeys()
             else
                 print("KeyUI: Error - No layout selected to delete.")
@@ -511,9 +518,9 @@ function addon:CreateKeyboardControl()
 
         --Edit Menu
 
-        if KBChangeBoardDD then
-            KBChangeBoardDD:Show()
-            KBChangeBoardDD:SetPoint("CENTER", keyboard_control_frame.Layout, "CENTER", 0, -30)
+        if addon.keyboard_selector then
+            addon.keyboard_selector:Show()
+            addon.keyboard_selector:SetPoint("CENTER", keyboard_control_frame.Layout, "CENTER", 0, -30)
         end
 
         keyboard_control_frame.EditBox:Show()
@@ -552,8 +559,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
 
         if keyboard_control_frame.EditBox then
-            if KBChangeBoardDD then
-                KBChangeBoardDD:Hide()
+            if addon.keyboard_selector then
+                addon.keyboard_selector:Hide()
             end
             keyboard_control_frame.Layout:Hide()
 
@@ -594,7 +601,8 @@ function addon:CreateKeyboardControl()
         keyboard_control_frame:Hide()
     end) -- Toggle the Keyboard frame show/hide
 
-    keyboard_control_frame.MinMax = CreateFrame("Frame", nil, keyboard_control_frame, "MaximizeMinimizeButtonFrameTemplate")
+    keyboard_control_frame.MinMax = CreateFrame("Frame", nil, keyboard_control_frame,
+        "MaximizeMinimizeButtonFrameTemplate")
     keyboard_control_frame.MinMax:SetSize(22, 22)
     keyboard_control_frame.MinMax:SetPoint("RIGHT", keyboard_control_frame.Close, "LEFT", 2, 0)
     keyboard_control_frame.MinMax:SetOnMaximizedCallback(OnMaximize)
@@ -608,45 +616,17 @@ function addon:CreateKeyboardControl()
         ShowGlowAroundMinMax(keyboard_control_frame)
     end
 
-    keyboard_control_frame:SetScript("OnMouseDown", function(self) addon.keyboard_frame:StartMoving() end)
-    keyboard_control_frame:SetScript("OnMouseUp", function(self) addon.keyboard_frame:StopMovingOrSizing() end)
-
     return keyboard_control_frame
 end
 
-local function KeyDown(self, key)
-    if not addon.keyboard_locked then
-        if key == "RightButton" then
-            return
-        elseif key == "MiddleButton" then
-            self.label:SetText("Button3")
-        else
-            -- For all other keys, set the label to the key itself
-            self.label:SetText(key)
-        end
-    end
-end
-
-local function OnMouseWheel(self, delta)
-    if not addon.keyboard_locked then
-        if delta > 0 then
-            -- Mouse wheel scrolled up
-            self.label:SetText("MouseWheelUp")
-        elseif delta < 0 then
-            -- Mouse wheel scrolled down
-            self.label:SetText("MouseWheelDown")
-        end
-    end
-end
-
 function addon:SaveKeyboardLayout()
-    local msg = keyboard_control_frame.Input:GetText()
+    local msg = addon.keyboard_control_frame.Input:GetText()
 
     if addon.keyboard_locked == true then
         if msg ~= "" then
             -- Clear the input field and focus
-            keyboard_control_frame.Input:SetText("")
-            keyboard_control_frame.Input:ClearFocus()
+            addon.keyboard_control_frame.Input:SetText("")
+            addon.keyboard_control_frame.Input:ClearFocus()
 
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
 
@@ -683,144 +663,142 @@ function addon:SaveKeyboardLayout()
 end
 
 -- This function switches the key binding board to display different key bindings.
-function addon:UpdateKeyboardLayout(board)
-    -- Clear the existing Keys array to avoid leftover data from previous layouts
+function addon:UpdateKeyboardLayout()
+    -- Clear the existing key array to avoid leftover data from previous layouts.
     for i = 1, #addon.keys_keyboard do
         addon.keys_keyboard[i]:Hide()
         addon.keys_keyboard[i] = nil
     end
     addon.keys_keyboard = {}
 
-    -- Proceed with setting up the new layout
-    if keyui_settings.layout_current_keyboard and addon.open == true and addon.keyboard_frame then
-        -- Set default small size before calculating dynamic size
+    -- Set up the new layout if a valid configuration is available.
+    if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
+        -- Set a default small size before calculating the dynamic size.
         addon.keyboard_frame:SetWidth(100)
         addon.keyboard_frame:SetHeight(100)
 
-        -- Ensure the layout isn't empty
-        local layoutNotEmpty = false
-        for _, layoutData in pairs(keyui_settings.layout_current_keyboard) do
-            if #layoutData > 0 then
-                layoutNotEmpty = true
+        -- Check if the layout contains any data.
+        local layout_not_empty = false
+        for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
+            if #layout_data > 0 then
+                layout_not_empty = true
                 break
             end
         end
 
-        -- Only proceed if there is a valid layout
-        if layoutNotEmpty then
+        -- Proceed only if the layout is not empty.
+        if layout_not_empty then
             local cx, cy = addon.keyboard_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
-            for _, layoutData in pairs(keyui_settings.layout_current_keyboard) do
-                for i = 1, #layoutData do
-                    local Key = addon.keys_keyboard[i] or self:CreateKeyboardButtons()
-                    local keyData = layoutData[i]
+            -- Loop through each key in the layout and position it within the frame.
+            for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
+                for i = 1, #layout_data do
+                    local key = addon.keys_keyboard[i] or addon:CreateKeyboardButtons()
+                    local key_data = layout_data[i]
 
-                    if keyData[4] then
-                        Key:SetWidth(keyData[4])
-                        Key:SetHeight(keyData[5])
+                    -- Set the size of the key based on the provided data or use defaults.
+                    if key_data[4] then
+                        key:SetWidth(key_data[4])
+                        key:SetHeight(key_data[5])
                     else
-                        Key:SetWidth(60)
-                        Key:SetHeight(60)
+                        key:SetWidth(60)
+                        key:SetHeight(60)
                     end
 
+                    -- Store the key in the array if it's not already present.
                     if not addon.keys_keyboard[i] then
-                        addon.keys_keyboard[i] = Key
+                        addon.keys_keyboard[i] = key
                     end
 
-                    Key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", keyData[2], keyData[3])
-                    Key.label:SetText(keyData[1])
-                    local tempframe = Key
-                    tempframe:Show()
+                    -- Position the key within the frame.
+                    key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", key_data[2], key_data[3])
+                    key.label:SetText(key_data[1])
+                    key:Show()
 
-                    local l, r, t, b = Key:GetLeft(), Key:GetRight(), Key:GetTop(), Key:GetBottom()
-
-                    if l < left then
-                        left = l
-                    end
-                    if r > right then
-                        right = r
-                    end
-                    if t > top then
-                        top = t
-                    end
-                    if b < bottom then
-                        bottom = b
-                    end
+                    -- Update the boundaries for resizing the frame.
+                    local l, r, t, b = key:GetLeft(), key:GetRight(), key:GetTop(), key:GetBottom()
+                    if l < left then left = l end
+                    if r > right then right = r end
+                    if t > top then top = t end
+                    if b < bottom then bottom = b end
                 end
             end
 
-            -- Adjust the Keyboard Frame size based on the keys' positions
+            -- Adjust the frame size based on the extreme positions of the keys.
             addon.keyboard_frame:SetWidth(right - left + 12)
             addon.keyboard_frame:SetHeight(top - bottom + 12)
         else
-            -- Fallback size if the layout is empty
-            addon.keyboard_frame:SetHeight(382)
+            -- Set a fallback size if the layout is empty.
             addon.keyboard_frame:SetWidth(940)
+            addon.keyboard_frame:SetHeight(382)
         end
     end
 end
 
--- Create a new button on the given parent frame or default to the main keyboard frame.
-function addon:CreateKeyboardButtons(parent)
-    if not parent then
-        parent = self.keyboard_frame
-    end
+-- Create a new button to the main keyboard frame.
+function addon:CreateKeyboardButtons()
 
     -- Create a frame that acts as a button with a tooltip border.
-    local button = CreateFrame("Frame", nil, parent, "TooltipBorderedFrameTemplate")
-    button:EnableMouse(true)
-    button:EnableKeyboard(true)
-    button:SetBackdropColor(0, 0, 0, 1)
+    local keyboard_button = CreateFrame("Frame", nil, addon.keyboard_frame, "TooltipBorderedFrameTemplate")
+    keyboard_button:EnableMouse(true)
+    keyboard_button:EnableKeyboard(true)
+    keyboard_button:SetBackdropColor(0, 0, 0, 1)
 
     -- Create a label to display the full name of the action.
-    button.label = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    button.label:SetTextColor(1, 1, 1, 0.9)
-    button.label:SetHeight(50)
-    button.label:SetWidth(100)
-    button.label:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
-    button.label:SetJustifyH("RIGHT")
-    button.label:SetJustifyV("TOP")
+    keyboard_button.label = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    keyboard_button.label:SetTextColor(1, 1, 1, 0.9)
+    keyboard_button.label:SetHeight(50)
+    keyboard_button.label:SetWidth(100)
+    keyboard_button.label:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
+    keyboard_button.label:SetJustifyH("RIGHT")
+    keyboard_button.label:SetJustifyV("TOP")
 
     -- Create a shorter label, possibly for abbreviations or shorter texts.
-    button.ShortLabel = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
-    button.ShortLabel:SetHeight(50)
-    button.ShortLabel:SetWidth(100)
-    button.ShortLabel:SetPoint("TOPRIGHT", button, "TOPRIGHT", -4, -6)
-    button.ShortLabel:SetJustifyH("RIGHT")
-    button.ShortLabel:SetJustifyV("TOP")
+    keyboard_button.ShortLabel = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    keyboard_button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
+    keyboard_button.ShortLabel:SetHeight(50)
+    keyboard_button.ShortLabel:SetWidth(100)
+    keyboard_button.ShortLabel:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
+    keyboard_button.ShortLabel:SetJustifyH("RIGHT")
+    keyboard_button.ShortLabel:SetJustifyV("TOP")
 
     -- Hidden font string to store the macro text.
-    button.macro = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.macro:SetText("")
-    button.macro:Hide()
+    keyboard_button.macro = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.macro:SetText("")
+    keyboard_button.macro:Hide()
 
     -- Font string to display the interface action text.
-    button.interfaceaction = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    button.interfaceaction:SetTextColor(1, 1, 1)
-    button.interfaceaction:SetHeight(58)
-    button.interfaceaction:SetWidth(58)
-    button.interfaceaction:SetPoint("CENTER", button, "CENTER", 0, -6)
-    button.interfaceaction:SetText("")
+    keyboard_button.interfaceaction = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    keyboard_button.interfaceaction:SetTextColor(1, 1, 1)
+    keyboard_button.interfaceaction:SetHeight(58)
+    keyboard_button.interfaceaction:SetWidth(58)
+    keyboard_button.interfaceaction:SetPoint("CENTER", keyboard_button, "CENTER", 0, -6)
+    keyboard_button.interfaceaction:SetText("")
 
     -- Icon texture for the button.
-    button.icon = button:CreateTexture(nil, "ARTWORK")
-    button.icon:SetSize(50, 50)
-    button.icon:SetPoint("TOPLEFT", button, "TOPLEFT", 5, -5)
+    keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
+    keyboard_button.icon:SetSize(50, 50)
+    keyboard_button.icon:SetPoint("TOPLEFT", keyboard_button, "TOPLEFT", 5, -5)
 
     -- Define the mouse hover behavior to show tooltips.
-    button:SetScript("OnEnter", function()
-        addon:ButtonMouseOver(button)
-        button:EnableKeyboard(true)
-        button:EnableMouseWheel(true)
-        if not addon.keyboard_locked then   -- insure modifier work when locked and hovering a key
-            button:SetScript("OnKeyDown", KeyDown)
+    keyboard_button:SetScript("OnEnter", function()
+        addon:ButtonMouseOver(keyboard_button)
+        keyboard_button:EnableKeyboard(true)
+        keyboard_button:EnableMouseWheel(true)
+        if not addon.keyboard_locked then 
+            -- Ensure modifiers work when the keyboard is not locked and the key is hovered
+            keyboard_button:SetScript("OnKeyDown", function(_, key)
+                addon:HandleKeyDown(keyboard_button, key)
+            end)
         end
-        button:SetScript("OnMouseWheel", OnMouseWheel)
+        
+        keyboard_button:SetScript("OnMouseWheel", function(_, delta)
+            addon:HandleMouseWheel(keyboard_button, delta)
+        end)
 
 
         -- Get the current action bar page
@@ -828,18 +806,18 @@ function addon:CreateKeyboardButtons(parent)
 
         if keyui_settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
-            if button.slot then
+            if keyboard_button.slot then
                 -- Adjust the slot mapping based on the current action bar page
-                local adjustedSlot = button.slot
+                local adjustedSlot = keyboard_button.slot
 
-                if currentActionBarPage == 3 and button.slot >= 25 and button.slot <= 36 then
-                    adjustedSlot = button.slot - 24 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and button.slot >= 37 and button.slot <= 48 then
-                    adjustedSlot = button.slot - 36 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and button.slot >= 49 and button.slot <= 60 then
-                    adjustedSlot = button.slot - 48 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and button.slot >= 61 and button.slot <= 72 then
-                    adjustedSlot = button.slot - 60 -- Map to ActionButton1-12
+                if currentActionBarPage == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
+                    adjustedSlot = keyboard_button.slot - 24 -- Map to ActionButton1-12
+                elseif currentActionBarPage == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
+                    adjustedSlot = keyboard_button.slot - 36 -- Map to ActionButton1-12
+                elseif currentActionBarPage == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
+                    adjustedSlot = keyboard_button.slot - 48 -- Map to ActionButton1-12
+                elseif currentActionBarPage == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
+                    adjustedSlot = keyboard_button.slot - 60 -- Map to ActionButton1-12
                 end
 
                 -- Look up the correct button in TextureMappings using the adjusted slot number
@@ -857,13 +835,13 @@ function addon:CreateKeyboardButtons(parent)
         end
     end)
 
-    button:SetScript("OnLeave", function()
+    keyboard_button:SetScript("OnLeave", function()
         GameTooltip:Hide()
-        KeyUITooltip:Hide()
-        button:EnableKeyboard(false)
-        button:EnableMouseWheel(false)
-        if not addon.keyboard_locked then   -- insure modifier work when locked and hovering a key
-            button:SetScript("OnKeyDown", nil)
+        addon.tooltip:Hide()
+        keyboard_button:EnableKeyboard(false)
+        keyboard_button:EnableMouseWheel(false)
+        if not addon.keyboard_locked then -- insure modifier work when locked and hovering a key
+            keyboard_button:SetScript("OnKeyDown", nil)
         end
 
         -- Get the current action bar page
@@ -871,17 +849,17 @@ function addon:CreateKeyboardButtons(parent)
 
         if keyui_settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
-            if button.slot then
-                local adjustedSlot = button.slot
+            if keyboard_button.slot then
+                local adjustedSlot = keyboard_button.slot
 
-                if currentActionBarPage == 3 and button.slot >= 25 and button.slot <= 36 then
-                    adjustedSlot = button.slot - 24
-                elseif currentActionBarPage == 4 and button.slot >= 37 and button.slot <= 48 then
-                    adjustedSlot = button.slot - 36
-                elseif currentActionBarPage == 5 and button.slot >= 49 and button.slot <= 60 then
-                    adjustedSlot = button.slot - 48
-                elseif currentActionBarPage == 6 and button.slot >= 61 and button.slot <= 72 then
-                    adjustedSlot = button.slot - 60
+                if currentActionBarPage == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
+                    adjustedSlot = keyboard_button.slot - 24
+                elseif currentActionBarPage == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
+                    adjustedSlot = keyboard_button.slot - 36
+                elseif currentActionBarPage == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
+                    adjustedSlot = keyboard_button.slot - 48
+                elseif currentActionBarPage == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
+                    adjustedSlot = keyboard_button.slot - 60
                 end
 
                 local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
@@ -896,7 +874,7 @@ function addon:CreateKeyboardButtons(parent)
     end)
 
     -- Define behavior for mouse down actions (left-click).
-    button:SetScript("OnMouseDown", function(self, Mousebutton)
+    keyboard_button:SetScript("OnMouseDown", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
             if addon.keyboard_locked == false then
                 return
@@ -952,12 +930,12 @@ function addon:CreateKeyboardButtons(parent)
                             PickupAction(actionSlot)
                             addon:RefreshKeys()
                         end
-                    elseif button.petActionIndex then
+                    elseif keyboard_button.petActionIndex then
                         -- Pickup a pet action
                         print(
                             "KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
                         return
-                    elseif button.spellid then
+                    elseif keyboard_button.spellid then
                         print(
                             "KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
                         -- Pickup a pet spell
@@ -974,12 +952,12 @@ function addon:CreateKeyboardButtons(parent)
                 end
             end
         else
-            KeyDown(self, Mousebutton)
+            addon:HandleKeyDown(self, Mousebutton) -- Use the shared handler directly
         end
     end)
 
     -- Define behavior for mouse up actions (left-click and right-click).
-    button:SetScript("OnMouseUp", function(self, Mousebutton)
+    keyboard_button:SetScript("OnMouseUp", function(self, Mousebutton)
         if Mousebutton == "LeftButton" then
             local infoType, info1, info2 = GetCursorInfo()
 
@@ -1040,15 +1018,15 @@ function addon:CreateKeyboardButtons(parent)
             end
         elseif Mousebutton == "RightButton" then
             addon.currentKey = self
-            ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
+            ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
         end
     end)
 
-    return button
+    return keyboard_button
 end
 
 function addon:KeyboardLayoutSelecter()
-    local KeyboardLayoutSelecter = CreateFrame("Frame", nil, keyboard_control_frame, "UIDropDownMenuTemplate")
+    local KeyboardLayoutSelecter = CreateFrame("Frame", nil, addon.keyboard_control_frame, "UIDropDownMenuTemplate")
     addon.keyboard_selector = KeyboardLayoutSelecter
 
     UIDropDownMenu_SetWidth(KeyboardLayoutSelecter, 120)
@@ -1100,8 +1078,8 @@ function addon:KeyboardLayoutSelecter()
                         keyui_settings.layout_current_keyboard[name] = layout
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, name)
-                        keyboard_control_frame.Input:SetText("")
-                        keyboard_control_frame.Input:ClearFocus()
+                        addon.keyboard_control_frame.Input:SetText("")
+                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -1151,8 +1129,8 @@ function addon:KeyboardLayoutSelecter()
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
-                        keyboard_control_frame.Input:SetText("")
-                        keyboard_control_frame.Input:ClearFocus()
+                        addon.keyboard_control_frame.Input:SetText("")
+                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -1204,8 +1182,8 @@ function addon:KeyboardLayoutSelecter()
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
-                        keyboard_control_frame.Input:SetText("")
-                        keyboard_control_frame.Input:ClearFocus()
+                        addon.keyboard_control_frame.Input:SetText("")
+                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
