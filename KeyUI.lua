@@ -329,10 +329,15 @@ local function OnFrameHide(self)
     if not addon.is_keyboard_frame_visible and not addon.is_mouse_image_visible then
         addon.open = false
         
-        if addon.keyboard_locked == false or addon.mouse_locked == false or addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
+        -- Discard Keyboard Editor Changes when closing
+        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
+            addon:DiscardKeyboardChanges()
+        end
+
+        -- Discard Mouse Editor Changes when closing
+        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             -- Discard any Editor Changes
             addon:DiscardMouseChanges()
-            addon:DiscardKeyboardChanges()
         end
     end
 end
@@ -697,64 +702,56 @@ end
 
 -- RefreshKeys() - Updates the display of key bindings and their textures/texts.
 function addon:RefreshKeys()
-    --print("RefreshKeys function called")  -- Print statement
+    --print("RefreshKeys function called")  -- print statement for debbuging
 
-    --if addon.keyboard_locked == false or addon.mouse_locked == false then
+    -- stop if the addon is not open
+    if addon.open == false then
+        return
+    end
+
+    -- stop if keyboard and mouse are not visible
+    if addon.is_keyboard_frame_visible == false and addon.is_mouse_image_visible == false then
+        return
+    end
+
+    -- stop if the keyboard or mouse are unlocked
+    if addon.keyboard_locked == false or addon.mouse_locked == false then
     --    print("KeyUI: Please lock the keyboard or mouse before proceeding.")
-    --    return
-    --end
+        return
+    end
     
+    -- stop if the keyboard or mouse are edited
     if addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
         print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
         return
     end
 
-    if addon.open == false then
-        return
-    end
-
-    if addon.is_keyboard_frame_visible == false and addon.is_mouse_image_visible == false then
-        return
-    end
-
-    -- Hide all keys
-    for i = 1, #addon.keys_keyboard do
-        addon.keys_keyboard[i]:Hide()
-    end
-
-    for j = 1, #addon.keys_mouse do
-        addon.keys_mouse[j]:Hide()
-    end
-
-    if addon.keys_keyboard_edited ~= false then
-        wipe(addon.keys_keyboard)
-        addon.keys_keyboard_edited = false
+    -- if the keyboard is locked and not edited we refresh the keyboard board holding the keys
+    if addon.keyboard_locked ~= false and addon.keys_keyboard_edited ~= true then
         addon:UpdateKeyboardLayout(keyui_settings.key_bind_settings_keyboard.currentboard)
-    else
-        addon:UpdateKeyboardLayout(keyui_settings.key_bind_settings_keyboard.currentboard)
+        -- adjust the minimized control frame to the size of the (maybe) changed keyboard width
         if addon.keyboard_maximize_flag == false then
             addon.keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
         end
     end
 
-    if addon.keys_mouse_edited ~= false then
-        wipe(addon.keys_mouse)
-        addon.keys_mouse_edited = false
-        addon:UpdateMouseLayout(keyui_settings.key_bind_settings_mouse.currentboard)
-    else
+    -- if the mouse is locked and not edited we refresh the mouse board holding the keys
+    if addon.mouse_locked ~= false and addon.keys_mouse_edited ~= true then
         addon:UpdateMouseLayout(keyui_settings.key_bind_settings_mouse.currentboard)
     end
 
     addon:CheckModifiers()
 
-    if keyui_settings.show_keyboard == true then
+    -- if the keyboard is visible we create the keys
+    if addon.is_keyboard_frame_visible ~= false then    -- true
         -- Set the keys
         for i = 1, #addon.keys_keyboard do
             addon:SetKey(addon.keys_keyboard[i])
         end
     end
 
-    if keyui_settings.show_mouse == true then
+    -- if the mouse is visible we create the keys
+    if addon.is_mouse_image_visible ~= false then   -- true
         for j = 1, #addon.keys_mouse do
             addon:SetKey(addon.keys_mouse[j])
         end
