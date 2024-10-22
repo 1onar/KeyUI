@@ -514,7 +514,7 @@ end
 -- Discards any changes made to the mouse layout and resets the Control UI state
 function addon:DiscardMouseChanges()
     
-    if addon.keys_mouse_edited == true then
+    if addon.keys_mouse_edited == true or addon.mouse_locked == false then
         -- Print message to the player
         print("KeyUI: Changes discarded. The mouse is reset and locked.")
     end

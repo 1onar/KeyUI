@@ -737,7 +737,7 @@ end
 -- Discards any changes made to the keyboard layout and resets the Control UI state
 function addon:DiscardKeyboardChanges()
 
-    if addon.keys_keyboard_edited == true then
+    if addon.keys_keyboard_edited == true or addon.keyboard_locked == false then
         -- Print message to the player
         print("KeyUI: Changes discarded. The keyboard is reset and locked.")
     end

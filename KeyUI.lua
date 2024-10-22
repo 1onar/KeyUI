@@ -716,13 +716,13 @@ function addon:RefreshKeys()
 
     -- stop if the keyboard or mouse are unlocked
     if addon.keyboard_locked == false or addon.mouse_locked == false then
-    --    print("KeyUI: Please lock the keyboard or mouse before proceeding.")
+        --print("KeyUI: Please lock the keyboard or mouse before proceeding.")
         return
     end
     
     -- stop if the keyboard or mouse are edited
     if addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
-        print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
+        --print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
         return
     end
 
