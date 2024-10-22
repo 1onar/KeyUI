@@ -300,7 +300,7 @@ function addon:CreateMouseControl()
                 else
                     mouse_control_frame.glowBoxSave:Hide()
                     mouse_control_frame.glowBoxInput:Hide()
-                    print("KeyUI: No Changes detected.")
+                    print("KeyUI: No Changes detected (Mouse).")
                 end
             end
         end
@@ -539,6 +539,12 @@ function addon:DiscardMouseChanges()
     -- Update the Lock button text
     if addon.mouse_control_frame.LockText then
         addon.mouse_control_frame.LockText:SetText("Unlock")
+    end
+
+    -- clear mouse text input field (name)
+    if addon.mouse_control_frame.Input then
+        addon.mouse_control_frame.Input:SetText("")
+        addon.mouse_control_frame.Input:ClearFocus()
     end
 
     addon:RefreshKeys()
@@ -849,14 +855,16 @@ function addon:MouseLayoutSelecter()
                 if addon.mouse_locked == false or addon.keys_mouse_edited == true then
                     -- Discard any Editor Changes
                     addon:DiscardMouseChanges()
+                else
+                    -- clear text input field (DiscardMouseChanges does it already)
+                    addon.mouse_control_frame.Input:SetText("")
+                    addon.mouse_control_frame.Input:ClearFocus()
                 end
                 keyui_settings.key_bind_settings_mouse.currentboard = name
                 wipe(keyui_settings.layout_current_mouse)
                 keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
                 addon:RefreshKeys()
                 UIDropDownMenu_SetText(self, name)
-                addon.mouse_control_frame.Input:SetText("")
-                addon.mouse_control_frame.Input:ClearFocus()
             end
             UIDropDownMenu_AddButton(info, level)
         end
@@ -871,31 +879,21 @@ function addon:MouseLayoutSelecter()
                     if addon.mouse_locked == false or addon.keys_mouse_edited == true then
                         -- Discard any Editor Changes
                         addon:DiscardMouseChanges()
+                    else
+                        -- clear text input field (DiscardMouseChanges does it already)
+                        addon.mouse_control_frame.Input:SetText("")
+                        addon.mouse_control_frame.Input:ClearFocus()
                     end
                     wipe(keyui_settings.layout_current_mouse)
                     keyui_settings.layout_current_mouse[name] = layout
                     addon:RefreshKeys()
                     UIDropDownMenu_SetText(self, name)
-                    addon.mouse_control_frame.Input:SetText("")
-                    addon.mouse_control_frame.Input:ClearFocus()
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
         else
             return
         end
-
-        --info.text = "New Layout"
-        --info.value = "New Layout"
-        --info.colorCode = "|cFFFFFF00" -- Yellow
-        --info.func = function()
-        --    Mouse.Input:SetText("New Layout")
-        --    for _, k in pairs(KeysMouse) do
-        --        k:Hide()
-        --    end
-        --    UIDropDownMenu_SetText(self, "New Layout")
-        --end
-        --UIDropDownMenu_AddButton(info, level)
     end
 
     UIDropDownMenu_Initialize(MouseLayoutSelecter, MouseLayoutSelecter_Initialize)

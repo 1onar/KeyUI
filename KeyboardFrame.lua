@@ -519,7 +519,7 @@ function addon:CreateKeyboardControl()
                 else
                     keyboard_control_frame.glowBoxSave:Hide()
                     keyboard_control_frame.glowBoxInput:Hide()
-                    print("KeyUI: No Changes detected.")
+                    print("KeyUI: No Changes detected (Keyboard).")
                 end
             end
         end
@@ -762,6 +762,12 @@ function addon:DiscardKeyboardChanges()
     -- Update the Lock button text
     if addon.keyboard_control_frame.LockText then
         addon.keyboard_control_frame.LockText:SetText("Unlock")
+    end
+
+    -- clear keyboard text input field (name)
+    if addon.keyboard_control_frame.Input then
+        addon.keyboard_control_frame.Input:SetText("")
+        addon.keyboard_control_frame.Input:ClearFocus()
     end
 
     addon:RefreshKeys()
@@ -1185,13 +1191,15 @@ function addon:KeyboardLayoutSelecter()
                         -- Discard Keyboard Editor Changes
                         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
                             addon:DiscardKeyboardChanges()
+                        else
+                            -- clear text input field (DiscardKeyboardChanges does it already)
+                            addon.keyboard_control_frame.Input:SetText("")
+                            addon.keyboard_control_frame.Input:ClearFocus()
                         end
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[name] = layout
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, name)
-                        addon.keyboard_control_frame.Input:SetText("")
-                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -1239,14 +1247,16 @@ function addon:KeyboardLayoutSelecter()
                         -- Discard Keyboard Editor Changes
                         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
                             addon:DiscardKeyboardChanges()
+                        else
+                            -- clear text input field (DiscardKeyboardChanges does it already)
+                            addon.keyboard_control_frame.Input:SetText("")
+                            addon.keyboard_control_frame.Input:ClearFocus()
                         end
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
-                        addon.keyboard_control_frame.Input:SetText("")
-                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
@@ -1296,14 +1306,16 @@ function addon:KeyboardLayoutSelecter()
                         -- Discard Keyboard Editor Changes
                         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
                             addon:DiscardKeyboardChanges()
+                        else
+                            -- clear text input field (DiscardKeyboardChanges does it already)
+                            addon.keyboard_control_frame.Input:SetText("")
+                            addon.keyboard_control_frame.Input:ClearFocus()
                         end
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
                         addon:RefreshKeys()
                         UIDropDownMenu_SetText(self, layout)
-                        addon.keyboard_control_frame.Input:SetText("")
-                        addon.keyboard_control_frame.Input:ClearFocus()
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
