@@ -889,9 +889,8 @@ addon.action_mapping = {
     },
 }
 
+-- shortening too long keys
 addon.shortcut_labels = {
-
-    -- shortening too long keys
     ["CAPSLOCK"] = "CAPS",
     ["PRINTSCREEN"] = "PRINT",
     ["SCROLLLOCK"] = "SCROLL",
@@ -916,28 +915,6 @@ addon.shortcut_labels = {
     ["NUMPADADD"] = "+",
     ["NUMPADENTER"] = "ENTER",
     ["NUMPADDOT"] = ".",
-
-    -- just identify as shortcut label so "ShortLabel" and another style can apply
-    ["LCTRL"] = "LCTRL",
-    ["RCTRL"] = "RCTRL",
-    ["LSHIFT"] = "LSHIFT",
-    ["RSHIFT"] = "RSHIFT",
-    ["LWIN"] = "LWIN",
-    ["RWIN"] = "RWIN",
-    ["LALT"] = "LALT",
-    ["RALT"] = "RALT",
-    ["SPACE"] = "SPACE",
-    ["MENU"] = "MENU",
-    ["ENTER"] = "ENTER",
-    ["BACKSPACE"] = "BACKSPACE",
-    ["HOME"] = "HOME",
-    ["END"] = "END",
-    ["UP"] = "UP",
-    ["DOWN"] = "DOWN",
-    ["LEFT"] = "LEFT",
-    ["RIGHT"] = "RIGHT",
-    ["ESC"] = "ESC",
-    ["TAB"] = "TAB",
 }
 
 addon.action_slot_mapping = {

@@ -475,8 +475,7 @@ end
 
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
-    local spell = GetBindingAction(addon.modif.CTRL ..
-        addon.modif.SHIFT .. addon.modif.ALT .. (button.label:GetText() or "")) or ""
+    local spell = GetBindingAction(addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (button.label:GetText() or "")) or ""
 
     button.icon:Hide()
 
@@ -660,9 +659,43 @@ function addon:SetKey(button)
     end
 
     -- Label Shortening
-    if button.ShortLabel and addon.shortcut_labels[button.label:GetText()] then
-        button.label:Hide()
-        button.ShortLabel:SetText(addon.shortcut_labels[button.label:GetText()])
+    local fullLabel = button.label:GetText()
+    local shortLabel = addon.shortcut_labels[fullLabel] or fullLabel
+
+    -- Liste der Tasten, die nicht mit Modifikatoren angezeigt werden sollen
+    local noModifierKeys = {
+        ["ESC"] = true,
+        ["LSHIFT"] = true,
+        ["LCTRL"] = true,
+        ["LALT"] = true,
+        ["RALT"] = true,
+        ["RCTRL"] = true,
+        ["RSHIFT"] = true,
+        ["LWIN"] = true,
+        ["RWIN"] = true,
+        ["MENU"] = true
+    }
+
+    -- Update labels based on the modifier state and the pressed key
+    local modifiers = {}
+    if addon.modif.ALT ~= "" then table.insert(modifiers, "a-") end
+    if addon.modif.CTRL ~= "" then table.insert(modifiers, "c-") end
+    if addon.modif.SHIFT ~= "" then table.insert(modifiers, "s-") end
+
+    -- Sortiere die Modifikatoren alphabetisch
+    table.sort(modifiers)
+
+    -- Erstelle die Modifikatorkette
+    local modifier = table.concat(modifiers)
+
+    -- Ensure the shortLabel is valid before updating
+    if shortLabel and shortLabel ~= "" then
+        -- Überprüfen, ob die Taste nicht in der noModifierKeys-Liste ist
+        if not noModifierKeys[fullLabel] then
+            button.label:SetText(modifier .. shortLabel)
+        else
+            button.label:SetText(shortLabel) -- Nur den shortLabel ohne Modifikatoren anzeigen
+        end
     end
 end
 
@@ -724,45 +757,103 @@ end
 
 -- Define a function to handle key press events
 local function HandleKeyPress(key)
-    if key == "LSHIFT" or key == "RSHIFT" then
-        addon.modif.SHIFT = "SHIFT-"
+    if key == "LALT" or key == "RALT" then
+        addon.modif.ALT = "ALT-"
     elseif key == "LCTRL" or key == "RCTRL" then
         addon.modif.CTRL = "CTRL-"
-    elseif key == "LALT" or key == "RALT" then
-        addon.modif.ALT = "ALT-"
+    elseif key == "LSHIFT" or key == "RSHIFT" then
+        addon.modif.SHIFT = "SHIFT-"
     end
     addon:RefreshKeys()
 end
 
 -- Define a function to handle key release events
 local function HandleKeyRelease(key)
-    if key == "LSHIFT" or key == "RSHIFT" then
-        addon.modif.SHIFT = ""
+    if key == "LALT" or key == "RALT" then
+        addon.modif.ALT = ""
     elseif key == "LCTRL" or key == "RCTRL" then
         addon.modif.CTRL = ""
-    elseif key == "LALT" or key == "RALT" then
-        addon.modif.ALT = ""
+    elseif key == "LSHIFT" or key == "RSHIFT" then
+        addon.modif.SHIFT = ""
+
     end
     addon:RefreshKeys()
 end
 
 -- Shared KeyDown function for all buttons (keyboard + mouse)
 function addon:HandleKeyDown(frame, key)
-    if key == "RightButton" then
-        return -- Ignore right-click
-    elseif key == "MiddleButton" then
-        frame.label:SetText("Button3")
+    -- Check if any modifier is held down
+    local modifier = ""
+
+    if IsAltKeyDown() and key ~= "LALT" and key ~= "RALT" then
+        modifier = modifier .. "ALT-"
+    end
+    if IsControlKeyDown() and key ~= "LCTRL" and key ~= "RCTRL" then
+        modifier = modifier .. "CTRL-"
+    end
+    if IsShiftKeyDown() and key ~= "LSHIFT" and key ~= "RSHIFT" then
+        modifier = modifier .. "SHIFT-"
+    end
+
+    -- Set the label to the modifier and the pressed key
+    if key == "MiddleButton" then
+        frame.label:SetText(modifier .. "Button3") -- Handle middle mouse button
     else
-        frame.label:SetText(key) -- Set label to the pressed key
+        frame.label:SetText(modifier .. key) -- Set label to the pressed key with modifier
+    end
+
+    -- if the keyboard is visible we create the new assigned keys
+    if addon.is_keyboard_frame_visible ~= false then    -- true
+        -- Set the keys
+        for i = 1, #addon.keys_keyboard do
+            addon:SetKey(addon.keys_keyboard[i])
+        end
+    end
+
+    -- if the mouse is visible we create the new assigned keys
+    if addon.is_mouse_image_visible ~= false then   -- true
+        for j = 1, #addon.keys_mouse do
+            addon:SetKey(addon.keys_mouse[j])
+        end
     end
 end
 
--- Shared MouseWheel function
+-- Shared MouseWheel function with modifier support
 function addon:HandleMouseWheel(frame, delta)
+    -- Initialize the modifier string
+    local modifier = ""
+
+    -- Check the current state of modifier keys
+    if IsAltKeyDown() then
+        modifier = modifier .. "ALT-"
+    end
+    if IsControlKeyDown() then
+        modifier = modifier .. "CTRL-"
+    end
+    if IsShiftKeyDown() then
+        modifier = modifier .. "SHIFT-"
+    end
+
+    -- Combine with MouseWheel action
     if delta > 0 then
-        frame.label:SetText("MouseWheelUp") -- Scrolled up
+        frame.label:SetText(modifier .. "MouseWheelUp") -- Scrolled up with modifiers
     elseif delta < 0 then
-        frame.label:SetText("MouseWheelDown") -- Scrolled down
+        frame.label:SetText(modifier .. "MouseWheelDown") -- Scrolled down with modifiers
+    end
+
+    -- if the keyboard is visible we create the keys
+    if addon.is_keyboard_frame_visible ~= false then    -- true
+        -- Set the keys
+        for i = 1, #addon.keys_keyboard do
+            addon:SetKey(addon.keys_keyboard[i])
+        end
+    end
+
+    -- if the mouse is visible we create the keys
+    if addon.is_mouse_image_visible ~= false then   -- true
+        for j = 1, #addon.keys_mouse do
+            addon:SetKey(addon.keys_mouse[j])
+        end
     end
 end
 
@@ -812,14 +903,12 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function()
             if addon.currentKey.label ~= "" then
-                SetBinding(addon.modif.CTRL ..
-                    addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or ""))
+                SetBinding(addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:RefreshKeys()
                 SaveBindings(2)
                 -- Print notification of key unbinding
-                local keyText = addon.modif.CTRL ..
-                    addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                local keyText = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
                 print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
@@ -890,8 +979,7 @@ local function DropDown_Initialize(self, level)
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
                     local actionSlot = addon.action_slot_mapping[actionbutton]
-                    local key = addon.modif.CTRL ..
-                        addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
                         C_Spell.PickupSpell(spellName)
@@ -923,8 +1011,7 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.CTRL ..
-                            addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -952,8 +1039,7 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.CTRL ..
-                            addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
@@ -978,8 +1064,7 @@ local function DropDown_Initialize(self, level)
                 info.value = keybinding[2]
                 info.hasArrow = false
                 info.func = function(self)
-                    local key = addon.modif.CTRL ..
-                        addon.modif.SHIFT .. addon.modif.ALT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
                     -- Print notification for interface binding
@@ -1042,13 +1127,20 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon:SaveMousePosition()
         elseif event == "MODIFIER_STATE_CHANGED" then -- Handle the modifier state change
             local key, state = ...                    -- Get key and state from the event
-            if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
-                if state == 1 then
-                    -- Key press event
-                    HandleKeyPress(key)
-                else
-                    -- Key release event
-                    HandleKeyRelease(key)
+
+            -- changed modifier states interferer when binding new keys and editing
+            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false then  -- true
+            
+                -- check if the modifier checkboxes are empty
+                if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
+
+                    if state == 1 then
+                        -- Key press event
+                        HandleKeyPress(key)
+                    else
+                        -- Key release event
+                        HandleKeyRelease(key)
+                    end
                 end
             end
         else

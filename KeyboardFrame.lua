@@ -866,16 +866,6 @@ function addon:CreateKeyboardButtons()
     keyboard_button.label:SetJustifyH("RIGHT")
     keyboard_button.label:SetJustifyV("TOP")
 
-    -- Create a shorter label, possibly for abbreviations or shorter texts.
-    keyboard_button.ShortLabel = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.ShortLabel:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    keyboard_button.ShortLabel:SetTextColor(1, 1, 1, 0.9)
-    keyboard_button.ShortLabel:SetHeight(50)
-    keyboard_button.ShortLabel:SetWidth(100)
-    keyboard_button.ShortLabel:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
-    keyboard_button.ShortLabel:SetJustifyH("RIGHT")
-    keyboard_button.ShortLabel:SetJustifyV("TOP")
-
     -- Hidden font string to store the macro text.
     keyboard_button.macro = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyboard_button.macro:SetText("")

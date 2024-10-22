@@ -58,9 +58,9 @@ addon.current_actionbar_page = {}
 addon.class_name = {}
 
 addon.modif = addon.modif or {}
+addon.modif.ALT = addon.modif.ALT or ""
 addon.modif.CTRL = addon.modif.CTRL or ""
 addon.modif.SHIFT = addon.modif.SHIFT or ""
-addon.modif.ALT = addon.modif.ALT or ""
 addon.alt_checkbox = false
 addon.ctrl_checkbox = false
 addon.shift_checkbox = false
