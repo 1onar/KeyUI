@@ -818,7 +818,9 @@ function addon:CreateMouseButtons()
             end
         elseif button == "RightButton" then
             addon.currentKey = self
-            ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
+            if addon.modif.ALT == "" and addon.modif.CTRL == "" and addon.modif.SHIFT == "" then
+                ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
+            end
         end
     end)
 
