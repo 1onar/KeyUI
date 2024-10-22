@@ -845,6 +845,11 @@ function addon:MouseLayoutSelecter()
             info.value = name
             info.colorCode = "|cFFFFFFFF" -- white
             info.func = function()
+                -- Discard Mouse Editor Changes
+                if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+                    -- Discard any Editor Changes
+                    addon:DiscardMouseChanges()
+                end
                 keyui_settings.key_bind_settings_mouse.currentboard = name
                 wipe(keyui_settings.layout_current_mouse)
                 keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
@@ -862,6 +867,11 @@ function addon:MouseLayoutSelecter()
                 info.value = name
                 info.colorCode = "|cffff8000"
                 info.func = function()
+                    -- Discard Mouse Editor Changes
+                    if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+                        -- Discard any Editor Changes
+                        addon:DiscardMouseChanges()
+                    end
                     wipe(keyui_settings.layout_current_mouse)
                     keyui_settings.layout_current_mouse[name] = layout
                     addon:RefreshKeys()

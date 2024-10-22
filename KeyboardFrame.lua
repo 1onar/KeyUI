@@ -1182,6 +1182,10 @@ function addon:KeyboardLayoutSelecter()
                     info.colorCode = "|cffff8000"
                     info.notCheckable = true
                     info.func = function()
+                        -- Discard Keyboard Editor Changes
+                        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
+                            addon:DiscardKeyboardChanges()
+                        end
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[name] = layout
                         addon:RefreshKeys()
@@ -1232,6 +1236,10 @@ function addon:KeyboardLayoutSelecter()
                     info.value = layout -- Keep the actual value as is
                     info.notCheckable = true
                     info.func = function()
+                        -- Discard Keyboard Editor Changes
+                        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
+                            addon:DiscardKeyboardChanges()
+                        end
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
@@ -1285,6 +1293,10 @@ function addon:KeyboardLayoutSelecter()
                     info.value = layout -- Keep the actual value as is
                     info.notCheckable = true
                     info.func = function()
+                        -- Discard Keyboard Editor Changes
+                        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
+                            addon:DiscardKeyboardChanges()
+                        end
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
