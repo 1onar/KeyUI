@@ -473,40 +473,6 @@ function addon:ButtonMouseOver(button)
     end
 end
 
--- CheckModifiers() - Checks the modifier keys (Shift, Ctrl, Alt) and allows the player to toggle them on or off.
-function addon:CheckModifiers()
-    for v, button in pairs(addon.keys_keyboard) do
-        if self.modif[button.label:GetText()] then
-            button:SetScript("OnEnter", nil)
-            button:SetScript("OnLeave", nil)
-            button:SetScript("OnMouseDown", nil)
-            button:SetScript("OnMouseUp", nil)
-
-            button:SetScript("OnMouseDown", function(self) end)
-            button:SetScript("OnEnter", function(self) end)
-
-            button:SetScript("OnLeave", function(self)
-                if self.active then
-
-                else
-
-                end
-            end)
-            button:SetScript("OnMouseUp", function(self)
-                if self.active then
-                    self.active = false
-                    addon.modif[button.label:GetText()] = ""
-                    addon:RefreshKeys()
-                else
-                    self.active = true
-                    addon.modif[button.label:GetText()] = button.label:GetText() .. "-"
-                    addon:RefreshKeys()
-                end
-            end)
-        end
-    end
-end
-
 -- SetKey(button) - Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
     local spell = GetBindingAction(addon.modif.CTRL ..
@@ -719,7 +685,7 @@ function addon:RefreshKeys()
         --print("KeyUI: Please lock the keyboard or mouse before proceeding.")
         return
     end
-    
+
     -- stop if the keyboard or mouse are edited
     if addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
         --print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
@@ -739,8 +705,6 @@ function addon:RefreshKeys()
     if addon.mouse_locked ~= false and addon.keys_mouse_edited ~= true then
         addon:UpdateMouseLayout(keyui_settings.key_bind_settings_mouse.currentboard)
     end
-
-    addon:CheckModifiers()
 
     -- if the keyboard is visible we create the keys
     if addon.is_keyboard_frame_visible ~= false then    -- true
@@ -1100,6 +1064,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         elseif event == "PLAYER_LOGIN" then
             -- Check which class
             addon.class_name = UnitClassBase("player")
+            -- Check the BonusBarOffset
+            addon.bonusbar_offset = GetBonusBarOffset()
+            -- Update the current action bar page
+            addon.current_actionbar_page = GetActionBarPage()
         elseif event == "PLAYER_REGEN_ENABLED" then
             addon.in_combat = false
             -- Optional: Reopen after combat ends

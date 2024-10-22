@@ -441,23 +441,23 @@ local function GetCursorScaledPosition()
     return x / scale, y / scale
 end
 
-local function DragOrSize(self, Mousebutton)
+local function DragOrSize(addon, Mousebutton)
     local x, y = GetCursorScaledPosition()
     if addon.mouse_locked then
         return -- Do nothing if not MouseLocked is selected
     end
-    self:StartMoving()
-    self.isMoving = true -- Add a flag to indicate the frame is being moved
+    addon:StartMoving()
+    addon.isMoving = true -- Add a flag to indicate the frame is being moved
     if IsShiftKeyDown() then
-        addon.keys_mouse[self] = nil
-        self:Hide()
+        addon.keys_mouse[addon] = nil
+        addon:Hide()
     end
 end
 
-local function Release(self, Mousebutton)
+local function Release(addon, Mousebutton)
     if Mousebutton == "LeftButton" then
-        self:StopMovingOrSizing()
-        self.isMoving = false -- Reset the flag when the movement is stopped
+        addon:StopMovingOrSizing()
+        addon.isMoving = false -- Reset the flag when the movement is stopped
     end
 end
 
@@ -650,34 +650,33 @@ function addon:CreateMouseButtons()
         mouse_button:EnableKeyboard(true)
         mouse_button:EnableMouseWheel(true)
 
-        if not addon.mouse_locked and not self.isMoving then -- insure modifier work when locked and hovering a key
+        if addon.mouse_locked == false and not addon.isMoving then
+
             mouse_button:SetScript("OnKeyDown", function(_, key)
                 addon:HandleKeyDown(mouse_button, key)
                 addon.keys_mouse_edited = true
             end)
-        end
         
-        mouse_button:SetScript("OnMouseWheel", function(_, delta)
-            addon:HandleMouseWheel(mouse_button, delta)
-            addon.keys_mouse_edited = true
-        end)
+            mouse_button:SetScript("OnMouseWheel", function(_, delta)
+                addon:HandleMouseWheel(mouse_button, delta)
+                addon.keys_mouse_edited = true
+            end)
 
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
+        end
 
         -- Only show the PushedTexture if the setting is enabled
         if keyui_settings.show_pushed_texture then
-            -- Check if currentActionBarPage is valid and map it to adjustedSlot
-            if currentActionBarPage and mouse_button.slot then
+            -- Only proceed if mouse_button.slot is valid
+            if mouse_button.slot then
                 -- Calculate the adjustedSlot based on currentActionBarPage
                 local adjustedSlot = mouse_button.slot
-                if currentActionBarPage == 3 and mouse_button.slot >= 25 and mouse_button.slot <= 36 then
+                if addon.current_actionbar_page == 3 and mouse_button.slot >= 25 and mouse_button.slot <= 36 then
                     adjustedSlot = mouse_button.slot - 24 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and mouse_button.slot >= 37 and mouse_button.slot <= 48 then
+                elseif addon.current_actionbar_page == 4 and mouse_button.slot >= 37 and mouse_button.slot <= 48 then
                     adjustedSlot = mouse_button.slot - 36 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and mouse_button.slot >= 49 and mouse_button.slot <= 60 then
+                elseif addon.current_actionbar_page == 5 and mouse_button.slot >= 49 and mouse_button.slot <= 60 then
                     adjustedSlot = mouse_button.slot - 48 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and mouse_button.slot >= 61 and mouse_button.slot <= 72 then
+                elseif addon.current_actionbar_page == 6 and mouse_button.slot >= 61 and mouse_button.slot <= 72 then
                     adjustedSlot = mouse_button.slot - 60 -- Map to ActionButton1-12
                 end
 
@@ -702,25 +701,22 @@ function addon:CreateMouseButtons()
         addon.tooltip:Hide()
         mouse_button:EnableKeyboard(false)
         mouse_button:EnableMouseWheel(false)
-        if not addon.mouse_locked and not self.isMoving then -- insure modifier work when locked and hovering a key
+        if not addon.mouse_locked and not addon.isMoving then -- insure modifier work when locked and hovering a key
             mouse_button:SetScript("OnKeyDown", nil)
         end
 
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
-
         if keyui_settings.show_pushed_texture then
-            -- Check if currentActionBarPage is valid and map it to adjustedSlot
-            if currentActionBarPage and mouse_button.slot then
+            -- Only proceed if button.slot is valid
+            if mouse_button.slot then
                 -- Calculate the adjustedSlot based on currentActionBarPage
                 local adjustedSlot = mouse_button.slot
-                if currentActionBarPage == 3 and mouse_button.slot >= 25 and mouse_button.slot <= 36 then
+                if addon.current_actionbar_page == 3 and mouse_button.slot >= 25 and mouse_button.slot <= 36 then
                     adjustedSlot = mouse_button.slot - 24 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and mouse_button.slot >= 37 and mouse_button.slot <= 48 then
+                elseif addon.current_actionbar_page == 4 and mouse_button.slot >= 37 and mouse_button.slot <= 48 then
                     adjustedSlot = mouse_button.slot - 36 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and mouse_button.slot >= 49 and mouse_button.slot <= 60 then
+                elseif addon.current_actionbar_page == 5 and mouse_button.slot >= 49 and mouse_button.slot <= 60 then
                     adjustedSlot = mouse_button.slot - 48 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and mouse_button.slot >= 61 and mouse_button.slot <= 72 then
+                elseif addon.current_actionbar_page == 6 and mouse_button.slot >= 61 and mouse_button.slot <= 72 then
                     adjustedSlot = mouse_button.slot - 60 -- Map to ActionButton1-12
                 end
 
@@ -795,8 +791,10 @@ function addon:CreateMouseButtons()
                 end
             end
         else
-            addon:HandleKeyDown(self, button) -- Use the shared handler directly
-            addon.keys_mouse_edited = true
+            if addon.mouse_locked == false then
+                addon:HandleKeyDown(self, button)
+                addon.keys_mouse_edited = true
+            end
         end
     end)
 

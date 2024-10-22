@@ -900,22 +900,20 @@ function addon:CreateKeyboardButtons()
         addon:ButtonMouseOver(keyboard_button)
         keyboard_button:EnableKeyboard(true)
         keyboard_button:EnableMouseWheel(true)
-        if not addon.keyboard_locked then 
-            -- Ensure modifiers work when the keyboard is not locked and the key is hovered
+
+        if addon.keyboard_locked == false then
+
             keyboard_button:SetScript("OnKeyDown", function(_, key)
                 addon:HandleKeyDown(keyboard_button, key)
                 addon.keys_keyboard_edited = true
             end)
+
+            keyboard_button:SetScript("OnMouseWheel", function(_, delta)
+                addon:HandleMouseWheel(keyboard_button, delta)
+                addon.keys_keyboard_edited = true
+            end)
+
         end
-        
-        keyboard_button:SetScript("OnMouseWheel", function(_, delta)
-            addon:HandleMouseWheel(keyboard_button, delta)
-            addon.keys_keyboard_edited = true
-        end)
-
-
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
 
         if keyui_settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
@@ -923,13 +921,13 @@ function addon:CreateKeyboardButtons()
                 -- Adjust the slot mapping based on the current action bar page
                 local adjustedSlot = keyboard_button.slot
 
-                if currentActionBarPage == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
+                if addon.current_actionbar_page == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
                     adjustedSlot = keyboard_button.slot - 24 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
+                elseif addon.current_actionbar_page == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
                     adjustedSlot = keyboard_button.slot - 36 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
+                elseif addon.current_actionbar_page == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
                     adjustedSlot = keyboard_button.slot - 48 -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
+                elseif addon.current_actionbar_page == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
                     adjustedSlot = keyboard_button.slot - 60 -- Map to ActionButton1-12
                 end
 
@@ -957,21 +955,18 @@ function addon:CreateKeyboardButtons()
             keyboard_button:SetScript("OnKeyDown", nil)
         end
 
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
-
         if keyui_settings.show_pushed_texture then
             -- Only proceed if button.slot is valid
             if keyboard_button.slot then
                 local adjustedSlot = keyboard_button.slot
 
-                if currentActionBarPage == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
+                if addon.current_actionbar_page == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
                     adjustedSlot = keyboard_button.slot - 24
-                elseif currentActionBarPage == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
+                elseif addon.current_actionbar_page == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
                     adjustedSlot = keyboard_button.slot - 36
-                elseif currentActionBarPage == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
+                elseif addon.current_actionbar_page == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
                     adjustedSlot = keyboard_button.slot - 48
-                elseif currentActionBarPage == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
+                elseif addon.current_actionbar_page == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
                     adjustedSlot = keyboard_button.slot - 60
                 end
 
@@ -1065,8 +1060,10 @@ function addon:CreateKeyboardButtons()
                 end
             end
         else
-            addon:HandleKeyDown(self, Mousebutton) -- Use the shared handler directly
-            addon.keys_keyboard_edited = true
+            if addon.keyboard_locked == false then
+                addon:HandleKeyDown(self, Mousebutton)
+                addon.keys_keyboard_edited = true
+            end
         end
     end)
 
