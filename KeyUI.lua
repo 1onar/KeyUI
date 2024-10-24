@@ -650,7 +650,15 @@ function addon:SetKey(button)
 
     -- Interface action labels
     if button.interfaceaction then
-        button.interfaceaction:SetText(addon.action_labels[button.macro:GetText()] or button.macro:GetText())
+        local command = button.macro and button.macro:GetText()
+
+        if command then
+            local binding_name = _G["BINDING_NAME_" .. command] or command
+            button.interfaceaction:SetText(binding_name)
+        else
+            button.interfaceaction:SetText("")
+        end
+
         if keyui_settings.show_interface_binds then
             button.interfaceaction:Show()
         else
@@ -885,15 +893,20 @@ local function DropDown_Initialize(self, level)
         info.value = 1
         info.hasArrow = false
         info.func = function(self)
-            local key = addon.currentKey.macro:GetText()
-            local actionSlot = addon.action_slot_mapping[key]
-            if actionSlot then
-                PickupAction(actionSlot)
-                ClearCursor()
-                local mappedName = addon.action_labels[key] or "Unknown Action"
-                -- Print notification with the mapped name in purple
-                print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
-                addon:RefreshKeys()
+            local key = addon.currentKey.macro and addon.currentKey.macro:GetText()
+            if key then
+                local actionSlot = addon.action_slot_mapping[key]
+                if actionSlot then
+                    PickupAction(actionSlot)
+                    ClearCursor()
+        
+                    -- Use the global binding name or fallback to "Unknown Action"
+                    local mappedName = _G["BINDING_NAME_" .. key] or "Unknown Action"
+                    
+                    -- Print notification with the mapped name in purple
+                    print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
+                    addon:RefreshKeys()
+                end
             end
         end
         UIDropDownMenu_AddButton(info, level)
