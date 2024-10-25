@@ -493,17 +493,23 @@ function addon:SetKey(button)
 
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
+        
         -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
         if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
             if addon.bonusbar_offset == 1 then
-                return slot + 72  -- Maps to 73-84
+                return slot + 72    -- Maps to 73-84
             elseif addon.bonusbar_offset == 2 then
-                return slot       -- No change for offset 2
+                return slot + 84    -- Maps to 85-96
             elseif addon.bonusbar_offset == 3 then
-                return slot + 96  -- Maps to 97-108
+                return slot + 96    -- Maps to 97-108
             elseif addon.bonusbar_offset == 4 then
-                return slot + 108 -- Maps to 109-120
+                return slot + 108   -- Maps to 109-120
             end
+        end
+
+        -- Check if Dragonriding
+        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then    
+            return slot + 120       -- Maps to 121-132
         end
 
         -- Handle other action bar pages for all classes
@@ -517,11 +523,6 @@ function addon:SetKey(button)
             return slot + 48 -- Maps to 49-60
         elseif addon.current_actionbar_page == 6 then
             return slot + 60 -- Maps to 61-72
-        end
-
-        -- Check if Dragonriding
-        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
-            return slot + 120 -- Maps to 121-132
         end
 
         return slot -- Default 1-12
@@ -579,6 +580,20 @@ function addon:SetKey(button)
         button.icon:Show()
     end
 
+    -- Handle Shapeshift Forms
+    local shapeshift_slot = spell:match("SHAPESHIFTBUTTON(%d+)")
+    if shapeshift_slot then
+        local icon, active, castable, spellID = GetShapeshiftFormInfo(tonumber(shapeshift_slot))
+        if icon then
+            button.icon:SetTexture(icon)
+            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+            button.icon:Show()
+            button.spellid = spellID -- Set the spell ID for the shapeshift form
+        else
+            button.icon:Hide() -- Hide icon if there's no valid shapeshift form
+        end
+    end
+
     -- Pet Action Bar logic
     if PetHasActionBar() then
         if spell:match("^BONUSACTIONBUTTON%d+$") then
@@ -586,8 +601,7 @@ function addon:SetKey(button)
                 local petspellName = "BONUSACTIONBUTTON" .. i
                 if spell:match(petspellName) then
                     -- GetPetActionInfo returns multiple values, including texture/token
-                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID =
-                        GetPetActionInfo(i)
+                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i)
 
                     -- If it's a token, use the token to get the texture
                     if isToken then

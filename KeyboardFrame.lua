@@ -1030,12 +1030,10 @@ function addon:CreateKeyboardButtons()
                         end
                     elseif keyboard_button.petActionIndex then
                         -- Pickup a pet action
-                        print(
-                            "KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                        --print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
                         return
                     elseif keyboard_button.spellid then
-                        print(
-                            "KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
+                        --print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
                         -- Pickup a pet spell
                         return
                     elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
