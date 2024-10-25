@@ -1106,39 +1106,75 @@ end
 -- Event frame to handle all relevant events
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-eventFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
-eventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
 eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+eventFrame:RegisterEvent("UPDATE_BINDINGS")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
+eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+eventFrame:RegisterEvent("PET_BAR_UPDATE")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addon.open then
-        if event == "UPDATE_BONUS_ACTIONBAR" then
+        if event == "UPDATE_BONUS_ACTIONBAR" then           --setkey only
             -- Check the BonusBarOffset
             addon.bonusbar_offset = GetBonusBarOffset()
-            addon:RefreshKeys()
-        elseif event == "ACTIONBAR_PAGE_CHANGED" then
+
+            -- if the keyboard is visible we create the keys
+            if addon.is_keyboard_frame_visible ~= false then    -- true
+                -- Set the keys
+                for i = 1, #addon.keys_keyboard do
+                    addon:SetKey(addon.keys_keyboard[i])
+                end
+            end
+
+            -- if the mouse is visible we create the keys
+            if addon.is_mouse_image_visible ~= false then   -- true
+                for j = 1, #addon.keys_mouse do
+                    addon:SetKey(addon.keys_mouse[j])
+                end
+            end
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then       --setkey only
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
+
+            -- if the keyboard is visible we create the keys
+            if addon.is_keyboard_frame_visible ~= false then    -- true
+                -- Set the keys
+                for i = 1, #addon.keys_keyboard do
+                    addon:SetKey(addon.keys_keyboard[i])
+                end
+            end
+
+            -- if the mouse is visible we create the keys
+            if addon.is_mouse_image_visible ~= false then   -- true
+                for j = 1, #addon.keys_mouse do
+                    addon:SetKey(addon.keys_mouse[j])
+                end
+            end
+        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then  --refreshkeys
             addon:RefreshKeys()
-        elseif event == "PLAYER_REGEN_DISABLED" then
+        elseif event == "UPDATE_BINDINGS" then              --refreshkeys
+            addon:RefreshKeys()
+        elseif event == "PLAYER_REGEN_ENABLED" then         --nothing
+            addon.in_combat = false
+        elseif event == "PLAYER_REGEN_DISABLED" then        --nothing
             addon.in_combat = true
             -- Only close the addon if stay_open_in_combat is false
             if not keyui_settings.stay_open_in_combat and addon.open then
                 addon:HideAll()
             end
-        elseif event == "PLAYER_LOGOUT" then
+        elseif event == "PLAYER_LOGOUT" then                --nothing
             -- Save Keyboard and Mouse Position when logging out
             addon:SaveKeyboardPosition()
             addon:SaveMousePosition()
-        elseif event == "MODIFIER_STATE_CHANGED" then -- Handle the modifier state change
+        elseif event == "MODIFIER_STATE_CHANGED" then       --refreshkeys
+        
+            -- Handle the modifier state change
             local key, state = ...                    -- Get key and state from the event
 
             -- changed modifier states interferer when binding new keys and editing
@@ -1157,7 +1193,20 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 end
             end
         else
-            addon:RefreshKeys()
+            -- if the keyboard is visible we create the keys
+            if addon.is_keyboard_frame_visible ~= false then    -- true
+                -- Set the keys
+                for i = 1, #addon.keys_keyboard do
+                    addon:SetKey(addon.keys_keyboard[i])
+                end
+            end
+
+            -- if the mouse is visible we create the keys
+            if addon.is_mouse_image_visible ~= false then   -- true
+                for j = 1, #addon.keys_mouse do
+                    addon:SetKey(addon.keys_mouse[j])
+                end
+            end
         end
     else
         if event == "UPDATE_BONUS_ACTIONBAR" then
@@ -1175,10 +1224,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon.current_actionbar_page = GetActionBarPage()
         elseif event == "PLAYER_REGEN_ENABLED" then
             addon.in_combat = false
-            -- Optional: Reopen after combat ends
-            -- if KeyUI_Settings.stay_open_in_combat and not addonOpen then
-            --     addon:Load()
-            -- end
         end
     end
 end)
