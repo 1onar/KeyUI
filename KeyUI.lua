@@ -531,7 +531,7 @@ function addon:SetKey(button)
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if spell:find(a) then
-            local slot = spell:match("ACTIONBUTTON(%d+)") or spell:match("BT4Button(%d+)")
+            local slot = spell:match("ACTIONBUTTON(%d+)")
             local bar, bar2 = spell:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
 
             -- Handle MULTIACTIONBAR case
@@ -558,20 +558,6 @@ function addon:SetKey(button)
                 button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
                 button.slot = slot
-            end
-        end
-    end
-
-    if spell:find("^ELVUIBAR%d+BUTTON%d+$") then
-        local barIndex, buttonIndex = spell:match("ELVUIBAR(%d+)BUTTON(%d+)")
-        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-        if elvUIButton then
-            local actionID = elvUIButton._state_action
-            if elvUIButton._state_type == "action" and actionID then
-                button.icon:SetTexture(GetActionTexture(actionID))
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-                button.icon:Show()
-                button.slot = actionID
             end
         end
     end
