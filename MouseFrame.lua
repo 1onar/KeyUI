@@ -620,21 +620,26 @@ function addon:CreateMouseButtons()
     mouse_button:EnableKeyboard(true)
     mouse_button:SetBackdropColor(0, 0, 0, 1)
 
-    mouse_button.label = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.label:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    mouse_button.label:SetTextColor(1, 1, 1, 0.9)
-    mouse_button.label:SetHeight(50)
-    mouse_button.label:SetWidth(54)
-    mouse_button.label:SetPoint("CENTER", mouse_button, "CENTER", 0, 6)
-    mouse_button.label:SetJustifyH("CENTER")
-    mouse_button.label:SetJustifyV("BOTTOM")
-
-    --button.macro = Blizzard ID Commands
+    --Hidden font string to store the mouse keybind (Blizzard Commands)
     mouse_button.macro = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.macro:SetText("")
     mouse_button.macro:Hide()
 
-    --button.action = Blizzard ID changed to readable Text
+    -- Hidden font string to store the mouse keybind 
+    mouse_button.label = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.label:Hide()
+
+    -- Mouse Keybind label text on the top right
+    mouse_button.key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    mouse_button.key:SetTextColor(1, 1, 1, 0.9)
+    mouse_button.key:SetHeight(50)
+    mouse_button.key:SetWidth(54)
+    mouse_button.key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -4, -6)
+    mouse_button.key:SetJustifyH("RIGHT")
+    mouse_button.key:SetJustifyV("TOP")
+    mouse_button.key:Show()
+
+    -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     mouse_button.action = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     mouse_button.action:SetFont("Fonts\\ARIALN.TTF", 8, "OUTLINE")
     mouse_button.action:SetTextColor(1, 1, 1)
@@ -784,11 +789,9 @@ function addon:CreateMouseButtons()
                     -- Ensure adjustedSlot is valid before picking up
                     if adjustedSlot >= 1 and adjustedSlot <= 132 then -- Adjust the upper limit as necessary
                         PickupAction(adjustedSlot)
-                        addon:refresh_keys()
                     else
                         -- Optionally handle cases where the adjusted slot is out of range
                         PickupAction(actionSlot)
-                        addon:refresh_keys()
                     end
                 end
             end
@@ -804,23 +807,10 @@ function addon:CreateMouseButtons()
         if button == "LeftButton" then
             if addon.mouse_locked == false then
                 Release(self, button)
-            else
-                infoType, info1, info2 = GetCursorInfo()
-                if infoType == "spell" then
-                    local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
-                    addon.currentKey = self
-                    local key = addon.currentKey.macro:GetText()
-                    local actionSlot = addon.action_slot_mapping[key]
-                    if actionSlot then
-                        PlaceAction(actionSlot)
-                        ClearCursor()
-                        addon:refresh_keys()
-                    end
-                end
             end
         elseif button == "RightButton" then
             addon.currentKey = self
-            if addon.modif.ALT == "" and addon.modif.CTRL == "" and addon.modif.SHIFT == "" then
+            if addon.current_modifier_string == "" then
                 ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
             end
         end

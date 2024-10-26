@@ -340,7 +340,6 @@ function addon:refresh_layouts()
 
     -- update the textures/texts of the keys bindings.
     addon:refresh_keys()
-
 end
 
 -- Hides all UI elements when the addon is closed
@@ -466,8 +465,31 @@ end
 function addon:ButtonMouseOver(button)
     local keyui_tooltip_text = addon.tooltip
 
+    local originalText = button.label:GetText()
+    local readableText = _G["KEY_" .. originalText] or originalText
+    local shortenedModifierString = (addon.current_modifier_string or "")
+    -- Liste der Tasten, für die der Modifier nicht angezeigt werden soll
+    local noModifierKeys = {
+        ["ESC"] = true,
+        ["LSHIFT"] = true,
+        ["LCTRL"] = true,
+        ["LALT"] = true,
+        ["RALT"] = true,
+        ["RCTRL"] = true,
+        ["RSHIFT"] = true,
+        ["LWIN"] = true,
+        ["RWIN"] = true,
+        ["MENU"] = true,
+    }
+
     keyui_tooltip_text:SetPoint("TOPLEFT", button, "TOPRIGHT", 8, -4) -- Position for the Addon Tooltip
-    keyui_tooltip_text.title:SetText((button.label:GetText() or "") .. "\n" .. (button.action:GetText() or ""))
+
+    if noModifierKeys[originalText] then
+        keyui_tooltip_text.title:SetText((readableText or "") .. "\n" .. (button.action:GetText() or ""))
+    else
+        keyui_tooltip_text.title:SetText((shortenedModifierString .. readableText or "") .. "\n" .. (button.action:GetText() or ""))
+    end
+
     keyui_tooltip_text.title:SetTextColor(1, 1, 1)
     keyui_tooltip_text.title:SetFont("Fonts\\ARIALN.TTF", 16)
 
@@ -480,35 +502,11 @@ function addon:ButtonMouseOver(button)
     else
         keyui_tooltip_text:Show()
     end
-
-    -- Show GameTooltip for different types of actions
-    if button.slot then
-        -- For regular ActionButtons (ACTIONBUTTON1, ACTIONBUTTON2, etc.)
-        GameTooltip:SetOwner(button, "ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetAction(button.slot) -- Use SetAction for ActionButtons
-        GameTooltip:Show()
-    elseif button.spellid then
-        -- For Pet Spells with a spellID (or regular spells)
-        GameTooltip:SetOwner(button, "ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetSpellByID(button.spellid) -- Set tooltip for Pet Spells or regular spells
-        GameTooltip:Show()
-    elseif button.petActionIndex then
-        -- For pet modes (BONUSACTIONBUTTON for Wait, Move To, etc.)
-        GameTooltip:SetOwner(button, "ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
-        GameTooltip:SetPetAction(button.petActionIndex) -- Show the Pet Action Tooltip
-        GameTooltip:Show()
-    else
-        -- No tooltip for empty buttons
-        GameTooltip:Hide()
-    end
 end
 
 -- Determines the texture or text displayed on the button based on the key binding.
 function addon:SetKey(button)
-    local spell = GetBindingAction(addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (button.label:GetText() or "")) or ""
+    local spell = GetBindingAction(addon.current_modifier_string .. (button.label:GetText() or "")) or ""
 
     button.icon:Hide()
 
@@ -666,14 +664,16 @@ function addon:SetKey(button)
         end
     end
 
-    -- Set macro text
+    -- set hidden font string
     button.macro:SetText(spell)
 
-    -- Label Shortening
-    local fullLabel = button.label:GetText()
-    local shortLabel = addon.shortcut_labels[fullLabel] or fullLabel
+    -- Set visible key name based on the current modifier string
+    local originalText = button.label:GetText() or ""  -- Ensure originalText is never nil
 
-    -- Liste der Tasten, die nicht mit Modifikatoren angezeigt werden sollen
+    -- Check for shortcut label instead of global string
+    local readableText = addon.shortcut_labels[originalText] or _G["KEY_" .. originalText] or originalText
+
+    -- Liste der Tasten, für die der Modifier nicht angezeigt werden soll
     local noModifierKeys = {
         ["ESC"] = true,
         ["LSHIFT"] = true,
@@ -684,28 +684,26 @@ function addon:SetKey(button)
         ["RSHIFT"] = true,
         ["LWIN"] = true,
         ["RWIN"] = true,
-        ["MENU"] = true
+        ["MENU"] = true,
     }
 
-    -- Update labels based on the modifier state and the pressed key
-    local modifiers = {}
-    if addon.modif.ALT ~= "" then table.insert(modifiers, "a-") end
-    if addon.modif.CTRL ~= "" then table.insert(modifiers, "c-") end
-    if addon.modif.SHIFT ~= "" then table.insert(modifiers, "s-") end
-
-    -- Sortiere die Modifikatoren alphabetisch
-    table.sort(modifiers)
-
-    -- Erstelle die Modifikatorkette
-    local modifier = table.concat(modifiers)
-
-    -- Ensure the shortLabel is valid before updating
-    if shortLabel and shortLabel ~= "" then
-        -- Überprüfen, ob die Taste nicht in der noModifierKeys-Liste ist
-        if not noModifierKeys[fullLabel] then
-            button.label:SetText(modifier .. shortLabel)
+    if button.key then
+        -- Überprüfen, ob der aktuelle Text in der Liste der Tasten ist, die keinen Modifier haben sollen
+        if noModifierKeys[originalText] then
+            button.key:SetText(readableText) -- Nur den lesbaren Text setzen, ohne Modifier
         else
-            button.label:SetText(shortLabel) -- Nur den shortLabel ohne Modifikatoren anzeigen
+            -- Kürze addon.current_modifier_string
+            local shortenedModifierString = (addon.current_modifier_string or "")
+                :gsub("ALT%-", "a-")
+                :gsub("CTRL%-", "c-")
+                :gsub("SHIFT%-", "s-")
+
+            -- Append the shortened modifier string to the readable text
+            if shortenedModifierString ~= "" then
+                button.key:SetText(shortenedModifierString .. readableText)
+            else
+                button.key:SetText(readableText)
+            end
         end
     end
 end
@@ -729,10 +727,8 @@ function addon:refresh_keys()
         end
     end
 
-    -- Update action labels if the setting is enabled
-    if keyui_settings.show_interface_binds then
-        addon:update_action_labels()
-    end
+    -- create/update action labels
+    addon:create_action_labels()
 
     -- Highlight empty binds if the setting is enabled
     if keyui_settings.show_empty_binds then
@@ -803,7 +799,7 @@ function addon:highlight_empty_binds()
 end
 
 -- Sets and displays the interface action label on all buttons, using the binding name or command name and toggles the visibility based on settings.
-function addon:update_action_labels()
+function addon:create_action_labels()
     -- Loop through all keyboard buttons if they exist
     if self.keyboard_buttons then
         for _, keyboard_button in pairs(self.keyboard_buttons) do
@@ -851,28 +847,55 @@ function addon:update_action_labels()
     end
 end
 
--- Define a function to handle key press events
+function addon:update_modifier_string()
+    local modifiers = {}
+    if addon.modif.ALT then table.insert(modifiers, "ALT-") end
+    if addon.modif.CTRL then table.insert(modifiers, "CTRL-") end
+    if addon.modif.SHIFT then table.insert(modifiers, "SHIFT-") end
+    addon.current_modifier_string = table.concat(modifiers)
+end
+
+-- Function to handle key press events
 local function HandleKeyPress(key)
     if key == "LALT" or key == "RALT" then
-        addon.modif.ALT = "ALT-"
+        addon.modif.ALT = true
+        if addon.keyboard_control_frame.AltCB then
+            addon.keyboard_control_frame.AltCB:SetChecked(true)
+        end
     elseif key == "LCTRL" or key == "RCTRL" then
-        addon.modif.CTRL = "CTRL-"
+        addon.modif.CTRL = true
+        if addon.keyboard_control_frame.CtrlCB then
+            addon.keyboard_control_frame.CtrlCB:SetChecked(true)
+        end
     elseif key == "LSHIFT" or key == "RSHIFT" then
-        addon.modif.SHIFT = "SHIFT-"
+        addon.modif.SHIFT = true
+        if addon.keyboard_control_frame.ShiftCB then
+            addon.keyboard_control_frame.ShiftCB:SetChecked(true)
+        end
     end
+    addon:update_modifier_string()
     addon:refresh_keys()
 end
 
--- Define a function to handle key release events
+-- Function to handle key release events
 local function HandleKeyRelease(key)
     if key == "LALT" or key == "RALT" then
-        addon.modif.ALT = ""
+        addon.modif.ALT = false
+        if addon.keyboard_control_frame.AltCB then
+            addon.keyboard_control_frame.AltCB:SetChecked(false)
+        end
     elseif key == "LCTRL" or key == "RCTRL" then
-        addon.modif.CTRL = ""
+        addon.modif.CTRL = false
+        if addon.keyboard_control_frame.CtrlCB then
+            addon.keyboard_control_frame.CtrlCB:SetChecked(false)
+        end
     elseif key == "LSHIFT" or key == "RSHIFT" then
-        addon.modif.SHIFT = ""
-
+        addon.modif.SHIFT = false
+        if addon.keyboard_control_frame.ShiftCB then
+            addon.keyboard_control_frame.ShiftCB:SetChecked(false)
+        end
     end
+    addon:update_modifier_string()
     addon:refresh_keys()
 end
 
@@ -898,15 +921,13 @@ function addon:HandleKeyDown(frame, key)
         frame.label:SetText(modifier .. key) -- Set label to the pressed key with modifier
     end
 
-    -- Hide pushed texture if keyboard is not locked
-    if addon.keyboard_locked == false or addon.mouse_locked == false then
-        local adjustedSlot = frame.slot -- Assuming frame.slot is correctly set
-        local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
-        if mappedButton then
-            local pushedTexture = mappedButton:GetPushedTexture()
-            if pushedTexture then
-                pushedTexture:Hide() -- Hide the pushed texture
-            end
+    -- Hide pushed texture
+    local adjustedSlot = frame.slot -- Assuming frame.slot is correctly set
+    local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
+    if mappedButton then
+        local pushedTexture = mappedButton:GetPushedTexture()
+        if pushedTexture then
+            pushedTexture:Hide() -- Hide the pushed texture
         end
     end
 
@@ -972,7 +993,6 @@ local function DropDown_Initialize(self, level)
                 local actionSlot = addon.action_slot_mapping[key]
                 if actionSlot then
                     PickupAction(actionSlot)
-                    ClearCursor()
         
                     -- Use the global binding name or fallback to "Unknown Action"
                     local mappedName = _G["BINDING_NAME_" .. key] or "Unknown Action"
@@ -990,12 +1010,12 @@ local function DropDown_Initialize(self, level)
         info.hasArrow = false
         info.func = function()
             if addon.currentKey.label ~= "" then
-                SetBinding(addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or ""))
+                SetBinding(addon.current_modifier_string .. (addon.currentKey.label:GetText() or ""))
                 addon.currentKey.macro:SetText("")
                 addon:refresh_keys()
                 SaveBindings(2)
                 -- Print notification of key unbinding
-                local keyText = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
+                local keyText = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
                 print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
@@ -1066,7 +1086,7 @@ local function DropDown_Initialize(self, level)
                 info.func = function(self)
                     local actionbutton = addon.currentKey.macro:GetText()
                     local actionSlot = addon.action_slot_mapping[actionbutton]
-                    local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
                     local command = "Spell " .. spellName
                     if actionSlot then
                         C_Spell.PickupSpell(spellName)
@@ -1074,7 +1094,6 @@ local function DropDown_Initialize(self, level)
                         --print(spellName)      -- Spellname
                         --print(key)            -- e.g. ACTIONBUTTON1
                         --print(actionSlot)     -- e.g. 1 (Actionslot)
-                        ClearCursor()
                         -- Print notification for new spell binding
                         print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
                         addon:refresh_keys()
@@ -1098,12 +1117,11 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
-                            ClearCursor()
                             addon:refresh_keys()
                         else
                             SetBinding(key, command)
@@ -1126,12 +1144,11 @@ local function DropDown_Initialize(self, level)
                     info.func = function(self)
                         local actionbutton = addon.currentKey.macro:GetText()
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
-                            ClearCursor()
                             addon:refresh_keys()
                         else
                             SetBinding(key, command)
@@ -1151,7 +1168,7 @@ local function DropDown_Initialize(self, level)
                 info.value = keybinding[2]
                 info.hasArrow = false
                 info.func = function(self)
-                    local key = addon.modif.ALT .. addon.modif.CTRL .. addon.modif.SHIFT .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
                     -- Print notification for interface binding
@@ -1194,17 +1211,17 @@ eventFrame:RegisterEvent("PET_BAR_UPDATE")
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addon.open then
-        if event == "UPDATE_BONUS_ACTIONBAR" then           --setkey only
+        if event == "UPDATE_BONUS_ACTIONBAR" then           --refresh_keys only
             -- Check the BonusBarOffset
             addon.bonusbar_offset = GetBonusBarOffset()
             addon:refresh_keys()
-        elseif event == "ACTIONBAR_PAGE_CHANGED" then       --setkey only
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then       --refresh_keys only
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
             addon:refresh_keys()
-        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then  --refreshkeys
+        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then  --refresh_layouts
             addon:refresh_layouts()
-        elseif event == "UPDATE_BINDINGS" then              --refreshkeys
+        elseif event == "UPDATE_BINDINGS" then              --refresh_layouts
             addon:refresh_layouts()
         elseif event == "PLAYER_REGEN_ENABLED" then         --nothing
             addon.in_combat = false
@@ -1218,14 +1235,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- Save Keyboard and Mouse Position when logging out
             addon:SaveKeyboardPosition()
             addon:SaveMousePosition()
-        elseif event == "MODIFIER_STATE_CHANGED" then       --refreshkeys
-        
+        elseif event == "MODIFIER_STATE_CHANGED" then       --refreshkeys only
+
             -- Handle the modifier state change
             local key, state = ...                    -- Get key and state from the event
 
             -- changed modifier states interferer when binding new keys and editing
             if addon.keyboard_locked ~= false and addon.mouse_locked ~= false then  -- true
-            
+
                 -- check if the modifier checkboxes are empty
                 if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
 

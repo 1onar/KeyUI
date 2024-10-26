@@ -263,7 +263,7 @@ function addon:CreateKeyboardControl()
                 SwitchInterfaceText:SetText("Show Interface Binds")
                 keyui_settings.show_interface_binds = false
             end
-            addon:update_action_labels()
+            addon:create_action_labels()
         end
 
         keyboard_control_frame.SwitchInterfaceBinds:SetScript("OnClick", ToggleInterfaceBinds)
@@ -296,19 +296,19 @@ function addon:CreateKeyboardControl()
         -- Set the OnClick script for the checkbutton
         keyboard_control_frame.AltCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                addon.modif.ALT = "ALT-"
-                addon.modif.CTRL = ""
-                addon.modif.SHIFT = ""
+                -- Set ALT modifier and update checkbox state
+                addon.modif.ALT = true
                 addon.alt_checkbox = true
-                keyboard_control_frame.CtrlCB:SetChecked(false)
-                keyboard_control_frame.ShiftCB:SetChecked(false)
             else
-                addon.modif.ALT = ""
+                -- Disable ALT modifier and reset checkbox states
+                addon.modif.ALT = false
                 addon.alt_checkbox = false
-                addon.ctrl_checkbox = false
-                addon.shift_checkbox = false
             end
+            
+            -- Update the current modifier string and refresh keys based on the new state
+            addon:update_modifier_string()
             addon:refresh_keys()
+
         end)
         SetCheckboxTooltip(keyboard_control_frame.AltCB, "Toggle Alt key modifier")
         --alt
@@ -329,18 +329,17 @@ function addon:CreateKeyboardControl()
         -- Set the OnClick script for the checkbutton
         keyboard_control_frame.CtrlCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                addon.modif.ALT = ""
-                addon.modif.CTRL = "CTRL-"
-                addon.modif.SHIFT = ""
+                -- Set CTRL modifier and update checkbox state
+                addon.modif.CTRL = true
                 addon.ctrl_checkbox = true
-                keyboard_control_frame.AltCB:SetChecked(false)
-                keyboard_control_frame.ShiftCB:SetChecked(false)
             else
-                addon.modif.CTRL = ""
-                addon.alt_checkbox = false
+                -- Disable CTRL modifier and reset checkbox state
+                addon.modif.CTRL = false
                 addon.ctrl_checkbox = false
-                addon.shift_checkbox = false
             end
+
+            -- Update the current modifier string and refresh keys based on the new state
+            addon:update_modifier_string()
             addon:refresh_keys()
         end)
         SetCheckboxTooltip(keyboard_control_frame.CtrlCB, "Toggle Ctrl key modifier")
@@ -362,18 +361,17 @@ function addon:CreateKeyboardControl()
         -- Set the OnClick script for the checkbutton
         keyboard_control_frame.ShiftCB:SetScript("OnClick", function(s)
             if s:GetChecked() then
-                addon.modif.ALT = ""
-                addon.modif.CTRL = ""
-                addon.modif.SHIFT = "SHIFT-"
+                -- Set SHIFT modifier and update checkbox state
+                addon.modif.SHIFT = true
                 addon.shift_checkbox = true
-                keyboard_control_frame.AltCB:SetChecked(false)
-                keyboard_control_frame.CtrlCB:SetChecked(false)
             else
-                addon.modif.SHIFT = ""
-                addon.alt_checkbox = false
-                addon.ctrl_checkbox = false
+                -- Disable SHIFT modifier and reset checkbox state
+                addon.modif.SHIFT = false
                 addon.shift_checkbox = false
             end
+
+            -- Update the current modifier string and refresh keys based on the new state
+            addon:update_modifier_string()
             addon:refresh_keys()
         end)
         SetCheckboxTooltip(keyboard_control_frame.ShiftCB, "Toggle Shift key modifier")
@@ -505,6 +503,26 @@ function addon:CreateKeyboardControl()
                     keyboard_control_frame.glowBoxSave:Hide()
                     keyboard_control_frame.glowBoxInput:Hide()
                 end
+
+                -- disable modifier
+                addon.modif.ALT = false
+                addon.modif.CTRL = false
+                addon.modif.SHIFT = false
+
+                -- reset checkbox states
+                addon.alt_checkbox = false
+                addon.ctrl_checkbox = false
+                addon.shift_checkbox = false
+                if addon.keyboard_control_frame.AltCB then
+                    addon.keyboard_control_frame.AltCB:SetChecked(false)
+                end
+                if addon.keyboard_control_frame.CtrlCB then
+                    addon.keyboard_control_frame.CtrlCB:SetChecked(false)
+                end
+                if addon.keyboard_control_frame.ShiftCB then
+                    addon.keyboard_control_frame.ShiftCB:SetChecked(false)
+                end
+
                 print("KeyUI: The keyboard is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
             else
                 addon.keyboard_locked = true
@@ -857,22 +875,26 @@ function addon:CreateKeyboardButtons()
     keyboard_button:EnableKeyboard(true)
     keyboard_button:SetBackdropColor(0, 0, 0, 1)
 
-    -- Create a label to display the full name of the action.
-    keyboard_button.label = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.label:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    keyboard_button.label:SetTextColor(1, 1, 1, 0.9)
-    keyboard_button.label:SetHeight(50)
-    keyboard_button.label:SetWidth(56)
-    keyboard_button.label:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
-    keyboard_button.label:SetJustifyH("RIGHT")
-    keyboard_button.label:SetJustifyV("TOP")
-
-    -- Hidden font string to store the macro text.
+    -- Hidden font string to store the keyboard interface command (Blizzard Commands)
     keyboard_button.macro = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.macro:SetText("")
     keyboard_button.macro:Hide()
 
-    -- Font string to display the interface action text.
+    -- Hidden font string to store the keyboard keybind 
+    keyboard_button.label = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.label:Hide()
+
+    -- Keyboard Keybind label text on the top right
+    keyboard_button.key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    keyboard_button.key:SetTextColor(1, 1, 1, 0.9)
+    keyboard_button.key:SetHeight(50)
+    keyboard_button.key:SetWidth(56)
+    keyboard_button.key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
+    keyboard_button.key:SetJustifyH("RIGHT")
+    keyboard_button.key:SetJustifyV("TOP")
+    keyboard_button.key:Show()
+
+    -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     keyboard_button.action = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyboard_button.action:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
     keyboard_button.action:SetTextColor(1, 1, 1)
@@ -1023,11 +1045,9 @@ function addon:CreateKeyboardButtons()
                         if adjustedSlot >= 1 and adjustedSlot <= 132 then -- Adjust the upper limit as necessary
                             PickupAction(adjustedSlot)
                             --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
-                            addon:refresh_keys()
                         else
                             -- Optionally handle cases where the adjusted slot is out of range
                             PickupAction(actionSlot)
-                            addon:refresh_keys()
                         end
                     elseif keyboard_button.petActionIndex then
                         -- Pickup a pet action
@@ -1043,7 +1063,6 @@ function addon:CreateKeyboardButtons()
                         local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
                         if elvUIButton and elvUIButton._state_action then
                             PickupAction(elvUIButton._state_action)
-                            addon:refresh_keys()
                         end
                     end
                 end
@@ -1058,67 +1077,10 @@ function addon:CreateKeyboardButtons()
 
     -- Define behavior for mouse up actions (left-click and right-click).
     keyboard_button:SetScript("OnMouseUp", function(self, Mousebutton)
-        if Mousebutton == "LeftButton" then
-            local infoType, info1, info2 = GetCursorInfo()
-
-            -- Debug output to check values (optional)
-            --print("infoType:", infoType)
-            --print("info1 (expected spellbook slot):", info1)
-            --print("info2 (expected spellbook type):", info2)
-
-            if infoType == "spell" then
-                local slotIndex = tonumber(info1)
-
-                -- Determine the correct spell book type based on info2.
-                local spellBookType
-                if info2 == "spell" then
-                    spellBookType = Enum.SpellBookSpellBank.Player -- Default to player spells.
-                elseif info2 == "pet" then
-                    spellBookType = Enum.SpellBookSpellBank.Pet    -- For pet spells.
-                else
-                    --print("Unknown spell book type:", info2)
-                    return
-                end
-
-                -- Ensure slotIndex is valid before using it.
-                if slotIndex then
-                    local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(slotIndex, spellBookType)
-
-                    -- Check if spellBookItemInfo is valid before accessing its properties.
-                    if spellBookItemInfo then
-                        local spellname = spellBookItemInfo.name
-                        addon.currentKey = self
-                        local key = addon.currentKey.macro:GetText()
-                        if key and key ~= "" then
-                            local actionSlot = addon.action_slot_mapping[key]
-                            if actionSlot then
-                                PlaceAction(actionSlot)
-                                ClearCursor()
-                                addon:refresh_keys()
-                            elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                                -- Handle ElvUI Buttons.
-                                local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                                local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                                if elvUIButton and elvUIButton._state_action then
-                                    PlaceAction(elvUIButton._state_action)
-                                    ClearCursor()
-                                    addon:refresh_keys()
-                                end
-                            end
-                        else
-                            -- Handle the case where the key is nil or empty
-                            --print("No valid macro text found for the button.")
-                        end
-                    else
-                        --print("spellBookItemInfo is nil")
-                    end
-                else
-                    --print("Invalid slotIndex:", slotIndex)
-                end
-            end
-        elseif Mousebutton == "RightButton" then
+        if Mousebutton == "RightButton" then
             addon.currentKey = self
-            if addon.modif.ALT == "" and addon.modif.CTRL == "" and addon.modif.SHIFT == "" then
+            -- Check if no modifiers are active
+            if addon.current_modifier_string == "" then
                 ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
             end
         end
