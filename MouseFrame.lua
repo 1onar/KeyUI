@@ -64,7 +64,7 @@ function addon:CreateMouseFrame()
     mouse_frame:Hide()
 
     if keyui_settings.show_keyboard == false then   -- i still dont know why i have to trigger a extra refreshkeys when keyboard is hidden
-        addon:RefreshKeys()
+        addon:refresh_layouts()
     end
 
     return mouse_frame
@@ -225,7 +225,7 @@ function addon:CreateMouseControl()
 
                     wipe(keyui_settings.layout_current_mouse)
                     UIDropDownMenu_SetText(addon.mouse_selector, "")
-                    addon:RefreshKeys()
+                    addon:refresh_layouts()
                 else
                     print("KeyUI: Error - No layout selected to delete.")
                 end
@@ -501,7 +501,7 @@ function addon:SaveMouseLayout()
             addon.mouse_control_frame.glowBoxInput:Hide()
 
             -- Refresh the keys and update the dropdown menu
-            addon:RefreshKeys()
+            addon:refresh_layouts()
             UIDropDownMenu_SetText(addon.mouse_selector, msg)
         else
             print("KeyUI: Please enter a name for the layout before saving.")
@@ -547,11 +547,11 @@ function addon:DiscardMouseChanges()
         addon.mouse_control_frame.Input:ClearFocus()
     end
 
-    addon:RefreshKeys()
+    addon:refresh_layouts()
 end
 
--- This function switches the key binding board to display different mouse key bindings.
-function addon:UpdateMouseLayout()
+-- This function updates the mouse layout by creating, positioning, and resizing key frames based on the current configuration.
+function addon:generate_mouse_key_frames()
     -- Clear existing Keys to avoid leftover data from previous layouts
     for i = 1, #addon.keys_mouse do
         addon.keys_mouse[i]:Hide()
@@ -632,14 +632,14 @@ function addon:CreateMouseButtons()
     mouse_button.macro:SetText("")
     mouse_button.macro:Hide()
 
-    --button.interfaceaction = Blizzard ID changed to readable Text
-    mouse_button.interfaceaction = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 8, "OUTLINE")
-    mouse_button.interfaceaction:SetTextColor(1, 1, 1)
-    mouse_button.interfaceaction:SetHeight(20)
-    mouse_button.interfaceaction:SetWidth(44)
-    mouse_button.interfaceaction:SetPoint("TOP", mouse_button, "TOP", 0, -6)
-    mouse_button.interfaceaction:SetText("")
+    --button.action = Blizzard ID changed to readable Text
+    mouse_button.action = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.action:SetFont("Fonts\\ARIALN.TTF", 8, "OUTLINE")
+    mouse_button.action:SetTextColor(1, 1, 1)
+    mouse_button.action:SetHeight(20)
+    mouse_button.action:SetWidth(44)
+    mouse_button.action:SetPoint("TOP", mouse_button, "TOP", 0, -6)
+    mouse_button.action:SetText("")
 
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
     mouse_button.icon:SetSize(40, 40)
@@ -782,11 +782,11 @@ function addon:CreateMouseButtons()
                     -- Ensure adjustedSlot is valid before picking up
                     if adjustedSlot >= 1 and adjustedSlot <= 132 then -- Adjust the upper limit as necessary
                         PickupAction(adjustedSlot)
-                        addon:RefreshKeys()
+                        addon:refresh_keys()
                     else
                         -- Optionally handle cases where the adjusted slot is out of range
                         PickupAction(actionSlot)
-                        addon:RefreshKeys()
+                        addon:refresh_keys()
                     end
                 end
             end
@@ -812,7 +812,7 @@ function addon:CreateMouseButtons()
                     if actionSlot then
                         PlaceAction(actionSlot)
                         ClearCursor()
-                        addon:RefreshKeys()
+                        addon:refresh_keys()
                     end
                 end
             end
@@ -863,7 +863,7 @@ function addon:MouseLayoutSelecter()
                 keyui_settings.key_bind_settings_mouse.currentboard = name
                 wipe(keyui_settings.layout_current_mouse)
                 keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
-                addon:RefreshKeys()
+                addon:refresh_keys()
                 UIDropDownMenu_SetText(self, name)
             end
             UIDropDownMenu_AddButton(info, level)
@@ -886,7 +886,7 @@ function addon:MouseLayoutSelecter()
                     end
                     wipe(keyui_settings.layout_current_mouse)
                     keyui_settings.layout_current_mouse[name] = layout
-                    addon:RefreshKeys()
+                    addon:refresh_keys()
                     UIDropDownMenu_SetText(self, name)
                 end
                 UIDropDownMenu_AddButton(info, level)

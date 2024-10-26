@@ -225,7 +225,7 @@ function addon:CreateKeyboardControl()
                 SwitchBindsText:SetText("Show empty Keys")
                 keyui_settings.show_empty_binds = false
             end
-            addon:RefreshKeys()
+            addon:highlight_empty_binds()
         end
 
         keyboard_control_frame.SwitchEmptyBinds:SetScript("OnClick", ToggleEmptyBinds)
@@ -263,7 +263,7 @@ function addon:CreateKeyboardControl()
                 SwitchInterfaceText:SetText("Show Interface Binds")
                 keyui_settings.show_interface_binds = false
             end
-            addon:RefreshKeys()
+            addon:update_action_labels()
         end
 
         keyboard_control_frame.SwitchInterfaceBinds:SetScript("OnClick", ToggleInterfaceBinds)
@@ -308,7 +308,7 @@ function addon:CreateKeyboardControl()
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false
             end
-            addon:RefreshKeys()
+            addon:refresh_keys()
         end)
         SetCheckboxTooltip(keyboard_control_frame.AltCB, "Toggle Alt key modifier")
         --alt
@@ -341,7 +341,7 @@ function addon:CreateKeyboardControl()
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false
             end
-            addon:RefreshKeys()
+            addon:refresh_keys()
         end)
         SetCheckboxTooltip(keyboard_control_frame.CtrlCB, "Toggle Ctrl key modifier")
         --ctrl
@@ -374,7 +374,7 @@ function addon:CreateKeyboardControl()
                 addon.ctrl_checkbox = false
                 addon.shift_checkbox = false
             end
-            addon:RefreshKeys()
+            addon:refresh_keys()
         end)
         SetCheckboxTooltip(keyboard_control_frame.ShiftCB, "Toggle Shift key modifier")
         --shift
@@ -444,7 +444,7 @@ function addon:CreateKeyboardControl()
 
                     wipe(keyui_settings.layout_current_keyboard)
                     UIDropDownMenu_SetText(addon.keyboard_selector, "")
-                    addon:RefreshKeys()
+                    addon:refresh_layouts()
                 else
                     print("KeyUI: Error - No layout selected to delete.")
                 end
@@ -724,7 +724,7 @@ function addon:SaveKeyboardLayout()
             addon.keyboard_control_frame.glowBoxInput:Hide()
 
             -- Refresh the keys and update the dropdown menu
-            addon:RefreshKeys()
+            addon:refresh_layouts()
             UIDropDownMenu_SetText(addon.keyboard_selector, msg)
         else
             print("KeyUI: Please enter a name for the layout before saving.")
@@ -770,11 +770,11 @@ function addon:DiscardKeyboardChanges()
         addon.keyboard_control_frame.Input:ClearFocus()
     end
 
-    addon:RefreshKeys()
+    addon:refresh_keys()
 end
 
--- This function switches the key binding board to display different key bindings.
-function addon:UpdateKeyboardLayout()
+-- This function updates the keyboard layout by creating, positioning, and resizing key frames based on the current configuration.
+function addon:generate_keyboard_key_frames()
     -- Clear the existing key array to avoid leftover data from previous layouts.
     for i = 1, #addon.keys_keyboard do
         addon.keys_keyboard[i]:Hide()
@@ -872,13 +872,13 @@ function addon:CreateKeyboardButtons()
     keyboard_button.macro:Hide()
 
     -- Font string to display the interface action text.
-    keyboard_button.interfaceaction = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    keyboard_button.interfaceaction:SetTextColor(1, 1, 1)
-    keyboard_button.interfaceaction:SetHeight(58)
-    keyboard_button.interfaceaction:SetWidth(58)
-    keyboard_button.interfaceaction:SetPoint("CENTER", keyboard_button, "CENTER", 0, -6)
-    keyboard_button.interfaceaction:SetText("")
+    keyboard_button.action = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.action:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    keyboard_button.action:SetTextColor(1, 1, 1)
+    keyboard_button.action:SetHeight(58)
+    keyboard_button.action:SetWidth(58)
+    keyboard_button.action:SetPoint("CENTER", keyboard_button, "CENTER", 0, -6)
+    keyboard_button.action:SetText("")
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
@@ -1022,11 +1022,11 @@ function addon:CreateKeyboardButtons()
                         if adjustedSlot >= 1 and adjustedSlot <= 132 then -- Adjust the upper limit as necessary
                             PickupAction(adjustedSlot)
                             --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
-                            addon:RefreshKeys()
+                            addon:refresh_keys()
                         else
                             -- Optionally handle cases where the adjusted slot is out of range
                             PickupAction(actionSlot)
-                            addon:RefreshKeys()
+                            addon:refresh_keys()
                         end
                     elseif keyboard_button.petActionIndex then
                         -- Pickup a pet action
@@ -1042,7 +1042,7 @@ function addon:CreateKeyboardButtons()
                         local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
                         if elvUIButton and elvUIButton._state_action then
                             PickupAction(elvUIButton._state_action)
-                            addon:RefreshKeys()
+                            addon:refresh_keys()
                         end
                     end
                 end
@@ -1093,7 +1093,7 @@ function addon:CreateKeyboardButtons()
                             if actionSlot then
                                 PlaceAction(actionSlot)
                                 ClearCursor()
-                                addon:RefreshKeys()
+                                addon:refresh_keys()
                             elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
                                 -- Handle ElvUI Buttons.
                                 local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
@@ -1101,7 +1101,7 @@ function addon:CreateKeyboardButtons()
                                 if elvUIButton and elvUIButton._state_action then
                                     PlaceAction(elvUIButton._state_action)
                                     ClearCursor()
-                                    addon:RefreshKeys()
+                                    addon:refresh_keys()
                                 end
                             end
                         else
@@ -1185,7 +1185,7 @@ function addon:KeyboardLayoutSelecter()
                         end
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[name] = layout
-                        addon:RefreshKeys()
+                        addon:refresh_layouts()
                         UIDropDownMenu_SetText(self, name)
                     end
                     UIDropDownMenu_AddButton(info, level)
@@ -1242,7 +1242,7 @@ function addon:KeyboardLayoutSelecter()
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
-                        addon:RefreshKeys()
+                        addon:refresh_layouts()
                         UIDropDownMenu_SetText(self, layout)
                     end
                     UIDropDownMenu_AddButton(info, level)
@@ -1301,7 +1301,7 @@ function addon:KeyboardLayoutSelecter()
                         keyui_settings.key_bind_settings_keyboard.currentboard = layout
                         wipe(keyui_settings.layout_current_keyboard)
                         keyui_settings.layout_current_keyboard[layout] = addon.default_keyboard_layouts[layout]
-                        addon:RefreshKeys()
+                        addon:refresh_layouts()
                         UIDropDownMenu_SetText(self, layout)
                     end
                     UIDropDownMenu_AddButton(info, level)
