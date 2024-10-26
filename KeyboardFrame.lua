@@ -770,7 +770,7 @@ function addon:DiscardKeyboardChanges()
         addon.keyboard_control_frame.Input:ClearFocus()
     end
 
-    addon:refresh_keys()
+    addon:refresh_layouts()
 end
 
 -- This function updates the keyboard layout by creating, positioning, and resizing key frames based on the current configuration.
@@ -852,6 +852,7 @@ function addon:CreateKeyboardButtons()
 
     -- Create a frame that acts as a button with a tooltip border.
     local keyboard_button = CreateFrame("Frame", nil, addon.keyboard_frame, "TooltipBorderedFrameTemplate")
+
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:SetBackdropColor(0, 0, 0, 1)
@@ -1122,6 +1123,12 @@ function addon:CreateKeyboardButtons()
             end
         end
     end)
+
+    -- Store the created button in the keyboard_buttons table
+    if not self.keyboard_buttons then
+        self.keyboard_buttons = {}  -- Initialize the table if it doesn't exist
+    end
+    table.insert(self.keyboard_buttons, keyboard_button)  -- Add the new button to the table
 
     return keyboard_button
 end

@@ -612,7 +612,9 @@ end
 -- Create a new button to the main mouse image frame.
 function addon:CreateMouseButtons()
 
+    -- Create a frame that acts as a button with a tooltip border.
     local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "TooltipBorderedFrameTemplate")
+
     mouse_button:SetMovable(true)
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
@@ -824,7 +826,11 @@ function addon:CreateMouseButtons()
         end
     end)
 
-    addon.keys_mouse[mouse_button] = mouse_button
+    -- Store the created button in the keyboard_buttons table
+    if not self.mouse_buttons then
+        self.mouse_buttons = {}  -- Initialize the table if it doesn't exist
+    end
+    table.insert(self.mouse_buttons, mouse_button)  -- Add the new button to the table
 
     return mouse_button
 end
@@ -863,7 +869,7 @@ function addon:MouseLayoutSelecter()
                 keyui_settings.key_bind_settings_mouse.currentboard = name
                 wipe(keyui_settings.layout_current_mouse)
                 keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
-                addon:refresh_keys()
+                addon:refresh_layouts()
                 UIDropDownMenu_SetText(self, name)
             end
             UIDropDownMenu_AddButton(info, level)

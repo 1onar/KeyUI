@@ -312,7 +312,7 @@ end
 
 -- Triggers the functions to update the keyboard and mouse layouts on the current configuration.
 function addon:refresh_layouts()
-    print("refresh_board function called")  -- print statement for debbuging
+    --print("refresh_layouts function called")  -- print statement for debbuging
 
     -- stop if the addon is not open
     if addon.open == false then
@@ -712,29 +712,7 @@ end
 
 -- Updates the textures/texts of the keys bindings.
 function addon:refresh_keys()
-    print("refresh_keys function called")  -- print statement for debbuging
-
-    -- stop if the addon is not open
-    if addon.open == false then
-        return
-    end
-
-    -- stop if keyboard and mouse are not visible
-    if addon.is_keyboard_frame_visible == false and addon.is_mouse_image_visible == false then
-        return
-    end
-
-    -- stop if the keyboard or mouse are unlocked
-    if addon.keyboard_locked == false or addon.mouse_locked == false then
-        --print("KeyUI: Please lock the keyboard or mouse before proceeding.")
-        return
-    end
-
-    -- stop if the keyboard or mouse are edited
-    if addon.keys_keyboard_edited == true or addon.keys_mouse_edited == true then
-        --print("KeyUI: You have unsaved changes. Please save or discard your changes before proceeding.")
-        return
-    end
+    --print("refresh_keys function called")  -- print statement for debbuging
 
     -- if the keyboard is visible we create the keys
     if addon.is_keyboard_frame_visible ~= false then    -- true
@@ -750,64 +728,124 @@ function addon:refresh_keys()
             addon:SetKey(addon.keys_mouse[j])
         end
     end
+
+    -- Update action labels if the setting is enabled
+    if keyui_settings.show_interface_binds then
+        addon:update_action_labels()
+    end
+
+    -- Highlight empty binds if the setting is enabled
+    if keyui_settings.show_empty_binds then
+        addon:highlight_empty_binds()
+    end
 end
 
 -- Highlights empty key binds by changing the background color of unused keys.
 function addon:highlight_empty_binds()
     if keyui_settings.show_empty_binds then
-        local labelText = button.label:GetText()
-        -- Check if the bind is empty and the key is not on the excluded list
-        if spell == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
-            button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
-        else
-            button:SetBackdropColor(0, 0, 0, 1) -- Default color
+        -- Loop through all keyboard buttons if they exist
+        if self.keyboard_buttons then
+            for _, keyboard_button in pairs(self.keyboard_buttons) do
+                if keyboard_button.label then
+                    local labelText = keyboard_button.label:GetText() -- Get the label text
+
+                    -- Get the macro text for the button
+                    local macroText = keyboard_button.macro and keyboard_button.macro:GetText() or ""
+
+                    -- Check if the bind is empty (replace with your actual spell retrieval logic)
+                    local spell = "" -- Replace this with the actual check for the action
+
+                    -- Check if the bind is empty and the key is not on the excluded list
+                    if spell == "" and macroText == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
+                        keyboard_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
+                    else
+                        keyboard_button:SetBackdropColor(0, 0, 0, 1) -- Default color
+                    end
+                end
+            end
+        end
+
+        -- Loop through all mouse buttons if they exist
+        if self.mouse_buttons then
+            for _, mouse_button in pairs(self.mouse_buttons) do
+                if mouse_button.label then
+                    local labelText = mouse_button.label:GetText() -- Get the label text
+
+                    -- Get the macro text for the button
+                    local macroText = mouse_button.macro and mouse_button.macro:GetText() or ""
+
+                    -- Check if the bind is empty (replace with your actual spell retrieval logic)
+                    local spell = "" -- Replace this with the actual check for the action
+
+                    -- Check if the bind is empty and the key is not on the excluded list
+                    if spell == "" and macroText == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
+                        mouse_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
+                    else
+                        mouse_button:SetBackdropColor(0, 0, 0, 1) -- Default color
+                    end
+                end
+            end
         end
     else
-        button:SetBackdropColor(0, 0, 0, 1) -- Default color when not showing empty binds
+        -- Reset color for all buttons when not showing empty binds
+        if self.keyboard_buttons then
+            for _, keyboard_button in pairs(self.keyboard_buttons) do
+                keyboard_button:SetBackdropColor(0, 0, 0, 1) -- Default color
+            end
+        end
+
+        if self.mouse_buttons then
+            for _, mouse_button in pairs(self.mouse_buttons) do
+                mouse_button:SetBackdropColor(0, 0, 0, 1) -- Default color
+            end
+        end
     end
 end
 
 -- Sets and displays the interface action label on all buttons, using the binding name or command name and toggles the visibility based on settings.
 function addon:update_action_labels()
+    -- Loop through all keyboard buttons if they exist
+    if self.keyboard_buttons then
+        for _, keyboard_button in pairs(self.keyboard_buttons) do
+            if keyboard_button.action then
+                local command = keyboard_button.macro and keyboard_button.macro:GetText()
 
-    -- Loop through all keyboard buttons
-    for _, keyboard_button in pairs(self.keyboard_buttons) do
-        if keyboard_button.action then
-            local command = keyboard_button.macro and keyboard_button.macro:GetText()
+                if command then
+                    local binding_name = _G["BINDING_NAME_" .. command] or command
+                    keyboard_button.action:SetText(binding_name)
+                else
+                    keyboard_button.action:SetText("")
+                end
 
-            if command then
-                local binding_name = _G["BINDING_NAME_" .. command] or command
-                keyboard_button.action:SetText(binding_name)
-            else
-                keyboard_button.action:SetText("")
-            end
-
-            -- Toggle visibility of the interface action label based on settings
-            if keyui_settings.show_interface_binds then
-                keyboard_button.action:Show()
-            else
-                keyboard_button.action:Hide()
+                -- Toggle visibility of the interface action label based on settings
+                if keyui_settings.show_interface_binds then
+                    keyboard_button.action:Show()
+                else
+                    keyboard_button.action:Hide()
+                end
             end
         end
     end
 
-    -- Loop through all mouse buttons
-    for _, mouse_button in pairs(self.mouse_buttons) do
-        if mouse_button.action then
-            local command = mouse_button.macro and mouse_button.macro:GetText()
+    -- Loop through all mouse buttons if they exist
+    if self.mouse_buttons then
+        for _, mouse_button in pairs(self.mouse_buttons) do
+            if mouse_button.action then
+                local command = mouse_button.macro and mouse_button.macro:GetText()
 
-            if command then
-                local binding_name = _G["BINDING_NAME_" .. command] or command
-                mouse_button.action:SetText(binding_name)
-            else
-                mouse_button.action:SetText("")
-            end
+                if command then
+                    local binding_name = _G["BINDING_NAME_" .. command] or command
+                    mouse_button.action:SetText(binding_name)
+                else
+                    mouse_button.action:SetText("")
+                end
 
-            -- Toggle visibility of the interface action label based on settings
-            if keyui_settings.show_interface_binds then
-                mouse_button.action:Show()
-            else
-                mouse_button.action:Hide()
+                -- Toggle visibility of the interface action label based on settings
+                if keyui_settings.show_interface_binds then
+                    mouse_button.action:Show()
+                else
+                    mouse_button.action:Hide()
+                end
             end
         end
     end
@@ -858,6 +896,18 @@ function addon:HandleKeyDown(frame, key)
         frame.label:SetText(modifier .. "Button3") -- Handle middle mouse button
     else
         frame.label:SetText(modifier .. key) -- Set label to the pressed key with modifier
+    end
+
+    -- Hide pushed texture if keyboard is not locked
+    if addon.keyboard_locked == false or addon.mouse_locked == false then
+        local adjustedSlot = frame.slot -- Assuming frame.slot is correctly set
+        local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
+        if mappedButton then
+            local pushedTexture = mappedButton:GetPushedTexture()
+            if pushedTexture then
+                pushedTexture:Hide() -- Hide the pushed texture
+            end
+        end
     end
 
     addon:refresh_keys()
