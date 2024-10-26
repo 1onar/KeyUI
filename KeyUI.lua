@@ -465,7 +465,7 @@ end
 function addon:ButtonMouseOver(button)
     local keyui_tooltip_text = addon.tooltip
 
-    local originalText = button.label:GetText()
+    local originalText = button.label:GetText() or ""
     local readableText = _G["KEY_" .. originalText] or originalText
     local shortenedModifierString = (addon.current_modifier_string or "")
     -- Liste der Tasten, für die der Modifier nicht angezeigt werden soll
