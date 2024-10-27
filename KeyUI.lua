@@ -916,7 +916,7 @@ function addon:HandleKeyDown(frame, key)
 
     -- Set the label to the modifier and the pressed key
     if key == "MiddleButton" then
-        frame.label:SetText(modifier .. "Button3") -- Handle middle mouse button
+        frame.label:SetText(modifier .. "BUTTON3") -- Handle middle mouse button
     else
         frame.label:SetText(modifier .. key) -- Set label to the pressed key with modifier
     end
@@ -952,9 +952,9 @@ function addon:HandleMouseWheel(frame, delta)
 
     -- Combine with MouseWheel action
     if delta > 0 then
-        frame.label:SetText(modifier .. "MouseWheelUp") -- Scrolled up with modifiers
+        frame.label:SetText(modifier .. "MOUSEWHEELUP") -- Scrolled up with modifiers
     elseif delta < 0 then
-        frame.label:SetText(modifier .. "MouseWheelDown") -- Scrolled down with modifiers
+        frame.label:SetText(modifier .. "MOUSEWHEELDOWN") -- Scrolled down with modifiers
     end
 
     addon:refresh_keys()

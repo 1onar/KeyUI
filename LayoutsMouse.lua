@@ -4,9 +4,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_4x3'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -28,9 +28,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_2+4x3'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -55,9 +55,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_3x3'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -76,9 +76,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_3x2'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -93,9 +93,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_1+2x2'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -110,9 +110,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_2x2'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -125,9 +125,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_2x1'] = {
 
-        { 'MouseWheelUp',   140, 170, 50, 50 },
-        { 'Button3',        140, 123, 50, 50 },
-        { 'MouseWheelDown', 140, 76,  50, 50 },
+        { 'MOUSEWHEELUP',   140, 170, 50, 50 },
+        { 'BUTTON3',        140, 123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140, 76,  50, 50 },
         { '',               140, 29,  50, 50 },
         { '',               140, -16, 50, 50 },
 
@@ -137,9 +137,9 @@ addon.default_mouse_layouts = {
 
     ['Layout_Circle'] = {
 
-        { 'MouseWheelUp',   140,  170, 50, 50 },
-        { 'Button3',        140,  123, 50, 50 },
-        { 'MouseWheelDown', 140,  76,  50, 50 },
+        { 'MOUSEWHEELUP',   140,  170, 50, 50 },
+        { 'BUTTON3',        140,  123, 50, 50 },
+        { 'MOUSEWHEELDOWN', 140,  76,  50, 50 },
         { '',               140,  29,  50, 50 },
         { '',               140,  -16, 50, 50 },
 
