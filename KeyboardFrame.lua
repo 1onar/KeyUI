@@ -910,6 +910,7 @@ function addon:CreateKeyboardButtons()
 
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function()
+        addon.current_hovered_button = keyboard_button --save the current hovered button to re-trigger tooltip
         addon:ButtonMouseOver(keyboard_button)
         keyboard_button:EnableKeyboard(true)
         keyboard_button:EnableMouseWheel(true)
@@ -960,6 +961,7 @@ function addon:CreateKeyboardButtons()
     end)
 
     keyboard_button:SetScript("OnLeave", function()
+        addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         addon.tooltip:Hide()
         keyboard_button:EnableKeyboard(false)

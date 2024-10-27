@@ -1253,6 +1253,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                         -- Key release event
                         HandleKeyRelease(key)
                     end
+
+                    -- If a button is hovered, refresh tooltip to update modifier state
+                    if addon.current_hovered_button then
+                        addon:ButtonMouseOver(addon.current_hovered_button)
+                    end
                 end
             end
         else

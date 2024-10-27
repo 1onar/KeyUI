@@ -653,6 +653,7 @@ function addon:CreateMouseButtons()
     mouse_button.icon:SetPoint("TOPLEFT", mouse_button, "TOPLEFT", 5, -5)
 
     mouse_button:SetScript("OnEnter", function()
+        addon.current_hovered_button = mouse_button --save the current hovered button to re-trigger tooltip
         addon:ButtonMouseOver(mouse_button)
         mouse_button:EnableKeyboard(true)
         mouse_button:EnableMouseWheel(true)
@@ -704,6 +705,7 @@ function addon:CreateMouseButtons()
     end)
 
     mouse_button:SetScript("OnLeave", function()
+        addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         addon.tooltip:Hide()
         mouse_button:EnableKeyboard(false)
