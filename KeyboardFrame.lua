@@ -954,7 +954,6 @@ function addon:CreateKeyboardButtons()
                         if pushedTexture then
                             pushedTexture:Show() -- Show the pushed texture
                             addon.current_pushed_button = pushedTexture -- save the current pushed button to hide when modifier pushed
-                            print(pushedTexture)
                         end
                     end
                 end
