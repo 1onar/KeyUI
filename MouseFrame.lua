@@ -653,7 +653,7 @@ function addon:CreateMouseButtons()
     mouse_button.icon:SetPoint("TOPLEFT", mouse_button, "TOPLEFT", 5, -5)
 
     mouse_button:SetScript("OnEnter", function()
-        addon.current_hovered_button = mouse_button --save the current hovered button to re-trigger tooltip
+        addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip
         addon:ButtonMouseOver(mouse_button)
         mouse_button:EnableKeyboard(true)
         mouse_button:EnableMouseWheel(true)
@@ -696,7 +696,7 @@ function addon:CreateMouseButtons()
                         local pushedTexture = mappedButton:GetPushedTexture()
                         if pushedTexture then
                             pushedTexture:Show() -- Show the pushed texture
-                            --print("Showing PushedTexture for button in slot", Mousebutton.slot)
+                            addon.current_pushed_button = pushedTexture -- save the current pushed button to hide when modifier pushed
                         end
                     end
                 end
@@ -735,7 +735,7 @@ function addon:CreateMouseButtons()
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
                         pushedTexture:Hide() -- Hide the pushed texture
-                        --print("Hiding PushedTexture for button in slot", Mousebutton.slot)
+                        addon.current_pushed_button = nil -- Clear the current pushed button
                     end
                 end
             end

@@ -910,7 +910,7 @@ function addon:CreateKeyboardButtons()
 
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function()
-        addon.current_hovered_button = keyboard_button --save the current hovered button to re-trigger tooltip
+        addon.current_hovered_button = keyboard_button -- save the current hovered button to re-trigger tooltip
         addon:ButtonMouseOver(keyboard_button)
         keyboard_button:EnableKeyboard(true)
         keyboard_button:EnableMouseWheel(true)
@@ -953,6 +953,8 @@ function addon:CreateKeyboardButtons()
                         local pushedTexture = mappedButton:GetPushedTexture()
                         if pushedTexture then
                             pushedTexture:Show() -- Show the pushed texture
+                            addon.current_pushed_button = pushedTexture -- save the current pushed button to hide when modifier pushed
+                            print(pushedTexture)
                         end
                     end
                 end
@@ -990,6 +992,7 @@ function addon:CreateKeyboardButtons()
                     local pushedTexture = mappedButton:GetPushedTexture()
                     if pushedTexture then
                         pushedTexture:Hide() -- Hide the pushed texture
+                        addon.current_pushed_button = nil -- Clear the current pushed button
                     end
                 end
             end

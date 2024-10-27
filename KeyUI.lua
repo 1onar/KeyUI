@@ -1258,6 +1258,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                     if addon.current_hovered_button then
                         addon:ButtonMouseOver(addon.current_hovered_button)
                     end
+
+                    if addon.current_pushed_button then
+                        addon.current_pushed_button:Hide()
+                    end
                 end
             end
         else
