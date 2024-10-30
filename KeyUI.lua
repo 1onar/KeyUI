@@ -256,7 +256,6 @@ function addon:Load()
     addon:refresh_layouts()
 end
 
--- Load all available spells and abilities of the player and store them in a table.
 function addon:LoadSpells()
     addon.spells = {}
     for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
@@ -269,10 +268,13 @@ function addon:LoadSpells()
             addon.spells[name] = {}
 
             for j = offset + 1, offset + numSlots do
-                local spellName = C_SpellBook.GetSpellBookItemName(j, Enum.SpellBookSpellBank.Player)
-                local isPassive = C_SpellBook.IsSpellBookItemPassive(j, Enum.SpellBookSpellBank.Player)
+                local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
+                local spellName = spellBookItemInfo.name
+                local spellID = spellBookItemInfo.spellID
+                local isPassive = spellBookItemInfo.isPassive
+
                 if spellName and not isPassive then
-                    table.insert(addon.spells[name], spellName)
+                    table.insert(addon.spells[name], { name = spellName, id = spellID })
                 end
             end
         end
@@ -497,7 +499,7 @@ function addon:ButtonMouseOver(button)
     keyui_tooltip_text:SetSize(keyui_tooltip_text.title:GetWidth() + 20, keyui_tooltip_text.title:GetHeight() + 20)
 
     -- Show or hide the tooltip based on conditions
-    if (keyui_tooltip_text:GetWidth() < 15) or button.macro:GetText() == "" then
+    if (keyui_tooltip_text:GetWidth() < 15) or button.command == "" then
         keyui_tooltip_text:Hide()
     else
         keyui_tooltip_text:Show()
@@ -664,8 +666,8 @@ function addon:SetKey(button)
         end
     end
 
-    -- set hidden font string
-    button.macro:SetText(spell)
+    -- store the interface command (Blizzard Interface Commands)
+    button.command = spell
 
     -- Set visible key name based on the current modifier string
     local originalText = button.label:GetText() or ""  -- Ensure originalText is never nil
@@ -743,16 +745,16 @@ function addon:highlight_empty_binds()
         if self.keyboard_buttons then
             for _, keyboard_button in pairs(self.keyboard_buttons) do
                 if keyboard_button.label then
-                    local labelText = keyboard_button.label:GetText() -- Get the label text
+                    local label = keyboard_button.label:GetText() -- Get the label text
 
-                    -- Get the macro text for the button
-                    local macroText = keyboard_button.macro and keyboard_button.macro:GetText() or ""
+                    -- Get Blizzard Interface Command for the button
+                    local command = keyboard_button.command and keyboard_button.command or ""
 
                     -- Check if the bind is empty (replace with your actual spell retrieval logic)
                     local spell = "" -- Replace this with the actual check for the action
 
                     -- Check if the bind is empty and the key is not on the excluded list
-                    if spell == "" and macroText == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
+                    if spell == "" and command == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, label) then
                         keyboard_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
                     else
                         keyboard_button:SetBackdropColor(0, 0, 0, 1) -- Default color
@@ -765,16 +767,16 @@ function addon:highlight_empty_binds()
         if self.mouse_buttons then
             for _, mouse_button in pairs(self.mouse_buttons) do
                 if mouse_button.label then
-                    local labelText = mouse_button.label:GetText() -- Get the label text
+                    local label = mouse_button.label:GetText() -- Get the label text
 
-                    -- Get the macro text for the button
-                    local macroText = mouse_button.macro and mouse_button.macro:GetText() or ""
+                    -- Get the Blizzard Interface Command for the button
+                    local command = mouse_button.command and mouse_button.command or ""
 
                     -- Check if the bind is empty (replace with your actual spell retrieval logic)
                     local spell = "" -- Replace this with the actual check for the action
 
                     -- Check if the bind is empty and the key is not on the excluded list
-                    if spell == "" and macroText == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, labelText) then
+                    if spell == "" and command == "" and not tContains({ "ESC", "CAPS", "CAPSLOCK", "LSHIFT", "LCTRL", "LALT", "RALT", "RCTRL", "RSHIFT", "BACKSPACE", "ENTER", "NUMPADENTER", "SPACE", "LWIN", "RWIN", "MENU" }, label) then
                         mouse_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
                     else
                         mouse_button:SetBackdropColor(0, 0, 0, 1) -- Default color
@@ -804,7 +806,7 @@ function addon:create_action_labels()
     if self.keyboard_buttons then
         for _, keyboard_button in pairs(self.keyboard_buttons) do
             if keyboard_button.action then
-                local command = keyboard_button.macro and keyboard_button.macro:GetText()
+                local command = keyboard_button.command and keyboard_button.command
 
                 if command then
                     local binding_name = _G["BINDING_NAME_" .. command] or command
@@ -827,7 +829,7 @@ function addon:create_action_labels()
     if self.mouse_buttons then
         for _, mouse_button in pairs(self.mouse_buttons) do
             if mouse_button.action then
-                local command = mouse_button.macro and mouse_button.macro:GetText()
+                local command = mouse_button.command and mouse_button.command
 
                 if command then
                     local binding_name = _G["BINDING_NAME_" .. command] or command
@@ -966,63 +968,42 @@ local function DropDown_Initialize(self, level)
     local value = UIDROPDOWNMENU_MENU_VALUE
 
     if level == 1 then
-        info.text = "Spell"
+        info.text = _G["SPELLS"]
         info.value = "Spell"
         info.hasArrow = true
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "Macro"
+        info.text = _G["MACRO"]
         info.value = "Macro"
         info.hasArrow = true
         info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
+        UIDropDownMenu_AddButton(info, level)        
 
-        info.text = "Interface"
+        info.text = _G["INTERFACE_LABEL"]
         info.value = "UIBind"
         info.hasArrow = true
         info.func = function() end
         UIDropDownMenu_AddButton(info, level)
 
-        info.text = "Clear Action Button"
-        info.value = 1
-        info.hasArrow = false
-        info.func = function(self)
-            local key = addon.currentKey.macro and addon.currentKey.macro:GetText()
-            if key then
-                local actionSlot = addon.action_slot_mapping[key]
-                if actionSlot then
-                    PickupAction(actionSlot)
-        
-                    -- Use the global binding name or fallback to "Unknown Action"
-                    local mappedName = _G["BINDING_NAME_" .. key] or "Unknown Action"
-                    
-                    -- Print notification with the mapped name in purple
-                    print("KeyUI: Cleared |cffa335ee" .. mappedName .. "|r")
-                    addon:refresh_keys()
-                end
-            end
-        end
-        UIDropDownMenu_AddButton(info, level)
-
-        info.text = "Unbind Key"
+        info.text = _G["UNBIND"]
         info.value = 1
         info.hasArrow = false
         info.func = function()
-            if addon.currentKey.label ~= "" then
-                SetBinding(addon.current_modifier_string .. (addon.currentKey.label:GetText() or ""))
-                addon.currentKey.macro:SetText("")
-                addon:refresh_keys()
+            if addon.current_clicked_key.label ~= "" then
+                SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or ""))
                 SaveBindings(2)
                 -- Print notification of key unbinding
-                local keyText = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
+                local keyText = addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or "")
                 print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
             end
         end
         UIDropDownMenu_AddButton(info, level)
+
     elseif level == 2 then
+
         if value == "Spell" then
-            for tabName, v in pairs(addon.spells) do
+            for tabName, _ in pairs(addon.spells) do
                 info.text = tabName
                 info.value = 'tab:' .. tabName
                 info.hasArrow = true
@@ -1076,37 +1057,44 @@ local function DropDown_Initialize(self, level)
                 end
             end
         end
+
     elseif level == 3 then
+
         if value:find("^tab:") then
             local tabName = value:match('^tab:(.+)')
-            for k, spellName in pairs(addon.spells[tabName]) do
-                info.text = spellName
-                info.value = spellName
-                info.hasArrow = false
-                info.func = function(self)
-                    local actionbutton = addon.currentKey.macro:GetText()
-                    local actionSlot = addon.action_slot_mapping[actionbutton]
-                    local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
-                    local command = "Spell " .. spellName
-                    if actionSlot then
-                        C_Spell.PickupSpell(spellName)
-                        PlaceAction(actionSlot)
-                        --print(spellName)      -- Spellname
-                        --print(key)            -- e.g. ACTIONBUTTON1
-                        --print(actionSlot)     -- e.g. 1 (Actionslot)
-                        -- Print notification for new spell binding
-                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
-                        addon:refresh_keys()
-                    else
-                        SetBinding(key, command)
-                        SaveBindings(2)
-                        -- Print notification for new spell binding
-                        print("KeyUI: Bound |cffa335ee" .. spellName .. "|r to |cffff8000" .. key .. "|r")
-                        addon:refresh_keys()
+            for _, spell in pairs(addon.spells[tabName]) do
+                local spell_name = spell.name
+                local spell_id = spell.id
+
+                if spell_id then
+                    if IsSpellKnown(spell_id) then
+                        info.text = spell_name
+                        info.value = spell_name
+                        info.hasArrow = false
+                        info.func = function(self)
+                            local key = addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or "")
+                            local spell = "Spell " .. spell_name
+                            local command = addon.current_clicked_key.command
+                            local binding_name = _G["BINDING_NAME_" .. command] or command
+
+                            if addon.current_slot ~= nil then
+                                C_Spell.PickupSpell(spell_id)
+                                PlaceAction(addon.current_slot)
+                                ClearCursor()
+                                -- Print notification for new spell binding
+                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                            else
+                                SetBinding(key, spell)
+                                SaveBindings(2)
+                                -- Print notification for new spell binding
+                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
+                            end
+                        end
+                        UIDropDownMenu_AddButton(info, level)
                     end
                 end
-                UIDropDownMenu_AddButton(info, level)
             end
+
         elseif value == "General Macro" then
             for i = 1, 36 do
                 local title, iconTexture, body = GetMacroInfo(i)
@@ -1115,25 +1103,24 @@ local function DropDown_Initialize(self, level)
                     info.value = title
                     info.hasArrow = false
                     info.func = function(self)
-                        local actionbutton = addon.currentKey.macro:GetText()
+                        local actionbutton = addon.current_clicked_key.command
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
-                            addon:refresh_keys()
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
                             -- Print notification for new macro binding
                             print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
-                            addon:refresh_keys()
                         end
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
+
         elseif value == "Player Macro" then
             for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
                 local title, iconTexture, body = GetMacroInfo(i)
@@ -1142,25 +1129,24 @@ local function DropDown_Initialize(self, level)
                     info.value = title
                     info.hasArrow = false
                     info.func = function(self)
-                        local actionbutton = addon.currentKey.macro:GetText()
+                        local actionbutton = addon.current_clicked_key.command
                         local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
+                        local key = addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or "")
                         local command = "Macro " .. title
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
-                            addon:refresh_keys()
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
                             -- Print notification for new macro binding
                             print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
-                            addon:refresh_keys()
                         end
                     end
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
+
         elseif addon.action_mapping[value] then
             local keybindings = addon.action_mapping[value]
             for index, keybinding in ipairs(keybindings) do
@@ -1168,16 +1154,16 @@ local function DropDown_Initialize(self, level)
                 info.value = keybinding[2]
                 info.hasArrow = false
                 info.func = function(self)
-                    local key = addon.current_modifier_string .. (addon.currentKey.label:GetText() or "")
+                    local key = addon.current_modifier_string .. (addon.current_clicked_key.label:GetText() or "")
                     SetBinding(key, keybinding[2])
                     SaveBindings(2)
                     -- Print notification for interface binding
                     print("KeyUI: Bound |cffa335ee" .. keybinding[1] .. "|r to |cffff8000" .. key .. "|r")
-                    addon:refresh_keys()
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
         end
+
     end
 end
 

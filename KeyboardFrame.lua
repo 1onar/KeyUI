@@ -875,10 +875,6 @@ function addon:CreateKeyboardButtons()
     keyboard_button:EnableKeyboard(true)
     keyboard_button:SetBackdropColor(0, 0, 0, 1)
 
-    -- Hidden font string to store the keyboard interface command (Blizzard Commands)
-    keyboard_button.macro = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.macro:Hide()
-
     -- Hidden font string to store the keyboard keybind 
     keyboard_button.label = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyboard_button.label:Hide()
@@ -910,11 +906,13 @@ function addon:CreateKeyboardButtons()
     keyboard_button.icon:SetPoint("TOPLEFT", keyboard_button, "TOPLEFT", 5, -5)
 
     -- Define the mouse hover behavior to show tooltips.
-    keyboard_button:SetScript("OnEnter", function()
+    keyboard_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = keyboard_button -- save the current hovered button to re-trigger tooltip
         addon:ButtonMouseOver(keyboard_button)
         keyboard_button:EnableKeyboard(true)
         keyboard_button:EnableMouseWheel(true)
+
+        local slot = self.slot
 
         if addon.keyboard_locked == false then
 
@@ -930,32 +928,17 @@ function addon:CreateKeyboardButtons()
 
         end
 
+        -- Only show the PushedTexture if the setting is enabled
         if keyui_settings.show_pushed_texture then
-            -- Only proceed if button.slot is valid
-            if keyboard_button.slot then
-                -- Adjust the slot mapping based on the current action bar page
-                local adjustedSlot = keyboard_button.slot
-
-                if addon.current_actionbar_page == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
-                    adjustedSlot = keyboard_button.slot - 24 -- Map to ActionButton1-12
-                elseif addon.current_actionbar_page == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
-                    adjustedSlot = keyboard_button.slot - 36 -- Map to ActionButton1-12
-                elseif addon.current_actionbar_page == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
-                    adjustedSlot = keyboard_button.slot - 48 -- Map to ActionButton1-12
-                elseif addon.current_actionbar_page == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
-                    adjustedSlot = keyboard_button.slot - 60 -- Map to ActionButton1-12
-                end
-
-                -- Look up the correct button in TextureMappings using the adjusted slot number
-                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
-                if mappedButton then
-                    local normalTexture = mappedButton:GetNormalTexture()
-                    if normalTexture and normalTexture:IsVisible() then
-                        local pushedTexture = mappedButton:GetPushedTexture()
-                        if pushedTexture then
-                            pushedTexture:Show() -- Show the pushed texture
-                            addon.current_pushed_button = pushedTexture -- save the current pushed button to hide when modifier pushed
-                        end
+            -- Look up the correct button in TextureMappings using the adjusted slot number
+            local mapped_button = addon.button_texture_mapping[tostring(slot)]
+            if mapped_button then
+                local normal_texture = mapped_button:GetNormalTexture()
+                if normal_texture and normal_texture:IsVisible() then
+                    local pushed_texture = mapped_button:GetPushedTexture()
+                    if pushed_texture then
+                        pushed_texture:Show() -- Show the pushed texture
+                        addon.current_pushed_button = pushed_texture -- save the current pushed button to hide when modifier pushed
                     end
                 end
             end
@@ -968,108 +951,24 @@ function addon:CreateKeyboardButtons()
         addon.tooltip:Hide()
         keyboard_button:EnableKeyboard(false)
         keyboard_button:EnableMouseWheel(false)
-        if not addon.keyboard_locked then -- insure modifier work when locked and hovering a key
-            keyboard_button:SetScript("OnKeyDown", nil)
-        end
 
-        if keyui_settings.show_pushed_texture then
-            -- Only proceed if button.slot is valid
-            if keyboard_button.slot then
-                local adjustedSlot = keyboard_button.slot
-
-                if addon.current_actionbar_page == 3 and keyboard_button.slot >= 25 and keyboard_button.slot <= 36 then
-                    adjustedSlot = keyboard_button.slot - 24
-                elseif addon.current_actionbar_page == 4 and keyboard_button.slot >= 37 and keyboard_button.slot <= 48 then
-                    adjustedSlot = keyboard_button.slot - 36
-                elseif addon.current_actionbar_page == 5 and keyboard_button.slot >= 49 and keyboard_button.slot <= 60 then
-                    adjustedSlot = keyboard_button.slot - 48
-                elseif addon.current_actionbar_page == 6 and keyboard_button.slot >= 61 and keyboard_button.slot <= 72 then
-                    adjustedSlot = keyboard_button.slot - 60
-                end
-
-                local mappedButton = addon.button_texture_mapping[tostring(adjustedSlot)]
-                if mappedButton then
-                    local pushedTexture = mappedButton:GetPushedTexture()
-                    if pushedTexture then
-                        pushedTexture:Hide() -- Hide the pushed texture
-                        addon.current_pushed_button = nil -- Clear the current pushed button
-                    end
-                end
-            end
+        if addon.current_pushed_button then
+            addon.current_pushed_button:Hide()
+            addon.current_pushed_button = nil -- Clear the current pushed button
         end
     end)
 
     -- Define behavior for mouse down actions (left-click).
     keyboard_button:SetScript("OnMouseDown", function(self, Mousebutton)
+
+        local slot = self.slot
+
         if Mousebutton == "LeftButton" then
             if addon.keyboard_locked == false then
                 return
             else
-                addon.currentKey = self
-                local key = addon.currentKey.macro:GetText()
-
-                -- Check if 'key' is non-nil and non-empty before proceeding.
-                if key and key ~= "" then
-                    local actionSlot = addon.action_slot_mapping[key]
-                    if actionSlot then
-                        -- Adjust action slot based on current action bar page
-                        local adjustedSlot = tonumber(actionSlot)
-
-                        -- Handle bonus bar offsets for ROGUE and DRUID
-                        if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
-                            if addon.bonusbar_offset == 1 then
-                                adjustedSlot = adjustedSlot + 72  -- Maps to 73-84
-                            elseif addon.bonusbar_offset == 2 then
-                                adjustedSlot = adjustedSlot       -- No change for offset 2
-                            elseif addon.bonusbar_offset == 3 then
-                                adjustedSlot = adjustedSlot + 96  -- Maps to 97-108
-                            elseif addon.bonusbar_offset == 4 then
-                                adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
-                            end
-                        end
-
-                        -- Adjust based on current action bar page
-                        if addon.current_actionbar_page == 2 then
-                            adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
-                        elseif addon.current_actionbar_page == 3 then
-                            adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
-                        elseif addon.current_actionbar_page == 4 then
-                            adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
-                        elseif addon.current_actionbar_page == 5 then
-                            adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
-                        elseif addon.current_actionbar_page == 6 then
-                            adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
-                        end
-
-                        -- Check if Dragonriding
-                        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
-                            adjustedSlot = adjustedSlot + 120 -- Maps to 121-132
-                        end
-
-                        -- Ensure adjustedSlot is valid before picking up
-                        if adjustedSlot >= 1 and adjustedSlot <= 132 then -- Adjust the upper limit as necessary
-                            PickupAction(adjustedSlot)
-                            --print(adjustedSlot)  -- Debug print to check if the slot is correctly adjusted
-                        else
-                            -- Optionally handle cases where the adjusted slot is out of range
-                            PickupAction(actionSlot)
-                        end
-                    elseif keyboard_button.petActionIndex then
-                        -- Pickup a pet action
-                        --print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                        return
-                    elseif keyboard_button.spellid then
-                        --print("KeyUI: Due to limitations in the Blizzard API, pet actions cannot placed by addons. Please drag them manually.")
-                        -- Pickup a pet spell
-                        return
-                    elseif string.match(key, "^ELVUIBAR%d+BUTTON%d+$") then
-                        -- Handle ElvUI Buttons
-                        local barIndex, buttonIndex = string.match(key, "^ELVUIBAR(%d+)BUTTON(%d+)$")
-                        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-                        if elvUIButton and elvUIButton._state_action then
-                            PickupAction(elvUIButton._state_action)
-                        end
-                    end
+                if slot then
+                    PickupAction(slot)
                 end
             end
         else
@@ -1083,11 +982,9 @@ function addon:CreateKeyboardButtons()
     -- Define behavior for mouse up actions (left-click and right-click).
     keyboard_button:SetScript("OnMouseUp", function(self, Mousebutton)
         if Mousebutton == "RightButton" then
-            addon.currentKey = self
-            -- Check if no modifiers are active
-            if addon.current_modifier_string == "" then
-                ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
-            end
+            addon.current_clicked_key = self    -- save the current clicked key
+            addon.current_slot = self.slot      -- save the current clicked slot
+            ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
         end
     end)
 
