@@ -721,7 +721,7 @@ function addon:SaveKeyboardLayout()
                 if button:IsVisible() then
                     -- Save button properties: label, position, width, and height
                     keyui_settings.layout_edited_keyboard[msg][#keyui_settings.layout_edited_keyboard[msg] + 1] = {
-                        button.label:GetText(),                                         -- Button name
+                        button.raw_key,                                                 -- Button name
                         floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position
                         floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position
                         floor(button:GetWidth() + 0.5),                                 -- Width
@@ -823,30 +823,30 @@ function addon:generate_keyboard_key_frames()
             -- Loop through each key in the layout and position it within the frame.
             for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layout_data do
-                    local key = addon.keys_keyboard[i] or addon:CreateKeyboardButtons()
-                    local key_data = layout_data[i]
+                    local button = addon.keys_keyboard[i] or addon:CreateKeyboardButtons()
+                    local button_data = layout_data[i]
 
                     -- Set the size of the key based on the provided data or use defaults.
-                    if key_data[4] then
-                        key:SetWidth(key_data[4])
-                        key:SetHeight(key_data[5])
+                    if button_data[4] then
+                        button:SetWidth(button_data[4])
+                        button:SetHeight(button_data[5])
                     else
-                        key:SetWidth(60)
-                        key:SetHeight(60)
+                        button:SetWidth(60)
+                        button:SetHeight(60)
                     end
 
                     -- Store the key in the array if it's not already present.
                     if not addon.keys_keyboard[i] then
-                        addon.keys_keyboard[i] = key
+                        addon.keys_keyboard[i] = button
                     end
 
                     -- Position the key within the frame.
-                    key:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", key_data[2], key_data[3])
-                    key.label:SetText(key_data[1])
-                    key:Show()
+                    button:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", button_data[2], button_data[3])
+                    button.raw_key= button_data[1]
+                    button:Show()
 
                     -- Update the boundaries for resizing the frame.
-                    local l, r, t, b = key:GetLeft(), key:GetRight(), key:GetTop(), key:GetBottom()
+                    local l, r, t, b = button:GetLeft(), button:GetRight(), button:GetTop(), button:GetBottom()
                     if l < left then left = l end
                     if r > right then right = r end
                     if t > top then top = t end
@@ -875,30 +875,29 @@ function addon:CreateKeyboardButtons()
     keyboard_button:EnableKeyboard(true)
     keyboard_button:SetBackdropColor(0, 0, 0, 1)
 
-    -- Hidden font string to store the keyboard keybind 
-    keyboard_button.label = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.label:Hide()
+    -- Keyboard Keybind text string on the top right of the button (e.g. a-c-s-1)
+    keyboard_button.short_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.short_key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
+    keyboard_button.short_key:SetTextColor(1, 1, 1, 0.9)
+    keyboard_button.short_key:SetHeight(20)
+    keyboard_button.short_key:SetWidth(70)
+    keyboard_button.short_key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -8)
+    keyboard_button.short_key:SetJustifyH("RIGHT")
+    keyboard_button.short_key:SetJustifyV("TOP")
+    keyboard_button.short_key:Show()
 
-    -- Keyboard Keybind label text on the top right
-    keyboard_button.key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    keyboard_button.key:SetTextColor(1, 1, 1, 0.9)
-    keyboard_button.key:SetHeight(20)
-    keyboard_button.key:SetWidth(70)
-    keyboard_button.key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -8)
-    keyboard_button.key:SetJustifyH("RIGHT")
-    keyboard_button.key:SetJustifyV("TOP")
-    keyboard_button.key:Show()
+    -- Hidden long Keyborad Keybind text string (e.g. ALT-CTRL-SHIFT-1)
+    keyboard_button.long_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
-    keyboard_button.action = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.action:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    keyboard_button.action:SetTextColor(1, 1, 1)
-    keyboard_button.action:SetHeight(30)
-    keyboard_button.action:SetWidth(56)
-    keyboard_button.action:SetPoint("BOTTOM", keyboard_button, "BOTTOM", 1, 6)
-    keyboard_button.action:SetJustifyV("BOTTOM")
-    keyboard_button.action:SetText("")
+    keyboard_button.readable_binding = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    keyboard_button.readable_binding:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    keyboard_button.readable_binding:SetTextColor(1, 1, 1)
+    keyboard_button.readable_binding:SetHeight(30)
+    keyboard_button.readable_binding:SetWidth(56)
+    keyboard_button.readable_binding:SetPoint("BOTTOM", keyboard_button, "BOTTOM", 1, 6)
+    keyboard_button.readable_binding:SetJustifyV("BOTTOM")
+    keyboard_button.readable_binding:SetText("")
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")

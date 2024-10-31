@@ -480,11 +480,11 @@ function addon:SaveMouseLayout()
                 if Mousebutton:IsVisible() then
                     -- Save button properties: label, position, width, and height
                     keyui_settings.layout_edited_mouse[msg][#keyui_settings.layout_edited_mouse[msg] + 1] = {
-                        Mousebutton.label:GetText(),                               -- Button name
-                        floor(Mousebutton:GetLeft() - addon.mouse_frame:GetLeft() + 0.5), -- X position
-                        floor(Mousebutton:GetTop() - addon.mouse_frame:GetTop() + 0.5),   -- Y position
-                        floor(Mousebutton:GetWidth() + 0.5),                       -- Width
-                        floor(Mousebutton:GetHeight() + 0.5)                       -- Height
+                        Mousebutton.raw_key,                                                -- Button name
+                        floor(Mousebutton:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
+                        floor(Mousebutton:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
+                        floor(Mousebutton:GetWidth() + 0.5),                                -- Width
+                        floor(Mousebutton:GetHeight() + 0.5)                                -- Height
                     }
                 end
             end
@@ -562,42 +562,42 @@ function addon:generate_mouse_key_frames()
     if addon.open == true and addon.mouse_frame then
 
         -- Check if the layout is empty
-        local layoutNotEmpty = false
+        local layout_not_empty = false
         for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
             if #layoutData > 0 then
-                layoutNotEmpty = true
+                layout_not_empty = true
                 break
             end
         end
 
         -- Only proceed if there is a valid layout
-        if layoutNotEmpty then
+        if layout_not_empty then
             local cx, cy = addon.mouse_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
             for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
                 for i = 1, #layoutData do
-                    local MouseKey = addon.keys_mouse[i] or addon:CreateMouseButtons()
-                    local keyData = layoutData[i]
+                    local button = addon.keys_mouse[i] or addon:CreateMouseButtons()
+                    local button_data = layoutData[i]
 
-                    if keyData[4] then
-                        MouseKey:SetWidth(keyData[4])
-                        MouseKey:SetHeight(keyData[5])
+                    if button_data[4] then
+                        button:SetWidth(button_data[4])
+                        button:SetHeight(button_data[5])
                     else
-                        MouseKey:SetWidth(50)
-                        MouseKey:SetHeight(50)
+                        button:SetWidth(50)
+                        button:SetHeight(50)
                     end
 
                     if not addon.keys_mouse[i] then
-                        addon.keys_mouse[i] = MouseKey
+                        addon.keys_mouse[i] = button
                     end
 
-                    MouseKey:SetPoint("TOPRIGHT", addon.mouse_frame, "TOPRIGHT", keyData[2], keyData[3])
-                    MouseKey.label:SetText(keyData[1])
-                    MouseKey:Show()
+                    button:SetPoint("TOPRIGHT", addon.mouse_frame, "TOPRIGHT", button_data[2], button_data[3])
+                    button.raw_key = button_data[1]
+                    button:Show()
 
                     -- Track the extreme positions for frame resizing
-                    local l, r, t, b = MouseKey:GetLeft(), MouseKey:GetRight(), MouseKey:GetTop(), MouseKey:GetBottom()
+                    local l, r, t, b = button:GetLeft(), button:GetRight(), button:GetTop(), button:GetBottom()
 
                     if l < left then left = l end
                     if r > right then right = r end
@@ -620,30 +620,29 @@ function addon:CreateMouseButtons()
     mouse_button:EnableKeyboard(true)
     mouse_button:SetBackdropColor(0, 0, 0, 1)
 
-    -- Hidden font string to store the mouse keybind 
-    mouse_button.label = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.label:Hide()
+    -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
+    mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.short_key:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    mouse_button.short_key:SetTextColor(1, 1, 1, 0.9)
+    mouse_button.short_key:SetHeight(20)
+    mouse_button.short_key:SetWidth(42)
+    mouse_button.short_key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
+    mouse_button.short_key:SetJustifyH("RIGHT")
+    mouse_button.short_key:SetJustifyV("TOP")
+    mouse_button.short_key:Show()
 
-    -- Mouse Keybind label text on the top right
-    mouse_button.key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.key:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    mouse_button.key:SetTextColor(1, 1, 1, 0.9)
-    mouse_button.key:SetHeight(20)
-    mouse_button.key:SetWidth(42)
-    mouse_button.key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
-    mouse_button.key:SetJustifyH("RIGHT")
-    mouse_button.key:SetJustifyV("TOP")
-    mouse_button.key:Show()
+    -- Hidden long Mouse Keybind text string (e.g. ALT-CTRL-SHIFT-1)
+    mouse_button.long_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
-    mouse_button.action = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.action:SetFont("Fonts\\ARIALN.TTF", 10, "OUTLINE")
-    mouse_button.action:SetTextColor(1, 1, 1)
-    mouse_button.action:SetHeight(25)
-    mouse_button.action:SetWidth(46)
-    mouse_button.action:SetPoint("BOTTOM", mouse_button, "BOTTOM", 1, 6)
-    mouse_button.action:SetJustifyV("BOTTOM")
-    mouse_button.action:SetText("")
+    mouse_button.readable_binding = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.readable_binding:SetFont("Fonts\\ARIALN.TTF", 10, "OUTLINE")
+    mouse_button.readable_binding:SetTextColor(1, 1, 1)
+    mouse_button.readable_binding:SetHeight(25)
+    mouse_button.readable_binding:SetWidth(46)
+    mouse_button.readable_binding:SetPoint("BOTTOM", mouse_button, "BOTTOM", 1, 6)
+    mouse_button.readable_binding:SetJustifyV("BOTTOM")
+    mouse_button.readable_binding:SetText("")
 
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
     mouse_button.icon:SetSize(40, 40)

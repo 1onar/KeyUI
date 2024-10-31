@@ -1,6 +1,6 @@
 local name, addon = ...
 
-addon.action_mapping = {
+addon.binding_mapping = {
 
     ["Movement Keys"] = {
         { "Move and Steer",         "MOVEANDSTEER" },
@@ -355,7 +355,45 @@ addon.action_mapping = {
     },
 }
 
-addon.shortcut_labels = {
+-- List of  buttons that should not be modified
+addon.no_modifier_keys = {
+    ["ESCAPE"] = true,
+    ["LSHIFT"] = true,
+    ["LCTRL"] = true,
+    ["LALT"] = true,
+    ["RALT"] = true,
+    ["RCTRL"] = true,
+    ["RSHIFT"] = true,
+    ["LWIN"] = true,
+    ["RWIN"] = true,
+    ["LMETA"] = true,
+    ["RMETA"] = true,
+    ["MENU"] = true,
+}
+
+-- List of buttons that should not be highlighted when empty
+addon.no_highlight = {
+    ["ESCAPE"] = true,
+    ["CAPS"] = true,
+    ["CAPSLOCK"] = true,
+    ["LSHIFT"] = true,
+    ["LCTRL"] = true,
+    ["LALT"] = true,
+    ["RALT"] = true,
+    ["RCTRL"] = true,
+    ["RSHIFT"] = true,
+    ["BACKSPACE"] = true,
+    ["ENTER"] = true,
+    ["NUMPADENTER"] = true,
+    ["SPACE"] = true,
+    ["LWIN"] = true,
+    ["RWIN"] = true,
+    ["MENU"] = true,
+    ["LMETA"] = true,
+    ["RMETA"] = true,
+}
+
+addon.short_keys = {
     ["CAPSLOCK"] = "Caps",
     ["PRINTSCREEN"] = "Prt Scrn",
     ["SCROLLLOCK"] = "Scr Lk",
@@ -379,6 +417,7 @@ addon.shortcut_labels = {
     ["NUMPADPLUS"] = "+",
     ["NUMPADENTER"] = "Enter",
     ["NUMPADDECIMAL"] = ".",
+    ["ESCAPE"] = "ESC",
     ["LSHIFT"] = "SHIFT",
     ["LCTRL"] = "CTRL",
     ["LALT"] = "ALT",
@@ -387,6 +426,8 @@ addon.shortcut_labels = {
     ["RALT"] = "ALT",
     ["LWIN"] = "WIN",
     ["RWIN"] = "WIN",
+    ["LMETA"] = "META",
+    ["RMETA"] = "META",
 }
 
 addon.action_slot_mapping = {
