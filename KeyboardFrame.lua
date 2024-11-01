@@ -45,7 +45,7 @@ end
 
 function addon:CreateKeyboardFrame()
     -- Create the keyboard frame and assign it to the addon table
-    local keyboard_frame = CreateFrame("Frame", "keyui_keyboard_frame", UIParent, "TooltipBorderedFrameTemplate")
+    local keyboard_frame = CreateFrame("Frame", "keyui_keyboard_frame", UIParent, "BackdropTemplate")
     addon.keyboard_frame = keyboard_frame
 
     -- Manage ESC key behavior based on the setting
@@ -55,7 +55,19 @@ function addon:CreateKeyboardFrame()
 
     keyboard_frame:SetHeight(382)
     keyboard_frame:SetWidth(940)
-    keyboard_frame:SetBackdropColor(0, 0, 0, 0.9)
+
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
+
+    keyboard_frame:SetBackdrop(backdropInfo)
+    keyboard_frame:SetBackdropColor(0, 0, 0, 1)
+    keyboard_frame:SetBackdropBorderColor(1, 1, 1, 1)
 
     -- Load the saved position if it exists
     if keyui_settings.keyboard_position.x and keyui_settings.keyboard_position.y then
@@ -869,25 +881,34 @@ end
 function addon:CreateKeyboardButtons()
 
     -- Create a frame that acts as a button with a tooltip border.
-    local keyboard_button = CreateFrame("Frame", nil, addon.keyboard_frame, "TooltipBorderedFrameTemplate")
+    local keyboard_button = CreateFrame("Frame", nil, addon.keyboard_frame, "BackdropTemplate")
 
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
+
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
+
+    keyboard_button:SetBackdrop(backdropInfo)
     keyboard_button:SetBackdropColor(0, 0, 0, 1)
+    keyboard_button:SetBackdropBorderColor(1, 1, 1)
 
     -- Keyboard Keybind text string on the top right of the button (e.g. a-c-s-1)
     keyboard_button.short_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyboard_button.short_key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
-    keyboard_button.short_key:SetTextColor(1, 1, 1, 0.9)
+    keyboard_button.short_key:SetTextColor(1, 1, 1)
     keyboard_button.short_key:SetHeight(20)
     keyboard_button.short_key:SetWidth(70)
-    keyboard_button.short_key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -8)
+    keyboard_button.short_key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
     keyboard_button.short_key:SetJustifyH("RIGHT")
     keyboard_button.short_key:SetJustifyV("TOP")
     keyboard_button.short_key:Show()
-
-    -- Hidden long Keyborad Keybind text string (e.g. ALT-CTRL-SHIFT-1)
-    keyboard_button.long_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     keyboard_button.readable_binding = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -901,8 +922,8 @@ function addon:CreateKeyboardButtons()
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
-    keyboard_button.icon:SetSize(50, 50)
-    keyboard_button.icon:SetPoint("TOPLEFT", keyboard_button, "TOPLEFT", 5, -5)
+    keyboard_button.icon:SetSize(52, 52)
+    keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 0)
 
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function(self)
@@ -947,7 +968,7 @@ function addon:CreateKeyboardButtons()
     keyboard_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
-        addon.tooltip:Hide()
+        addon.keyui_tooltip_frame:Hide()
         keyboard_button:EnableKeyboard(false)
         keyboard_button:EnableMouseWheel(false)
 

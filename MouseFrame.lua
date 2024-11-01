@@ -613,26 +613,35 @@ end
 function addon:CreateMouseButtons()
 
     -- Create a frame that acts as a button with a tooltip border.
-    local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "TooltipBorderedFrameTemplate")
+    local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "BackdropTemplate")
+
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
+
+    mouse_button:SetBackdrop(backdropInfo)
+    mouse_button:SetBackdropColor(0, 0, 0, 1)
+    mouse_button:SetBackdropBorderColor(1, 1, 1)
 
     mouse_button:SetMovable(true)
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
-    mouse_button:SetBackdropColor(0, 0, 0, 1)
 
     -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
     mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     mouse_button.short_key:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    mouse_button.short_key:SetTextColor(1, 1, 1, 0.9)
+    mouse_button.short_key:SetTextColor(1, 1, 1)
     mouse_button.short_key:SetHeight(20)
     mouse_button.short_key:SetWidth(42)
     mouse_button.short_key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
     mouse_button.short_key:SetJustifyH("RIGHT")
     mouse_button.short_key:SetJustifyV("TOP")
     mouse_button.short_key:Show()
-
-    -- Hidden long Mouse Keybind text string (e.g. ALT-CTRL-SHIFT-1)
-    mouse_button.long_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     mouse_button.readable_binding = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -645,8 +654,8 @@ function addon:CreateMouseButtons()
     mouse_button.readable_binding:SetText("")
 
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
-    mouse_button.icon:SetSize(40, 40)
-    mouse_button.icon:SetPoint("TOPLEFT", mouse_button, "TOPLEFT", 5, -5)
+    mouse_button.icon:SetSize(42, 42)
+    mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
 
     mouse_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip
@@ -654,7 +663,7 @@ function addon:CreateMouseButtons()
         mouse_button:EnableKeyboard(true)
         mouse_button:EnableMouseWheel(true)
 
-        local slot = self.slot
+        local active_slot = self.active_slot
 
         if addon.mouse_locked == false and not addon.isMoving then
 
@@ -673,7 +682,7 @@ function addon:CreateMouseButtons()
         -- Only show the PushedTexture if the setting is enabled
         if keyui_settings.show_pushed_texture then
             -- Look up the correct button in TextureMappings using the adjusted slot number
-            local mapped_button = addon.button_texture_mapping[tostring(slot)]
+            local mapped_button = addon.button_texture_mapping[tostring(active_slot)]
             if mapped_button then
                 local normal_texture = mapped_button:GetNormalTexture()
                 if normal_texture and normal_texture:IsVisible() then
@@ -690,7 +699,7 @@ function addon:CreateMouseButtons()
     mouse_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
-        addon.tooltip:Hide()
+        addon.keyui_tooltip_frame:Hide()
         mouse_button:EnableKeyboard(false)
         mouse_button:EnableMouseWheel(false)
 
@@ -703,7 +712,7 @@ function addon:CreateMouseButtons()
     mouse_button:SetScript("OnMouseDown", function(self, button)
 
         local slot = self.slot
-        
+
         if button == "LeftButton" then
             if addon.mouse_locked == false then
                 DragOrSize(self, button)

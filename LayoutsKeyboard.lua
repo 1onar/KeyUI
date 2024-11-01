@@ -20,7 +20,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -161,7 +161,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -284,7 +284,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -402,7 +402,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,   -6,   u,         u },
+        { 'ESCAPE',         6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -508,7 +508,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         { '1',         68,  -6,   u,         u },
         { '2',         130, -6,   u,         u },
         { '3',         192, -6,   u,         u },
@@ -588,7 +588,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -712,7 +712,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',      6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -773,7 +773,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -876,7 +876,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1018,7 +1018,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -1141,7 +1141,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -1259,7 +1259,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,   -6,   u,         u },
+        { 'ESCAPE',         6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -1365,7 +1365,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         { '&',         68,  -6,   u,         u },
         { 'é',         130, -6,   u,         u },
         { '"',         192, -6,   u,         u },
@@ -1445,7 +1445,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1569,7 +1569,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',      6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -1630,7 +1630,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -1737,7 +1737,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1876,7 +1876,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -1997,7 +1997,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -2112,7 +2112,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',         6,   -6,   u,         u },
+        { 'ESCAPE',         6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -2216,7 +2216,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         { '1',         68,  -6,   u,         u },
         { '2',         130, -6,   u,         u },
         { '3',         192, -6,   u,         u },
@@ -2294,7 +2294,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2416,7 +2416,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',      6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -2475,7 +2475,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -2578,7 +2578,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2719,7 +2719,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -2817,7 +2817,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2958,7 +2958,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -3056,7 +3056,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',            6,    -6,   u,         u },
+        { 'ESCAPE',            6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -3197,7 +3197,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESC',       6,   -6,   u,         u },
+        { 'ESCAPE',       6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -3378,7 +3378,7 @@ addon.default_keyboard_layouts = {
         { 'CTRL',  192, -254, u, u },
 
         { '=',     316, -316, u, u },
-        { 'ESC',   378, -316, u, u },
+        { 'ESCAPE',   378, -316, u, u },
     },
 
     ['Cyborg_II'] = {
@@ -3416,7 +3416,7 @@ addon.default_keyboard_layouts = {
         { 'ALT',   130, -254, u, u },
         { 'SHIFT', 192, -254, u, u },
         { 'CTRL',  254, -254, u, u },
-        { 'ESC',   502, -254, u, u },
+        { 'ESCAPE',   502, -254, u, u },
 
         { 'P',     68,  -316, u, u },
         { 'L',     130, -316, u, u },
