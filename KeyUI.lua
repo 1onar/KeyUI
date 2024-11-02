@@ -1276,7 +1276,7 @@ local function DropDown_Initialize(self, level)
                             SetBinding(key, command)
                             SaveBindings(2)
                             -- Print notification for new macro binding
-                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
+                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                         end
                     end
                     UIDropDownMenu_AddButton(info, level)
@@ -1311,9 +1311,10 @@ local function DropDown_Initialize(self, level)
 
         elseif addon.binding_mapping[value] then
             local keybindings = addon.binding_mapping[value]
-            for index, keybinding in ipairs(keybindings) do
+            for _, keybinding in ipairs(keybindings) do
                 local binding_name = keybinding[1]
-                info.text = _G["BINDING_NAME_" .. binding_name] or binding_name  -- Fallback to binding name if not found
+                local binding_readable = _G["BINDING_NAME_" .. binding_name]
+                info.text = binding_readable or binding_name
                 info.value = binding_name
                 info.hasArrow = false
                 info.func = function(self)
@@ -1321,7 +1322,7 @@ local function DropDown_Initialize(self, level)
                     SetBinding(key, binding_name)
                     SaveBindings(2)
                     -- Print notification for interface binding
-                    print("KeyUI: Bound |cffa335ee" .. info.text .. "|r to |cffff8000" .. key .. "|r")
+                    print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
                 end
                 UIDropDownMenu_AddButton(info, level)
             end

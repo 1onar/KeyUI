@@ -428,10 +428,6 @@ addon.short_keys = {
     ["LMETA"] = "META",
     ["RMETA"] = "META",
     ["TAB"] = "Tab",
-    ["UP"] = "Up",
-    ["DOWN"] = "Down",
-    ["LEFT"] = "Left",
-    ["RIGHT"] = "Right",
 }
 
 addon.action_slot_mapping = {
