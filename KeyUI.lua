@@ -510,15 +510,13 @@ function addon:ButtonMouseOver(button)
 
     addon.keyui_tooltip_frame.binding:SetText(readable_binding or "")
 
-    -- Set the size of the tooltip based on title dimensions
-    addon.keyui_tooltip_frame:SetWidth(addon.keyui_tooltip_frame.binding:GetWidth() + 20)
+    -- Set the tooltip width based on the longer text dimension + 20
+    local binding_width = addon.keyui_tooltip_frame.binding:GetText() and addon.keyui_tooltip_frame.binding:GetWidth() or 0
+    local key_width = addon.keyui_tooltip_frame.key:GetText() and addon.keyui_tooltip_frame.key:GetWidth() or 0
 
-    -- Show or hide the tooltip based on conditions
-    if (addon.keyui_tooltip_frame:GetWidth() < 15) or readable_binding == "" then
-        addon.keyui_tooltip_frame:Hide()
-    else
-        addon.keyui_tooltip_frame:Show()
-    end
+    addon.keyui_tooltip_frame:SetWidth(math.max(binding_width, key_width) + 20)
+
+    addon.keyui_tooltip_frame:Show()
 
     if addon.current_hovered_button.active_slot then
         GameTooltip:SetOwner(addon.current_hovered_button, "ANCHOR_NONE")
