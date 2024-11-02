@@ -538,6 +538,18 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
+    -- Check if the binding is a Spell
+    local spell_name = binding:match("^Spell (.+)$")
+    if spell_name then
+        -- Get the icon for the spell
+        local spell_icon = C_Spell.GetSpellTexture(spell_name)
+        if spell_icon then
+            button.icon:SetTexture(spell_icon)
+            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+            button.icon:Show()
+        end
+    end
+
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
 
@@ -579,6 +591,8 @@ function addon:SetKey(button)
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if binding:find(a) then
+
+            -- Match for action button slots
             local slot = binding:match("ACTIONBUTTON(%d+)")
             local bar, bar2 = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
 
