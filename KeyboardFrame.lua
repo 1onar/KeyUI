@@ -9,15 +9,19 @@ function addon:SaveKeyboardPosition()
 end
 
 -- Function to create a glowing tutorial highlight around the MinMax button
-local function ShowGlowAroundMinMax(Controls)
-    local glowFrame = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxTemplate")
-    glowFrame:SetPoint("TOPLEFT", -1, 1)
-    glowFrame:SetPoint("BOTTOMRIGHT", 1, 0)
-    glowFrame.Text = glowFrame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    glowFrame.Text:SetPoint("BOTTOM", glowFrame, "TOP", 0, 10)
-    glowFrame.Text:SetText("Click here to open settings")
-    glowFrame.Text:SetFont("Fonts\\FRIZQT__.TTF", 16, "OUTLINE")
-    glowFrame.Text:SetTextColor(1, 1, 0)
+local function ShowTutorialFrame(Controls)
+
+    local arrow = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxArrowTemplate")
+    arrow:SetPoint("BOTTOM", Controls.MinMax, "TOP", 0, 4)
+
+    local frame = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxTemplate")
+    frame:SetPoint("BOTTOM", arrow, "TOP", 0, -6)
+    frame:SetSize(200, 50)
+
+    -- Create the text for the tutorial
+    local frametext = frame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
+    frametext:SetPoint("CENTER", frame, "CENTER") -- Center the text in the help tip frame
+    frametext:SetText("Click here to open settings.")
 
     -- Attach to the MinimizeButton and MaximizeButton individually
     local MinimizeButton = Controls.MinMax.MinimizeButton
@@ -26,8 +30,9 @@ local function ShowGlowAroundMinMax(Controls)
     -- Hook the click event for the MinimizeButton and MaximizeButton
     if MinimizeButton then
         MinimizeButton:HookScript("OnClick", function()
-            if glowFrame then
-                glowFrame:Hide()
+            if frame then
+                arrow:Hide()
+                frame:Hide()
                 keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
             end
         end)
@@ -35,8 +40,9 @@ local function ShowGlowAroundMinMax(Controls)
 
     if MaximizeButton then
         MaximizeButton:HookScript("OnClick", function()
-            if glowFrame then
-                glowFrame:Hide()
+            if frame then
+                arrow:Hide()
+                frame:Hide()
                 keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
             end
         end)
@@ -708,7 +714,7 @@ function addon:CreateKeyboardControl()
 
     -- Show tutorial if not completed
     if keyui_settings.tutorial_completed ~= true then
-        ShowGlowAroundMinMax(keyboard_control_frame)
+        ShowTutorialFrame(keyboard_control_frame)
     end
 
     return keyboard_control_frame
