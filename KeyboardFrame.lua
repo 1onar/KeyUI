@@ -930,6 +930,7 @@ function addon:CreateKeyboardButtons()
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
     keyboard_button.icon:SetSize(52, 52)
     keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 0)
+    keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function(self)

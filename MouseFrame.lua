@@ -656,6 +656,7 @@ function addon:CreateMouseButtons()
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
     mouse_button.icon:SetSize(42, 42)
     mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
+    mouse_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 
     mouse_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip

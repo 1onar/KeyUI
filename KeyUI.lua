@@ -609,7 +609,6 @@ function addon:SetKey(button)
                 if HasAction(slot) then
                     button.active_slot = slot  -- Stores the slot only if an action is present
                     button.icon:SetTexture(GetActionTexture(slot))
-                    button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                     button.icon:Show()
                 end
             end
@@ -623,7 +622,6 @@ function addon:SetKey(button)
         local spell_icon = C_Spell.GetSpellTexture(spell_name)
         if spell_icon then
             button.icon:SetTexture(spell_icon)
-            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
             button.icon:Show()
         end
     end
@@ -635,7 +633,6 @@ function addon:SetKey(button)
         if HasAction(button.slot) then
             button.active_slot = button.slot -- Active if there's an action
             button.icon:SetTexture(GetActionTexture(button.slot))
-            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
             button.icon:Show()
         end
     end
@@ -649,10 +646,20 @@ function addon:SetKey(button)
             local actionID = elvUIButton._state_action
             if elvUIButton._state_type == "action" and actionID then
                 button.icon:SetTexture(GetActionTexture(actionID))
-                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                 button.icon:Show()
                 button.slot = actionID
             end
+        end
+    end
+
+    -- Logic for Dominos ActionButton Bindings
+    local dominos_slot = binding:match("CLICK DominosActionButton(%d+):HOTKEY")
+    if dominos_slot then
+        button.slot = tonumber(dominos_slot) -- Set the button slot based on DominosActionButton
+        if HasAction(button.slot) then
+            button.active_slot = button.slot -- Active if there's an action
+            button.icon:SetTexture(GetActionTexture(button.slot))
+            button.icon:Show()
         end
     end
 
@@ -669,7 +676,6 @@ function addon:SetKey(button)
 
     if action_textures[binding] then
         button.icon:SetTexture(action_textures[binding])
-        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
         button.icon:Show()
     end
 
@@ -679,7 +685,6 @@ function addon:SetKey(button)
         local icon, active, castable, spellID = GetShapeshiftFormInfo(tonumber(shapeshift_slot))
         if icon then
             button.icon:SetTexture(icon)
-            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
             button.icon:Show()
             button.spellid = spellID -- Set the spell ID for the shapeshift form
         else
@@ -705,7 +710,6 @@ function addon:SetKey(button)
 
                     if petTexture then
                         button.icon:SetTexture(petTexture)
-                        button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                         button.icon:Show()
 
                         -- Check if it's a Pet Spell (spellID is present)
