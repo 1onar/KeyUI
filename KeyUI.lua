@@ -538,18 +538,6 @@ function addon:SetKey(button)
 
     button.icon:Hide()
 
-    -- Check if the binding is a Spell
-    local spell_name = binding:match("^Spell (.+)$")
-    if spell_name then
-        -- Get the icon for the spell
-        local spell_icon = C_Spell.GetSpellTexture(spell_name)
-        if spell_icon then
-            button.icon:SetTexture(spell_icon)
-            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-            button.icon:Show()
-        end
-    end
-
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
 
@@ -624,6 +612,46 @@ function addon:SetKey(button)
                     button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
                     button.icon:Show()
                 end
+            end
+        end
+    end
+
+    -- Check if the binding is a Spell
+    local spell_name = binding:match("^Spell (.+)$")
+    if spell_name then
+        -- Get the icon for the spell
+        local spell_icon = C_Spell.GetSpellTexture(spell_name)
+        if spell_icon then
+            button.icon:SetTexture(spell_icon)
+            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+            button.icon:Show()
+        end
+    end
+
+    -- Logic for BT4Button Bindings
+    local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
+    if bt4_slot then
+        button.slot = tonumber(bt4_slot) -- Set the button slot based on BT4Button
+        if HasAction(button.slot) then
+            button.active_slot = button.slot -- Active if there's an action
+            button.icon:SetTexture(GetActionTexture(button.slot))
+            button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+            button.icon:Show()
+        end
+    end
+
+    -- Logic to handle ElvUI action buttons
+    local elvui_binding = binding:find("^ELVUIBAR%d+BUTTON%d+$")
+    if elvui_binding then
+        local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
+        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+        if elvUIButton then
+            local actionID = elvUIButton._state_action
+            if elvUIButton._state_type == "action" and actionID then
+                button.icon:SetTexture(GetActionTexture(actionID))
+                button.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                button.icon:Show()
+                button.slot = actionID
             end
         end
     end
