@@ -615,6 +615,7 @@ function addon:SetKey(button)
                 -- Check if it's not a MULTIACTIONBAR case before applying bonusBarOffset
                 if not bar then
                     slot = getActionButtonSlot(slot)
+                    button.slot = slot
                 end
 
                 if HasAction(slot) then
