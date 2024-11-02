@@ -901,13 +901,27 @@ function addon:create_action_labels()
     if self.keyboard_buttons then
         for _, keyboard_button in pairs(self.keyboard_buttons) do
             if keyboard_button.readable_binding then
-                local command = keyboard_button.binding and keyboard_button.binding
+                local command = keyboard_button.binding
 
-                if command then
-                    local binding_name = _G["BINDING_NAME_" .. command] or command
-                    keyboard_button.readable_binding:SetText(binding_name)
+                -- Check if the command corresponds to a Dominos action button
+                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
+                    -- Handle the binding for Dominos action buttons
+                    local dominos_slot = command:match("DominosActionButton(%d+)")
+                    if dominos_slot then
+                        -- Set a custom label for Dominos buttons
+                        local binding_name = "Dominos Button " .. dominos_slot  -- Customize this as needed
+                        keyboard_button.readable_binding:SetText(binding_name)
+                    else
+                        keyboard_button.readable_binding:SetText("")
+                    end
                 else
-                    keyboard_button.readable_binding:SetText("")
+                    -- Standard handling for other buttons
+                    if command then
+                        local binding_name = _G["BINDING_NAME_" .. command] or command
+                        keyboard_button.readable_binding:SetText(binding_name)
+                    else
+                        keyboard_button.readable_binding:SetText("")
+                    end
                 end
 
                 -- Toggle visibility of the interface action label based on settings
@@ -924,13 +938,27 @@ function addon:create_action_labels()
     if self.mouse_buttons then
         for _, mouse_button in pairs(self.mouse_buttons) do
             if mouse_button.readable_binding then
-                local command = mouse_button.binding and mouse_button.binding
+                local command = mouse_button.binding
 
-                if command then
-                    local binding_name = _G["BINDING_NAME_" .. command] or command
-                    mouse_button.readable_binding:SetText(binding_name)
+                -- Check if the command corresponds to a Dominos action button
+                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
+                    -- Handle the binding for Dominos action buttons
+                    local dominos_slot = command:match("DominosActionButton(%d+)")
+                    if dominos_slot then
+                        -- Set a custom label for Dominos buttons
+                        local binding_name = "Dominos Button " .. dominos_slot  -- Customize this as needed
+                        mouse_button.readable_binding:SetText(binding_name)
+                    else
+                        mouse_button.readable_binding:SetText("")
+                    end
                 else
-                    mouse_button.readable_binding:SetText("")
+                    -- Standard handling for other buttons
+                    if command then
+                        local binding_name = _G["BINDING_NAME_" .. command] or command
+                        mouse_button.readable_binding:SetText(binding_name)
+                    else
+                        mouse_button.readable_binding:SetText("")
+                    end
                 end
 
                 -- Toggle visibility of the interface action label based on settings
