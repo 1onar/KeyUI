@@ -16,6 +16,7 @@ KeyUI displays your keyboard and mouse to show what each button is bound to. It 
 KeyUI is compatible with the following popular addons:
 - **ElvUI**
 - **Bartender**
+- **Dominos**
 
 ## How to Open KeyUI:
 - Type `/kui` or `/keyui`.
