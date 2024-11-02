@@ -193,8 +193,8 @@ local options = {
         detect_modifier = {
             type = "toggle",
             name = "Detect Modifier",
-            desc = "Enable or disable detection of Shift, Ctrl, and Alt for key bindings.",
-            order = 7,  -- You can adjust the order as needed
+            desc = "Enable or disable detection of Shift, Ctrl, and Alt for key bindings",
+            order = 7,
             get = function() return keyui_settings.listen_to_modifier end,
             set = function(_, value)
                 keyui_settings.listen_to_modifier = value
@@ -226,12 +226,12 @@ local options = {
             type = "toggle",
             name = "Dynamic Modifier",
             desc = "Enable or disable dynamic display of modified keys based on current modifiers.",
-            order = 8,  -- Adjust the order as needed
+            order = 8,
             get = function() return keyui_settings.dynamic_modifier end,
             set = function(_, value)
                 keyui_settings.dynamic_modifier = value
                 local status = value and "enabled" or "disabled"
-                print("KeyUI: Dynamic modifier display " .. status)
+                print("KeyUI: Dynamic modifier " .. status)
             end,
         },
     },
@@ -706,20 +706,27 @@ function addon:SetKey(button)
 
     -- Set the short key format if button.short_key exists
     if button.short_key then
-        if not keyui_settings.dynamic_modifier then  -- Check if dynamic modifier is disabled
-            button.short_key:SetText(readable_text) -- Set only the readable text, without a modifier
+        -- Check if the key should be displayed without modifiers
+        if addon.no_modifier_keys[original_text] then
+            -- If the key is in the no_modifier_keys list, display it without modifiers
+            button.short_key:SetText(readable_text)
         else
-            -- Shorten existing modifiers in original_text
-            local shorten_modifier_string = (addon.current_modifier_string or "")
-                :gsub("ALT%-", "a-")   -- Shorten ALT
-                :gsub("CTRL%-", "c-")  -- Shorten CTRL
-                :gsub("SHIFT%-", "s-") -- Shorten SHIFT
-
-            -- Append the shortened modifier string to the readable text
-            if shorten_modifier_string ~= "" then
-                button.short_key:SetText(shorten_modifier_string .. readable_text)
+            -- Process the key with modifiers based on the settings
+            if not keyui_settings.dynamic_modifier then  -- Check if dynamic modifier is disabled
+                button.short_key:SetText(readable_text) -- Set only the readable text, without a modifier
             else
-                button.short_key:SetText(readable_text) -- Fallback to just readable_text if no modifiers
+                -- Shorten existing modifiers in original_text
+                local shorten_modifier_string = (addon.current_modifier_string or "")
+                    :gsub("ALT%-", "a-")   -- Shorten ALT
+                    :gsub("CTRL%-", "c-")  -- Shorten CTRL
+                    :gsub("SHIFT%-", "s-") -- Shorten SHIFT
+
+                -- Append the shortened modifier string to the readable text
+                if shorten_modifier_string ~= "" then
+                    button.short_key:SetText(shorten_modifier_string .. readable_text)
+                else
+                    button.short_key:SetText(readable_text) -- Fallback to just readable_text if no modifiers
+                end
             end
         end
     end
