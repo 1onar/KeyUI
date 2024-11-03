@@ -18,32 +18,54 @@ local function ShowTutorialFrame(Controls)
     frame:SetPoint("BOTTOM", arrow, "TOP", 0, -6)
     frame:SetSize(200, 50)
 
-    -- Create the text for the tutorial
     local frametext = frame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
-    frametext:SetPoint("CENTER", frame, "CENTER") -- Center the text in the help tip frame
-    frametext:SetText("Click here to open settings.")
+    frametext:SetPoint("CENTER", frame, "CENTER")
+    frametext:SetText("Click to open settings")
 
-    -- Attach to the MinimizeButton and MaximizeButton individually
-    local MinimizeButton = Controls.MinMax.MinimizeButton
     local MaximizeButton = Controls.MinMax.MaximizeButton
+    local MinimizeButton = Controls.MinMax.MinimizeButton
 
-    -- Hook the click event for the MinimizeButton and MaximizeButton
-    if MinimizeButton then
-        MinimizeButton:HookScript("OnClick", function()
-            if frame then
-                arrow:Hide()
-                frame:Hide()
-                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
-            end
-        end)
-    end
+    local frame2 = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxTemplate")
+    frame2:SetPoint("CENTER", frame, "CENTER")
+    frame2:SetSize(200, 70)
+    frame2:Hide()
 
     if MaximizeButton then
         MaximizeButton:HookScript("OnClick", function()
             if frame then
                 arrow:Hide()
                 frame:Hide()
-                keyui_settings.tutorial_completed = true -- Mark the tutorial as completed
+
+                frame2:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", 3, 2)
+                frame2:Show()
+
+                local arrow_texture = frame2:CreateTexture(nil, "ARTWORK")
+                arrow_texture:SetTexture("Interface\\HelpFrame\\Helptip")
+                arrow_texture:SetSize(128, 32)
+                arrow_texture:SetPoint("CENTER", frame2, "BOTTOMLEFT", -10, 5)
+                arrow_texture:SetRotation(math.rad(270))
+
+                local frametext2 = frame2:CreateFontString(nil, "ARTWORK", "GameFontWhite")
+                frametext2:SetPoint("CENTER", frame2, "CENTER")
+                frametext2:SetText("Click to select a layout")
+
+                local close_frame = CreateFrame("Button", nil, frame2, "UIPanelCloseButton")
+                close_frame:SetPoint("TOPRIGHT", 0, 0)
+                close_frame:SetFrameLevel(frame2:GetFrameLevel() + 1)
+                close_frame:SetScript("OnClick", function(s)
+                    frame2:Hide()
+                    keyui_settings.tutorial_completed = true
+                end)
+            end
+        end)
+    end
+
+    if MinimizeButton then
+        MinimizeButton:HookScript("OnClick", function()
+            if frame then
+                arrow:Hide()
+                frame:Hide()
+                frame2:Hide()
             end
         end)
     end
@@ -473,7 +495,7 @@ function addon:CreateKeyboardControl()
 
         keyboard_control_frame.Delete = CreateFrame("Button", nil, keyboard_control_frame, "UIPanelSquareButton")
         keyboard_control_frame.Delete:SetSize(28, 28)
-        keyboard_control_frame.Delete:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", -12, 2)  
+        keyboard_control_frame.Delete:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", -12, 2)
 
         -- OnClick handler to show confirmation dialog
         keyboard_control_frame.Delete:SetScript("OnClick", function(self)
