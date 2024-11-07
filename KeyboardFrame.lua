@@ -1069,7 +1069,7 @@ function addon:KeyboardLayoutSelecter()
         },
         Razer = { "Tartarus_v1", "Tartarus_v2" },
         Azeron = { "Cyborg", "Cyborg_II" },
-        ZSA = { "Moonlander_MK_II" },
+        ZSA = { "Moonlander_MK_I" },
     }
 
     local categoryOrder = { "ISO", "ANSI", "DVORAK", "Razer", "Azeron", "ZSA" }
@@ -1145,7 +1145,7 @@ function addon:KeyboardLayoutSelecter()
                         info.text = "Tartarus v2"
                     elseif layout == "Cyborg_II" then
                         info.text = "Cyborg II"
-                    elseif layout == "Moonlander_MK_II" then
+                    elseif layout == "Moonlander_MK_I" then
                         info.text = "Moonlander Default Layout"
                     else
                         info.text = layout -- For other layouts, keep the original text

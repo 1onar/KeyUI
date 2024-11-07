@@ -3429,7 +3429,7 @@ addon.default_keyboard_layouts = {
 
     -- ZSA --
 
-    ['Moonlander_MK_II'] = {
+    ['Moonlander_MK_I'] = {
 
         -- Row 1 left half
 
