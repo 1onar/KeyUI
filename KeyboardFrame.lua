@@ -1068,10 +1068,11 @@ function addon:KeyboardLayoutSelecter()
             LeftHand = { "DVORAK_LEFT_100%", "DVORAK_LEFT_PRIMARY" }
         },
         Razer = { "Tartarus_v1", "Tartarus_v2" },
-        Azeron = { "Cyborg", "Cyborg_II" }
+        Azeron = { "Cyborg", "Cyborg_II" },
+        ZSA = { "Moonlander_MK_II" },
     }
 
-    local categoryOrder = { "ISO", "ANSI", "DVORAK", "Razer", "Azeron" }
+    local categoryOrder = { "ISO", "ANSI", "DVORAK", "Razer", "Azeron", "ZSA" }
 
     local function KeyboardLayoutSelecter_Initialize(self, level)
         level = level or 1
@@ -1144,6 +1145,8 @@ function addon:KeyboardLayoutSelecter()
                         info.text = "Tartarus v2"
                     elseif layout == "Cyborg_II" then
                         info.text = "Cyborg II"
+                    elseif layout == "Moonlander_MK_II" then
+                        info.text = "Moonlander Default Layout"
                     else
                         info.text = layout -- For other layouts, keep the original text
                     end
