@@ -391,6 +391,7 @@ addon.no_highlight = {
     ["MENU"] = true,
     ["LMETA"] = true,
     ["RMETA"] = true,
+    ["N/A"] = true,
 }
 
 addon.short_keys = {
@@ -428,6 +429,7 @@ addon.short_keys = {
     ["LMETA"] = "META",
     ["RMETA"] = "META",
     ["TAB"] = "Tab",
+    ["N/A"] = "Custom",
 }
 
 addon.action_slot_mapping = {
