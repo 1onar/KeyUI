@@ -358,6 +358,7 @@ addon.binding_mapping = {
 -- List of  buttons that should not be modified
 addon.no_modifier_keys = {
     ["ESCAPE"] = true,
+    ["ESC"] = true,
     ["LSHIFT"] = true,
     ["LCTRL"] = true,
     ["LALT"] = true,
@@ -369,6 +370,8 @@ addon.no_modifier_keys = {
     ["LMETA"] = true,
     ["RMETA"] = true,
     ["MENU"] = true,
+    ["N/A"] = true,
+    ["Custom"] = true,
 }
 
 -- List of buttons that should not be highlighted when empty
@@ -392,6 +395,7 @@ addon.no_highlight = {
     ["LMETA"] = true,
     ["RMETA"] = true,
     ["N/A"] = true,
+    ["Custom"] = true,
 }
 
 addon.short_keys = {
@@ -429,7 +433,6 @@ addon.short_keys = {
     ["LMETA"] = "META",
     ["RMETA"] = "META",
     ["TAB"] = "Tab",
-    ["N/A"] = "Custom",
 }
 
 addon.action_slot_mapping = {

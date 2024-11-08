@@ -480,12 +480,12 @@ function addon:CreateTooltip()
     keyui_tooltip_frame.key = keyui_tooltip_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyui_tooltip_frame.key:SetPoint("CENTER", keyui_tooltip_frame, "CENTER", 0, 10)
     keyui_tooltip_frame.key:SetTextColor(1, 1, 1)
-    keyui_tooltip_frame.key:SetFont("Fonts\\ARIALN.TTF", 16)
+    keyui_tooltip_frame.key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
 
     keyui_tooltip_frame.binding = keyui_tooltip_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyui_tooltip_frame.binding:SetPoint("CENTER", keyui_tooltip_frame, "CENTER", 0, -10)
     keyui_tooltip_frame.binding:SetTextColor(1, 1, 1)
-    keyui_tooltip_frame.binding:SetFont("Fonts\\ARIALN.TTF", 16)
+    keyui_tooltip_frame.binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
 
     -- Hide the GameTooltip when this custom tooltip hides.
     keyui_tooltip_frame:SetScript("OnHide", function() GameTooltip:Hide() end)
@@ -502,10 +502,13 @@ function addon:ButtonMouseOver(button)
 
     addon.keyui_tooltip_frame:SetPoint("LEFT", button, "RIGHT", 6, 0) -- Position for the Addon Tooltip
 
-    if short_modifier_string[key] then
+    -- Check if the key is in the no_modifier_keys list
+    if addon.no_modifier_keys[key] then
+        -- If the key is in the no_modifier_keys list, don't add the modifier string
         addon.keyui_tooltip_frame.key:SetText(key)
     else
-        addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. key or "")
+        -- If it's not a no-modifier key, combine the modifier string with the key
+        addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. key)
     end
 
     addon.keyui_tooltip_frame.binding:SetText(readable_binding or "")
@@ -753,6 +756,10 @@ function addon:SetKey(button)
 
     -- Set the short key format if button.short_key exists
     if button.short_key then
+
+        -- Adjust the width of the short_key based on button width
+        button.short_key:SetWidth(button:GetWidth() - 6)
+
         -- Check if the key should be displayed without modifiers
         if addon.no_modifier_keys[original_text] then
             -- If the key is in the no_modifier_keys list, display it without modifiers
@@ -775,6 +782,19 @@ function addon:SetKey(button)
                     button.short_key:SetText(readable_text) -- Fallback to just readable_text if no modifiers
                 end
             end
+        end
+
+        -- Calculate the maximum allowed characters based on button width
+        local max_allowed_chars = math.floor(button:GetWidth() / 8)
+        local combined_text = button.short_key:GetText()  -- Combined text with modifiers if present
+
+        -- Use Condensed font if the combined text exceeds max_allowed_chars
+        if string.len(combined_text) > max_allowed_chars then
+            -- Use the Condensed font for longer text
+            button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 16, "OUTLINE")
+        else
+            -- Use the Regular font for shorter text
+            button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
         end
     end
 end
@@ -903,6 +923,9 @@ function addon:create_action_labels()
             if keyboard_button.readable_binding then
                 local command = keyboard_button.binding
 
+                -- Adjust the width of the readable_binding based on button width
+                keyboard_button.readable_binding:SetWidth(keyboard_button:GetWidth() - 4)
+
                 -- Check if the command corresponds to a Dominos action button
                 if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
                     -- Handle the binding for Dominos action buttons
@@ -939,6 +962,9 @@ function addon:create_action_labels()
         for _, mouse_button in pairs(self.mouse_buttons) do
             if mouse_button.readable_binding then
                 local command = mouse_button.binding
+
+                    -- Adjust the width of the readable_binding based on button width
+                    mouse_button.readable_binding:SetWidth(mouse_button:GetWidth() - 4)
 
                 -- Check if the command corresponds to a Dominos action button
                 if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then

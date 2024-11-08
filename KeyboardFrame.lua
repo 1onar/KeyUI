@@ -929,10 +929,9 @@ function addon:CreateKeyboardButtons()
 
     -- Keyboard Keybind text string on the top right of the button (e.g. a-c-s-1)
     keyboard_button.short_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.short_key:SetFont("Fonts\\ARIALN.TTF", 15, "OUTLINE")
     keyboard_button.short_key:SetTextColor(1, 1, 1)
     keyboard_button.short_key:SetHeight(20)
-    keyboard_button.short_key:SetWidth(70)
+    --keyboard_button.short_key:SetWidth(52)    -- will be calculated in addon:SetKey
     keyboard_button.short_key:SetPoint("TOPRIGHT", keyboard_button, "TOPRIGHT", -4, -6)
     keyboard_button.short_key:SetJustifyH("RIGHT")
     keyboard_button.short_key:SetJustifyV("TOP")
@@ -940,10 +939,10 @@ function addon:CreateKeyboardButtons()
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     keyboard_button.readable_binding = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.readable_binding:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
+    keyboard_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
     keyboard_button.readable_binding:SetTextColor(1, 1, 1)
     keyboard_button.readable_binding:SetHeight(30)
-    keyboard_button.readable_binding:SetWidth(56)
+    --keyboard_button.readable_binding:SetWidth(56)     -- will be calculated in addon:create_action_labels
     keyboard_button.readable_binding:SetPoint("BOTTOM", keyboard_button, "BOTTOM", 1, 6)
     keyboard_button.readable_binding:SetJustifyV("BOTTOM")
     keyboard_button.readable_binding:SetText("")
@@ -1146,7 +1145,7 @@ function addon:KeyboardLayoutSelecter()
                     elseif layout == "Cyborg_II" then
                         info.text = "Cyborg II"
                     elseif layout == "Moonlander_MK_I" then
-                        info.text = "Moonlander Default Layout"
+                        info.text = "Moonlander Mark I"
                     else
                         info.text = layout -- For other layouts, keep the original text
                     end

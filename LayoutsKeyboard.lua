@@ -3459,11 +3459,11 @@ addon.default_keyboard_layouts = {
         { 'E',         192,  -68,  u,  u },
         { 'R',         254,  -72,  u,  u },
         { 'T',         316,  -76,  u,  u },
-        { 'N/A',       378,  -80,  u,  u },
+        { 'Custom',       378,  -80,  u,  u },
 
         -- Row 2 right half
 
-        { 'N/A',       750,  -80,  u,  u },
+        { 'Custom',       750,  -80,  u,  u },
         { 'Y',         812,  -76,  u,  u },
         { 'U',         874,  -72,  u,  u },
         { 'I',         936,  -68,  u,  u },
@@ -3479,11 +3479,11 @@ addon.default_keyboard_layouts = {
         { 'D',         192,  -130, u,  u },
         { 'F',         254,  -134, u,  u },
         { 'G',         316,  -138, u,  u },
-        { 'N/A',       378,  -142, u,  u },
+        { 'Custom',       378,  -142, u,  u },
 
         -- Row 3 right half
 
-        { 'N/A',       750,  -142, u,  u },
+        { 'Custom',       750,  -142, u,  u },
         { 'H',         812,  -138, u,  u },
         { 'J',         874,  -134, u,  u },
         { 'K',         936,  -130, u,  u },
@@ -3499,7 +3499,7 @@ addon.default_keyboard_layouts = {
         { 'C',         192,  -192, u,  u },
         { 'V',         254,  -196, u,  u },
         { 'B',         316,  -200, u,  u },
-        -- { 'N/A',       378, -142, u, u },
+        -- { 'Custom',       378, -142, u, u },
 
         -- Row 4 right half
 
@@ -3509,17 +3509,17 @@ addon.default_keyboard_layouts = {
         { '.',         998,  -196, u,  u },
         { '/',         1060, -200, u,  u },
         { 'RSHIFT',    1122, -204, u,  u },
-        -- { 'N/A',    1184, -142, u, u },
+        -- { 'Custom',    1184, -142, u, u },
 
         -- Row 5 left half
 
         { '`',         6,    -266, u,  u },
         { 'CAPSLOCK',  68,   -262, u,  u },
-        { 'N/A',       130,  -258, u,  u },
+        { 'Custom',       130,  -258, u,  u },
         { 'LEFT',      192,  -254, u,  u },
         { 'RIGHT',     254,  -258, u,  u },
         -- { 'B',         316, -200, u, u },
-        -- { 'N/A',       378, -142, u, u },
+        -- { 'Custom',       378, -142, u, u },
 
         -- Row 5 right half
 
@@ -3527,9 +3527,9 @@ addon.default_keyboard_layouts = {
         { 'DOWN',      936,  -254, u,  u },
         { '[',         998,  -258, u,  u },
         { ']',         1060, -262, u,  u },
-        { 'N/A',       1122, -266, u,  u },
+        { 'Custom',       1122, -266, u,  u },
         -- { 'B',      1184, -200, u, u },
-        -- { 'N/A',    1246, -142, u, u },
+        -- { 'Custom',    1246, -142, u, u },
 
         -- -- Left Thumb Area
         { 'LALT',      378,  -266, u2, u },

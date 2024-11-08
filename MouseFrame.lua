@@ -18,7 +18,7 @@ function addon:CreateMouseImage()
     end
 
     mouse_image:SetWidth(260)
-    mouse_image:SetHeight(400)
+    mouse_image:SetHeight(382)
     mouse_image:Hide()
 
     -- Load the saved position if it exists
@@ -43,7 +43,7 @@ function addon:CreateMouseImage()
     mouse_image.Texture = mouse_image:CreateTexture()
     mouse_image.Texture:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Mouse.tga")
     mouse_image.Texture:SetPoint("Center", mouse_image, "Center", 0, 0)
-    mouse_image.Texture:SetSize(370, 370)
+    mouse_image.Texture:SetSize(390, 390)
 
     return mouse_image
 end
@@ -71,8 +71,7 @@ function addon:CreateMouseFrame()
 end
 
 function addon:CreateMouseControl()
-    local mouse_control_frame = CreateFrame("Frame", "keyui_mouse_control_frame", addon.mouse_image,
-    "TooltipBorderedFrameTemplate")
+    local mouse_control_frame = CreateFrame("Frame", "keyui_mouse_control_frame", addon.mouse_image, "TooltipBorderedFrameTemplate")
     addon.mouse_control_frame = mouse_control_frame
 
     -- Manage ESC key behavior based on the setting
@@ -634,10 +633,9 @@ function addon:CreateMouseButtons()
 
     -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
     mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.short_key:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
     mouse_button.short_key:SetTextColor(1, 1, 1)
     mouse_button.short_key:SetHeight(20)
-    mouse_button.short_key:SetWidth(42)
+    --mouse_button.short_key:SetWidth(42)   -- will be calculated in addon:SetKey
     mouse_button.short_key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
     mouse_button.short_key:SetJustifyH("RIGHT")
     mouse_button.short_key:SetJustifyV("TOP")
@@ -645,10 +643,10 @@ function addon:CreateMouseButtons()
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     mouse_button.readable_binding = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.readable_binding:SetFont("Fonts\\ARIALN.TTF", 10, "OUTLINE")
+    mouse_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
     mouse_button.readable_binding:SetTextColor(1, 1, 1)
     mouse_button.readable_binding:SetHeight(25)
-    mouse_button.readable_binding:SetWidth(46)
+    --mouse_button.readable_binding:SetWidth(46)    -- will be calculated in addon:create_action_labels
     mouse_button.readable_binding:SetPoint("BOTTOM", mouse_button, "BOTTOM", 1, 6)
     mouse_button.readable_binding:SetJustifyV("BOTTOM")
     mouse_button.readable_binding:SetText("")
@@ -809,13 +807,11 @@ function addon:MouseLayoutSelecter()
                     end
                     wipe(keyui_settings.layout_current_mouse)
                     keyui_settings.layout_current_mouse[name] = layout
-                    addon:refresh_keys()
+                    addon:refresh_layouts()
                     UIDropDownMenu_SetText(self, name)
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
-        else
-            return
         end
     end
 
