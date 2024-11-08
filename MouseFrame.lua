@@ -440,22 +440,23 @@ local function GetCursorScaledPosition()
     return x / scale, y / scale
 end
 
-local function DragOrSize(addon, Mousebutton)
-    local x, y = GetCursorScaledPosition()
-    if addon.mouse_locked then
+local function DragOrSize(self, Mousebutton)
+    if self.mouse_locked then
         return -- Do nothing if not MouseLocked is selected
     end
-    addon:StartMoving()
-    addon.isMoving = true -- Add a flag to indicate the frame is being moved
-    if IsShiftKeyDown() then
-        addon.keys_mouse[addon] = nil
-        addon:Hide()
+
+    if Mousebutton == "LeftButton" and IsShiftKeyDown() then
+        self.keys_mouse = nil
+        self:Hide()
+    elseif Mousebutton == "LeftButton" then
+        self:StartMoving()
+        addon.isMoving = true -- Add a flag to indicate the frame is being moved
     end
 end
 
-local function Release(addon, Mousebutton)
+local function Release(self, Mousebutton)
     if Mousebutton == "LeftButton" then
-        addon:StopMovingOrSizing()
+        self:StopMovingOrSizing()
         addon.isMoving = false -- Reset the flag when the movement is stopped
     end
 end
