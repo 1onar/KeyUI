@@ -1,435 +1,508 @@
 local name, addon = ...
 
-MousePosition = {}
-
-MouseLocked = true
-edited = false
-
-function addon:SaveMouse()
-    MousePosition.x, MousePosition.y = Mouseholder:GetCenter()
-    MousePosition.scale = Mouseholder:GetScale()
+-- Save the position and scale of the mouse holder
+function addon:SaveMousePosition()
+    local x, y = addon.mouse_image:GetCenter()
+    keyui_settings.mouse_position.x = x
+    keyui_settings.mouse_position.y = y
+    keyui_settings.mouse_position.scale = addon.mouse_image:GetScale()
 end
 
-function addon:CreateMouseholder()
-    local Mouseholder = CreateFrame("Frame", "Mouseholder", UIParent)
+function addon:CreateMouseImage()
+    local mouse_image = CreateFrame("Frame", "keyui_mouse_image", UIParent)
+    addon.mouse_image = mouse_image
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
-        tinsert(UISpecialFrames, "Mouseholder")
+    if keyui_settings.prevent_esc_close ~= false then
+        tinsert(UISpecialFrames, "keyui_mouse_image")
     end
-    
-    Mouseholder:SetWidth(260)
-    Mouseholder:SetHeight(400)
-    Mouseholder:Hide()
+
+    mouse_image:SetWidth(260)
+    mouse_image:SetHeight(382)
+    mouse_image:Hide()
 
     -- Load the saved position if it exists
-    if MousePosition.x and MousePosition.y then
-        Mouseholder:SetPoint("CENTER", UIParent, "BOTTOMLEFT", MousePosition.x, MousePosition.y)
-        Mouseholder:SetScale(MousePosition.scale)
+    if keyui_settings.mouse_position.x and keyui_settings.mouse_position.y then
+        mouse_image:SetPoint(
+            "CENTER",
+            UIParent,
+            "BOTTOMLEFT",
+            keyui_settings.mouse_position.x,
+            keyui_settings.mouse_position.y
+        )
+        mouse_image:SetScale(keyui_settings.mouse_position.scale)
     else
-        Mouseholder:SetPoint("CENTER", UIParent, "CENTER", 580, 30)
-        Mouseholder:SetScale(1)
+        mouse_image:SetPoint("CENTER", UIParent, "CENTER", 580, 30)
+        mouse_image:SetScale(1)
     end
 
-    Mouseholder:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    Mouseholder:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
-    Mouseholder:SetMovable(true)
+    mouse_image:SetScript("OnMouseDown", function(self) self:StartMoving() end)
+    mouse_image:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    mouse_image:SetMovable(true)
 
-    Mouseholder.Texture = Mouseholder:CreateTexture()
-    Mouseholder.Texture:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Mouse.tga")
-    Mouseholder.Texture:SetPoint("Center", Mouseholder, "Center", 0, 0)
-    Mouseholder.Texture:SetSize(370, 370)
+    mouse_image.Texture = mouse_image:CreateTexture()
+    mouse_image.Texture:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Mouse.tga")
+    mouse_image.Texture:SetPoint("Center", mouse_image, "Center", 0, 0)
+    mouse_image.Texture:SetSize(390, 390)
 
-    return Mouseholder
+    return mouse_image
 end
 
-function addon:CreateMouseUI()
-    local MouseFrame = CreateFrame("Frame", "MouseFrame", Mouseholder)
+function addon:CreateMouseFrame()
+    local mouse_frame = CreateFrame("Frame", "keyui_mouse_frame", addon.mouse_image)
+    addon.mouse_frame = mouse_frame
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
-        tinsert(UISpecialFrames, "MouseFrame")
+    if keyui_settings.prevent_esc_close ~= false then
+        tinsert(UISpecialFrames, "keyui_mouse_frame")
     end
 
-    MouseFrame:SetWidth(50)
-    MouseFrame:SetHeight(50)
-    MouseFrame:SetPoint("RIGHT", Mouseholder, "LEFT", 5, -25)
-    MouseFrame:SetScale(1)
-    MouseFrame:Hide()
+    mouse_frame:SetWidth(50)
+    mouse_frame:SetHeight(50)
+    mouse_frame:SetPoint("RIGHT", addon.mouse_image, "LEFT", 5, -25)
+    mouse_frame:SetScale(1)
+    mouse_frame:Hide()
 
-    addon.MouseFrame = MouseFrame
-
-    if KeyUI_Settings.showKeyboard == false then
-        addon:RefreshKeys()
+    if keyui_settings.show_keyboard == false then   -- i still dont know why i have to trigger a extra refreshkeys when keyboard is hidden
+        addon:refresh_layouts()
     end
 
-    return MouseFrame
+    return mouse_frame
 end
 
-function addon:CreateMouseControls()
-    local MouseControls = CreateFrame("Frame", "MouseControls", Mouseholder, "TooltipBorderedFrameTemplate")
+function addon:CreateMouseControl()
+    local mouse_control_frame = CreateFrame("Frame", "keyui_mouse_control_frame", addon.mouse_image, "TooltipBorderedFrameTemplate")
+    addon.mouse_control_frame = mouse_control_frame
 
     -- Manage ESC key behavior based on the setting
-    if KeyUI_Settings.preventEscClose ~= false then
-        tinsert(UISpecialFrames, "MouseControls")
+    if keyui_settings.prevent_esc_close ~= false then
+        tinsert(UISpecialFrames, "keyui_mouse_control_frame")
     end
 
-    MouseControls:SetBackdropColor(0,0,0,1);
-    MouseControls:SetPoint("BOTTOMRIGHT", Mouseholder, "TOPRIGHT", 0, -10)
-    MouseControls:SetScript("OnMouseDown", function(self) self:GetParent():StartMoving() end)
-    MouseControls:SetScript("OnMouseUp", function(self) self:GetParent():StopMovingOrSizing() end)
+    mouse_control_frame:SetBackdropColor(0, 0, 0, 1);
+    mouse_control_frame:SetPoint("BOTTOMRIGHT", addon.mouse_image, "TOPRIGHT", 0, -10)
+    mouse_control_frame:SetScript("OnMouseDown", function(self) self:GetParent():StartMoving() end)
+    mouse_control_frame:SetScript("OnMouseUp", function(self) self:GetParent():StopMovingOrSizing() end)
 
     local function OnMaximizeMouse()
-        maximizeFlag = true
+        addon.mouse_maximize_flag = true
 
-        MouseControls:SetWidth((Mouseholder:GetWidth()+100))
-        MouseControls:SetHeight(190)
+        mouse_control_frame:SetWidth((addon.mouse_image:GetWidth() + 40))
+        mouse_control_frame:SetHeight(190)
+
+        -- Calculate 1/2 of the width of keyui_mouse_control_frame
+        local offset_half = mouse_control_frame:GetWidth() * (1 / 2)
 
         --Size start
-            MouseControls.EditBox = CreateFrame("EditBox", "KUI_EditBox2", MouseControls, "InputBoxTemplate")
-            MouseControls.EditBox:SetSize(60, 12)
-            MouseControls.EditBox:SetPoint("BOTTOM", MouseControls, "BOTTOM", 0, 26)
-            MouseControls.EditBox:SetMaxLetters(4)
-            MouseControls.EditBox:SetAutoFocus(false)
-            MouseControls.EditBox:SetText(string.format("%.2f", Mouseholder:GetScale()))
-            MouseControls.EditBox:SetJustifyH("CENTER")
-            
-            MouseControls.EditBox:SetScript("OnEnterPressed", function(self)
-                local value = tonumber(self:GetText())
-                if value then
-                    if value < 0.5 then
-                        value = 0.5
-                    elseif value > 1.5 then
-                        value = 1.5
-                    end
-                    Mouseholder:SetScale(value)
-                    self:SetText(string.format("%.2f", value))
-                end
-                self:ClearFocus()
-            end)
+        mouse_control_frame.EditBox = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxTemplate")
+        mouse_control_frame.EditBox:SetWidth(60)
+        mouse_control_frame.EditBox:SetHeight(20)
+        mouse_control_frame.EditBox:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 30)
+        mouse_control_frame.EditBox:SetMaxLetters(4)
+        mouse_control_frame.EditBox:SetAutoFocus(false)
+        mouse_control_frame.EditBox:SetText(string.format("%.2f", addon.mouse_image:GetScale()))
+        mouse_control_frame.EditBox:SetJustifyH("CENTER")
 
-            MouseControls.LeftButton = CreateFrame("Button", "MouseControlLeftButton", MouseControls)
-            MouseControls.LeftButton:SetSize(34, 34)
-            MouseControls.LeftButton:SetPoint("CENTER", MouseControls.EditBox, "CENTER", -58, 0)
-            MouseControls.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
-            MouseControls.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
-            MouseControls.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-            
-            MouseControls.RightButton = CreateFrame("Button", "MouseControlRightButton", MouseControls)
-            MouseControls.RightButton:SetSize(34, 34)
-            MouseControls.RightButton:SetPoint("CENTER", MouseControls.EditBox, "CENTER", 54, 0)
-            MouseControls.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
-            MouseControls.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
-            MouseControls.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
-            
-            MouseControls.LeftButton:SetScript("OnClick", function()
-                local currentValue = Mouseholder:GetScale()
-                local step = 0.05
-                local newValue = currentValue - step
-                if newValue < 0.5 then
-                    newValue = 0.5
+        mouse_control_frame.EditBox:SetScript("OnEnterPressed", function(self)
+            local value = tonumber(self:GetText())
+            if value then
+                if value < 0.5 then
+                    value = 0.5
+                elseif value > 1.5 then
+                    value = 1.5
                 end
-                Mouseholder:SetScale(newValue)
-                MouseControls.EditBox:SetText(string.format("%.2f", newValue))
-            end)
-            
-            MouseControls.RightButton:SetScript("OnClick", function()
-                local currentValue = Mouseholder:GetScale()
-                local step = 0.05
-                local newValue = currentValue + step
-                if newValue > 1.5 then
-                    newValue = 1.5
-                end
-                Mouseholder:SetScale(newValue)
-                MouseControls.EditBox:SetText(string.format("%.2f", newValue))
-            end)        
+                addon.mouse_image:SetScale(value)
+                self:SetText(string.format("%.2f", value))
+            end
+            self:ClearFocus()
+        end)
+
+        mouse_control_frame.LeftButton = CreateFrame("Button", nil, mouse_control_frame)
+        mouse_control_frame.LeftButton:SetSize(26, 26)
+        mouse_control_frame.LeftButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", -58, 0)
+        mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
+        mouse_control_frame.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
+        mouse_control_frame.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+
+        mouse_control_frame.RightButton = CreateFrame("Button", nil, mouse_control_frame)
+        mouse_control_frame.RightButton:SetSize(26, 26)
+        mouse_control_frame.RightButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", 54, 0)
+        mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+        mouse_control_frame.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
+        mouse_control_frame.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+
+        mouse_control_frame.LeftButton:SetScript("OnClick", function()
+            local currentValue = addon.mouse_image:GetScale()
+            local step = 0.05
+            local newValue = currentValue - step
+            if newValue < 0.5 then
+                newValue = 0.5
+            end
+            addon.mouse_image:SetScale(newValue)
+            mouse_control_frame.EditBox:SetText(string.format("%.2f", newValue))
+        end)
+
+        mouse_control_frame.RightButton:SetScript("OnClick", function()
+            local currentValue = addon.mouse_image:GetScale()
+            local step = 0.05
+            local newValue = currentValue + step
+            if newValue > 1.5 then
+                newValue = 1.5
+            end
+            addon.mouse_image:SetScale(newValue)
+            mouse_control_frame.EditBox:SetText(string.format("%.2f", newValue))
+        end)
         --Size end
 
         --Text start
-            MouseControls.Layout = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            MouseControls.Layout:SetText("Layout")
-            MouseControls.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            MouseControls.Layout:SetPoint("RIGHT", KBChangeBoardDDMouse, "LEFT", 0, 2)
-            MouseControls.Layout:SetTextColor(1, 1, 1)
+        mouse_control_frame.Layout = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        mouse_control_frame.Layout:SetText("Layout")
+        mouse_control_frame.Layout:SetFont("Fonts\\FRIZQT__.TTF", 14)
+        mouse_control_frame.Layout:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 160)
+        mouse_control_frame.Layout:SetTextColor(1, 1, 1)
 
-            MouseControls.Name = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            MouseControls.Name:SetText("Name")
-            MouseControls.Name:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            MouseControls.Name:SetPoint("TOPLEFT", MouseControls.Layout, "TOPLEFT", 0, -44)
-            MouseControls.Name:SetTextColor(1, 1, 1)
+        mouse_control_frame.Name = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        mouse_control_frame.Name:SetText("Name")
+        mouse_control_frame.Name:SetFont("Fonts\\FRIZQT__.TTF", 14)
+        mouse_control_frame.Name:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 110)
+        mouse_control_frame.Name:SetTextColor(1, 1, 1)
 
-            MouseControls.Size = MouseControls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            MouseControls.Size:SetText("Size")
-            MouseControls.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
-            MouseControls.Size:SetPoint("TOPLEFT", MouseControls.Name, "TOPLEFT", 0, -90)
-            MouseControls.Size:SetTextColor(1, 1, 1)
+        mouse_control_frame.Size = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        mouse_control_frame.Size:SetText("Size")
+        mouse_control_frame.Size:SetFont("Fonts\\FRIZQT__.TTF", 14)
+        mouse_control_frame.Size:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 30)
+        mouse_control_frame.Size:SetTextColor(1, 1, 1)
         --Text end
 
         --Edit start
-            MouseControls.Input  = CreateFrame("EditBox", "MouseEditInput", MouseControls, "InputBoxInstructionsTemplate")
-            MouseControls.Input:SetSize(130, 30)
-            MouseControls.Input:SetPoint("TOP", MouseControls, "TOP", -16, -54)
-            MouseControls.Input:SetAutoFocus(false)
-            
-            MouseControls.Save = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-            MouseControls.Save:SetSize(104, 26)
-            MouseControls.Save:SetPoint("CENTER", MouseControls, "CENTER", 0, -16)
-            MouseControls.Save:SetScript("OnClick", function() addon:MouseSaveLayout() end)
-            local SaveText = MouseControls.Save:CreateFontString(nil, "OVERLAY")
-            SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-            SaveText:SetPoint("CENTER", 0, 1)
-            SaveText:SetText("Save")
+        mouse_control_frame.Input = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxInstructionsTemplate")
+        mouse_control_frame.Input:SetSize(130, 30)
+        mouse_control_frame.Input:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 110)
+        mouse_control_frame.Input:SetAutoFocus(false)
 
-            MouseControls.Save:SetScript("OnEnter", function(self)
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText("Save the current layout.")
-                GameTooltip:Show()
-            end)
-            
-            MouseControls.Save:SetScript("OnLeave", function(self)
-                GameTooltip:Hide()
-            end)
-            
-            MouseControls.Delete = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-            MouseControls.Delete:SetSize(104, 26)
-            MouseControls.Delete:SetPoint("LEFT", MouseControls.Save, "RIGHT", 5, 0)
+        mouse_control_frame.Save = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
+        mouse_control_frame.Save:SetSize(70, 26)
+        mouse_control_frame.Save:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 75)
+        mouse_control_frame.Save:SetScript("OnClick", function() addon:SaveMouseLayout() end)
+        local SaveText = mouse_control_frame.Save:CreateFontString(nil, "OVERLAY")
+        SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
+        SaveText:SetPoint("CENTER", 0, 1)
+        SaveText:SetText("Save")
 
-            MouseControls.Delete:SetScript("OnClick", function(self)
-                -- Check if KBChangeBoardDDMouse is not nil
-                if not KBChangeBoardDDMouse then
-                    print("Error: KBChangeBoardDDMouse is nil.")
-                    return -- Exit the function early if KBChangeBoardDDMouse is nil
-                end
-                
-                -- Get the text from the KBChangeBoardDDMouse dropdown menu.
-                local selectedLayout = UIDropDownMenu_GetText(KBChangeBoardDDMouse)
-            
+        mouse_control_frame.Save:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Save the current layout.")
+            GameTooltip:Show()
+        end)
+
+        mouse_control_frame.Save:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
+        -- Define the confirmation dialog
+        StaticPopupDialogs["KEYUI_MOUSE_CONFIRM_DELETE"] = {
+            text = "Are you sure you want to delete the selected layout?",
+            button1 = "Yes",
+            button2 = "No",
+            OnAccept = function()
+                -- delete edited changes and remove glowboxes
+                addon:DiscardMouseChanges()
+
+                -- Function to delete the selected layout
+                local selectedLayout = UIDropDownMenu_GetText(addon.mouse_selector)
+
                 -- Ensure selectedLayout is not nil before proceeding
                 if selectedLayout then
-                    -- Remove the selected layout from the MouseKeyEditLayouts table.
-                    MouseKeyEditLayouts[selectedLayout] = nil
-            
+                    -- Remove the selected layout from the KeyboardEditLayouts table.
+                    keyui_settings.layout_edited_mouse[selectedLayout] = nil
+
                     -- Clear the text in the Mouse.Input field.
-                    MouseControls.Input:SetText("")
-            
+                    mouse_control_frame.Input:SetText("")
+
                     -- Print a message indicating which layout was deleted.
                     print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
-            
-                    wipe(CurrentLayoutMouse)
-                    UIDropDownMenu_SetText(KBChangeBoardDDMouse, "")
-                    addon:RefreshKeys()
+
+                    wipe(keyui_settings.layout_current_mouse)
+                    UIDropDownMenu_SetText(addon.mouse_selector, "")
+                    addon:refresh_layouts()
                 else
                     print("KeyUI: Error - No layout selected to delete.")
                 end
-            end)
-            
-            local DeleteText = MouseControls.Delete:CreateFontString(nil, "OVERLAY")
-            DeleteText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-            DeleteText:SetPoint("CENTER", 0, 1)
-            DeleteText:SetText("Delete")
+            end,
+            timeout = 0,
+            whileDead = true,
+            hideOnEscape = true,
+            preferredIndex = 3, -- Avoids conflicts with other popups
+        }
 
-            MouseControls.Delete:SetScript("OnEnter", function(self)
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText("Delete the current layout if it's a self-made layout.")
-                GameTooltip:Show()
-            end)
-            
-            MouseControls.Delete:SetScript("OnLeave", function(self)
-                GameTooltip:Hide()
-            end)
+        mouse_control_frame.Delete = CreateFrame("Button", nil, mouse_control_frame, "UIPanelSquareButton")
+        mouse_control_frame.Delete:SetSize(28, 28)
+        mouse_control_frame.Delete:SetPoint("LEFT", addon.mouse_selector, "RIGHT", -12, 2)  
 
-            MouseControls.Lock = CreateFrame("Button", nil, MouseControls, "UIPanelButtonTemplate")
-            MouseControls.Lock:SetSize(104, 26)
-            MouseControls.Lock:SetPoint("RIGHT", MouseControls.Save, "LEFT", -5, 0)
-
-            local LockText = MouseControls.Lock:CreateFontString(nil, "OVERLAY")
-            LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set your preferred font and size
-            LockText:SetPoint("CENTER", 0, 1)
-            if MouseLocked == false then
-                LockText:SetText("Lock")
-            else
-                LockText:SetText("Unlock")
+        -- OnClick handler to show confirmation dialog
+        mouse_control_frame.Delete:SetScript("OnClick", function(self)
+            if not addon.mouse_selector then
+                print("KeyUI: Error - No layout selected.")
+                return
             end
 
-            local function ToggleLock()
-                if MouseLocked then
-                    MouseLocked = false
-                    edited = true
-                    LockText:SetText("Lock")
-                    if MouseControls.glowBoxLock then
-                        MouseControls.glowBoxLock:Show()
-                    end
+            -- Show the confirmation dialog
+            StaticPopup_Show("KEYUI_MOUSE_CONFIRM_DELETE")
+        end)
+
+        mouse_control_frame.Delete:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Delete Layout")
+            GameTooltip:AddLine("- Remove the current layout if it's custom", 1, 1, 1)
+            GameTooltip:Show()
+        end)
+
+        mouse_control_frame.Delete:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
+        mouse_control_frame.Lock = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
+        mouse_control_frame.Lock:SetSize(70, 26)
+        mouse_control_frame.Lock:SetPoint("RIGHT", mouse_control_frame.Save, "LEFT", -5, 0)
+
+        -- Create and store the LockText in the frame table
+        mouse_control_frame.LockText = mouse_control_frame.Lock:CreateFontString(nil, "OVERLAY")
+        mouse_control_frame.LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
+        mouse_control_frame.LockText:SetPoint("CENTER", 0, 1)
+
+        if addon.mouse_locked == false then
+            mouse_control_frame.LockText:SetText("Lock")
+        else
+            mouse_control_frame.LockText:SetText("Unlock")
+        end
+
+        local function ToggleLock()
+            if addon.mouse_locked then
+                addon.mouse_locked = false
+                mouse_control_frame.LockText:SetText("Lock")
+                if mouse_control_frame.glowBoxLock then
+                    mouse_control_frame.glowBoxLock:Show()
+                    mouse_control_frame.glowBoxSave:Hide()
+                    mouse_control_frame.glowBoxInput:Hide()
+                end
+                print("KeyUI: The mouse is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
+            else
+                addon.mouse_locked = true
+                mouse_control_frame.LockText:SetText("Unlock")
+                if mouse_control_frame.glowBoxLock then
+                    mouse_control_frame.glowBoxLock:Hide()
+                end
+                if addon.keys_mouse_edited == true then
+                    mouse_control_frame.glowBoxSave:Show()
+                    mouse_control_frame.glowBoxInput:Show()
+                    print("KeyUI: Changes are now locked. Please enter a name and save your layout.")
                 else
-                    MouseLocked = true
-                    LockText:SetText("Unlock")
-                    if MouseControls.glowBoxLock then
-                        MouseControls.glowBoxLock:Hide()
-                    end  
+                    mouse_control_frame.glowBoxSave:Hide()
+                    mouse_control_frame.glowBoxInput:Hide()
+                    print("KeyUI: No Changes detected (Mouse).")
                 end
             end
-
-            MouseControls.Lock:SetScript("OnClick", function(self) ToggleLock() end)
-
-            MouseControls.Lock:SetScript("OnEnter", function(self)
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText("Toggle Editor Mode")
-                GameTooltip:AddLine("- Drag the keys with left mouse")
-                GameTooltip:AddLine("- Delete keys with Shift + left-click mouse")
-                GameTooltip:AddLine("- Assign new keybindings by pushing keys")
-                GameTooltip:Show()
-            end)
-            
-            MouseControls.Lock:SetScript("OnLeave", function(self)
-                GameTooltip:Hide()
-            end)
-
-            MouseControls.glowBoxLock = CreateFrame("Frame", nil, MouseControls, "GlowBorderTemplate")
-            MouseControls.glowBoxLock:SetSize(106, 28)
-            MouseControls.glowBoxLock:SetPoint("CENTER", MouseControls.Lock, "CENTER", 0, 0)
-            MouseControls.glowBoxLock:Hide()
-            MouseControls.glowBoxLock:SetFrameLevel(MouseControls.Lock:GetFrameLevel()+1)
-        --Edit end
-	
-        if KBChangeBoardDDMouse then
-            KBChangeBoardDDMouse:Show()
         end
 
-        MouseControls.EditBox:Show()
-        MouseControls.LeftButton:Show()
-        MouseControls.RightButton:Show()
+        mouse_control_frame.Lock:SetScript("OnClick", function(self) ToggleLock() end)
 
-        MouseControls.Input:Show()
-        MouseControls.Save:Show()
-        MouseControls.Delete:Show()
-        MouseControls.Lock:Show()
+        mouse_control_frame.Lock:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Toggle Editor Mode")
+            GameTooltip:AddLine("- Drag the keys with left mouse", 1, 1, 1)
+            GameTooltip:AddLine("- Delete keys with Shift + left-click mouse", 1, 1, 1)
+            GameTooltip:AddLine("- Assign new keybindings by pushing keys", 1, 1, 1)
+            GameTooltip:Show()
+        end)
 
-        if MouseLocked == false then
-            if MouseControls.glowBoxLock then
-                MouseControls.glowBoxLock:Show()
-            end
-        end
+        mouse_control_frame.Lock:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
+        -- Create the Discard button
+        mouse_control_frame.Discard = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
+        mouse_control_frame.Discard:SetSize(70, 26)  -- Set the size of the button
+        mouse_control_frame.Discard:SetPoint("LEFT", mouse_control_frame.Save, "RIGHT", 5, 0)
+
+        -- Create the font string for the button text
+        local DiscardText = mouse_control_frame.Discard:CreateFontString(nil, "OVERLAY")
+        DiscardText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set the font
+        DiscardText:SetPoint("CENTER", 0, 1)  -- Center the text in the button
+        DiscardText:SetText("Discard")  -- Set the button text
+
+        -- Set the script to call the Discard function when clicked
+        mouse_control_frame.Discard:SetScript("OnClick", function()
+            addon:DiscardMouseChanges()  -- Call the DiscardMouseChanges function
+        end)
+
+        mouse_control_frame.Discard:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Discard Changes")
+            GameTooltip:AddLine("- Revert any unsaved keybinding changes", 1, 1, 1)
+            GameTooltip:AddLine("- Reset the keyboard layout to the last saved state", 1, 1, 1)
+            GameTooltip:Show()
+        end)
         
+        mouse_control_frame.Discard:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+        end)
+
+        mouse_control_frame.glowBoxLock = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
+        mouse_control_frame.glowBoxLock:SetSize(68, 24)
+        mouse_control_frame.glowBoxLock:SetPoint("CENTER", mouse_control_frame.Lock, "CENTER", 0, 0)
+        mouse_control_frame.glowBoxLock:Hide()
+        mouse_control_frame.glowBoxLock:SetFrameLevel(mouse_control_frame.Lock:GetFrameLevel() - 1)
+        
+        mouse_control_frame.glowBoxSave = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
+        mouse_control_frame.glowBoxSave:SetSize(68, 24)
+        mouse_control_frame.glowBoxSave:SetPoint("CENTER", mouse_control_frame.Save, "CENTER", 0, 0)
+        mouse_control_frame.glowBoxSave:Hide()
+        mouse_control_frame.glowBoxSave:SetFrameLevel(mouse_control_frame.Save:GetFrameLevel() - 1)
+        
+        mouse_control_frame.glowBoxInput = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
+        mouse_control_frame.glowBoxInput:SetSize(136, 18)
+        mouse_control_frame.glowBoxInput:SetPoint("CENTER", mouse_control_frame.Input, "CENTER", -2, 0)
+        mouse_control_frame.glowBoxInput:Hide()
+        mouse_control_frame.glowBoxInput:SetFrameLevel(mouse_control_frame.Input:GetFrameLevel() - 1)
+        
+        --Edit end
+
+        if addon.mouse_selector then
+            addon.mouse_selector:Show()
+            addon.mouse_selector:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 160)
+        end
+
+        mouse_control_frame.EditBox:Show()
+        mouse_control_frame.LeftButton:Show()
+        mouse_control_frame.RightButton:Show()
+
+        mouse_control_frame.Input:Show()
+        mouse_control_frame.Save:Show()
+        mouse_control_frame.Delete:Show()
+        mouse_control_frame.Lock:Show()
+        mouse_control_frame.Discard:Show()
     end
 
     local function OnMinimizeMouse()
-        maximizeFlag = false
-        
-        MouseControls:SetWidth(50)
-        MouseControls:SetHeight(26)
+        addon.mouse_maximize_flag = false
 
-        if MouseControls.EditBox then
-            if KBChangeBoardDDMouse then
-                KBChangeBoardDDMouse:Hide()
-            end
-            MouseControls.EditBox:Hide()
-            MouseControls.LeftButton:Hide()
-            MouseControls.RightButton:Hide()
-            MouseControls.Size:Hide()
-            
-            MouseControls.Input:Hide()
-            MouseControls.Save:Hide()
-            MouseControls.Delete:Hide()
-            MouseControls.Lock:Hide()
+        mouse_control_frame:SetWidth(42)
+        mouse_control_frame:SetHeight(22)
 
-            MouseControls.Layout:Hide()
-            MouseControls.Name:Hide()
-
-            if MouseControls.glowBoxLock then
-                MouseControls.glowBoxLock:Hide()
-            end
+        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+            -- Discard any Editor Changes
+            addon:DiscardMouseChanges()
         end
-    end    
 
-    MouseControls.Close = CreateFrame("Button", "$parentClose", MouseControls, "UIPanelCloseButton")
-    MouseControls.Close:SetSize(42, 42)                                             -- difference retail code
-    MouseControls.Close:SetPoint("TOPRIGHT", 8, 8)                                  -- difference retail code
-    MouseControls.Close:SetScript("OnClick", function(s) MouseControls:Hide() Mouseholder:Hide() end)
+        if mouse_control_frame.EditBox then
+            if addon.mouse_selector then
+                addon.mouse_selector:Hide()
+            end
+            mouse_control_frame.EditBox:Hide()
+            mouse_control_frame.LeftButton:Hide()
+            mouse_control_frame.RightButton:Hide()
+            mouse_control_frame.Size:Hide()
 
-    MouseControls.MinMax = CreateFrame("Frame", "#parentMinMax", MouseControls, "MaximizeMinimizeButtonFrameTemplate")
-    MouseControls.MinMax:SetSize(42, 42)                                            -- difference retail code
-    MouseControls.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)      -- difference retail code
-    MouseControls.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
-    MouseControls.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
+            mouse_control_frame.Input:Hide()
+            mouse_control_frame.Save:Hide()
+            mouse_control_frame.Delete:Hide()
+            mouse_control_frame.Lock:Hide()
+            mouse_control_frame.Discard:Hide()
 
-    MouseControls.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
+            mouse_control_frame.Layout:Hide()
+            mouse_control_frame.Name:Hide()
+        end
+    end
 
-    return MouseControls
+    mouse_control_frame.Close = CreateFrame("Button", nil, mouse_control_frame, "UIPanelCloseButton")
+    mouse_control_frame.Close:SetSize(42, 42)                                                                   -- DIFFERENCE Retail Code
+    mouse_control_frame.Close:SetPoint("TOPRIGHT", 8, 8)                                                        -- DIFFERENCE Retail Code
+    mouse_control_frame.Close:SetScript("OnClick", function(s)
+        addon:DiscardMouseChanges()
+        mouse_control_frame:Hide()
+        addon.mouse_image:Hide()
+    end)
+
+    mouse_control_frame.MinMax = CreateFrame("Frame", nil, mouse_control_frame, "MaximizeMinimizeButtonFrameTemplate")
+    mouse_control_frame.MinMax:SetSize(42, 42)                                                                  -- DIFFERENCE Retail Code
+    mouse_control_frame.MinMax:SetPoint("RIGHT", MouseControls.Close, "LEFT", 18, 0)                            -- DIFFERENCE Retail Code
+    mouse_control_frame.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
+    mouse_control_frame.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
+
+    mouse_control_frame.MinMax:Minimize() -- Set the MinMax button & control frame size to Minimize
+    --MouseControls.MinMax:SetMaximizedLook() -- Set the MinMax button & control frame size to Minimize
+
+    return mouse_control_frame
 end
 
 local function GetCursorScaledPosition()
-	local scale, x, y = UIParent:GetScale(), GetCursorPosition()
-	return x / scale, y / scale
+    local scale, x, y = UIParent:GetScale(), GetCursorPosition()
+    return x / scale, y / scale
 end
 
 local function DragOrSize(self, Mousebutton)
-    local x, y = GetCursorScaledPosition()
-    if MouseLocked then
+    if self.mouse_locked then
         return -- Do nothing if not MouseLocked is selected
     end
-    self:StartMoving()
-    self.isMoving = true  -- Add a flag to indicate the frame is being moved
-    if IsShiftKeyDown() then
-        KeysMouse[self] = nil
+
+    if Mousebutton == "LeftButton" and IsShiftKeyDown() then
+        self.keys_mouse = nil
         self:Hide()
+    elseif Mousebutton == "LeftButton" then
+        self:StartMoving()
+        addon.isMoving = true -- Add a flag to indicate the frame is being moved
     end
 end
 
 local function Release(self, Mousebutton)
     if Mousebutton == "LeftButton" then
         self:StopMovingOrSizing()
-        self.isMoving = false  -- Reset the flag when the movement is stopped
+        addon.isMoving = false -- Reset the flag when the movement is stopped
     end
 end
 
-local function KeyDown(self, key)
-    if not MouseLocked and not self.isMoving then
-        if key == "RightButton" then
-            return
-        elseif key == "MiddleButton" then
-            self.label:SetText("Button3")
-        else
-            -- For all other keys, set the label to the key itself
-            self.label:SetText(key)
-        end
-    end
-end
+function addon:SaveMouseLayout()
+    local msg = addon.mouse_control_frame.Input:GetText()
 
-local function OnMouseWheel(self, delta)
-    if not MouseLocked and not self.isMoving then
-        if delta > 0 then
-            -- Mouse wheel scrolled up
-            self.label:SetText("MouseWheelUp")
-        elseif delta < 0 then
-            -- Mouse wheel scrolled down
-            self.label:SetText("MouseWheelDown")
-        end
-    end
-end
-
-function addon:MouseSaveLayout()
-    local msg = MouseControls.Input:GetText()
-    if MouseLocked == true then
+    if addon.mouse_locked == true then
         if msg ~= "" then
-            MouseControls.Input:SetText("")
-            MouseControls.Input:ClearFocus()
+            -- Clear the input field and focus
+            addon.mouse_control_frame.Input:SetText("")
+            addon.mouse_control_frame.Input:ClearFocus()
+
             print("KeyUI: Saved the new layout '" .. msg .. "'.")
-            MouseKeyEditLayouts[msg] = {}
-            for _, Mousebutton in ipairs(KeysMouse) do
+
+            -- Initialize a new table for the saved layout
+            keyui_settings.layout_edited_mouse[msg] = {}
+
+            -- Iterate through all mouse buttons to save their data
+            for _, Mousebutton in ipairs(addon.keys_mouse) do
                 if Mousebutton:IsVisible() then
-                    MouseKeyEditLayouts[msg][#MouseKeyEditLayouts[msg] + 1] = {
-                        Mousebutton.label:GetText(),
-                        "Mouse",
-                        floor(Mousebutton:GetLeft() - MouseFrame:GetLeft() + 0.5),
-                        floor(Mousebutton:GetTop() - MouseFrame:GetTop() + 0.5),
-                        floor(Mousebutton:GetWidth() + 0.5),
-                        floor(Mousebutton:GetHeight() + 0.5)
+                    -- Save button properties: label, position, width, and height
+                    keyui_settings.layout_edited_mouse[msg][#keyui_settings.layout_edited_mouse[msg] + 1] = {
+                        Mousebutton.raw_key,                                                -- Button name
+                        floor(Mousebutton:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
+                        floor(Mousebutton:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
+                        floor(Mousebutton:GetWidth() + 0.5),                                -- Width
+                        floor(Mousebutton:GetHeight() + 0.5)                                -- Height
                     }
                 end
             end
-            wipe(CurrentLayoutMouse)
-            CurrentLayoutMouse[msg] = MouseKeyEditLayouts[msg]
-            addon:RefreshKeys()
-            UIDropDownMenu_SetText(self.ddChangerMouse, msg)
+
+            -- Clear the current layout and assign the new one
+            wipe(keyui_settings.layout_current_mouse)
+            keyui_settings.layout_current_mouse[msg] = keyui_settings.layout_edited_mouse[msg]
+
+            -- Remove Keyboard edited flag
+            addon.keys_mouse_edited = false
+
+            -- Remove Save Button and Input Field Glow
+            addon.mouse_control_frame.glowBoxSave:Hide()
+            addon.mouse_control_frame.glowBoxInput:Hide()
+
+            -- Refresh the keys and update the dropdown menu
+            addon:refresh_layouts()
+            UIDropDownMenu_SetText(addon.mouse_selector, msg)
         else
             print("KeyUI: Please enter a name for the layout before saving.")
         end
@@ -438,330 +511,312 @@ function addon:MouseSaveLayout()
     end
 end
 
-function addon:SwitchBoardMouse()
-    if addonOpen == true and addon.MouseFrame then
-        if CurrentLayoutMouse then
-            
-            -- Calculate the center of the Mouse frame once
-            local cx, cy = addon.MouseFrame:GetCenter()
+-- Discards any changes made to the mouse layout and resets the Control UI state
+function addon:DiscardMouseChanges()
+    
+    if addon.keys_mouse_edited == true or addon.mouse_locked == false then
+        -- Print message to the player
+        print("KeyUI: Changes discarded. The mouse is reset and locked.")
+    end
+
+    -- Remove mouse locked flag
+    addon.mouse_locked = true
+
+    -- Remove mouse edited flag
+    addon.keys_mouse_edited = false
+
+    -- Remove Lock Button, Save Button and Input Field Glow
+    if addon.mouse_control_frame.glowBoxLock then
+        addon.mouse_control_frame.glowBoxLock:Hide()
+    end
+    if addon.mouse_control_frame.glowBoxSave then
+        addon.mouse_control_frame.glowBoxSave:Hide()
+    end
+    if addon.mouse_control_frame.glowBoxInput then
+        addon.mouse_control_frame.glowBoxInput:Hide()
+    end
+
+    -- Update the Lock button text
+    if addon.mouse_control_frame.LockText then
+        addon.mouse_control_frame.LockText:SetText("Unlock")
+    end
+
+    -- clear mouse text input field (name)
+    if addon.mouse_control_frame.Input then
+        addon.mouse_control_frame.Input:SetText("")
+        addon.mouse_control_frame.Input:ClearFocus()
+    end
+
+    addon:refresh_layouts()
+end
+
+-- This function updates the mouse layout by creating, positioning, and resizing key frames based on the current configuration.
+function addon:generate_mouse_key_frames()
+    -- Clear existing Keys to avoid leftover data from previous layouts
+    for i = 1, #addon.keys_mouse do
+        addon.keys_mouse[i]:Hide()
+        addon.keys_mouse[i] = nil
+    end
+    addon.keys_mouse = {}
+
+    if addon.open == true and addon.mouse_frame then
+
+        -- Check if the layout is empty
+        local layout_not_empty = false
+        for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
+            if #layoutData > 0 then
+                layout_not_empty = true
+                break
+            end
+        end
+
+        -- Only proceed if there is a valid layout
+        if layout_not_empty then
+            local cx, cy = addon.mouse_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
-            for _, layoutData in pairs(CurrentLayoutMouse) do
+            for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
                 for i = 1, #layoutData do
-                    local MouseKey = KeysMouse[i] or self:NewButtonMouse()
-                    local CurrentLayoutMouse = layoutData[i]
+                    local button = addon.keys_mouse[i] or addon:CreateMouseButtons()
+                    local button_data = layoutData[i]
 
-                    if CurrentLayoutMouse[5] then
-                        MouseKey:SetWidth(CurrentLayoutMouse[5])
-                        MouseKey:SetHeight(CurrentLayoutMouse[6])
+                    if button_data[4] then
+                        button:SetWidth(button_data[4])
+                        button:SetHeight(button_data[5])
                     else
-                        MouseKey:SetWidth(85)
-                        MouseKey:SetHeight(85)
+                        button:SetWidth(50)
+                        button:SetHeight(50)
                     end
 
-                    if not KeysMouse[i] then
-                        KeysMouse[i] = MouseKey
+                    if not addon.keys_mouse[i] then
+                        addon.keys_mouse[i] = button
                     end
 
-                    MouseKey:SetPoint("TOPRIGHT", self.MouseFrame, "TOPRIGHT", CurrentLayoutMouse[3], CurrentLayoutMouse[4])
-                    MouseKey.label:SetText(CurrentLayoutMouse[1])
-                    local tempframe = MouseKey
-                    tempframe:Show()
-                end
-            end
+                    button:SetPoint("TOPRIGHT", addon.mouse_frame, "TOPRIGHT", button_data[2], button_data[3])
+                    button.raw_key = button_data[1]
+                    button:Show()
 
-            -- After all buttons are added, set the size of the Mouse frame
-            for i = 1, #KeysMouse do
-                local l, r, t, b = KeysMouse[i]:GetLeft(), KeysMouse[i]:GetRight(), KeysMouse[i]:GetTop(), KeysMouse[i]:GetBottom()
+                    -- Track the extreme positions for frame resizing
+                    local l, r, t, b = button:GetLeft(), button:GetRight(), button:GetTop(), button:GetBottom()
 
-                if l < left then
-                    left = l
-                end
-                if r > right then
-                    right = r
-                end
-                if t > top then
-                    top = t
-                end
-                if b < bottom then
-                    bottom = b
+                    if l < left then left = l end
+                    if r > right then right = r end
+                    if t > top then top = t end
+                    if b < bottom then bottom = b end
                 end
             end
         end
     end
 end
 
-function addon:NewButtonMouse()
-    local Mousebutton = CreateFrame("FRAME", nil, Mouseholder, "TooltipBorderedFrameTemplate")
-    Mousebutton:SetMovable(true)
-    Mousebutton:EnableMouse(true)
-	Mousebutton:EnableKeyboard(true)
-    Mousebutton:SetBackdropColor(0, 0, 0, 1)
+-- Create a new button to the main mouse image frame.
+function addon:CreateMouseButtons()
 
-    Mousebutton.label = Mousebutton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Mousebutton.label:SetFont("Fonts\\ARIALN.TTF", 12, "OUTLINE")
-    Mousebutton.label:SetTextColor(1, 1, 1, 0.9)
-    Mousebutton.label:SetHeight(50)
-    Mousebutton.label:SetWidth(54)
-    Mousebutton.label:SetPoint("CENTER", Mousebutton, "CENTER", 0, 6)
-    Mousebutton.label:SetJustifyH("CENTER")
-    Mousebutton.label:SetJustifyV("BOTTOM")
-    
-    --button.macro = Blizzard ID Commands
-    Mousebutton.macro = Mousebutton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Mousebutton.macro:SetText("")
-    Mousebutton.macro:Hide()
+    -- Create a frame that acts as a button with a tooltip border.
+    local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "BackdropTemplate")
 
-    --button.interfaceaction = Blizzard ID changed to readable Text
-    Mousebutton.interfaceaction = Mousebutton:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    Mousebutton.interfaceaction:SetFont("Fonts\\ARIALN.TTF", 8, "OUTLINE")
-    Mousebutton.interfaceaction:SetTextColor(1, 1, 1)
-    Mousebutton.interfaceaction:SetHeight(20)
-    Mousebutton.interfaceaction:SetWidth(44)
-    Mousebutton.interfaceaction:SetPoint("TOP", Mousebutton, "TOP", 0, -6)
-    Mousebutton.interfaceaction:SetText("")
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
 
-    Mousebutton.icon = Mousebutton:CreateTexture(nil, "ARTWORK")
-    Mousebutton.icon:SetSize(40, 40)
-    Mousebutton.icon:SetPoint("TOPLEFT", Mousebutton, "TOPLEFT", 5, -5)
+    mouse_button:SetBackdrop(backdropInfo)
+    mouse_button:SetBackdropColor(0, 0, 0, 1)
+    mouse_button:SetBackdropBorderColor(1, 1, 1)
 
-    Mousebutton:SetScript("OnEnter", function()
-        addon:ButtonMouseOver(Mousebutton)
-        Mousebutton:EnableKeyboard(true)
-        Mousebutton:EnableMouseWheel(true)
-        Mousebutton:SetScript("OnKeyDown", KeyDown)
-        Mousebutton:SetScript("OnMouseWheel", OnMouseWheel)
-    
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
-    
+    mouse_button:SetMovable(true)
+    mouse_button:EnableMouse(true)
+    mouse_button:EnableKeyboard(true)
+
+    -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
+    mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.short_key:SetTextColor(1, 1, 1)
+    mouse_button.short_key:SetHeight(20)
+    --mouse_button.short_key:SetWidth(42)   -- will be calculated in addon:SetKey
+    mouse_button.short_key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
+    mouse_button.short_key:SetJustifyH("RIGHT")
+    mouse_button.short_key:SetJustifyV("TOP")
+    mouse_button.short_key:Show()
+
+    -- Font string to display the interface action text (toggled by function addon:create_action_labels)
+    mouse_button.readable_binding = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    mouse_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
+    mouse_button.readable_binding:SetTextColor(1, 1, 1)
+    mouse_button.readable_binding:SetHeight(25)
+    --mouse_button.readable_binding:SetWidth(46)    -- will be calculated in addon:create_action_labels
+    mouse_button.readable_binding:SetPoint("BOTTOM", mouse_button, "BOTTOM", 1, 6)
+    mouse_button.readable_binding:SetJustifyV("BOTTOM")
+    mouse_button.readable_binding:SetText("")
+
+    mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
+    mouse_button.icon:SetSize(42, 42)
+    mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
+    mouse_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+
+    mouse_button:SetScript("OnEnter", function(self)
+        addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip
+        addon:ButtonMouseOver(mouse_button)
+        mouse_button:EnableKeyboard(true)
+        mouse_button:EnableMouseWheel(true)
+
+        local active_slot = self.active_slot
+
+        if addon.mouse_locked == false and not addon.isMoving then
+
+            mouse_button:SetScript("OnKeyDown", function(_, key)
+                addon:HandleKeyDown(mouse_button, key)
+                addon.keys_mouse_edited = true
+            end)
+        
+            mouse_button:SetScript("OnMouseWheel", function(_, delta)
+                addon:HandleMouseWheel(mouse_button, delta)
+                addon.keys_mouse_edited = true
+            end)
+
+        end
+
         -- Only show the PushedTexture if the setting is enabled
-        if KeyUI_Settings.showPushedTexture then
-            -- Check if currentActionBarPage is valid and map it to adjustedSlot
-            if currentActionBarPage and Mousebutton.slot then
-                -- Calculate the adjustedSlot based on currentActionBarPage
-                local adjustedSlot = Mousebutton.slot
-                if currentActionBarPage == 3 and Mousebutton.slot >= 25 and Mousebutton.slot <= 36 then
-                    adjustedSlot = Mousebutton.slot - 24  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and Mousebutton.slot >= 37 and Mousebutton.slot <= 48 then
-                    adjustedSlot = Mousebutton.slot - 36  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and Mousebutton.slot >= 49 and Mousebutton.slot <= 60 then
-                    adjustedSlot = Mousebutton.slot - 48  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and Mousebutton.slot >= 61 and Mousebutton.slot <= 72 then
-                    adjustedSlot = Mousebutton.slot - 60  -- Map to ActionButton1-12
-                end
-                
-                -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
-                if mappedButton then
-                    local normalTexture = mappedButton:GetNormalTexture()
-                    if normalTexture and normalTexture:IsVisible() then
-                        local pushedTexture = mappedButton:GetPushedTexture()
-                        if pushedTexture then
-                            pushedTexture:Show()  -- Show the pushed texture
-                            --print("Showing PushedTexture for button in slot", Mousebutton.slot)
-                        end
+        if keyui_settings.show_pushed_texture then
+            -- Look up the correct button in TextureMappings using the adjusted slot number
+            local mapped_button = addon.button_texture_mapping[tostring(active_slot)]
+            if mapped_button then
+                local normal_texture = mapped_button:GetNormalTexture()
+                if normal_texture and normal_texture:IsVisible() then
+                    local pushed_texture = mapped_button:GetPushedTexture()
+                    if pushed_texture then
+                        pushed_texture:Show() -- Show the pushed texture
+                        addon.current_pushed_button = pushed_texture -- save the current pushed button to hide when modifier pushed
                     end
                 end
             end
         end
     end)
-    
-    Mousebutton:SetScript("OnLeave", function()
+
+    mouse_button:SetScript("OnLeave", function()
+        addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
-        KeyUITooltip:Hide()
-        Mousebutton:EnableKeyboard(false)
-        Mousebutton:EnableMouseWheel(false)
-        Mousebutton:SetScript("OnKeyDown", nil)
-    
-        -- Get the current action bar page
-        local currentActionBarPage = GetActionBarPage()
-    
-        if KeyUI_Settings.showPushedTexture then
-            -- Check if currentActionBarPage is valid and map it to adjustedSlot
-            if currentActionBarPage and Mousebutton.slot then
-                -- Calculate the adjustedSlot based on currentActionBarPage
-                local adjustedSlot = Mousebutton.slot
-                if currentActionBarPage == 3 and Mousebutton.slot >= 25 and Mousebutton.slot <= 36 then
-                    adjustedSlot = Mousebutton.slot - 24  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 4 and Mousebutton.slot >= 37 and Mousebutton.slot <= 48 then
-                    adjustedSlot = Mousebutton.slot - 36  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 5 and Mousebutton.slot >= 49 and Mousebutton.slot <= 60 then
-                    adjustedSlot = Mousebutton.slot - 48  -- Map to ActionButton1-12
-                elseif currentActionBarPage == 6 and Mousebutton.slot >= 61 and Mousebutton.slot <= 72 then
-                    adjustedSlot = Mousebutton.slot - 60  -- Map to ActionButton1-12
-                end
-    
-                -- Look up the correct button in TextureMappings using the adjustedSlot
-                local mappedButton = TextureMappings[tostring(adjustedSlot)]
-                if mappedButton then
-                    local pushedTexture = mappedButton:GetPushedTexture()
-                    if pushedTexture then
-                        pushedTexture:Hide()  -- Hide the pushed texture
-                        --print("Hiding PushedTexture for button in slot", Mousebutton.slot)
-                    end
-                end
-            end
+        addon.keyui_tooltip_frame:Hide()
+        mouse_button:EnableKeyboard(false)
+        mouse_button:EnableMouseWheel(false)
+
+        if addon.current_pushed_button then
+            addon.current_pushed_button:Hide()
+            addon.current_pushed_button = nil -- Clear the current pushed button
         end
     end)
 
-    Mousebutton:SetScript("OnMouseDown", function(self, button)
+    mouse_button:SetScript("OnMouseDown", function(self, button)
+
+        local slot = self.slot
+
         if button == "LeftButton" then
-            if MouseLocked == false then
+            if addon.mouse_locked == false then
                 DragOrSize(self, button)
+                addon.keys_mouse_edited = true
             else
-                addon.currentKey = self
-                local key = addon.currentKey.macro:GetText()
-
-                -- Define class and bonus bar offset and action bar page
-                local classFilename = UnitClassBase("player")
-                local bonusBarOffset = GetBonusBarOffset()
-                local currentActionBarPage = GetActionBarPage()
-
-                local actionSlot = SlotMappings[key]
-
-                if actionSlot then
-                    -- Adjust action slot based on current action bar page
-                    local adjustedSlot = tonumber(actionSlot)
-
-                    -- Handle bonus bar offsets for ROGUE and DRUID
-                    if (classFilename == "ROGUE" or classFilename == "DRUID") and bonusBarOffset ~= 0 and currentActionBarPage == 1 then
-                        if bonusBarOffset == 1 then
-                            adjustedSlot = adjustedSlot + 72 -- Maps to 73-84
-                        elseif bonusBarOffset == 2 then
-                            adjustedSlot = adjustedSlot -- No change for offset 2
-                        elseif bonusBarOffset == 3 then
-                            adjustedSlot = adjustedSlot + 96 -- Maps to 97-108
-                        elseif bonusBarOffset == 4 then
-                            adjustedSlot = adjustedSlot + 108 -- Maps to 109-120
-                        elseif bonusBarOffset == 5 then
-                            adjustedSlot = adjustedSlot -- No change for offset 5
-                        end
-                    end
-
-                    -- Adjust based on current action bar page
-                    if currentActionBarPage == 2 then
-                        adjustedSlot = adjustedSlot + 12 -- For ActionBarPage 2, adjust slots by +12 (13-24)
-                    elseif currentActionBarPage == 3 then
-                        adjustedSlot = adjustedSlot + 24 -- For ActionBarPage 3, adjust slots by +24 (25-36)
-                    elseif currentActionBarPage == 4 then
-                        adjustedSlot = adjustedSlot + 36 -- For ActionBarPage 4, adjust slots by +36 (37-48)
-                    elseif currentActionBarPage == 5 then
-                        adjustedSlot = adjustedSlot + 48 -- For ActionBarPage 5, adjust slots by +48 (49-60)
-                    elseif currentActionBarPage == 6 then
-                        adjustedSlot = adjustedSlot + 60 -- For ActionBarPage 6, adjust slots by +60 (61-72)
-                    end
-
-                    -- Ensure adjustedSlot is valid before picking up
-                    if adjustedSlot >= 1 and adjustedSlot <= 120 then  -- Adjust the upper limit as necessary
-                        PickupAction(adjustedSlot)
-                        addon:RefreshKeys()
-                    else
-                        -- Optionally handle cases where the adjusted slot is out of range
-                        PickupAction(actionSlot)
-                        addon:RefreshKeys()
-                    end
+                if slot then
+                    PickupAction(slot)
                 end
             end
         else
-            KeyDown(self, button)
+            if addon.mouse_locked == false then
+                addon:HandleKeyDown(self, button)
+                addon.keys_mouse_edited = true
+            end
         end
     end)
 
-    Mousebutton:SetScript("OnMouseUp", function(self, button)
+    mouse_button:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
-            if MouseLocked == false then  
+            if addon.mouse_locked == false then
                 Release(self, button)
-            else
-                infoType, info1, info2 = GetCursorInfo()
-                if infoType == "spell" then
-                    local spellname = C_SpellBook.GetSpellBookItemName(info1, Enum.SpellBookSpellBank.Player)
-                    addon.currentKey = self
-                    local key = addon.currentKey.macro:GetText()
-                    local actionSlot = SlotMappings[key]
-                    if actionSlot then
-                        PlaceAction(actionSlot)
-                        ClearCursor()
-                        addon:RefreshKeys()
-                    end
-                end
             end
         elseif button == "RightButton" then
-            addon.currentKey = self
-            ToggleDropDownMenu(1, nil, KBDropDown, self, 30, 20)
+            addon.current_clicked_key = self    -- save the current clicked key
+            addon.current_slot = self.slot      -- save the current clicked slot
+            ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
         end
     end)
 
-	KeysMouse[Mousebutton] = Mousebutton
-	
-	return Mousebutton	
+    -- Store the created button in the keyboard_buttons table
+    if not self.mouse_buttons then
+        self.mouse_buttons = {}  -- Initialize the table if it doesn't exist
+    end
+    table.insert(self.mouse_buttons, mouse_button)  -- Add the new button to the table
+
+    return mouse_button
 end
 
-function addon:CreateChangerDDMouse()
-    local KBChangeBoardDDMouse = CreateFrame("Frame", "KBChangeBoardDDMouse", MouseControls, "UIDropDownMenuTemplate")
+function addon:MouseLayoutSelecter()
+    local MouseLayoutSelecter = CreateFrame("Frame", nil, addon.mouse_control_frame, "UIDropDownMenuTemplate")
+    addon.mouse_selector = MouseLayoutSelecter
 
-    KBChangeBoardDDMouse:SetPoint("TOP", MouseControls, "TOP", -20, -10)
-    UIDropDownMenu_SetWidth(KBChangeBoardDDMouse, 120)
-    UIDropDownMenu_SetButtonWidth(KBChangeBoardDDMouse, 120)
-    KBChangeBoardDDMouse:Hide()
+    UIDropDownMenu_SetWidth(MouseLayoutSelecter, 120)
+    UIDropDownMenu_SetButtonWidth(MouseLayoutSelecter, 120)
+    MouseLayoutSelecter:Hide()
 
-    local boardOrder = {"Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle"}
+    local boardOrder = { "Layout_4x3", 'Layout_2+4x3', "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2",
+        "Layout_2x1", "Layout_Circle" }
 
-    local function ChangeBoardDDMouse_Initialize(self, level)
+    local function MouseLayoutSelecter_Initialize(self, level)
         level = level or 1
         local info = UIDropDownMenu_CreateInfo()
         local value = UIDROPDOWNMENU_MENU_VALUE
 
         for _, name in ipairs(boardOrder) do
-            local Mousebuttons = KeyBindAllBoardsMouse[name]
+            local Mousebuttons = addon.default_mouse_layouts[name]
             info.text = name
             info.value = name
             info.colorCode = "|cFFFFFFFF" -- white
             info.func = function()
-                KeyBindSettingsMouse.currentboard = name
-                wipe(CurrentLayoutMouse)
-                CurrentLayoutMouse = {[name] = KeyBindAllBoardsMouse[name]}
-                addon:RefreshKeys()
+                -- Discard Mouse Editor Changes
+                if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+                    -- Discard any Editor Changes
+                    addon:DiscardMouseChanges()
+                else
+                    -- clear text input field (DiscardMouseChanges does it already)
+                    addon.mouse_control_frame.Input:SetText("")
+                    addon.mouse_control_frame.Input:ClearFocus()
+                end
+                keyui_settings.key_bind_settings_mouse.currentboard = name
+                wipe(keyui_settings.layout_current_mouse)
+                keyui_settings.layout_current_mouse = { [name] = addon.default_mouse_layouts[name] }
+                addon:refresh_layouts()
                 UIDropDownMenu_SetText(self, name)
-                MouseControls.Input:SetText("")
-                MouseControls.Input:ClearFocus()
             end
             UIDropDownMenu_AddButton(info, level)
         end
 
-        if type(MouseKeyEditLayouts) == "table" then
-            for name, layout in pairs(MouseKeyEditLayouts) do
+        if type(keyui_settings.layout_edited_mouse) == "table" then
+            for name, layout in pairs(keyui_settings.layout_edited_mouse) do
                 info.text = name
                 info.value = name
                 info.colorCode = "|cffff8000"
                 info.func = function()
-                    wipe(CurrentLayoutMouse)
-                    CurrentLayoutMouse[name] = layout
-                    addon:RefreshKeys()
+                    -- Discard Mouse Editor Changes
+                    if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+                        -- Discard any Editor Changes
+                        addon:DiscardMouseChanges()
+                    else
+                        -- clear text input field (DiscardMouseChanges does it already)
+                        addon.mouse_control_frame.Input:SetText("")
+                        addon.mouse_control_frame.Input:ClearFocus()
+                    end
+                    wipe(keyui_settings.layout_current_mouse)
+                    keyui_settings.layout_current_mouse[name] = layout
+                    addon:refresh_layouts()
                     UIDropDownMenu_SetText(self, name)
-                    MouseControls.Input:SetText("")
-                    MouseControls.Input:ClearFocus()
                 end
                 UIDropDownMenu_AddButton(info, level)
             end
-        else
-            return
         end
-        
-        --info.text = "New Layout"
-        --info.value = "New Layout"
-        --info.colorCode = "|cFFFFFF00" -- Yellow
-        --info.func = function()
-        --    Mouse.Input:SetText("New Layout")
-        --    for _, k in pairs(KeysMouse) do
-        --        k:Hide()
-        --    end
-        --    UIDropDownMenu_SetText(self, "New Layout")
-        --end
-        --UIDropDownMenu_AddButton(info, level)
-
     end
-    UIDropDownMenu_Initialize(KBChangeBoardDDMouse, ChangeBoardDDMouse_Initialize)
-    self.ddChangerMouse = KBChangeBoardDDMouse
-    return KBChangeBoardDDMouse
+
+    UIDropDownMenu_Initialize(MouseLayoutSelecter, MouseLayoutSelecter_Initialize)
+
+    return MouseLayoutSelecter
 end

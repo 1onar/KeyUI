@@ -12,25 +12,14 @@
 ## Notes: Visualize your keyboard, mouse and keybinds.
 ## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
 
-## SavedVariables: KeyUI_Settings
-## SavedVariables: MiniMapDB
-## SavedVariables: KeyboardPosition
-## SavedVariables: MousePosition
-## SavedVariables: ShowEmptyBinds
-## SavedVariables: ShowInterfaceBinds
-## SavedVariables: KeyBindSettings
-## SavedVariables: KeyBindSettingsMouse
-## SavedVariables: MouseKeyEditLayouts
-## SavedVariables: KeyboardEditLayouts
-## SavedVariables: CurrentLayoutMouse
-## SavedVariables: CurrentLayoutKeyboard
-## SavedVariables: tutorialCompleted
+## SavedVariables: keyui_settings
 
 embeds.xml
 
+Variables.lua
+KeyUI.lua
 Mappings.lua
 LayoutsKeyboard.lua
 LayoutsMouse.lua
 MouseFrame.lua
 KeyboardFrame.lua
-KeyUI.lua
