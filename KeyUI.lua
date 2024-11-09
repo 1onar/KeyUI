@@ -786,7 +786,7 @@ function addon:SetKey(button)
 
         -- Calculate the maximum allowed characters based on button width
         local max_allowed_chars = math.floor(button:GetWidth() / 9)
-        local combined_text = button.short_key:GetText() or ""  -- Use empty string if GetText() returns nil
+        local combined_text = button.short_key:GetText() or ""  -- Combined text with modifiers if present / Use empty string if GetText() returns nil
 
         -- Use Condensed font if the combined text exceeds max_allowed_chars
         if string.len(combined_text) > max_allowed_chars then
