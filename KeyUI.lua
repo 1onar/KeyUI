@@ -282,8 +282,8 @@ function addon:Load()
     addon:refresh_layouts()
 end
 
-function addon:LoadSpells()
-    addon.spells = {}
+function addon:LoadSpells()                                                                                     -- DIFFERENCE Retail Code
+    addon.spells = {}                                                                                           
 
     -- Loop through all spellbook tabs in Classic WoW
     for i = 1, GetNumSpellTabs() do
@@ -305,7 +305,7 @@ function addon:LoadSpells()
             end
         end
     end
-end
+end                                                                                                             -- DIFFERENCE Retail Code
 
 -- Update the visibility of keyboard and mouse based on settings, only if addon is open
 function addon:UpdateInterfaceVisibility()
@@ -785,7 +785,7 @@ function addon:SetKey(button)
         end
 
         -- Calculate the maximum allowed characters based on button width
-        local max_allowed_chars = math.floor(button:GetWidth() / 8)
+        local max_allowed_chars = math.floor(button:GetWidth() / 9)
         local combined_text = button.short_key:GetText()  -- Combined text with modifiers if present
 
         -- Use Condensed font if the combined text exceeds max_allowed_chars

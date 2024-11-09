@@ -726,7 +726,7 @@ function addon:CreateKeyboardControl()
 
     keyboard_control_frame.MinMax = CreateFrame("Frame", nil, keyboard_control_frame, "MaximizeMinimizeButtonFrameTemplate")
     keyboard_control_frame.MinMax:SetSize(34, 34) 
-    keyboard_control_frame.MinMax:SetPoint("RIGHT", Controls.Close, "LEFT", 14, 0)
+    keyboard_control_frame.MinMax:SetPoint("RIGHT", keyboard_control_frame.Close, "LEFT", 14, 0)
     keyboard_control_frame.MinMax:SetOnMaximizedCallback(OnMaximize)                                            -- DIFFERENCE Retail Code
     keyboard_control_frame.MinMax:SetOnMinimizedCallback(OnMinimize)                                            -- DIFFERENCE Retail Code
 
