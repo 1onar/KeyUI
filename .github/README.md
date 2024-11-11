@@ -2,7 +2,7 @@
 
 KeyUI displays your keyboard and mouse to show what each button is bound to. It helps you manage and adjust your key configurations, whether you're revisiting an old character, starting a new one, or simply looking to enhance your keybinds.
 
-![WoWScrnShot_110924_002525](https://github.com/user-attachments/assets/b6dbc0bc-cd7c-4461-a17a-cb37b07ccf24)
+![WoWScrnShot_111124_231056](https://github.com/user-attachments/assets/d0020bfe-f7af-4f4b-8923-4ce53003e59a)
 
 
 ## Features:
