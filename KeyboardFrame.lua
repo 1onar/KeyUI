@@ -94,7 +94,7 @@ function addon:CreateKeyboardFrame()
     }
 
     keyboard_frame:SetBackdrop(backdropInfo)
-    keyboard_frame:SetBackdropColor(0, 0, 0, 1)
+    keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
     keyboard_frame:SetBackdropBorderColor(1, 1, 1, 1)
 
     -- Load the saved position if it exists
@@ -914,18 +914,24 @@ function addon:CreateKeyboardButtons()
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
 
+    -- Create the backdrop for the background only (no edge)
     local backdropInfo = {
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        bgFile = "Interface\\AddOns\\KeyUI\\Media\\darkgrey-bg",
         tile = true,
         tileSize = 8,
-        edgeSize = 14,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        insets = { left = 4, right = 4, top = 1, bottom = 4 }
     }
-
     keyboard_button:SetBackdrop(backdropInfo)
-    keyboard_button:SetBackdropColor(0, 0, 0, 1)
-    keyboard_button:SetBackdropBorderColor(1, 1, 1)
+
+    -- Create a separate frame for the edge and apply only the edge (no background)
+    keyboard_button.edge = CreateFrame("Frame", nil, keyboard_button, "BackdropTemplate")
+    keyboard_button.edge:SetAllPoints()
+    local edgeBackdropInfo = {
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\keycap-edge",
+        edgeSize = 30,
+    }
+    keyboard_button.edge:SetBackdrop(edgeBackdropInfo)
+    keyboard_button.edge:SetFrameLevel(keyboard_button:GetFrameLevel() + 1)  -- Set this higher than the background
 
     -- Keyboard Keybind text string on the top right of the button (e.g. a-c-s-1)
     keyboard_button.short_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -943,15 +949,21 @@ function addon:CreateKeyboardButtons()
     keyboard_button.readable_binding:SetTextColor(1, 1, 1)
     keyboard_button.readable_binding:SetHeight(30)
     --keyboard_button.readable_binding:SetWidth(56)     -- will be calculated in addon:create_action_labels
-    keyboard_button.readable_binding:SetPoint("BOTTOM", keyboard_button, "BOTTOM", 1, 6)
+    keyboard_button.readable_binding:SetPoint("BOTTOM", keyboard_button, "BOTTOM", 1, 12)
     keyboard_button.readable_binding:SetJustifyV("BOTTOM")
     keyboard_button.readable_binding:SetText("")
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
     keyboard_button.icon:SetSize(52, 52)
-    keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 0)
+    keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
     keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+
+    -- Highlight texture for the button.
+    keyboard_button.highlight = keyboard_button:CreateTexture(nil, "ARTWORK")
+    keyboard_button.highlight:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
+    keyboard_button.highlight:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+    keyboard_button.highlight:Hide()
 
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function(self)

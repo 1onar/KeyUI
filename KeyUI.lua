@@ -864,12 +864,14 @@ function addon:highlight_empty_binds()
 
                     -- reset background before highlighting
                     if not addon.no_highlight[key_name] then
-                        keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                        keyboard_button.highlight:Hide()
                     end
 
                     -- Check if the bind is empty and the key is not on the excluded list
                     if binding == "" and not addon.no_highlight[key_name] then
-                        keyboard_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\red") -- Red color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             end
@@ -903,7 +905,7 @@ function addon:highlight_empty_binds()
         -- Reset color for all buttons when not showing empty binds
         if self.keyboard_buttons then
             for _, keyboard_button in pairs(self.keyboard_buttons) do
-                keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                keyboard_button.highlight:Hide()
             end
         end
 
@@ -1017,7 +1019,9 @@ local function HandleKeyPress(key)
                 -- Change background color for LALT key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "LALT" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             elseif key == "RALT" then
@@ -1028,7 +1032,9 @@ local function HandleKeyPress(key)
                 -- Change background color for RALT key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "RALT" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             elseif key == "LCTRL" then
@@ -1039,7 +1045,9 @@ local function HandleKeyPress(key)
                 -- Change background color for LCTRL key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "LCTRL" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             elseif key == "RCTRL" then
@@ -1050,7 +1058,9 @@ local function HandleKeyPress(key)
                 -- Change background color for RCTRL key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "RCTRL" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             elseif key == "LSHIFT" then
@@ -1061,7 +1071,9 @@ local function HandleKeyPress(key)
                 -- Change background color for LSHIFT key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "LSHIFT" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             elseif key == "RSHIFT" then
@@ -1072,7 +1084,9 @@ local function HandleKeyPress(key)
                 -- Change background color for RSHIFT key
                 for _, keyboard_button in pairs(addon.keyboard_buttons) do
                     if keyboard_button.raw_key == "RSHIFT" then
-                        keyboard_button:SetBackdropColor(1, 1, 1, 1)
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:Show()
                     end
                 end
             end
@@ -1092,7 +1106,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for LALT key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "LALT" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         elseif key == "RALT" then
@@ -1103,7 +1117,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for RALT key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "RALT" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         elseif key == "LCTRL" then
@@ -1114,7 +1128,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for LCTRL key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "LCTRL" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         elseif key == "RCTRL" then
@@ -1125,7 +1139,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for RCTRL key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "RCTRL" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         elseif key == "LSHIFT" then
@@ -1136,7 +1150,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for LSHIFT key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "LSHIFT" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         elseif key == "RSHIFT" then
@@ -1147,7 +1161,7 @@ local function HandleKeyRelease(key)
             -- Reset background color for RSHIFT key
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
                 if keyboard_button.raw_key == "RSHIFT" then
-                    keyboard_button:SetBackdropColor(0, 0, 0, 1)
+                    keyboard_button.highlight:Hide()
                 end
             end
         end

@@ -388,7 +388,6 @@ addon.no_highlight = {
     ["BACKSPACE"] = true,
     ["ENTER"] = true,
     ["NUMPADENTER"] = true,
-    ["SPACE"] = true,
     ["LWIN"] = true,
     ["RWIN"] = true,
     ["MENU"] = true,
