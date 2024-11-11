@@ -892,12 +892,14 @@ function addon:highlight_empty_binds()
 
                     -- reset background before highlighting
                     if not addon.no_highlight[key_name] then
-                        mouse_button:SetBackdropColor(0, 0, 0, 1)
+                        mouse_button.highlight:Hide()
                     end
 
                     -- Check if the bind is empty and the key is not on the excluded list
                     if binding == "" and not addon.no_highlight[key_name] then
-                        mouse_button:SetBackdropColor(1, 0, 0, 1) -- Red color for empty keys
+                        mouse_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\red") -- Red color for empty keys
+                        mouse_button.highlight:SetSize(mouse_button:GetWidth() - 8, mouse_button:GetHeight() - 8)  -- Dynamically set the size based on keyboard_button's width and height
+                        mouse_button.highlight:Show()
                     end
                 end
             end

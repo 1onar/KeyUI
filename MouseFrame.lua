@@ -615,18 +615,24 @@ function addon:CreateMouseButtons()
     -- Create a frame that acts as a button with a tooltip border.
     local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "BackdropTemplate")
 
+    -- Create the backdrop for the background only (no edge)
     local backdropInfo = {
-        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        bgFile = "Interface\\AddOns\\KeyUI\\Media\\darkgrey_bg",
         tile = true,
         tileSize = 8,
-        edgeSize = 14,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+        insets = { left = 3, right = 3, top = 3, bottom = 3 }
     }
-
     mouse_button:SetBackdrop(backdropInfo)
-    mouse_button:SetBackdropColor(0, 0, 0, 1)
-    mouse_button:SetBackdropBorderColor(1, 1, 1)
+
+    -- Create a separate frame for the edge and apply only the edge (no background)
+    mouse_button.edge = CreateFrame("Frame", nil, mouse_button, "BackdropTemplate")
+    mouse_button.edge:SetAllPoints()
+    local edgeBackdropInfo = {
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        edgeSize = 16,
+    }
+    mouse_button.edge:SetBackdrop(edgeBackdropInfo)
+    mouse_button.edge:SetFrameLevel(mouse_button:GetFrameLevel() + 1)  -- Set this higher than the background
 
     mouse_button:SetMovable(true)
     mouse_button:EnableMouse(true)
@@ -637,7 +643,7 @@ function addon:CreateMouseButtons()
     mouse_button.short_key:SetTextColor(1, 1, 1)
     mouse_button.short_key:SetHeight(20)
     --mouse_button.short_key:SetWidth(42)   -- will be calculated in addon:SetKey
-    mouse_button.short_key:SetPoint("TOPRIGHT", mouse_button, "TOPRIGHT", -6, -6)
+    mouse_button.short_key:SetPoint("TOP", mouse_button, "TOP", 0, -6)
     mouse_button.short_key:SetJustifyH("RIGHT")
     mouse_button.short_key:SetJustifyV("TOP")
     mouse_button.short_key:Show()
@@ -652,10 +658,17 @@ function addon:CreateMouseButtons()
     mouse_button.readable_binding:SetJustifyV("BOTTOM")
     mouse_button.readable_binding:SetText("")
 
+    -- Icon texture for the button.
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
     mouse_button.icon:SetSize(42, 42)
     mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
-    mouse_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
+    mouse_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+
+    -- Highlight texture for the button.
+    mouse_button.highlight = mouse_button:CreateTexture(nil, "ARTWORK")
+    mouse_button.highlight:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
+    mouse_button.highlight:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+    mouse_button.highlight:Hide()
 
     mouse_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip
