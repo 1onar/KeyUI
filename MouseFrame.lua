@@ -425,7 +425,7 @@ function addon:CreateMouseControl()
 
     mouse_control_frame.MinMax = CreateFrame("Frame", nil, mouse_control_frame, "MaximizeMinimizeButtonFrameTemplate")
     mouse_control_frame.MinMax:SetSize(22, 22)
-    mouse_control_frame.MinMax:SetPoint("RIGHT", mouse_control_frame.Close, "LEFT", 2, 0)
+    mouse_control_frame.MinMax:SetPoint("RIGHT", mouse_control_frame.Close, "LEFT", 1, 0)
     mouse_control_frame.MinMax:SetOnMaximizedCallback(OnMaximizeMouse)
     mouse_control_frame.MinMax:SetOnMinimizedCallback(OnMinimizeMouse)
 

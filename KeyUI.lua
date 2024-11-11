@@ -13,7 +13,7 @@ local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
 local miniButton = LDB:NewDataObject("KeyUI", {
     type = "data source",
     text = "KeyUI",
-    icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard",
+    icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard_icon",
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addon.open then
@@ -668,7 +668,7 @@ function addon:SetKey(button)
 
     -- code for setting icons for other actions (movement, pets, etc.)
     local action_textures = {
-        EXTRAACTIONBUTTON1 = 4200126,
+        --EXTRAACTIONBUTTON1 = 4200126,
         MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_up",
         MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_down",
         STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\arrow_left",
@@ -679,6 +679,7 @@ function addon:SetKey(button)
 
     if action_textures[binding] then
         button.icon:SetTexture(action_textures[binding])
+        button.icon:SetSize(30, 30)
         button.icon:Show()
     end
 

@@ -86,7 +86,7 @@ function addon:CreateKeyboardFrame()
 
     local backdropInfo = {
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\keyboardframe_edge",
         tile = true,
         tileSize = 8,
         edgeSize = 14,
@@ -95,7 +95,6 @@ function addon:CreateKeyboardFrame()
 
     keyboard_frame:SetBackdrop(backdropInfo)
     keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
-    keyboard_frame:SetBackdropBorderColor(1, 1, 1, 1)
 
     -- Load the saved position if it exists
     if keyui_settings.keyboard_position.x and keyui_settings.keyboard_position.y then
@@ -120,7 +119,7 @@ function addon:CreateKeyboardFrame()
 end
 
 function addon:CreateKeyboardControl()
-    local keyboard_control_frame = CreateFrame("Frame", "keyui_keyboard_control_frame", addon.keyboard_frame, "TooltipBorderedFrameTemplate")
+    local keyboard_control_frame = CreateFrame("Frame", "keyui_keyboard_control_frame", addon.keyboard_frame, "BackdropTemplate")
     addon.keyboard_control_frame = keyboard_control_frame
 
     -- Manage ESC key behavior based on the setting
@@ -128,8 +127,19 @@ function addon:CreateKeyboardControl()
         tinsert(UISpecialFrames, "keyui_keyboard_control_frame")
     end
 
-    keyboard_control_frame:SetBackdropColor(0, 0, 0, 1)
-    keyboard_control_frame:SetPoint("BOTTOMRIGHT", addon.keyboard_frame, "TOPRIGHT", 0, -2)
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\controlframe_edge",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
+
+    keyboard_control_frame:SetBackdrop(backdropInfo)
+    keyboard_control_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+
+    keyboard_control_frame:SetPoint("BOTTOMRIGHT", addon.keyboard_frame, "TOPRIGHT", 0, -4)
     keyboard_control_frame:SetScript("OnMouseDown", function(self) addon.keyboard_frame:StartMoving() end)
     keyboard_control_frame:SetScript("OnMouseUp", function(self) addon.keyboard_frame:StopMovingOrSizing() end)
 
@@ -727,7 +737,7 @@ function addon:CreateKeyboardControl()
     keyboard_control_frame.MinMax = CreateFrame("Frame", nil, keyboard_control_frame,
         "MaximizeMinimizeButtonFrameTemplate")
     keyboard_control_frame.MinMax:SetSize(22, 22)
-    keyboard_control_frame.MinMax:SetPoint("RIGHT", keyboard_control_frame.Close, "LEFT", 2, 0)
+    keyboard_control_frame.MinMax:SetPoint("RIGHT", keyboard_control_frame.Close, "LEFT", 1, 0)
     keyboard_control_frame.MinMax:SetOnMaximizedCallback(OnMaximize)
     keyboard_control_frame.MinMax:SetOnMinimizedCallback(OnMinimize)
 
@@ -916,10 +926,10 @@ function addon:CreateKeyboardButtons()
 
     -- Create the backdrop for the background only (no edge)
     local backdropInfo = {
-        bgFile = "Interface\\AddOns\\KeyUI\\Media\\darkgrey-bg",
+        bgFile = "Interface\\AddOns\\KeyUI\\Media\\darkgrey_bg",
         tile = true,
         tileSize = 8,
-        insets = { left = 4, right = 4, top = 1, bottom = 4 }
+        insets = { left = 4, right = 4, top = 0, bottom = 4 }
     }
     keyboard_button:SetBackdrop(backdropInfo)
 
@@ -927,7 +937,7 @@ function addon:CreateKeyboardButtons()
     keyboard_button.edge = CreateFrame("Frame", nil, keyboard_button, "BackdropTemplate")
     keyboard_button.edge:SetAllPoints()
     local edgeBackdropInfo = {
-        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\keycap-edge",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\keycap_edge",
         edgeSize = 30,
     }
     keyboard_button.edge:SetBackdrop(edgeBackdropInfo)
@@ -955,7 +965,7 @@ function addon:CreateKeyboardButtons()
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
-    keyboard_button.icon:SetSize(52, 52)
+    keyboard_button.icon:SetSize(50, 50)
     keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
     keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 
