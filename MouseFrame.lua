@@ -435,11 +435,6 @@ function addon:CreateMouseControl()
     return mouse_control_frame
 end
 
-local function GetCursorScaledPosition()
-    local scale, x, y = UIParent:GetScale(), GetCursorPosition()
-    return x / scale, y / scale
-end
-
 local function DragOrSize(self, Mousebutton)
     if self.mouse_locked then
         return -- Do nothing if not MouseLocked is selected
@@ -613,26 +608,21 @@ end
 function addon:CreateMouseButtons()
 
     -- Create a frame that acts as a button with a tooltip border.
-    local mouse_button = CreateFrame("FRAME", nil, addon.mouse_image, "BackdropTemplate")
+    local mouse_button = CreateFrame("BUTTON", nil, addon.mouse_image, "SecureActionButtonTemplate")
 
-    -- Create the backdrop for the background only (no edge)
-    local backdropInfo = {
-        bgFile = "Interface\\AddOns\\KeyUI\\Media\\darkgrey_bg",
-        tile = true,
-        tileSize = 8,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 }
-    }
-    mouse_button:SetBackdrop(backdropInfo)
+    -- Add Background Texture
+    local background = mouse_button:CreateTexture(nil, "BACKGROUND")
+    background:SetTexture("Interface\\AddOns\\KeyUI\\Media\\actionbutton_bg")
+    background:SetWidth(44)
+    background:SetHeight(44)
+    background:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
+    mouse_button.background = background
 
-    -- Create a separate frame for the edge and apply only the edge (no background)
-    mouse_button.edge = CreateFrame("Frame", nil, mouse_button, "BackdropTemplate")
-    mouse_button.edge:SetAllPoints()
-    local edgeBackdropInfo = {
-        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
-        edgeSize = 16,
-    }
-    mouse_button.edge:SetBackdrop(edgeBackdropInfo)
-    mouse_button.edge:SetFrameLevel(mouse_button:GetFrameLevel() + 1)  -- Set this higher than the background
+    -- Add Border Texture
+    local border = mouse_button:CreateTexture(nil, "OVERLAY")
+    border:SetAtlas("UI-HUD-ActionBar-IconFrame")
+    border:SetAllPoints()
+    mouse_button.border = border
 
     mouse_button:SetMovable(true)
     mouse_button:EnableMouse(true)
@@ -660,12 +650,13 @@ function addon:CreateMouseButtons()
 
     -- Icon texture for the button.
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
-    mouse_button.icon:SetSize(42, 42)
+    mouse_button.icon:SetSize(44, 44)
     mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
     mouse_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 
     -- Highlight texture for the button.
     mouse_button.highlight = mouse_button:CreateTexture(nil, "ARTWORK")
+    mouse_button.highlight:SetSize(44, 44)
     mouse_button.highlight:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
     mouse_button.highlight:SetTexCoord(0.05, 0.95, 0.05, 0.95)
     mouse_button.highlight:Hide()
