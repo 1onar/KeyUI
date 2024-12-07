@@ -11,8 +11,9 @@ end
 
 -- Initialize general settings with default values if they are nil
 function addon:InitializeGeneralSettings()
-    set_if_nil("show_keyboard", true)
-    set_if_nil("show_mouse", true)
+    set_if_nil("show_keyboard", false)
+    set_if_nil("show_mouse", false)
+    set_if_nil("show_controller", false)
     set_if_nil("stay_open_in_combat", true)
     set_if_nil("show_pushed_texture", true)
     set_if_nil("prevent_esc_close", true)
@@ -64,3 +65,5 @@ addon.current_modifier_string = ""
 addon.alt_checkbox = false
 addon.ctrl_checkbox = false
 addon.shift_checkbox = false
+
+addon.active_control_tab = ""

@@ -13,18 +13,16 @@ local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
 local miniButton = LDB:NewDataObject("KeyUI", {
     type = "data source",
     text = "KeyUI",
-    icon = "Interface\\AddOns\\KeyUI\\Media\\keyboard_icon",
+    icon = "Interface\\AddOns\\KeyUI\\Media\\keyui_icon",
     OnClick = function(self, btn)
         if btn == "LeftButton" then
-            if addon.open then
+            if addon.open == true then
                 -- Close the addon regardless of the combat state
-                addon:HideAll()
-                addon.open = false
+                addon:hide_all_frames()
             else
                 -- Open the addon if stay_open_in_combat is true OR if not in combat
                 if not addon.in_combat or keyui_settings.stay_open_in_combat then
-                    addon:Load()
-                    addon.open = true
+                    addon:load()
                 else
                     print("KeyUI: Cannot open while in combat.")
                 end
@@ -50,7 +48,7 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     end,
 })
 
-local function SetEscCloseEnabled(frame, enabled)
+local function set_esc_close_enabled(frame, enabled)
     if not frame or not frame:GetName() then return end
 
     if enabled then
@@ -80,7 +78,7 @@ local options = {
             type = "toggle",
             name = "Minimap Button",
             desc = "Show or hide the minimap button",
-            order = 1,
+            order = 4,
             get = function() return not keyui_settings.minimap.hide end,
             set = function(_, value)
                 keyui_settings.minimap.hide = not value
@@ -97,7 +95,7 @@ local options = {
             type = "toggle",
             name = "Stay Open In Combat",
             desc = "Allow KeyUI to stay open during combat",
-            order = 2,
+            order = 5,
             get = function() return keyui_settings.stay_open_in_combat end,
             set = function(_, value)
                 keyui_settings.stay_open_in_combat = value
@@ -108,31 +106,40 @@ local options = {
         show_keyboard = {
             type = "toggle",
             name = "Show Keyboard",
-            desc = "Show or hide the keyboard interface",
-            order = 4,
+            desc = "Show or hide the keyboard frame",
+            order = 1,
             get = function() return keyui_settings.show_keyboard end,
             set = function(_, value)
                 keyui_settings.show_keyboard = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Keyboard visibility", status)
-                if addon.open then
-                    addon:UpdateInterfaceVisibility()
-                end
+                addon:show_frames()
             end,
         },
         show_mouse = {
             type = "toggle",
             name = "Show Mouse",
-            desc = "Show or hide the mouse interface",
-            order = 5,
+            desc = "Show or hide the mouse frame",
+            order = 2,
             get = function() return keyui_settings.show_mouse end,
             set = function(_, value)
                 keyui_settings.show_mouse = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Mouse visibility", status)
-                if addon.open then
-                    addon:UpdateInterfaceVisibility()
-                end
+                addon:show_frames()
+            end,
+        },
+        show_controller = {
+            type = "toggle",
+            name = "Show Controller",
+            desc = "Show or hide the controller frame",
+            order = 3,
+            get = function() return keyui_settings.show_controller end,
+            set = function(_, value)
+                keyui_settings.show_controller = value
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: controller visibility", status)
+                addon:show_frames()
             end,
         },
         -- toggle to enable or disable PushedTexture functionality
@@ -140,7 +147,7 @@ local options = {
             type = "toggle",
             name = "Highlight Buttons",
             desc = "Enable or disable the highlight effect on action buttons",
-            order = 3,
+            order = 8,
             get = function() return keyui_settings.show_pushed_texture end,
             set = function(_, value)
                 keyui_settings.show_pushed_texture = value
@@ -152,15 +159,16 @@ local options = {
         reset_settings = {
             type = "execute",
             name = "Reset Addon Settings",
-            desc = "Reset all settings to their default values",
-            order = 8,
+            desc = "Reset all KeyUI settings to their default values",
+            order = 10,
             confirm = true, -- Ask for confirmation
-            confirmText = "Are you sure you want to reset all settings to default?",
+            confirmText = "Are you sure you want to reset all KeyUI settings to default?",
             func = function()
                 -- Reset all SavedVariables to their default values
                 keyui_settings = {
-                    show_keyboard = true,
-                    show_mouse = true,
+                    show_keyboard = false,
+                    show_mouse = false,
+                    show_controller = false,
                     stay_open_in_combat = true,
                     show_pushed_texture = true,
                     prevent_esc_close = true,
@@ -194,7 +202,7 @@ local options = {
             type = "toggle",
             name = "Detect Modifier",
             desc = "Enable or disable detection of Shift, Ctrl, and Alt for key bindings",
-            order = 7,
+            order = 8,
             get = function() return keyui_settings.listen_to_modifier end,
             set = function(_, value)
                 keyui_settings.listen_to_modifier = value
@@ -212,11 +220,11 @@ local options = {
                 keyui_settings.prevent_esc_close = value
 
                 -- Immediately update the ESC closing behavior for all relevant frames
-                SetEscCloseEnabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(addon.keyboard_control_frame, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(addon.mouse_image, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(addon.mouse_frame, not keyui_settings.prevent_esc_close)
-                SetEscCloseEnabled(addon.mouse_control_frame, not keyui_settings.prevent_esc_close)
+                set_esc_close_enabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
+                set_esc_close_enabled(addon.controls_frame, not keyui_settings.prevent_esc_close)
+                set_esc_close_enabled(addon.mouse_image, not keyui_settings.prevent_esc_close)
+                set_esc_close_enabled(addon.mouse_frame, not keyui_settings.prevent_esc_close)
+                set_esc_close_enabled(addon.mouse_control_frame, not keyui_settings.prevent_esc_close)
 
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Closing with ESC " .. status)
@@ -226,7 +234,7 @@ local options = {
             type = "toggle",
             name = "Dynamic Modifier",
             desc = "Enable or disable dynamic display of modified keys based on current modifiers.",
-            order = 8,
+            order = 9,
             get = function() return keyui_settings.dynamic_modifier end,
             set = function(_, value)
                 keyui_settings.dynamic_modifier = value
@@ -247,42 +255,61 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
 
     -- Register the options table
     AceConfig:RegisterOptionsTable("KeyUI", options)
-
-    addon:UpdateInterfaceVisibility()
 end)
 
--- Load() - Main function to load the addon.
-function addon:Load()
-    -- Prevent loading if in combat and 'stay_open_in_combat' is false.
-    if addon.in_combat and not keyui_settings.stay_open_in_combat then
-        return
+-- Main function to load the addon.
+function addon:load()
+
+    if keyui_settings.show_keyboard == false and keyui_settings.show_mouse == false and keyui_settings.show_controller == false then
+        -- Create the selection frame if not already created.
+        if not addon.selection_frame then
+            addon.selection_frame = addon:create_selection_frame()
+        else
+            addon.selection_frame:Show()
+        end
+    else
+        -- Prevent loading if in combat and 'stay_open_in_combat' is false.
+        if addon.in_combat and not keyui_settings.stay_open_in_combat then
+            return
+        end
+
+        addon.open = true -- Mark the addon as open
+        addon:show_frames()
+
+        if keyui_settings.show_keyboard == true then
+
+            -- Generate keyboard layout directly if the dropdown has not been created yet
+            local active_keyboard_board = next(keyui_settings.layout_current_keyboard)
+
+            if not addon.keyboard_selector then
+                addon:generate_keyboard_layout(active_keyboard_board)
+            end
+        end
+
+
+        if keyui_settings.show_mouse == true then
+
+            -- Generate mouse layout directly if the dropdown has not been created yet
+            local active_mouse_board = next(keyui_settings.layout_current_mouse)
+
+            if not addon.mouse_selector then
+                addon:generate_mouse_layout(active_mouse_board)
+            end
+        end
+
+        -- Ensure the dropdown menu is created.
+        addon:create_context_menu()
+
+        -- Initialize the tooltip if not already created.
+        addon.keyui_tooltip_frame = addon.keyui_tooltip_frame or addon:create_tooltip()
+
+        -- Load spells and refresh the key bindings.
+        addon:load_spellbook()
+        addon:refresh_layouts()
     end
-
-    addon.open = true -- Mark the addon as open
-    addon:UpdateInterfaceVisibility()
-
-    -- Initialize the keyboard layout selector if not already created.
-    addon.keyboard_selector = addon.keyboard_selector or addon:KeyboardLayoutSelecter()
-    local keyboard_active_board = next(keyui_settings.layout_current_keyboard)
-    UIDropDownMenu_SetText(addon.keyboard_selector, keyboard_active_board)
-
-    -- Initialize the mouse layout selector if not already created.
-    addon.mouse_selector = addon.mouse_selector or addon:MouseLayoutSelecter()
-    local mouse_active_board = next(keyui_settings.layout_current_mouse)
-    UIDropDownMenu_SetText(addon.mouse_selector, mouse_active_board)
-
-    -- Ensure the dropdown menu is created.
-    addon:CreateDropDown()
-
-    -- Initialize the tooltip if not already created.
-    addon.keyui_tooltip_frame = addon.keyui_tooltip_frame or addon:CreateTooltip()
-
-    -- Load spells and refresh the key bindings.
-    addon:LoadSpells()
-    addon:refresh_layouts()
 end
 
-function addon:LoadSpells()
+function addon:load_spellbook()
     addon.spells = {}
     for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
         local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
@@ -307,37 +334,6 @@ function addon:LoadSpells()
     end
 end
 
--- Update the visibility of keyboard and mouse based on settings, only if addon is open
-function addon:UpdateInterfaceVisibility()
-    if not addon.open then
-        return
-    end
-
-    local keyboard_frame = addon:GetKeyboardFrame()
-    local keyboard_control = addon:GetKeyboardControl()
-    local mouse_image = addon:GetMouseImage()
-    local mouse_frame = addon:GetMouseFrame()
-    local mouse_control = addon:GetMouseControl()
-
-    if keyui_settings.show_keyboard then
-        keyboard_frame:Show()
-        keyboard_control:Show()
-    else
-        keyboard_frame:Hide()
-        keyboard_control:Hide()
-    end
-
-    if keyui_settings.show_mouse then
-        mouse_image:Show()
-        mouse_frame:Show()
-        mouse_control:Show()
-    else
-        mouse_image:Hide()
-        mouse_frame:Hide()
-        mouse_control:Hide()
-    end
-end
-
 -- Triggers the functions to update the keyboard and mouse layouts on the current configuration.
 function addon:refresh_layouts()
     --print("refresh_layouts function called")  -- print statement for debbuging
@@ -355,10 +351,6 @@ function addon:refresh_layouts()
     -- if the keyboard is locked and not edited we refresh the keyboard board holding the keys
     if addon.keyboard_locked ~= false and addon.keys_keyboard_edited ~= true then
         addon:generate_keyboard_key_frames(keyui_settings.key_bind_settings_keyboard.currentboard)
-        -- adjust the minimized control frame to the size of the (maybe) changed keyboard width
-        if addon.keyboard_maximize_flag == false then
-            addon.keyboard_control_frame:SetWidth(addon.keyboard_frame:GetWidth())
-        end
     end
 
     -- if the mouse is locked and not edited we refresh the mouse board holding the keys
@@ -370,49 +362,79 @@ function addon:refresh_layouts()
     addon:refresh_keys()
 end
 
--- Hides all UI elements when the addon is closed
-function addon:HideAll()
-    local keyboard_frame = addon:GetKeyboardFrame()
-    local keyboard_control = addon:GetKeyboardControl()
-    local mouse_image = addon:GetMouseImage()
-    local mouse_frame = addon:GetMouseFrame()
-    local mouse_control = addon:GetMouseControl()
+-- Update the visibility of keyboard and mouse based on settings, only if addon is open
+function addon:show_frames()
+    if addon.open == false then
+        return
+    end
 
-    keyboard_frame:Hide()
-    keyboard_control:Hide()
-    mouse_image:Hide()
-    mouse_frame:Hide()
-    mouse_control:Hide()
+    local keyboard_frame = addon:get_keyboard_frame()
+    local mouse_image = addon:get_mouse_image()
+    local mouse_frame = addon:get_mouse_frame()
+
+    if keyui_settings.show_keyboard == true then
+        addon.is_keyboard_frame_visible = true
+        keyboard_frame:Show()
+    end
+
+    if keyui_settings.show_mouse == true then
+        addon.is_mouse_image_visible = true
+        mouse_image:Show()
+        mouse_frame:Show()
+    end
 end
 
-local function OnFrameHide(self)
-    if not addon.is_keyboard_frame_visible and not addon.is_mouse_image_visible then
+-- Hides all UI elements when the addon is closed
+function addon:hide_all_frames()
+    local keyboard_frame = addon:get_keyboard_frame()
+    local mouse_image = addon:get_mouse_image()
+    local mouse_frame = addon:get_mouse_frame()
+
+    keyboard_frame:Hide()
+    mouse_frame:Hide()
+    mouse_image:Hide()
+
+    if addon.controls_frame then
+        addon.controls_frame:Hide()
+    end
+
+    if addon.selection_frame then
+        addon.selection_frame:Hide()
+    end
+
+    addon.open = false
+    addon.is_keyboard_frame_visible = false
+    addon.is_mouse_image_visible = false
+end
+
+local function on_frame_hide(self)
+    if (addon.is_keyboard_frame_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_image_visible == false or keyui_settings.show_mouse == false) then
         addon.open = false
-        
+
         -- Discard Keyboard Editor Changes when closing
         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
-            addon:DiscardKeyboardChanges()
+            addon:discard_keyboard_changes()
         end
 
         -- Discard Mouse Editor Changes when closing
         if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             -- Discard any Editor Changes
-            addon:DiscardMouseChanges()
+            addon:discard_mouse_changes()
         end
     end
 end
 
 -- Function to get or create the keyboard frame
-function addon:GetKeyboardFrame()
+function addon:get_keyboard_frame()
     -- Check if the keyboard_frame already exists
     if not addon.keyboard_frame then
         -- Create the keyboard frame and assign it to the addon table
-        addon.keyboard_frame = addon:CreateKeyboardFrame()
+        addon.keyboard_frame = addon:create_keyboard_frame()
 
         addon.keyboard_frame:SetScript("OnHide", function()
-            addon:SaveKeyboardPosition()
+            addon:save_keyboard_position()
             addon.is_keyboard_frame_visible = false
-            OnFrameHide()
+            on_frame_hide()
         end)
 
         addon.keyboard_frame:SetScript("OnShow", function()
@@ -422,27 +444,17 @@ function addon:GetKeyboardFrame()
     return addon.keyboard_frame
 end
 
--- Function to get or create the keyboard control
-function addon:GetKeyboardControl()
-    -- Check if the keyboard_control already exists
-    if not addon.keyboard_control_frame then
-        -- Create the keyboard control and assign it to the addon table
-        addon.keyboard_control_frame = addon:CreateKeyboardControl()
-    end
-    return addon.keyboard_control_frame
-end
-
 -- Function to get or create the mouse image frame
-function addon:GetMouseImage()
+function addon:get_mouse_image()
     -- Check if the mouse_image already exists
     if not addon.mouse_image then
         -- Create the mouse image and assign it to the addon table
-        addon.mouse_image = addon:CreateMouseImage()
+        addon.mouse_image = addon:create_mouse_image()
 
         addon.mouse_image:SetScript("OnHide", function()
-            addon:SaveMousePosition()
+            addon:save_mouse_position()
             addon.is_mouse_image_visible = false
-            OnFrameHide()
+            on_frame_hide()
         end)
 
         addon.mouse_image:SetScript("OnShow", function()
@@ -453,22 +465,27 @@ function addon:GetMouseImage()
 end
 
 -- Function to get or create the mouse frame
-function addon:GetMouseFrame()
+function addon:get_mouse_frame()
     if not addon.mouse_frame then
-        addon.mouse_frame = addon:CreateMouseFrame()
+        addon.mouse_frame = addon:create_mouse_frame()
     end
     return addon.mouse_frame
 end
 
--- Function to get or create the mouse control
-function addon:GetMouseControl()
-    if not addon.mouse_control_frame then
-        addon.mouse_control_frame = addon:CreateMouseControl()
+-- Function to get or create the keyboard control
+function addon:get_controls_frame()
+    -- Check if the controls frame already exists
+    if not addon.controls_frame then
+        -- If it doesn't exist, create the controls frame and assign it to the addon
+        addon.controls_frame = addon:create_controls()
+        -- Immediately show the newly created controls frame
+        addon.controls_frame:Show()
     end
-    return addon.mouse_control_frame
+    -- Return the controls frame (either existing or newly created)
+    return addon.controls_frame
 end
 
-function addon:CreateTooltip()
+function addon:create_tooltip()
     -- Create the tooltip frame with the GlowBoxTemplate.
     local keyui_tooltip_frame = CreateFrame("Frame", nil, UIParent, "GlowBoxTemplate")
     addon.keyui_tooltip_frame = keyui_tooltip_frame -- Save the tooltip to the addon table for reuse.
@@ -494,7 +511,7 @@ function addon:CreateTooltip()
 end
 
 -- This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
-function addon:ButtonMouseOver(button)
+function addon:button_mouse_over(button)
     local raw_key = button.raw_key or ""
     local key = _G["KEY_" .. raw_key] or raw_key
     local readable_binding = button.readable_binding:GetText() or ""
@@ -514,7 +531,8 @@ function addon:ButtonMouseOver(button)
     addon.keyui_tooltip_frame.binding:SetText(readable_binding or "")
 
     -- Set the tooltip width based on the longer text dimension + 20
-    local binding_width = addon.keyui_tooltip_frame.binding:GetText() and addon.keyui_tooltip_frame.binding:GetWidth() or 0
+    local binding_width = addon.keyui_tooltip_frame.binding:GetText() and addon.keyui_tooltip_frame.binding:GetWidth() or
+        0
     local key_width = addon.keyui_tooltip_frame.key:GetText() and addon.keyui_tooltip_frame.key:GetWidth() or 0
 
     addon.keyui_tooltip_frame:SetWidth(math.max(binding_width, key_width) + 20)
@@ -531,8 +549,8 @@ function addon:ButtonMouseOver(button)
     end
 end
 
--- Determines the texture or text displayed on the button based on the key binding.
-function addon:SetKey(button)
+-- Determines the texture and text displayed on the button based on the key binding.
+function addon:set_key(button)
     -- Reset the button's slot and active_slot at the beginning
     button.slot = nil
     button.active_slot = nil
@@ -543,23 +561,22 @@ function addon:SetKey(button)
 
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
     local function getActionButtonSlot(slot)
-
         -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
         if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
             if addon.bonusbar_offset == 1 then
-                return slot + 72    -- Maps to 73-84
+                return slot + 72  -- Maps to 73-84
             elseif addon.bonusbar_offset == 2 then
-                return slot + 84    -- Maps to 85-96
+                return slot + 84  -- Maps to 85-96
             elseif addon.bonusbar_offset == 3 then
-                return slot + 96    -- Maps to 97-108
+                return slot + 96  -- Maps to 97-108
             elseif addon.bonusbar_offset == 4 then
-                return slot + 108   -- Maps to 109-120
+                return slot + 108 -- Maps to 109-120
             end
         end
 
         -- Check if Dragonriding
-        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then    
-            return slot + 120       -- Maps to 121-132
+        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
+            return slot + 120 -- Maps to 121-132
         end
 
         -- Handle other action bar pages for all classes
@@ -582,7 +599,6 @@ function addon:SetKey(button)
     for i = 1, GetNumBindings() do
         local a = GetBinding(i)
         if binding:find(a) then
-
             -- Match for action button slots
             local slot = binding:match("ACTIONBUTTON(%d+)")
             local bar, bar2 = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
@@ -601,7 +617,7 @@ function addon:SetKey(button)
 
             -- Apply class/bonus bar offset logic only for ACTIONBUTTON slots
             if slot then
-                button.slot = slot  -- Always stores the slot, regardless of whether an action is present
+                button.slot = slot -- Always stores the slot, regardless of whether an action is present
 
                 -- Check if it's not a MULTIACTIONBAR case before applying bonusBarOffset
                 if not bar then
@@ -610,7 +626,7 @@ function addon:SetKey(button)
                 end
 
                 if HasAction(slot) then
-                    button.active_slot = slot  -- Stores the slot only if an action is present
+                    button.active_slot = slot -- Stores the slot only if an action is present
                     button.icon:SetTexture(GetActionTexture(slot))
                     button.icon:Show()
                 end
@@ -632,7 +648,7 @@ function addon:SetKey(button)
     -- Logic for BT4Button Bindings
     local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
     if bt4_slot then
-        button.slot = tonumber(bt4_slot) -- Set the button slot based on BT4Button
+        button.slot = tonumber(bt4_slot)     -- Set the button slot based on BT4Button
         if HasAction(button.slot) then
             button.active_slot = button.slot -- Active if there's an action
             button.icon:SetTexture(GetActionTexture(button.slot))
@@ -669,12 +685,12 @@ function addon:SetKey(button)
     -- code for setting icons for other actions (movement, pets, etc.)
     local action_textures = {
         --EXTRAACTIONBUTTON1 = 4200126,
-        MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_up",
-        MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\arrow_down",
-        STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\arrow_left",
-        STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\arrow_right",
-        TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\circle_left",
-        TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\circle_right",
+        MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
+        MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
+        STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
+        STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_right",
+        TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_left",
+        TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
     }
 
     if action_textures[binding] then
@@ -692,7 +708,7 @@ function addon:SetKey(button)
             button.icon:Show()
             button.spellid = spellID -- Set the spell ID for the shapeshift form
         else
-            button.icon:Hide() -- Hide icon if there's no valid shapeshift form
+            button.icon:Hide()       -- Hide icon if there's no valid shapeshift form
         end
     end
 
@@ -703,7 +719,8 @@ function addon:SetKey(button)
                 local petspellName = "BONUSACTIONBUTTON" .. i
                 if binding:match(petspellName) then
                     -- GetPetActionInfo returns multiple values, including texture/token
-                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(i)
+                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID =
+                        GetPetActionInfo(i)
 
                     -- If it's a token, use the token to get the texture
                     if isToken then
@@ -750,14 +767,13 @@ function addon:SetKey(button)
     button.binding = binding
 
     -- Set visible key name based on the current modifier string
-    local original_text = button.raw_key or ""  -- Ensure original_text is never nil
+    local original_text = button.raw_key or "" -- Ensure original_text is never nil
 
     -- Check for shortcut label instead of global string
     local readable_text = addon.short_keys[original_text] or _G["KEY_" .. original_text] or original_text
 
     -- Set the short key format if button.short_key exists
     if button.short_key then
-
         -- Adjust the width of the short_key based on button width
         button.short_key:SetWidth(button:GetWidth() - 6)
 
@@ -767,7 +783,7 @@ function addon:SetKey(button)
             button.short_key:SetText(readable_text)
         else
             -- Process the key with modifiers based on the settings
-            if not keyui_settings.dynamic_modifier then  -- Check if dynamic modifier is disabled
+            if not keyui_settings.dynamic_modifier then -- Check if dynamic modifier is disabled
                 button.short_key:SetText(readable_text) -- Set only the readable text, without a modifier
             else
                 -- Shorten existing modifiers in original_text
@@ -787,7 +803,8 @@ function addon:SetKey(button)
 
         -- Calculate the maximum allowed characters based on button width
         local max_allowed_chars = math.floor(button:GetWidth() / 9)
-        local combined_text = button.short_key:GetText() or ""  -- Combined text with modifiers if present / Use empty string if GetText() returns nil
+        local combined_text = button.short_key:GetText() or
+            "" -- Combined text with modifiers if present / Use empty string if GetText() returns nil
 
         -- Use Condensed font if the combined text exceeds max_allowed_chars
         if string.len(combined_text) > max_allowed_chars then
@@ -801,12 +818,12 @@ function addon:SetKey(button)
 end
 
 -- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
-                            -- Can be translated to a readable format via _G["BINDING_NAME_" ...]
+-- Can be translated to a readable format via _G["BINDING_NAME_" ...]
 
 -- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
 
 -- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
-                            -- Can be made readable via _G["KEY_" ...]
+-- Can be made readable via _G["KEY_" ...]
 
 -- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
 
@@ -824,17 +841,17 @@ function addon:refresh_keys()
     --print("refresh_keys function called")  -- print statement for debbuging
 
     -- if the keyboard is visible we create the keys
-    if addon.is_keyboard_frame_visible ~= false then    -- true
+    if addon.is_keyboard_frame_visible ~= false then -- true
         -- Set the keys
         for i = 1, #addon.keys_keyboard do
-            addon:SetKey(addon.keys_keyboard[i])
+            addon:set_key(addon.keys_keyboard[i])
         end
     end
 
     -- if the mouse is visible we create the keys
-    if addon.is_mouse_image_visible ~= false then   -- true
+    if addon.is_mouse_image_visible ~= false then -- true
         for j = 1, #addon.keys_mouse do
-            addon:SetKey(addon.keys_mouse[j])
+            addon:set_key(addon.keys_mouse[j])
         end
     end
 
@@ -850,10 +867,8 @@ end
 -- Highlights empty key binds by changing the background color of unused keys.
 function addon:highlight_empty_binds()
     if keyui_settings.show_empty_binds then
-
         -- Loop through all keyboard buttons if they exist
         if self.keyboard_buttons then
-
             for _, keyboard_button in pairs(self.keyboard_buttons) do
                 if keyboard_button.raw_key then
                     local raw_key = keyboard_button.raw_key -- Get the label text
@@ -861,7 +876,7 @@ function addon:highlight_empty_binds()
                     -- Get Blizzard Interface Command for the button
                     local binding = keyboard_button.binding and keyboard_button.binding or ""
 
-                    local key_name = _G[raw_key] or raw_key  -- Get the global name if it exists
+                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
 
                     -- reset background before highlighting
                     if not addon.no_highlight[key_name] then
@@ -870,8 +885,9 @@ function addon:highlight_empty_binds()
 
                     -- Check if the bind is empty and the key is not on the excluded list
                     if binding == "" and not addon.no_highlight[key_name] then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\red") -- Red color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
+                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
+                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10,
+                            keyboard_button:GetHeight() - 10)                                                       -- Dynamically set the size based on keyboard_button's width and height
                         keyboard_button.highlight:Show()
                     end
                 end
@@ -880,7 +896,6 @@ function addon:highlight_empty_binds()
 
         -- Loop through all mouse buttons if they exist
         if self.mouse_buttons then
-
             for _, mouse_button in pairs(self.mouse_buttons) do
                 if mouse_button.raw_key then
                     local raw_key = mouse_button.raw_key -- Get the label text
@@ -888,7 +903,7 @@ function addon:highlight_empty_binds()
                     -- Get the Blizzard Interface Command for the button
                     local binding = mouse_button.binding and mouse_button.binding or ""
 
-                    local key_name = _G[raw_key] or raw_key  -- Get the global name if it exists
+                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
 
                     -- reset background before highlighting
                     if not addon.no_highlight[key_name] then
@@ -897,7 +912,7 @@ function addon:highlight_empty_binds()
 
                     -- Check if the bind is empty and the key is not on the excluded list
                     if binding == "" and not addon.no_highlight[key_name] then
-                        mouse_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\red") -- Red color for empty keys
+                        mouse_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
                         mouse_button.highlight:Show()
                     end
                 end
@@ -936,7 +951,7 @@ function addon:create_action_labels()
                     local dominos_slot = command:match("DominosActionButton(%d+)")
                     if dominos_slot then
                         -- Set a custom label for Dominos buttons
-                        local binding_name = "Dominos Button " .. dominos_slot  -- Customize this as needed
+                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
                         keyboard_button.readable_binding:SetText(binding_name)
                     else
                         keyboard_button.readable_binding:SetText("")
@@ -967,8 +982,8 @@ function addon:create_action_labels()
             if mouse_button.readable_binding then
                 local command = mouse_button.binding
 
-                    -- Adjust the width of the readable_binding based on button width
-                    mouse_button.readable_binding:SetWidth(mouse_button:GetWidth() - 4)
+                -- Adjust the width of the readable_binding based on button width
+                mouse_button.readable_binding:SetWidth(mouse_button:GetWidth() - 4)
 
                 -- Check if the command corresponds to a Dominos action button
                 if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
@@ -976,7 +991,7 @@ function addon:create_action_labels()
                     local dominos_slot = command:match("DominosActionButton(%d+)")
                     if dominos_slot then
                         -- Set a custom label for Dominos buttons
-                        local binding_name = "Dominos Button " .. dominos_slot  -- Customize this as needed
+                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
                         mouse_button.readable_binding:SetText(binding_name)
                     else
                         mouse_button.readable_binding:SetText("")
@@ -1010,170 +1025,102 @@ function addon:update_modifier_string()
     addon.current_modifier_string = table.concat(modifiers)
 end
 
+-- Define modifier keys used in HandleKeyPress and HandleKeyRelease
+local modifier_keys = {
+    LALT = { mod = "ALT", control_key = "AltCB" },
+    RALT = { mod = "ALT", control_key = "AltCB" },
+    LCTRL = { mod = "CTRL", control_key = "CtrlCB" },
+    RCTRL = { mod = "CTRL", control_key = "CtrlCB" },
+    LSHIFT = { mod = "SHIFT", control_key = "ShiftCB" },
+    RSHIFT = { mod = "SHIFT", control_key = "ShiftCB" },
+}
+
 -- Function to handle key press events
-local function HandleKeyPress(key)
-        if addon.keyboard_buttons then
-            if key == "LALT" then
-                addon.modif.ALT = true
-                if addon.keyboard_control_frame.AltCB then
-                    addon.keyboard_control_frame.AltCB:SetChecked(true)
+local function handle_key_press(key)
+    -- Check if the key is a modifier
+    local modifier_data = modifier_keys[key]
+    if modifier_data then
+        -- Set the corresponding modifier flag
+        addon.modif[modifier_data.mod] = true
+
+        -- Update control frame checkbox
+        if addon.controls_frame and addon.controls_frame[modifier_data.control_key] then
+            addon.controls_frame[modifier_data.control_key]:SetChecked(true)
+        end
+    end
+
+    -- Update background color for the pressed key (keyboard and mouse)
+    local function update_key_background(buttons, is_mouse)
+        for _, button in pairs(buttons) do
+            if button.raw_key == key then
+                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
+
+                -- Apply different size adjustments for keyboard and mouse buttons
+                if is_mouse then
+                    -- Mouse button size adjustment
+                    button.highlight:SetSize(button:GetWidth() - 6, button:GetHeight() - 6)  -- Smaller margin for mouse keys
+                    button.highlight:SetPoint("CENTER", button, "CENTER")   -- Set highlight to the center of the button
+                else
+                    -- Keyboard button size adjustment
+                    button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Larger margin for keyboard keys
                 end
-                -- Change background color for LALT key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "LALT" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            elseif key == "RALT" then
-                addon.modif.ALT = true
-                if addon.keyboard_control_frame.AltCB then
-                    addon.keyboard_control_frame.AltCB:SetChecked(true)
-                end
-                -- Change background color for RALT key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "RALT" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            elseif key == "LCTRL" then
-                addon.modif.CTRL = true
-                if addon.keyboard_control_frame.CtrlCB then
-                    addon.keyboard_control_frame.CtrlCB:SetChecked(true)
-                end
-                -- Change background color for LCTRL key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "LCTRL" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            elseif key == "RCTRL" then
-                addon.modif.CTRL = true
-                if addon.keyboard_control_frame.CtrlCB then
-                    addon.keyboard_control_frame.CtrlCB:SetChecked(true)
-                end
-                -- Change background color for RCTRL key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "RCTRL" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            elseif key == "LSHIFT" then
-                addon.modif.SHIFT = true
-                if addon.keyboard_control_frame.ShiftCB then
-                    addon.keyboard_control_frame.ShiftCB:SetChecked(true)
-                end
-                -- Change background color for LSHIFT key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "LSHIFT" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            elseif key == "RSHIFT" then
-                addon.modif.SHIFT = true
-                if addon.keyboard_control_frame.ShiftCB then
-                    addon.keyboard_control_frame.ShiftCB:SetChecked(true)
-                end
-                -- Change background color for RSHIFT key
-                for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                    if keyboard_button.raw_key == "RSHIFT" then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\yellow") -- Yellow color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10, keyboard_button:GetHeight() - 10)  -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
+
+                -- Show the highlight for the pressed key
+                button.highlight:Show()
             end
         end
+    end
+
+    if addon.keyboard_buttons then
+        update_key_background(addon.keyboard_buttons, false)  -- false indicates keyboard
+    end
+    if addon.keys_mouse then
+        update_key_background(addon.keys_mouse, true)  -- true indicates mouse
+    end
+
+    -- Refresh modifiers and keys
     addon:update_modifier_string()
     addon:refresh_keys()
 end
 
 -- Function to handle key release events
-local function HandleKeyRelease(key)
-    if addon.keyboard_buttons then
-        if key == "LALT" then
-            addon.modif.ALT = false
-            if addon.keyboard_control_frame.AltCB then
-                addon.keyboard_control_frame.AltCB:SetChecked(false)
-            end
-            -- Reset background color for LALT key
+local function handle_key_release(key)
+    -- Check if the key is a modifier
+    local modifier_data = modifier_keys[key]
+    if modifier_data then
+        -- Clear the corresponding modifier flag
+        addon.modif[modifier_data.mod] = false
+
+        -- Uncheck the control frame checkbox
+        if addon.controls_frame and addon.controls_frame[modifier_data.control_key] then
+            addon.controls_frame[modifier_data.control_key]:SetChecked(false)
+        end
+
+        -- Reset background color for the released key on both keyboard and mouse
+        if addon.keyboard_buttons then
             for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "LALT" then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        elseif key == "RALT" then
-            addon.modif.ALT = false
-            if addon.keyboard_control_frame.AltCB then
-                addon.keyboard_control_frame.AltCB:SetChecked(false)
-            end
-            -- Reset background color for RALT key
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "RALT" then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        elseif key == "LCTRL" then
-            addon.modif.CTRL = false
-            if addon.keyboard_control_frame.CtrlCB then
-                addon.keyboard_control_frame.CtrlCB:SetChecked(false)
-            end
-            -- Reset background color for LCTRL key
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "LCTRL" then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        elseif key == "RCTRL" then
-            addon.modif.CTRL = false
-            if addon.keyboard_control_frame.CtrlCB then
-                addon.keyboard_control_frame.CtrlCB:SetChecked(false)
-            end
-            -- Reset background color for RCTRL key
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "RCTRL" then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        elseif key == "LSHIFT" then
-            addon.modif.SHIFT = false
-            if addon.keyboard_control_frame.ShiftCB then
-                addon.keyboard_control_frame.ShiftCB:SetChecked(false)
-            end
-            -- Reset background color for LSHIFT key
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "LSHIFT" then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        elseif key == "RSHIFT" then
-            addon.modif.SHIFT = false
-            if addon.keyboard_control_frame.ShiftCB then
-                addon.keyboard_control_frame.ShiftCB:SetChecked(false)
-            end
-            -- Reset background color for RSHIFT key
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == "RSHIFT" then
+                if keyboard_button.raw_key == key then
                     keyboard_button.highlight:Hide()
                 end
             end
         end
+
+        if addon.keys_mouse then
+            for _, mouse_button in pairs(addon.keys_mouse) do
+                if mouse_button.raw_key == key then
+                    mouse_button.highlight:Hide()
+                end
+            end
+        end
     end
+
+    -- Refresh modifiers and keys
     addon:update_modifier_string()
     addon:refresh_keys()
 end
 
 -- Shared KeyDown function for all buttons (keyboard + mouse)
-function addon:HandleKeyDown(frame, key)
+function addon:handle_key_down(frame, key)
     -- Check if any modifier is held down
     local modifier = ""
 
@@ -1196,7 +1143,7 @@ function addon:HandleKeyDown(frame, key)
     if key == "MiddleButton" then
         frame.raw_key = modifier .. "BUTTON3" -- Handle middle mouse button
     else
-        frame.raw_key = modifier .. key -- Set label to the pressed key with modifier
+        frame.raw_key = modifier .. key       -- Set label to the pressed key with modifier
     end
 
     -- Hide pushed texture
@@ -1213,7 +1160,7 @@ function addon:HandleKeyDown(frame, key)
 end
 
 -- Shared MouseWheel function with modifier support
-function addon:HandleMouseWheel(frame, delta)
+function addon:handle_mouse_wheel(frame, delta)
     -- Initialize the modifier string
     local modifier = ""
 
@@ -1230,7 +1177,7 @@ function addon:HandleMouseWheel(frame, delta)
 
     -- Combine with MouseWheel action
     if delta > 0 then
-        frame.raw_key = modifier .. "MOUSEWHEELUP" -- Scrolled up with modifiers
+        frame.raw_key = modifier .. "MOUSEWHEELUP"   -- Scrolled up with modifiers
     elseif delta < 0 then
         frame.raw_key = modifier .. "MOUSEWHEELDOWN" -- Scrolled down with modifiers
     end
@@ -1238,7 +1185,7 @@ function addon:HandleMouseWheel(frame, delta)
     addon:refresh_keys()
 end
 
-local function DropDown_Initialize(self, level)
+local function rightclick_initialize(self, level)
     level = level or 1
     local info = UIDropDownMenu_CreateInfo()
     local value = UIDROPDOWNMENU_MENU_VALUE
@@ -1254,7 +1201,7 @@ local function DropDown_Initialize(self, level)
         info.value = "Macro"
         info.hasArrow = true
         info.func = function() end
-        UIDropDownMenu_AddButton(info, level)        
+        UIDropDownMenu_AddButton(info, level)
 
         info.text = _G["INTERFACE_LABEL"]
         info.value = "UIBind"
@@ -1275,9 +1222,7 @@ local function DropDown_Initialize(self, level)
             end
         end
         UIDropDownMenu_AddButton(info, level)
-
     elseif level == 2 then
-
         if value == "Spell" then
             for tabName, _ in pairs(addon.spells) do
                 info.text = tabName
@@ -1331,9 +1276,7 @@ local function DropDown_Initialize(self, level)
                 UIDropDownMenu_AddButton(info, level)
             end
         end
-
     elseif level == 3 then
-
         if value:find("^tab:") then
             local tabName = value:match('^tab:(.+)')
             for _, spell in pairs(addon.spells[tabName]) do
@@ -1342,7 +1285,6 @@ local function DropDown_Initialize(self, level)
 
                 if spell_id then
                     if IsSpellKnown(spell_id) then
-
                         local spell_icon = C_Spell.GetSpellTexture(spell_id)
 
                         info.text = spell_name
@@ -1360,7 +1302,8 @@ local function DropDown_Initialize(self, level)
                                 PlaceAction(addon.current_slot)
                                 ClearCursor()
                                 -- Print notification for new spell binding
-                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                                print("KeyUI: Bound |cffa335ee" ..
+                                    spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                             else
                                 SetBinding(key, spell)
                                 SaveBindings(2)
@@ -1372,7 +1315,6 @@ local function DropDown_Initialize(self, level)
                     end
                 end
             end
-
         elseif value == "General Macro" then
             for i = 1, 36 do
                 local title, icon, _ = GetMacroInfo(i)
@@ -1399,7 +1341,6 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-
         elseif value == "Player Macro" then
             for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
                 local title, _, _ = GetMacroInfo(i)
@@ -1425,7 +1366,6 @@ local function DropDown_Initialize(self, level)
                     UIDropDownMenu_AddButton(info, level)
                 end
             end
-
         elseif addon.binding_mapping[value] then
             local keybindings = addon.binding_mapping[value]
             for _, keybinding in ipairs(keybindings) do
@@ -1447,13 +1387,13 @@ local function DropDown_Initialize(self, level)
     end
 end
 
--- CreateDropDown() - Creates the dropdown menu for selecting key bindings.
-function addon:CreateDropDown()
+-- Creates the dropdown menu for selecting key bindings.
+function addon:create_context_menu()
     if not addon.dropdown then
         local dropdown = CreateFrame("Frame", nil, addon.keyboard_frame, "UIDropDownMenuTemplate")
         UIDropDownMenu_SetWidth(dropdown, 60)
         UIDropDownMenu_SetButtonWidth(dropdown, 20)
-        UIDropDownMenu_Initialize(dropdown, DropDown_Initialize, "MENU")
+        UIDropDownMenu_Initialize(dropdown, rightclick_initialize, "MENU")
         dropdown:Hide()
         addon.dropdown = dropdown -- Save the dropdown for later use
     end
@@ -1477,55 +1417,51 @@ eventFrame:RegisterEvent("PET_BAR_UPDATE")
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if addon.open then
-        if event == "UPDATE_BONUS_ACTIONBAR" then           --refresh_keys only
+        if event == "UPDATE_BONUS_ACTIONBAR" then --refresh_keys only
             -- Check the BonusBarOffset
             addon.bonusbar_offset = GetBonusBarOffset()
             addon:refresh_keys()
-        elseif event == "ACTIONBAR_PAGE_CHANGED" then       --refresh_keys only
+        elseif event == "ACTIONBAR_PAGE_CHANGED" then --refresh_keys only
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
             addon:refresh_keys()
-        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then  --refresh_layouts
+        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then --refresh_layouts
             addon:refresh_layouts()
-        elseif event == "UPDATE_BINDINGS" then              --refresh_layouts
+        elseif event == "UPDATE_BINDINGS" then             --refresh_layouts
             addon:refresh_layouts()
-        elseif event == "PLAYER_REGEN_ENABLED" then         --nothing
+        elseif event == "PLAYER_REGEN_ENABLED" then        --nothing
             addon.in_combat = false
-        elseif event == "PLAYER_REGEN_DISABLED" then        --nothing
+        elseif event == "PLAYER_REGEN_DISABLED" then       --nothing
             addon.in_combat = true
             -- Only close the addon if stay_open_in_combat is false
             if not keyui_settings.stay_open_in_combat and addon.open then
-                addon:HideAll()
+                addon:hide_all_frames()
             end
-        elseif event == "PLAYER_LOGOUT" then                --nothing
+        elseif event == "PLAYER_LOGOUT" then --nothing
             -- Save Keyboard and Mouse Position when logging out
-            addon:SaveKeyboardPosition()
-            addon:SaveMousePosition()
-        elseif event == "MODIFIER_STATE_CHANGED" then       --refreshkeys only
-
+            addon:save_keyboard_position()
+            addon:save_mouse_position()
+        elseif event == "MODIFIER_STATE_CHANGED" then --refreshkeys only
             -- Handle the modifier state change
             local key, state = ...                    -- Get key and state from the event
 
             -- changed modifier states interferer when binding new keys and editing
-            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false then  -- true
-
+            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false then -- true
                 -- check if modifier are enabled
                 if keyui_settings.listen_to_modifier == true then
-
                     -- check if the modifier checkboxes are empty
                     if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
-
                         if state == 1 then
                             -- Key press event
-                            HandleKeyPress(key)
+                            handle_key_press(key)
                         else
                             -- Key release event
-                            HandleKeyRelease(key)
+                            handle_key_release(key)
                         end
 
                         -- If a button is hovered, refresh tooltip to update modifier state
                         if addon.current_hovered_button then
-                            addon:ButtonMouseOver(addon.current_hovered_button)
+                            addon:button_mouse_over(addon.current_hovered_button)
                         end
 
                         if addon.current_pushed_button then
@@ -1560,4 +1496,4 @@ end)
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
-SlashCmdList["KeyUI"] = function() addon:Load() end
+SlashCmdList["KeyUI"] = function() addon:load() end

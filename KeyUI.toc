@@ -14,9 +14,13 @@
 embeds.xml
 
 Variables.lua
-KeyUI.lua
 Mappings.lua
-LayoutsKeyboard.lua
-LayoutsMouse.lua
-MouseFrame.lua
-KeyboardFrame.lua
+Layouts\Keyboard.lua
+Layouts\Mouse.lua
+Layouts\Controller.lua
+Frames\Selection.lua
+Frames\Keyboard.lua
+Frames\Mouse.lua
+Frames\Controller.lua
+Frames\Controls.lua
+Core.lua
