@@ -193,7 +193,6 @@ local modifier_keys = {
     LSHIFT = true, RSHIFT = true,
 }
 
--- This function updates the mouse layout by creating, positioning, and resizing key frames based on the current configuration.
 function addon:generate_mouse_key_frames()
     -- Clear existing Keys to avoid leftover data from previous layouts
     for i = 1, #addon.keys_mouse do
@@ -203,7 +202,6 @@ function addon:generate_mouse_key_frames()
     addon.keys_mouse = {}
 
     if addon.open == true and addon.mouse_frame then
-
         -- Check if the layout is empty
         local layout_not_empty = false
         for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
@@ -215,21 +213,13 @@ function addon:generate_mouse_key_frames()
 
         -- Only proceed if there is a valid layout
         if layout_not_empty then
-            local cx, cy = addon.mouse_frame:GetCenter()
-            local left, right, top, bottom = cx, cx, cy, cy
-
             for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
                 for i = 1, #layoutData do
                     local button = addon.keys_mouse[i] or addon:create_mouse_buttons()
                     local button_data = layoutData[i]
 
-                    if button_data[4] then
-                        button:SetWidth(button_data[4])
-                        button:SetHeight(button_data[5])
-                    else
-                        button:SetWidth(50)
-                        button:SetHeight(50)
-                    end
+                    button:SetWidth(button_data[4] or 50)
+                    button:SetHeight(button_data[5] or 50)
 
                     if not addon.keys_mouse[i] then
                         addon.keys_mouse[i] = button
@@ -239,14 +229,6 @@ function addon:generate_mouse_key_frames()
                     button.raw_key = button_data[1]
                     button.is_modifier = modifier_keys[button.raw_key] or false
                     button:Show()
-
-                    -- Track the extreme positions for frame resizing
-                    local l, r, t, b = button:GetLeft(), button:GetRight(), button:GetTop(), button:GetBottom()
-
-                    if l < left then left = l end
-                    if r > right then right = r end
-                    if t > top then top = t end
-                    if b < bottom then bottom = b end
                 end
             end
         end

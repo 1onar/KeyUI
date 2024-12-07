@@ -138,7 +138,7 @@ local options = {
             set = function(_, value)
                 keyui_settings.show_controller = value
                 local status = value and "enabled" or "disabled"
-                print("KeyUI: controller visibility", status)
+                print("KeyUI: Controller visibility", status)
                 addon:show_frames()
             end,
         },
@@ -286,7 +286,6 @@ function addon:load()
             end
         end
 
-
         if keyui_settings.show_mouse == true then
 
             -- Generate mouse layout directly if the dropdown has not been created yet
@@ -294,6 +293,16 @@ function addon:load()
 
             if not addon.mouse_selector then
                 addon:generate_mouse_layout(active_mouse_board)
+            end
+        end
+
+        if keyui_settings.show_controller == true then
+
+            -- Generate controller layout directly if the dropdown has not been created yet
+            local active_controller_board = next(keyui_settings.layout_current_controller)
+
+            if not addon.controller_selector then
+                addon:generate_controller_layout(active_controller_board)
             end
         end
 
@@ -358,6 +367,11 @@ function addon:refresh_layouts()
         addon:generate_mouse_key_frames(keyui_settings.key_bind_settings_mouse.currentboard)
     end
 
+    -- if the controller is locked and not edited we refresh the controller board holding the keys
+    if addon.controller_locked ~= false and addon.keys_controller_edited ~= true then
+        addon:generate_controller_key_frames(keyui_settings.key_bind_settings_controller.currentboard)
+    end
+
     -- update the textures/texts of the keys bindings.
     addon:refresh_keys()
 end
@@ -371,6 +385,8 @@ function addon:show_frames()
     local keyboard_frame = addon:get_keyboard_frame()
     local mouse_image = addon:get_mouse_image()
     local mouse_frame = addon:get_mouse_frame()
+    local controller_frame = addon:get_controller_frame()
+    local controller_image = addon:get_controller_image()
 
     if keyui_settings.show_keyboard == true then
         addon.is_keyboard_frame_visible = true
@@ -382,6 +398,14 @@ function addon:show_frames()
         mouse_image:Show()
         mouse_frame:Show()
     end
+
+    if keyui_settings.show_controller == true then
+        addon.is_controller_visible = true
+        controller_frame:Show()
+        if controller_image then
+            controller_image:Show()
+        end
+    end
 end
 
 -- Hides all UI elements when the addon is closed
@@ -389,10 +413,12 @@ function addon:hide_all_frames()
     local keyboard_frame = addon:get_keyboard_frame()
     local mouse_image = addon:get_mouse_image()
     local mouse_frame = addon:get_mouse_frame()
+    local controller_frame = addon:get_controller_frame()
 
     keyboard_frame:Hide()
     mouse_frame:Hide()
     mouse_image:Hide()
+    controller_frame:Hide()
 
     if addon.controls_frame then
         addon.controls_frame:Hide()
@@ -405,10 +431,11 @@ function addon:hide_all_frames()
     addon.open = false
     addon.is_keyboard_frame_visible = false
     addon.is_mouse_image_visible = false
+    addon.is_controller_visible = false
 end
 
 local function on_frame_hide(self)
-    if (addon.is_keyboard_frame_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_image_visible == false or keyui_settings.show_mouse == false) then
+    if (addon.is_keyboard_frame_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_image_visible == false or keyui_settings.show_mouse == false) and (addon.is_controller_frame_visible == false or keyui_settings.show_controller == false) then
         addon.open = false
 
         -- Discard Keyboard Editor Changes when closing
@@ -420,6 +447,11 @@ local function on_frame_hide(self)
         if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             -- Discard any Editor Changes
             addon:discard_mouse_changes()
+        end
+
+        -- Discard Controller Editor Changes when closing
+        if addon.Controller_locked == false or addon.keys_Controller_edited == true then
+            addon:discard_Controller_changes()
         end
     end
 end
@@ -470,6 +502,34 @@ function addon:get_mouse_frame()
         addon.mouse_frame = addon:create_mouse_frame()
     end
     return addon.mouse_frame
+end
+
+-- Function to get or create the controller frame
+function addon:get_controller_frame()
+    -- Check if the controller_frame already exists
+    if not addon.controller_frame then
+        -- Create the controller frame and assign it to the addon table
+        addon.controller_frame = addon:create_controller_frame()
+
+        addon.controller_frame:SetScript("OnHide", function()
+            addon:save_controller_position()
+            addon.is_controller_frame_visible = false
+            on_frame_hide()
+        end)
+
+        addon.controller_frame:SetScript("OnShow", function()
+            addon.is_controller_frame_visible = true
+        end)
+    end
+    return addon.controller_frame
+end
+
+-- Function to get or create the controller image
+function addon:get_controller_image()
+    if not addon.controller_image then
+        addon.controller_image = addon:create_controller_image()
+    end
+    return addon.controller_image
 end
 
 -- Function to get or create the keyboard control
@@ -855,6 +915,13 @@ function addon:refresh_keys()
         end
     end
 
+    -- if the controller is visible we create the keys
+    if addon.is_controller_image_visible ~= false then -- true
+        for k = 1, #addon.keys_controller do
+            addon:set_key(addon.keys_controller[k])
+        end
+    end
+
     -- create/update action labels
     addon:create_action_labels()
 
@@ -918,6 +985,32 @@ function addon:highlight_empty_binds()
                 end
             end
         end
+
+        -- Loop through all controller buttons if they exist
+        if self.controller_buttons then
+            for _, controller_button in pairs(self.controller_buttons) do
+                if controller_button.raw_key then
+                    local raw_key = controller_button.raw_key -- Get the label text
+
+                    -- Get the Blizzard Interface Command for the button
+                    local binding = controller_button.binding and controller_button.binding or ""
+
+                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
+
+                    -- reset background before highlighting
+                    if not addon.no_highlight[key_name] then
+                        controller_button.highlight:Hide()
+                    end
+
+                    -- Check if the bind is empty and the key is not on the excluded list
+                    if binding == "" and not addon.no_highlight[key_name] then
+                        controller_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
+                        controller_button.highlight:Show()
+                    end
+                end
+            end
+        end
+
     else
         -- Reset color for all buttons when not showing empty binds
         if self.keyboard_buttons then
@@ -929,6 +1022,12 @@ function addon:highlight_empty_binds()
         if self.mouse_buttons then
             for _, mouse_button in pairs(self.mouse_buttons) do
                 mouse_button.highlight:Hide()
+            end
+        end
+
+        if self.controller_buttons then
+            for _, controller_button in pairs(self.controller_buttons) do
+                controller_button.highlight:Hide()
             end
         end
     end
@@ -1011,6 +1110,46 @@ function addon:create_action_labels()
                     mouse_button.readable_binding:Show()
                 else
                     mouse_button.readable_binding:Hide()
+                end
+            end
+        end
+    end
+
+    -- Loop through all controller buttons if they exist
+    if self.controller_buttons then
+        for _, controller_button in pairs(self.controller_buttons) do
+            if controller_button.readable_binding then
+                local command = controller_button.binding
+
+                -- Adjust the width of the readable_binding based on button width
+                controller_button.readable_binding:SetWidth(controller_button:GetWidth() - 4)
+
+                -- Check if the command corresponds to a Dominos action button
+                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
+                    -- Handle the binding for Dominos action buttons
+                    local dominos_slot = command:match("DominosActionButton(%d+)")
+                    if dominos_slot then
+                        -- Set a custom label for Dominos buttons
+                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
+                        controller_button.readable_binding:SetText(binding_name)
+                    else
+                        controller_button.readable_binding:SetText("")
+                    end
+                else
+                    -- Standard handling for other buttons
+                    if command then
+                        local binding_name = _G["BINDING_NAME_" .. command] or command
+                        controller_button.readable_binding:SetText(binding_name)
+                    else
+                        controller_button.readable_binding:SetText("")
+                    end
+                end
+
+                -- Toggle visibility of the interface action label based on settings
+                if keyui_settings.show_interface_binds then
+                    controller_button.readable_binding:Show()
+                else
+                    controller_button.readable_binding:Hide()
                 end
             end
         end
@@ -1446,7 +1585,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             local key, state = ...                    -- Get key and state from the event
 
             -- changed modifier states interferer when binding new keys and editing
-            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false then -- true
+            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false and addon.controller_locked ~= false then -- true
                 -- check if modifier are enabled
                 if keyui_settings.listen_to_modifier == true then
                     -- check if the modifier checkboxes are empty
