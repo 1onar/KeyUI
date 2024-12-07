@@ -1608,11 +1608,12 @@ function addon:controller_layout_selector()
     controller_selector:SetWidth(150)
 
     -- Order of layouts (including the layout type "xbox")
-    local category_order = { "xbox" }
+    local category_order = { "xbox", "ds4" }
 
     -- Mapping table for user-friendly names
     local layout_display_names = {
-        ["xbox"] = "XBOX",
+        ["xbox"] = "Xbox",
+        ["ds4"] = "Playstation 4",
     }
 
     -- Function to get the user-friendly name

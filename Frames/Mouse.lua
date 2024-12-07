@@ -162,26 +162,29 @@ function addon:discard_mouse_changes()
     -- Remove mouse edited flag
     addon.keys_mouse_edited = false
 
-    -- Remove Lock Button, Save Button and Input Field Glow
-    if addon.controls_frame.glowBoxLock then
-        addon.controls_frame.glowBoxLock:Hide()
-    end
-    if addon.controls_frame.glowBoxSave then
-        addon.controls_frame.glowBoxSave:Hide()
-    end
-    if addon.controls_frame.glowBoxInput then
-        addon.controls_frame.glowBoxInput:Hide()
-    end
+    if addon.controls_frame then
 
-    -- Update the Lock button text
-    if addon.controls_frame.LockText then
-        addon.controls_frame.LockText:SetText("Unlock")
-    end
+        -- Remove Lock Button, Save Button and Input Field Glow
+        if addon.controls_frame.glowBoxLock then
+            addon.controls_frame.glowBoxLock:Hide()
+        end
+        if addon.controls_frame.glowBoxSave then
+            addon.controls_frame.glowBoxSave:Hide()
+        end
+        if addon.controls_frame.glowBoxInput then
+            addon.controls_frame.glowBoxInput:Hide()
+        end
 
-    -- clear mouse text input field (name)
-    if addon.controls_frame.Input then
-        addon.controls_frame.Input:SetText("")
-        addon.controls_frame.Input:ClearFocus()
+        -- Update the Lock button text
+        if addon.controls_frame.LockText then
+            addon.controls_frame.LockText:SetText("Unlock")
+        end
+
+        -- clear mouse text input field (name)
+        if addon.controls_frame.Input then
+            addon.controls_frame.Input:SetText("")
+            addon.controls_frame.Input:ClearFocus()
+        end
     end
 
     addon:refresh_layouts()

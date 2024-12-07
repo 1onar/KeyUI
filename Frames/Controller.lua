@@ -9,7 +9,7 @@ function addon:save_controller_position()
 end
 
 function addon:create_controller_frame()
-    local controller_frame = CreateFrame("Frame", "keyui_controller_frame", UIParent)--, "BackdropTemplate")
+    local controller_frame = CreateFrame("Frame", "keyui_controller_frame", UIParent, "BackdropTemplate")
     addon.controller_frame = controller_frame
 
     -- Manage ESC key behavior based on the setting
@@ -17,21 +17,21 @@ function addon:create_controller_frame()
         tinsert(UISpecialFrames, "keyui_controller_frame")
     end
 
-    controller_frame:SetWidth(512)
-    controller_frame:SetHeight(450)
+    controller_frame:SetWidth(950)
+    controller_frame:SetHeight(500)
     controller_frame:Hide()
 
-    -- local backdropInfo = {
-    --     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-    --     edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
-    --     tile = true,
-    --     tileSize = 8,
-    --     edgeSize = 14,
-    --     insets = { left = 2, right = 2, top = 2, bottom = 2 }
-    -- }
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
+    }
 
-    -- controller_frame:SetBackdrop(backdropInfo)
-    -- controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+    controller_frame:SetBackdrop(backdropInfo)
+    controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
     -- Load the saved position if it exists
     if keyui_settings.controller_position.x and keyui_settings.controller_position.y then
@@ -55,7 +55,7 @@ function addon:create_controller_frame()
 
     controller_frame.close_button = CreateFrame("Button", nil, controller_frame, "UIPanelCloseButton")
     controller_frame.close_button:SetSize(30, 30)
-    controller_frame.close_button:SetPoint("TOP", 0, 0)
+    controller_frame.close_button:SetPoint("BOTTOMRIGHT", controller_frame, "TOPRIGHT", 0, 0)
     controller_frame.close_button:SetScript("OnClick", function(s)
         addon:discard_controller_changes()
         if addon.controls_frame then
@@ -85,17 +85,31 @@ function addon:create_controller_image()
         -- Add Xbox controller texture
         controller_image.xbox = controller_image:CreateTexture(nil, "ARTWORK")
         controller_image.xbox:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\xbox.blp")
-        controller_image.xbox:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", 0, 0)
+        controller_image.xbox:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -1, 40)
         controller_image.xbox:SetSize(512, 512)
 
         -- Add lines overlay texture for the Xbox controller
         controller_image.xbox_lines = controller_image:CreateTexture(nil, "OVERLAY")
         controller_image.xbox_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_xbox.blp")
-        controller_image.xbox_lines:SetPoint("CENTER", controller_image.xbox, "CENTER", 0, 0)
+        controller_image.xbox_lines:SetPoint("CENTER", controller_image.xbox, "CENTER", -2, 0)
         controller_image.xbox_lines:SetSize(1200, 600)
 
+        addon.controller_frame:SetHeight(530)
+
     elseif addon.controller_system == "ds4" then
-        -- coming soon
+        -- Add ds4 controller texture
+        controller_image.ds4 = controller_image:CreateTexture(nil, "ARTWORK")
+        controller_image.ds4:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\ds4.blp")
+        controller_image.ds4:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -2, 0)
+        controller_image.ds4:SetSize(512, 512)
+
+        -- Add lines overlay texture for the ds4 controller
+        controller_image.ds4_lines = controller_image:CreateTexture(nil, "OVERLAY")
+        controller_image.ds4_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_ds4.blp")
+        controller_image.ds4_lines:SetPoint("CENTER", controller_image.ds4, "CENTER", -2, 0)
+        controller_image.ds4_lines:SetSize(1200, 590)
+
+        addon.controller_frame:SetHeight(516)
 
     elseif addon.controller_system == "ds5" then
         -- coming soon
@@ -195,26 +209,29 @@ function addon:discard_controller_changes()
     -- Remove controller edited flag
     addon.keys_controller_edited = false
 
-    -- Remove Lock Button, Save Button and Input Field Glow
-    if addon.controls_frame.glowBoxLock then
-        addon.controls_frame.glowBoxLock:Hide()
-    end
-    if addon.controls_frame.glowBoxSave then
-        addon.controls_frame.glowBoxSave:Hide()
-    end
-    if addon.controls_frame.glowBoxInput then
-        addon.controls_frame.glowBoxInput:Hide()
-    end
+    if addon.controls_frame then
 
-    -- Update the Lock button text
-    if addon.controls_frame.LockText then
-        addon.controls_frame.LockText:SetText("Unlock")
-    end
+        -- Remove Lock Button, Save Button and Input Field Glow
+        if addon.controls_frame.glowBoxLock then
+            addon.controls_frame.glowBoxLock:Hide()
+        end
+        if addon.controls_frame.glowBoxSave then
+            addon.controls_frame.glowBoxSave:Hide()
+        end
+        if addon.controls_frame.glowBoxInput then
+            addon.controls_frame.glowBoxInput:Hide()
+        end
 
-    -- clear controller text input field (name)
-    if addon.controls_frame.Input then
-        addon.controls_frame.Input:SetText("")
-        addon.controls_frame.Input:ClearFocus()
+        -- Update the Lock button text
+        if addon.controls_frame.LockText then
+            addon.controls_frame.LockText:SetText("Unlock")
+        end
+
+        -- clear controller text input field (name)
+        if addon.controls_frame.Input then
+            addon.controls_frame.Input:SetText("")
+            addon.controls_frame.Input:ClearFocus()
+        end
     end
 
     addon:refresh_layouts()
@@ -259,7 +276,7 @@ function addon:generate_controller_key_frames()
                     end
 
                     -- Set the button position relative to the controller frame
-                    button:SetPoint("CENTER", addon.controller_frame, "CENTER", button_data[2], button_data[3])
+                    button:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", button_data[2], button_data[3])
                     button.raw_key = button_data[1]
                     button.is_modifier = modifier_keys[button.raw_key] or false
 
@@ -271,7 +288,11 @@ function addon:generate_controller_key_frames()
                         -- If the X-coordinate is positive, position the short_key to the right of the button
                         button.short_key:SetPoint("RIGHT", button, "LEFT", -10, 0)
                     else
-                        button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
+                        if button_data[3] < 100 then
+                            button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
+                        elseif button_data[3] > 100 then
+                            button.short_key:SetPoint("TOP", button, "BOTTOM", 0, -10)
+                        end
                     end
 
                     button:Show()
