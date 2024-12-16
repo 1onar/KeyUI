@@ -735,6 +735,7 @@ function addon:create_controls()
     controls_frame.Close:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
         controls_frame:Hide()
+
         if addon.keyboard_frame and addon.keyboard_frame.controls_button then
             addon.keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
             addon.keyboard_frame.controls_button.LeftActive:Hide()
@@ -744,6 +745,27 @@ function addon:create_controls()
             addon.keyboard_frame.controls_button.Middle:Show()
             addon.keyboard_frame.controls_button.Right:Show()
         end
+
+        if addon.mouse_image and addon.mouse_image.controls_button then
+            addon.mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            addon.mouse_image.controls_button.LeftActive:Hide()
+            addon.mouse_image.controls_button.MiddleActive:Hide()
+            addon.mouse_image.controls_button.RightActive:Hide()
+            addon.mouse_image.controls_button.Left:Show()
+            addon.mouse_image.controls_button.Middle:Show()
+            addon.mouse_image.controls_button.Right:Show()
+        end
+
+        if addon.controller_frame and addon.controller_frame.controls_button then
+            addon.controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            addon.controller_frame.controls_button.LeftActive:Hide()
+            addon.controller_frame.controls_button.MiddleActive:Hide()
+            addon.controller_frame.controls_button.RightActive:Hide()
+            addon.controller_frame.controls_button.Left:Show()
+            addon.controller_frame.controls_button.Middle:Show()
+            addon.controller_frame.controls_button.Right:Show()
+        end
+
     end)
 
     -- Helper function to adjust button and text widths
@@ -1201,6 +1223,40 @@ function addon:toggle_control_tab_button(button, showInactive)
     end
 end
 
+-- Helper function to toggle highlight of controls tab buttons, excluding the caller
+function addon:show_controls_button_highlight(excluded_frame)
+    local frames = {addon.keyboard_frame, addon.mouse_image, addon.controller_frame}
+
+    for _, frame in ipairs(frames) do
+        if frame and frame.controls_button and frame ~= excluded_frame then
+            frame.controls_button:SetAlpha(1)
+            frame.controls_button.LeftActive:Show()
+            frame.controls_button.MiddleActive:Show()
+            frame.controls_button.RightActive:Show()
+            frame.controls_button.Left:Hide()
+            frame.controls_button.Middle:Hide()
+            frame.controls_button.Right:Hide()
+        end
+    end
+end
+
+-- Helper function to toggle fade of controls tab buttons, excluding the caller
+function addon:fade_controls_button_highlight(excluded_frame)
+    local frames = {addon.keyboard_frame, addon.mouse_image, addon.controller_frame}
+
+    for _, frame in ipairs(frames) do
+        if frame and frame.controls_button and frame ~= excluded_frame then
+            frame.controls_button:SetAlpha(0.5)
+            frame.controls_button.LeftActive:Hide()
+            frame.controls_button.MiddleActive:Hide()
+            frame.controls_button.RightActive:Hide()
+            frame.controls_button.Left:Show()
+            frame.controls_button.Middle:Show()
+            frame.controls_button.Right:Show()
+        end
+    end
+end
+
 -- Function to update the textures based on the active control tab
 function addon:update_tab_textures()
     if addon.controls_frame then
@@ -1608,12 +1664,14 @@ function addon:controller_layout_selector()
     controller_selector:SetWidth(150)
 
     -- Order of layouts (including the layout type "xbox")
-    local category_order = { "xbox", "ds4" }
+    local category_order = { "xbox", "ds4", "ds5", "deck" }
 
     -- Mapping table for user-friendly names
     local layout_display_names = {
         ["xbox"] = "Xbox",
         ["ds4"] = "Playstation 4",
+        ["ds5"] = "Playstation 5",
+        ["deck"] = "Steam Deck",
     }
 
     -- Function to get the user-friendly name

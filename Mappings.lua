@@ -731,3 +731,139 @@ addon.button_texture_mapping = {
     ["131"] = ActionButton11,
     ["132"] = ActionButton12,
 }
+
+-- List of gamepad buttons
+addon.gamepad_buttons = {
+    ["PADDUP"] = true,
+    ["PADDRIGHT"] = true,
+    ["PADDDOWN"] = true,
+    ["PADDLEFT"] = true,
+    ["PAD1"] = true,
+    ["PAD2"] = true,
+    ["PAD3"] = true,
+    ["PAD4"] = true,
+    ["PAD5"] = true,
+    ["PAD6"] = true,
+    ["PADLSHOULDER"] = true,
+    ["PADLTRIGGER"] = true,
+    ["PADRSHOULDER"] = true,
+    ["PADRTRIGGER"] = true,
+    ["PADLSTICK"] = true,
+    ["PADRSTICK"] = true,
+    ["PADLSTICKUP"] = true,
+    ["PADLSTICKRIGHT"] = true,
+    ["PADLSTICKDOWN"] = true,
+    ["PADLSTICKLEFT"] = true,
+    ["PADRSTICKUP"] = true,
+    ["PADRSTICKRIGHT"] = true,
+    ["PADRSTICKDOWN"] = true,
+    ["PADRSTICKLEFT"] = true,
+    ["PADPADDLE1"] = true,
+    ["PADPADDLE2"] = true,
+    ["PADPADDLE3"] = true,
+    ["PADPADDLE4"] = true,
+    ["PADFORWARD"] = true,
+    ["PADBACK"] = true,
+    ["PADSYSTEM"] = true,
+    ["PADSOCIAL"] = true,
+}
+
+-- Playstation Button Icons
+addon.playstation_buttons = {
+    -- D-Pad buttons
+    ["PADDUP"]        = "Gamepad_Shp_Up_64",        -- D-Pad Up
+    ["PADDRIGHT"]     = "Gamepad_Shp_Right_64",     -- D-Pad Right
+    ["PADDDOWN"]      = "Gamepad_Shp_Down_64",      -- D-Pad Down
+    ["PADDLEFT"]      = "Gamepad_Shp_Left_64",      -- D-Pad Left
+
+    -- Face buttons
+    ["PAD1"]          = "Gamepad_Shp_Cross_64",     -- Cross button
+    ["PAD2"]          = "Gamepad_Shp_Circle_64",    -- Circle button
+    ["PAD3"]          = "Gamepad_Shp_Square_64",    -- Square button
+    ["PAD4"]          = "Gamepad_Shp_Triangle_64",  -- Triangle button
+
+    -- Additional buttons
+    ["PAD5"]          = "Gamepad_Shp_MicMute_64",   -- Mic Mute button
+    ["PAD6"]          = "Gamepad_Shp_TouchpadR_64", -- Right side of the touchpad
+
+    -- Shoulder and trigger buttons
+    ["PADLSHOULDER"]  = "Gamepad_Shp_LShoulder_64", -- L1 (Left shoulder)
+    ["PADLTRIGGER"]   = "Gamepad_Shp_LTrigger_64",  -- L2 (Left trigger)
+    ["PADRSHOULDER"]  = "Gamepad_Shp_RShoulder_64", -- R1 (Right shoulder)
+    ["PADRTRIGGER"]   = "Gamepad_Shp_RTrigger_64",  -- R2 (Right trigger)
+
+    -- Stick buttons
+    ["PADLSTICK"]     = "Gamepad_Shp_LStickIn_64",  -- Left stick (press)
+    ["PADRSTICK"]     = "Gamepad_Shp_RStickIn_64",  -- Right stick (press)
+
+    -- System and menu buttons
+    ["PADBACK"]       = "Gamepad_Shp_TouchpadL_64", -- Left side of the touchpad
+    ["PADFORWARD"]    = "Gamepad_Shp_Menu_64",      -- Menu button
+    ["PADSYSTEM"]     = "Gamepad_Shp_System_64",    -- PlayStation button (system button)
+    ["PADSOCIAL"]     = "Gamepad_Shp_Share_64",     -- Share button
+}
+
+-- Xbox Button Icons
+addon.xbox_buttons = {
+    -- D-Pad buttons
+    ["PADDUP"]        = "Gamepad_Ltr_Up_64",        -- D-Pad Up
+    ["PADDRIGHT"]     = "Gamepad_Ltr_Right_64",     -- D-Pad Right
+    ["PADDDOWN"]      = "Gamepad_Ltr_Down_64",      -- D-Pad Down
+    ["PADDLEFT"]      = "Gamepad_Ltr_Left_64",      -- D-Pad Left
+
+    -- Face buttons
+    ["PAD1"]          = "Gamepad_Ltr_A_64",         -- A button
+    ["PAD2"]          = "Gamepad_Ltr_B_64",         -- B button
+    ["PAD3"]          = "Gamepad_Ltr_X_64",         -- X button
+    ["PAD4"]          = "Gamepad_Ltr_Y_64",         -- Y button
+
+    -- Shoulder and trigger buttons
+    ["PADLSHOULDER"]  = "Gamepad_Ltr_LShoulder_64", -- Left Shoulder (LB)
+    ["PADLTRIGGER"]   = "Gamepad_Ltr_LTrigger_64",  -- Left Trigger (LT)
+    ["PADRSHOULDER"]  = "Gamepad_Ltr_RShoulder_64", -- Right Shoulder (RB)
+    ["PADRTRIGGER"]   = "Gamepad_Ltr_RTrigger_64",  -- Right Trigger (RT)
+
+    -- Stick buttons
+    ["PADLSTICK"]     = "Gamepad_Gen_LStickIn_64",  -- Left stick (press)
+    ["PADRSTICK"]     = "Gamepad_Gen_RStickIn_64",  -- Right stick (press)
+
+    -- System and menu buttons
+    ["PADBACK"]       = "Gamepad_Ltr_View_64",      -- View button (Back)
+    ["PADFORWARD"]    = "Gamepad_Ltr_Menu_64",      -- Menu button (Start)
+    ["PADSYSTEM"]     = "Gamepad_Ltr_System_64",    -- Xbox button (System button)
+}
+
+-- Steam Deck Button Icons
+addon.deck_buttons = {
+    -- D-Pad buttons
+    ["PADDUP"]        = "Gamepad_Ltr_Up_64",        -- D-Pad Up
+    ["PADDRIGHT"]     = "Gamepad_Ltr_Right_64",     -- D-Pad Right
+    ["PADDDOWN"]      = "Gamepad_Ltr_Down_64",      -- D-Pad Down
+    ["PADDLEFT"]      = "Gamepad_Ltr_Left_64",      -- D-Pad Left
+
+    -- Face buttons
+    ["PAD1"]          = "Gamepad_Ltr_A_64",         -- A button
+    ["PAD2"]          = "Gamepad_Ltr_B_64",         -- B button
+    ["PAD3"]          = "Gamepad_Ltr_X_64",         -- X button
+    ["PAD4"]          = "Gamepad_Ltr_Y_64",         -- Y button
+
+    -- Shoulder and trigger buttons
+    ["PADLSHOULDER"]  = "Gamepad_Ltr_LShoulder_64", -- Left Shoulder button (L1)
+    ["PADLTRIGGER"]   = "Gamepad_Ltr_LTrigger_64",  -- Left Trigger button (L2)
+    ["PADRSHOULDER"]  = "Gamepad_Ltr_RShoulder_64", -- Right Shoulder button (R1)
+    ["PADRTRIGGER"]   = "Gamepad_Ltr_RTrigger_64",  -- Right Trigger button (R2)
+
+    -- Stick buttons
+    ["PADLSTICK"]     = "Gamepad_Gen_LStickIn_64",  -- Left Stick (press)
+    ["PADRSTICK"]     = "Gamepad_Gen_RStickIn_64",  -- Right Stick (press)
+
+    -- System and menu buttons
+    ["PADBACK"]       = "Gamepad_Ltr_View_64",      -- View button
+    ["PADFORWARD"]    = "Gamepad_Ltr_Menu_64",      -- Menu button
+
+    -- Rear paddle buttons
+    ["PADPADDLE1"]    = "Gamepad_Gen_Paddle1_64",   -- Rear Paddle 1 (L4)
+    ["PADPADDLE2"]    = "Gamepad_Gen_Paddle2_64",   -- Rear Paddle 2 (L5)
+    ["PADPADDLE3"]    = "Gamepad_Gen_Paddle3_64",   -- Rear Paddle 3 (R4)
+    ["PADPADDLE4"]    = "Gamepad_Gen_Paddle4_64",   -- Rear Paddle 4 (R5)
+}

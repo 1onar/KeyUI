@@ -53,15 +53,190 @@ function addon:create_controller_frame()
     controller_frame:SetMovable(true)
     controller_frame:SetClampedToScreen(true)
 
-    controller_frame.close_button = CreateFrame("Button", nil, controller_frame, "UIPanelCloseButton")
-    controller_frame.close_button:SetSize(30, 30)
-    controller_frame.close_button:SetPoint("BOTTOMRIGHT", controller_frame, "TOPRIGHT", 0, 0)
+    -- Helper function to toggle visibility of tab button textures
+    local function toggle_button_textures(button, showInactive)
+        if showInactive then
+            button.LeftActive:Hide()
+            button.MiddleActive:Hide()
+            button.RightActive:Hide()
+            button.Left:Show()
+            button.Middle:Show()
+            button.Right:Show()
+        else
+            button.LeftActive:Show()
+            button.MiddleActive:Show()
+            button.RightActive:Show()
+            button.Left:Hide()
+            button.Middle:Hide()
+            button.Right:Hide()
+            button.LeftHighlight:Hide()
+            button.MiddleHighlight:Hide()
+            button.RightHighlight:Hide()
+        end
+    end
+
+    -- Apply custom font to the tab buttons
+    local custom_font = CreateFont("controller_tab_custom_font")
+    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12, "OUTLINE")
+
+    -- Get controller Frame Level
+    local controller_level = addon.controller_frame:GetFrameLevel()
+
+    -- Create the close tab button
+    controller_frame.close_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    controller_frame.close_button:SetPoint("BOTTOMRIGHT", controller_frame, "TOPRIGHT", -8, 0)
+    controller_frame.close_button:SetFrameLevel(controller_level - 1)
+
+    -- Set button text
+    controller_frame.close_button:SetText("Close")
+
+    -- Apply custom font to the controls button
+    controller_frame.close_button:SetNormalFontObject(custom_font)
+    controller_frame.close_button:SetHighlightFontObject(custom_font)
+    controller_frame.close_button:SetDisabledFontObject(custom_font)
+
+    local text = controller_frame.close_button:GetFontString()
+    text:ClearAllPoints()
+    text:SetPoint("BOTTOM", controller_frame.close_button, "BOTTOM", 0, 4)
+    text:SetTextColor(1, 1, 1) -- Set text color to white
+
+    -- Set OnClick behavior for close button
     controller_frame.close_button:SetScript("OnClick", function(s)
         addon:discard_controller_changes()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
         controller_frame:Hide()
+    end)
+
+    -- Ensure the close button always appears inactive
+    toggle_button_textures(controller_frame.close_button, true)
+
+    -- Set initial transparency for close button (out of focus)
+    controller_frame.close_button:SetAlpha(0.5)
+
+    -- Set behavior when mouse enters and leaves the close button
+    controller_frame.close_button:SetScript("OnEnter", function()
+        controller_frame.close_button:SetAlpha(1) -- Make the button fully visible on hover
+        toggle_button_textures(controller_frame.close_button, false) -- Show active textures
+    end)
+
+    controller_frame.close_button:SetScript("OnLeave", function()
+        controller_frame.close_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+        toggle_button_textures(controller_frame.close_button, true) -- Show inactive textures
+    end)
+
+    -- Create the settings tab button
+    controller_frame.controls_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    controller_frame.controls_button:SetPoint("BOTTOMRIGHT", controller_frame.close_button, "BOTTOMLEFT", -4, 0)
+    controller_frame.controls_button:SetFrameLevel(controller_level - 1)
+
+    -- Set button text
+    controller_frame.controls_button:SetText("Controls")
+
+    -- Apply custom font to the controls button
+    controller_frame.controls_button:SetNormalFontObject(custom_font)
+    controller_frame.controls_button:SetHighlightFontObject(custom_font)
+    controller_frame.controls_button:SetDisabledFontObject(custom_font)
+
+    local text = controller_frame.controls_button:GetFontString()
+    text:ClearAllPoints()
+    text:SetPoint("BOTTOM", controller_frame.controls_button, "BOTTOM", 0, 4)
+    text:SetTextColor(1, 1, 1) -- Set text color to white
+
+    -- Set OnClick behavior for controls button
+    controller_frame.controls_button:SetScript("OnClick", function()
+        addon.active_control_tab = "controller"
+        addon:update_tab_textures()
+
+        -- Check if the controls frame exists
+        if addon.controls_frame then
+            -- If the controls frame is visible, hide it
+            if addon.controls_frame:IsVisible() then
+                addon.controls_frame:Hide()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:fade_controls_button_highlight(controller_frame)
+            else
+                -- Otherwise, show the controls frame
+                addon.controls_frame:Show()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:show_controls_button_highlight(controller_frame)
+            end
+        else
+            -- If the controls frame doesn't exist, create and show it
+            addon:get_controls_frame()
+
+            -- Change the style of other tab buttons, excluding the current button's frame
+            addon:show_controls_button_highlight(controller_frame)
+        end
+    end)
+
+    -- Ensure the controls button always appears inactive
+    toggle_button_textures(controller_frame.controls_button, true)
+
+    -- Set initial transparency (out of focus) for controls button
+    controller_frame.controls_button:SetAlpha(0.5)
+
+    -- Set behavior when mouse enters and leaves the controls button
+    controller_frame.controls_button:SetScript("OnEnter", function()
+        controller_frame.controls_button:SetAlpha(1) -- Make the button fully visible on hover
+        toggle_button_textures(controller_frame.controls_button, false) -- Show active textures
+    end)
+
+    controller_frame.controls_button:SetScript("OnLeave", function()
+        if addon.controls_frame and addon.controls_frame:IsVisible() then
+            return
+        else
+            controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            toggle_button_textures(controller_frame.controls_button, true) -- Show inactive textures
+        end
+    end)
+
+    controller_frame.controls_button:SetScript("OnHide", function()
+        controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+        toggle_button_textures(controller_frame.controls_button, true) -- Show inactive textures
+    end)
+
+    -- Create the options tab button
+    controller_frame.options_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    controller_frame.options_button:SetPoint("BOTTOMRIGHT", controller_frame.controls_button, "BOTTOMLEFT", -4, 0)
+    controller_frame.options_button:SetFrameLevel(controller_level - 1)
+
+    -- Set button text
+    controller_frame.options_button:SetText("Options")
+
+    -- Apply custom font to the options button
+    controller_frame.options_button:SetNormalFontObject(custom_font)
+    controller_frame.options_button:SetHighlightFontObject(custom_font)
+    controller_frame.options_button:SetDisabledFontObject(custom_font)
+
+    local text = controller_frame.options_button:GetFontString()
+    text:ClearAllPoints()
+    text:SetPoint("BOTTOM", controller_frame.options_button, "BOTTOM", 0, 4)
+    text:SetTextColor(1, 1, 1) -- Set text color to white
+
+    -- Set OnClick behavior for options button
+    controller_frame.options_button:SetScript("OnClick", function()
+        Settings.OpenToCategory("KeyUI")
+    end)
+
+    -- Ensure the options button always appears inactive
+    toggle_button_textures(controller_frame.options_button, true)
+
+    -- Set initial transparency (out of focus) for options button
+    controller_frame.options_button:SetAlpha(0.5)
+
+    -- Set behavior when mouse enters and leaves the options button
+    controller_frame.options_button:SetScript("OnEnter", function()
+        controller_frame.options_button:SetAlpha(1) -- Make the button fully visible on hover
+        toggle_button_textures(controller_frame.options_button, false) -- Show active textures
+    end)
+
+    controller_frame.options_button:SetScript("OnLeave", function()
+        controller_frame.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+        toggle_button_textures(controller_frame.options_button, true) -- Show inactive textures
     end)
 
     return controller_frame
@@ -112,10 +287,36 @@ function addon:create_controller_image()
         addon.controller_frame:SetHeight(516)
 
     elseif addon.controller_system == "ds5" then
-        -- coming soon
+        -- Add ds5 controller texture
+        controller_image.ds5 = controller_image:CreateTexture(nil, "ARTWORK")
+        controller_image.ds5:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\ds5.blp")
+        controller_image.ds5:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -3, 0)
+        controller_image.ds5:SetSize(512, 512)
+
+        -- Add lines overlay texture for the ds5 controller
+        controller_image.ds5_lines = controller_image:CreateTexture(nil, "OVERLAY")
+        controller_image.ds5_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_ds5.blp")
+        controller_image.ds5_lines:SetPoint("CENTER", controller_image.ds5, "CENTER", -1, 0)
+        controller_image.ds5_lines:SetSize(1150, 590)
+
+        addon.controller_frame:SetHeight(516)
+        addon.controller_frame:SetWidth(920)
 
     elseif addon.controller_system == "deck" then
-        -- coming soon
+        -- Add deck controller texture
+        controller_image.deck = controller_image:CreateTexture(nil, "ARTWORK")
+        controller_image.deck:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\deck.blp")
+        controller_image.deck:SetPoint("CENTER", addon.controller_frame, "CENTER", 0, 10)
+        controller_image.deck:SetSize(512, 512)
+
+        -- Add lines overlay texture for the deck controller
+        -- controller_image.deck_lines = controller_image:CreateTexture(nil, "OVERLAY")
+        -- controller_image.deck_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_deck.blp")
+        -- controller_image.deck_lines:SetPoint("CENTER", controller_image.deck, "CENTER", -1, 0)
+        -- controller_image.deck_lines:SetSize(1150, 590)
+
+        addon.controller_frame:SetHeight(600)
+        addon.controller_frame:SetWidth(920)
 
     else
         return
@@ -281,10 +482,10 @@ function addon:generate_controller_key_frames()
                     button.is_modifier = modifier_keys[button.raw_key] or false
 
                     -- Determine the position of the short_key text based on the X-coordinate in button_data[2]
-                    if button_data[2] < -50 then
+                    if button_data[2] < -200 then
                         -- If the X-coordinate is negative, position the short_key to the left of the button
                         button.short_key:SetPoint("LEFT", button, "RIGHT", 10, 0)
-                    elseif button_data[2] > 50 then
+                    elseif button_data[2] > 200 then
                         -- If the X-coordinate is positive, position the short_key to the right of the button
                         button.short_key:SetPoint("RIGHT", button, "LEFT", -10, 0)
                     else
@@ -323,9 +524,9 @@ function addon:create_controller_buttons()
     controller_button.border = border
 
     controller_button:SetMovable(true)
-    controller_button:SetClampedToScreen(true)
     controller_button:EnableMouse(true)
     controller_button:EnableKeyboard(true)
+    controller_button:EnableGamePadButton(true)
 
     -- controller Keybind text string on the top right of the button (e.g. a-c-s-1)
     controller_button.short_key = controller_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -370,13 +571,18 @@ function addon:create_controller_buttons()
         if addon.controller_locked == false and not addon.isMoving then
 
             controller_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(controller_button, key)
-                addon.keys_controller_edited = true
+                addon:handle_key_down(addon.current_hovered_button, key)
+                addon.keys_keyboard_edited = true
             end)
-        
+
+            controller_button:SetScript("OnGamePadButtonDown", function(_, key)
+                addon:handle_gamepad_down(addon.current_hovered_button, key)
+                addon.keys_keyboard_edited = true
+            end)
+
             controller_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_controller_wheel(controller_button, delta)
-                addon.keys_controller_edited = true
+                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
+                addon.keys_keyboard_edited = true
             end)
 
         end
@@ -417,7 +623,7 @@ function addon:create_controller_buttons()
 
         if button == "LeftButton" then
             if addon.controller_locked == false then
-                drag_or_size(self, button)
+                addon:handle_drag_or_size(self, button)
                 addon.keys_controller_edited = true
             else
                 if slot then
@@ -435,7 +641,7 @@ function addon:create_controller_buttons()
     controller_button:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             if addon.controller_locked == false then
-                release(self, button)
+                addon:handle_release(self, button)
             end
         elseif button == "RightButton" then
             addon.current_clicked_key = self    -- save the current clicked key

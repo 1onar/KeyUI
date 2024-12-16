@@ -155,13 +155,23 @@ function addon:create_keyboard_frame()
             -- If the controls frame is visible, hide it
             if addon.controls_frame:IsVisible() then
                 addon.controls_frame:Hide()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:fade_controls_button_highlight(keyboard_frame)
             else
                 -- Otherwise, show the controls frame
                 addon.controls_frame:Show()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:show_controls_button_highlight(keyboard_frame)
+
             end
         else
             -- If the controls frame doesn't exist, create and show it
             addon:get_controls_frame()
+
+            -- Change the style of other tab buttons, excluding the current button's frame
+            addon:show_controls_button_highlight(keyboard_frame)
         end
     end)
 
@@ -414,6 +424,7 @@ function addon:create_keyboard_buttons()
 
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
+    keyboard_button:EnableGamePadButton(true)
 
     -- Create the backdrop for the background only (no edge)
     local backdropInfo = {
@@ -470,20 +481,23 @@ function addon:create_keyboard_buttons()
     keyboard_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = keyboard_button -- save the current hovered button to re-trigger tooltip
         addon:button_mouse_over(keyboard_button)
-        keyboard_button:EnableKeyboard(true)
-        keyboard_button:EnableMouseWheel(true)
 
         local slot = self.slot
 
         if addon.keyboard_locked == false then
 
             keyboard_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(keyboard_button, key)
+                addon:handle_key_down(addon.current_hovered_button, key)
+                addon.keys_keyboard_edited = true
+            end)
+
+            keyboard_button:SetScript("OnGamePadButtonDown", function(_, key)
+                addon:handle_gamepad_down(addon.current_hovered_button, key)
                 addon.keys_keyboard_edited = true
             end)
 
             keyboard_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_mouse_wheel(keyboard_button, delta)
+                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
                 addon.keys_keyboard_edited = true
             end)
 

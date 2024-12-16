@@ -47,14 +47,158 @@ function addon:create_mouse_image()
     mouse_image.Texture:SetSize(390, 390)
 
     mouse_image.close_button = CreateFrame("Button", nil, mouse_image, "UIPanelCloseButton")
-    mouse_image.close_button:SetSize(30, 30)
-    mouse_image.close_button:SetPoint("TOPRIGHT", 0, 0)
+    mouse_image.close_button:SetSize(22, 22)
+    mouse_image.close_button:SetPoint("TOPRIGHT", mouse_image, "TOPRIGHT", 0, 0)
     mouse_image.close_button:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
         mouse_image:Hide()
+    end)
+
+    -- Helper function to toggle visibility of tab button textures
+    local function toggle_button_textures(button, showInactive)
+        if showInactive then
+            button.LeftActive:Hide()
+            button.MiddleActive:Hide()
+            button.RightActive:Hide()
+            button.Left:Show()
+            button.Middle:Show()
+            button.Right:Show()
+        else
+            button.LeftActive:Show()
+            button.MiddleActive:Show()
+            button.RightActive:Show()
+            button.Left:Hide()
+            button.Middle:Hide()
+            button.Right:Hide()
+            button.LeftHighlight:Hide()
+            button.MiddleHighlight:Hide()
+            button.RightHighlight:Hide()
+        end
+    end
+
+    -- Apply custom font to the tab buttons
+    local custom_font = CreateFont("mouse_tab_custom_font")
+    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12, "OUTLINE")
+
+    -- Get mouse Frame Level
+    local mouse_level = addon.mouse_image:GetFrameLevel()
+
+    -- Create the settings tab button
+    mouse_image.controls_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    mouse_image.controls_button:SetPoint("TOPLEFT", mouse_image, "BOTTOM", -12, 0)
+    mouse_image.controls_button:SetFrameLevel(mouse_level - 1)
+    mouse_image.controls_button:SetScale(0.8)
+
+    -- Set button text
+    mouse_image.controls_button:SetText("Controls")
+
+    -- Apply custom font to the controls button
+    mouse_image.controls_button:SetNormalFontObject(custom_font)
+    mouse_image.controls_button:SetHighlightFontObject(custom_font)
+    mouse_image.controls_button:SetDisabledFontObject(custom_font)
+
+    local text = mouse_image.controls_button:GetFontString()
+    text:ClearAllPoints()
+    text:SetPoint("CENTER", mouse_image.controls_button, "CENTER", 0, 0)
+    text:SetTextColor(1, 1, 1) -- Set text color to white
+
+    -- Set OnClick behavior for controls button
+    mouse_image.controls_button:SetScript("OnClick", function()
+        addon.active_control_tab = "mouse"
+        addon:update_tab_textures()
+
+        -- Check if the controls frame exists
+        if addon.controls_frame then
+            -- If the controls frame is visible, hide it
+            if addon.controls_frame:IsVisible() then
+                addon.controls_frame:Hide()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:fade_controls_button_highlight(mouse_image)
+            else
+                -- Otherwise, show the controls frame
+                addon.controls_frame:Show()
+
+                -- Change the style of other tab buttons, excluding the current button's frame
+                addon:show_controls_button_highlight(mouse_image)
+            end
+        else
+            -- If the controls frame doesn't exist, create and show it
+            addon:get_controls_frame()
+
+            -- Change the style of other tab buttons, excluding the current button's frame
+            addon:show_controls_button_highlight(mouse_image)
+        end
+    end)
+
+    -- Ensure the controls button always appears inactive
+    toggle_button_textures(mouse_image.controls_button, true)
+
+    -- Set initial transparency (out of focus) for controls button
+    mouse_image.controls_button:SetAlpha(0.5)
+
+    -- Set behavior when mouse enters and leaves the controls button
+    mouse_image.controls_button:SetScript("OnEnter", function()
+        mouse_image.controls_button:SetAlpha(1) -- Make the button fully visible on hover
+        toggle_button_textures(mouse_image.controls_button, false) -- Show active textures
+    end)
+
+    mouse_image.controls_button:SetScript("OnLeave", function()
+        if addon.controls_frame and addon.controls_frame:IsVisible() then
+            return
+        else
+            mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            toggle_button_textures(mouse_image.controls_button, true) -- Show inactive textures
+        end
+    end)
+
+    mouse_image.controls_button:SetScript("OnHide", function()
+        mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+        toggle_button_textures(mouse_image.controls_button, true) -- Show inactive textures
+    end)
+
+    -- Create the options tab button
+    mouse_image.options_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    mouse_image.options_button:SetPoint("BOTTOMRIGHT", mouse_image.controls_button, "BOTTOMLEFT", -4, 0)
+    mouse_image.options_button:SetFrameLevel(mouse_level - 1)
+    mouse_image.options_button:SetScale(0.8)
+
+    -- Set button text
+    mouse_image.options_button:SetText("Options")
+
+    -- Apply custom font to the options button
+    mouse_image.options_button:SetNormalFontObject(custom_font)
+    mouse_image.options_button:SetHighlightFontObject(custom_font)
+    mouse_image.options_button:SetDisabledFontObject(custom_font)
+
+    local text = mouse_image.options_button:GetFontString()
+    text:ClearAllPoints()
+    text:SetPoint("CENTER", mouse_image.options_button, "CENTER", 0, 0)
+    text:SetTextColor(1, 1, 1) -- Set text color to white
+
+    -- Set OnClick behavior for options button
+    mouse_image.options_button:SetScript("OnClick", function()
+        Settings.OpenToCategory("KeyUI")
+    end)
+
+    -- Ensure the options button always appears inactive
+    toggle_button_textures(mouse_image.options_button, true)
+
+    -- Set initial transparency (out of focus) for options button
+    mouse_image.options_button:SetAlpha(0.5)
+
+    -- Set behavior when mouse enters and leaves the options button
+    mouse_image.options_button:SetScript("OnEnter", function()
+        mouse_image.options_button:SetAlpha(1) -- Make the button fully visible on hover
+        toggle_button_textures(mouse_image.options_button, false) -- Show active textures
+    end)
+
+    mouse_image.options_button:SetScript("OnLeave", function()
+        mouse_image.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+        toggle_button_textures(mouse_image.options_button, true) -- Show inactive textures
     end)
 
     return mouse_image
@@ -76,27 +220,6 @@ function addon:create_mouse_frame()
     mouse_frame:Hide()
 
     return mouse_frame
-end
-
-local function drag_or_size(self, Mousebutton)
-    if self.mouse_locked then
-        return -- Do nothing if not MouseLocked is selected
-    end
-
-    if Mousebutton == "LeftButton" and IsShiftKeyDown() then
-        self.keys_mouse = nil
-        self:Hide()
-    elseif Mousebutton == "LeftButton" then
-        self:StartMoving()
-        addon.isMoving = true -- Add a flag to indicate the frame is being moved
-    end
-end
-
-local function release(self, Mousebutton)
-    if Mousebutton == "LeftButton" then
-        self:StopMovingOrSizing()
-        addon.isMoving = false -- Reset the flag when the movement is stopped
-    end
 end
 
 function addon:save_mouse_layout()
@@ -244,6 +367,10 @@ function addon:create_mouse_buttons()
     -- Create a frame that acts as a button with a tooltip border.
     local mouse_button = CreateFrame("BUTTON", nil, addon.mouse_image, "SecureActionButtonTemplate")
 
+    mouse_button:EnableMouse(true)
+    mouse_button:EnableKeyboard(true)
+    mouse_button:EnableGamePadButton(true)
+
     -- Add Background Texture
     local background = mouse_button:CreateTexture(nil, "BACKGROUND")
     background:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\actionbutton_bg")
@@ -260,8 +387,6 @@ function addon:create_mouse_buttons()
 
     mouse_button:SetMovable(true)
     mouse_button:SetClampedToScreen(true)
-    mouse_button:EnableMouse(true)
-    mouse_button:EnableKeyboard(true)
 
     -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
     mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -307,13 +432,18 @@ function addon:create_mouse_buttons()
         if addon.mouse_locked == false and not addon.isMoving then
 
             mouse_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(mouse_button, key)
-                addon.keys_mouse_edited = true
+                addon:handle_key_down(addon.current_hovered_button, key)
+                addon.keys_keyboard_edited = true
             end)
-        
+
+            mouse_button:SetScript("OnGamePadButtonDown", function(_, key)
+                addon:handle_gamepad_down(addon.current_hovered_button, key)
+                addon.keys_keyboard_edited = true
+            end)
+
             mouse_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_mouse_wheel(mouse_button, delta)
-                addon.keys_mouse_edited = true
+                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
+                addon.keys_keyboard_edited = true
             end)
 
         end
@@ -354,7 +484,7 @@ function addon:create_mouse_buttons()
 
         if button == "LeftButton" then
             if addon.mouse_locked == false then
-                drag_or_size(self, button)
+                addon:handle_drag_or_size(self, button)
                 addon.keys_mouse_edited = true
             else
                 if slot then
@@ -372,7 +502,7 @@ function addon:create_mouse_buttons()
     mouse_button:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             if addon.mouse_locked == false then
-                release(self, button)
+                addon:handle_release(self, button)
             end
         elseif button == "RightButton" then
             addon.current_clicked_key = self    -- save the current clicked key

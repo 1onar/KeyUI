@@ -573,38 +573,54 @@ end
 -- This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:button_mouse_over(button)
     local raw_key = button.raw_key or ""
-    local key = _G["KEY_" .. raw_key] or raw_key
+    local short_key = button.short_key:GetText()
     local readable_binding = button.readable_binding:GetText() or ""
     local short_modifier_string = (addon.current_modifier_string or "")
 
-    addon.keyui_tooltip_frame:SetPoint("LEFT", button, "RIGHT", 6, 0) -- Position for the Addon Tooltip
+    -- Position the tooltip next to the hovered button
+    addon.keyui_tooltip_frame:SetPoint("BOTTOMLEFT", button, "BOTTOMRIGHT", 6, 5)
 
-    -- Check if the key is in the no_modifier_keys list
-    if addon.no_modifier_keys[key] then
-        -- If the key is in the no_modifier_keys list, don't add the modifier string
-        addon.keyui_tooltip_frame.key:SetText(key)
+    -- Adjust the tooltip size and text positions for gamepad buttons
+    if addon.gamepad_buttons[raw_key] then
+        addon.keyui_tooltip_frame:SetHeight(74) -- Increase height for gamepad buttons
+        addon.keyui_tooltip_frame.key:SetScale(0.8)
+        addon.keyui_tooltip_frame.key:SetPoint("CENTER", addon.keyui_tooltip_frame, "CENTER", 0, 14) -- Adjust key text position
+        addon.keyui_tooltip_frame.binding:SetPoint("CENTER", addon.keyui_tooltip_frame, "CENTER", 0, -22) -- Adjust binding text position
     else
-        -- If it's not a no-modifier key, combine the modifier string with the key
-        addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. key)
+        addon.keyui_tooltip_frame:SetHeight(50) -- Default height for non-gamepad buttons
+        addon.keyui_tooltip_frame.key:SetScale(1)
+        addon.keyui_tooltip_frame.key:SetPoint("CENTER", addon.keyui_tooltip_frame, "CENTER", 0, 10) -- Default key text position
+        addon.keyui_tooltip_frame.binding:SetPoint("CENTER", addon.keyui_tooltip_frame, "CENTER", 0, -10) -- Default binding text position
     end
 
+    -- Display the key text with or without modifiers
+    if addon.no_modifier_keys[raw_key] then
+        -- For keys without modifiers, display only the key
+        addon.keyui_tooltip_frame.key:SetText(short_key)
+    else
+        -- For keys with modifiers, display the modifier string followed by the key
+        addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. short_key)
+    end
+
+    -- Display the readable binding text
     addon.keyui_tooltip_frame.binding:SetText(readable_binding or "")
 
-    -- Set the tooltip width based on the longer text dimension + 20
-    local binding_width = addon.keyui_tooltip_frame.binding:GetText() and addon.keyui_tooltip_frame.binding:GetWidth() or
-        0
+    -- Adjust tooltip width based on the longer text dimension + 20
+    local binding_width = addon.keyui_tooltip_frame.binding:GetText() and addon.keyui_tooltip_frame.binding:GetWidth() or 0
     local key_width = addon.keyui_tooltip_frame.key:GetText() and addon.keyui_tooltip_frame.key:GetWidth() or 0
-
     addon.keyui_tooltip_frame:SetWidth(math.max(binding_width, key_width) + 20)
 
+    -- Show the tooltip
     addon.keyui_tooltip_frame:Show()
 
+    -- Display the GameTooltip if the hovered button has an active slot
     if addon.current_hovered_button.active_slot then
         GameTooltip:SetOwner(addon.current_hovered_button, "ANCHOR_NONE")
         GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
         GameTooltip:SetAction(addon.current_hovered_button.active_slot) -- Use SetAction for ActionButtons
         GameTooltip:Show()
     else
+        -- Hide the GameTooltip if no active slot is found
         GameTooltip:Hide()
     end
 end
@@ -829,7 +845,47 @@ function addon:set_key(button)
     -- Set visible key name based on the current modifier string
     local original_text = button.raw_key or "" -- Ensure original_text is never nil
 
-    -- Check for shortcut label instead of global string
+    -- Check if the key is a PlayStation button and the controller system is DS4 or DS5
+    if addon.playstation_buttons[original_text] and (addon.controller_system == "ds4" or addon.controller_system == "ds5") then
+        -- Retrieve the PlayStation icon
+        local texture = addon.playstation_buttons[original_text]
+        -- Format the texture into an icon string
+        local playstation_icon = string.format("|A:%s:32:32|a", texture)
+
+        -- Set the PlayStation icon as the short key text
+        if button.short_key then
+            button.short_key:SetText(playstation_icon)
+            return -- Exit here since we don't need further processing for PlayStation buttons
+        end
+
+    -- Check if the key is an Xbox button and the controller system is Xbox
+    elseif addon.xbox_buttons[original_text] and addon.controller_system == "xbox" then
+        -- Retrieve the Xbox icon
+        local texture = addon.xbox_buttons[original_text]
+        -- Format the texture into an icon string
+        local xbox_icon = string.format("|A:%s:32:32|a", texture)
+
+        -- Set the Xbox icon as the short key text
+        if button.short_key then
+            button.short_key:SetText(xbox_icon)
+            return -- Exit here since we don't need further processing for Xbox buttons
+        end
+
+    -- Check if the key is a Deck button and the controller system is Deck
+    elseif addon.deck_buttons[original_text] and addon.controller_system == "deck" then
+        -- Retrieve the Deck icon
+        local texture = addon.deck_buttons[original_text]
+        -- Format the texture into an icon string
+        local deck_icon = string.format("|A:%s:32:32|a", texture)
+
+        -- Set the Deck icon as the short key text
+        if button.short_key then
+            button.short_key:SetText(deck_icon)
+            return -- Exit here since we don't need further processing for Deck buttons
+        end
+    end
+
+    -- For non-gamepad buttons, follow the usual logic for readable text
     local readable_text = addon.short_keys[original_text] or _G["KEY_" .. original_text] or original_text
 
     -- Set the short key format if button.short_key exists
@@ -860,20 +916,19 @@ function addon:set_key(button)
                 end
             end
         end
+    end
 
-        -- Calculate the maximum allowed characters based on button width
-        local max_allowed_chars = math.floor(button:GetWidth() / 9)
-        local combined_text = button.short_key:GetText() or
-            "" -- Combined text with modifiers if present / Use empty string if GetText() returns nil
+    -- Calculate the maximum allowed characters based on button width
+    local max_allowed_chars = math.floor(button:GetWidth() / 9)
+    local combined_text = button.short_key:GetText() or "" -- Combined text with modifiers if present / Use empty string if GetText() returns nil
 
-        -- Use Condensed font if the combined text exceeds max_allowed_chars
-        if string.len(combined_text) > max_allowed_chars then
-            -- Use the Condensed font for longer text
-            button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 16, "OUTLINE")
-        else
-            -- Use the Regular font for shorter text
-            button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
-        end
+    -- Use Condensed font if the combined text exceeds max_allowed_chars
+    if string.len(combined_text) > max_allowed_chars then
+        -- Use the Condensed font for longer text
+        button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 16, "OUTLINE")
+    else
+        -- Use the Regular font for shorter text
+        button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
     end
 end
 
@@ -1298,6 +1353,33 @@ function addon:handle_key_down(frame, key)
     addon:refresh_keys()
 end
 
+function addon:handle_gamepad_down(frame, key)
+    -- Check if any modifier is held down
+    local modifier = ""
+
+    print(frame)
+
+    -- Check for ALT modifier
+    if IsAltKeyDown() then
+        modifier = modifier .. "ALT-"
+    end
+
+    -- Check for CTRL modifier
+    if IsControlKeyDown() then
+        modifier = modifier .. "CTRL-"
+    end
+
+    -- Check for SHIFT modifier
+    if IsShiftKeyDown() then
+        modifier = modifier .. "SHIFT-"
+    end
+
+    -- Set the raw key for Gamepad input
+    frame.raw_key = modifier .. key
+
+    addon:refresh_keys()
+end
+
 -- Shared MouseWheel function with modifier support
 function addon:handle_mouse_wheel(frame, delta)
     -- Initialize the modifier string
@@ -1322,6 +1404,27 @@ function addon:handle_mouse_wheel(frame, delta)
     end
 
     addon:refresh_keys()
+end
+
+function addon:handle_drag_or_size(self, button)
+    if self.mouse_locked then
+        return -- Do nothing if not MouseLocked is selected
+    end
+
+    if button == "LeftButton" and IsShiftKeyDown() then
+        self.keys_mouse = nil
+        self:Hide()
+    elseif button == "LeftButton" then
+        self:StartMoving()
+        addon.isMoving = true -- Add a flag to indicate the frame is being moved
+    end
+end
+
+function addon:handle_release(self, button)
+    if button == "LeftButton" then
+        self:StopMovingOrSizing()
+        addon.isMoving = false -- Reset the flag when the movement is stopped
+    end
 end
 
 local function rightclick_initialize(self, level)
