@@ -173,6 +173,8 @@ function addon:create_keyboard_frame()
             -- Change the style of other tab buttons, excluding the current button's frame
             addon:show_controls_button_highlight(keyboard_frame)
         end
+
+        addon:update_tab_visibility()
     end)
 
     -- Ensure the controls button always appears inactive

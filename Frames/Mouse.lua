@@ -132,6 +132,8 @@ function addon:create_mouse_image()
             -- Change the style of other tab buttons, excluding the current button's frame
             addon:show_controls_button_highlight(mouse_image)
         end
+
+        addon:update_tab_visibility()
     end)
 
     -- Ensure the controls button always appears inactive

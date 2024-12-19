@@ -1683,6 +1683,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- Save Keyboard and Mouse Position when logging out
             addon:save_keyboard_position()
             addon:save_mouse_position()
+            addon:save_controller_position()
         elseif event == "MODIFIER_STATE_CHANGED" then --refreshkeys only
             -- Handle the modifier state change
             local key, state = ...                    -- Get key and state from the event

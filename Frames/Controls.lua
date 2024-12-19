@@ -128,10 +128,8 @@ function addon:create_controls()
 
     addon:switch_layout_selector()
 
-    --Size
-
+    -- Size
     controls_frame.text_size = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.text_size:SetText("Size: " .. string.format("%.2f", addon.keyboard_frame:GetScale()))
     controls_frame.text_size:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.text_size:SetPoint("CENTER", controls_frame, "LEFT", offset_one_third, 25)
     controls_frame.text_size:SetTextColor(1, 1, 1)
@@ -150,13 +148,23 @@ function addon:create_controls()
     controls_frame.Slider:SetMinMaxValues(minValue, maxValue)
     controls_frame.Slider:SetValueStep(stepSize)  -- Set the step size for the slider
 
-    -- Function to update the slider value based on the active control tab
+    -- Function to update the slider value and text based on the active control tab
     local function update_slider_value()
+        local scale_value = 1.0  -- Default scale value
+
         if addon.active_control_tab == "keyboard" then
-            controls_frame.Slider:SetValue(addon.keyboard_frame:GetScale())  -- Initial value for the keyboard frame scale
+            scale_value = addon.keyboard_frame:GetScale()
         elseif addon.active_control_tab == "mouse" then
-            controls_frame.Slider:SetValue(addon.mouse_image:GetScale())  -- Initial value for the mouse image scale
+            scale_value = addon.mouse_image:GetScale()
+        elseif addon.active_control_tab == "controller" then
+            scale_value = addon.controller_frame:GetScale()
         end
+
+        -- Update the slider's value
+        controls_frame.Slider:SetValue(scale_value)
+
+        -- Update the displayed text
+        controls_frame.text_size:SetText("Size: " .. string.format("%.2f", scale_value))
     end
 
     -- Initialize slider value based on the active control tab
@@ -174,6 +182,9 @@ function addon:create_controls()
         elseif addon.active_control_tab == "mouse" then
             -- Apply the rounded value to the mouse image's scale
             addon.mouse_image:SetScale(rounded_value)
+        elseif addon.active_control_tab == "controller" then
+            -- Apply the rounded value to the controller frame's scale
+            addon.controller_frame:SetScale(rounded_value)
         end
 
         -- Update the displayed text with the new value
@@ -735,37 +746,6 @@ function addon:create_controls()
     controls_frame.Close:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
         controls_frame:Hide()
-
-        if addon.keyboard_frame and addon.keyboard_frame.controls_button then
-            addon.keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.keyboard_frame.controls_button.LeftActive:Hide()
-            addon.keyboard_frame.controls_button.MiddleActive:Hide()
-            addon.keyboard_frame.controls_button.RightActive:Hide()
-            addon.keyboard_frame.controls_button.Left:Show()
-            addon.keyboard_frame.controls_button.Middle:Show()
-            addon.keyboard_frame.controls_button.Right:Show()
-        end
-
-        if addon.mouse_image and addon.mouse_image.controls_button then
-            addon.mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.mouse_image.controls_button.LeftActive:Hide()
-            addon.mouse_image.controls_button.MiddleActive:Hide()
-            addon.mouse_image.controls_button.RightActive:Hide()
-            addon.mouse_image.controls_button.Left:Show()
-            addon.mouse_image.controls_button.Middle:Show()
-            addon.mouse_image.controls_button.Right:Show()
-        end
-
-        if addon.controller_frame and addon.controller_frame.controls_button then
-            addon.controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.controller_frame.controls_button.LeftActive:Hide()
-            addon.controller_frame.controls_button.MiddleActive:Hide()
-            addon.controller_frame.controls_button.RightActive:Hide()
-            addon.controller_frame.controls_button.Left:Show()
-            addon.controller_frame.controls_button.Middle:Show()
-            addon.controller_frame.controls_button.Right:Show()
-        end
-
     end)
 
     -- Helper function to adjust button and text widths
@@ -881,6 +861,48 @@ function addon:create_controls()
     controls_frame.controller_button:SetScript("OnShow", function(s)
         local frame_width = controls_frame:GetWidth()
         adjust_button_width(controls_frame.controller_button, frame_width)
+    end)
+
+    addon.controls_frame:SetScript("OnLoad", function()
+        addon:update_tab_visibility()
+    end)
+
+    addon.controls_frame:SetScript("OnShow", function()
+        addon:update_tab_visibility()
+    end)
+
+    addon.controls_frame:SetScript("OnHide", function()
+
+        if addon.keyboard_frame and addon.keyboard_frame.controls_button then
+            addon.keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            addon.keyboard_frame.controls_button.LeftActive:Hide()
+            addon.keyboard_frame.controls_button.MiddleActive:Hide()
+            addon.keyboard_frame.controls_button.RightActive:Hide()
+            addon.keyboard_frame.controls_button.Left:Show()
+            addon.keyboard_frame.controls_button.Middle:Show()
+            addon.keyboard_frame.controls_button.Right:Show()
+        end
+
+        if addon.mouse_image and addon.mouse_image.controls_button then
+            addon.mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            addon.mouse_image.controls_button.LeftActive:Hide()
+            addon.mouse_image.controls_button.MiddleActive:Hide()
+            addon.mouse_image.controls_button.RightActive:Hide()
+            addon.mouse_image.controls_button.Left:Show()
+            addon.mouse_image.controls_button.Middle:Show()
+            addon.mouse_image.controls_button.Right:Show()
+        end
+
+        if addon.controller_frame and addon.controller_frame.controls_button then
+            addon.controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
+            addon.controller_frame.controls_button.LeftActive:Hide()
+            addon.controller_frame.controls_button.MiddleActive:Hide()
+            addon.controller_frame.controls_button.RightActive:Hide()
+            addon.controller_frame.controls_button.Left:Show()
+            addon.controller_frame.controls_button.Middle:Show()
+            addon.controller_frame.controls_button.Right:Show()
+        end
+
     end)
 
     return controls_frame
@@ -1276,6 +1298,54 @@ function addon:update_tab_textures()
 
         -- Function to handle layout selection based on the active control tab
         addon:switch_layout_selector()
+    end
+end
+
+-- Helper function to update tab visibility and positioning
+function addon:update_tab_visibility()
+    local controls_frame = addon.controls_frame
+
+    -- Hide all tabs initially
+    controls_frame.keyboard_button:Hide()
+    controls_frame.mouse_button:Hide()
+    controls_frame.controller_button:Hide()
+
+    -- Position tracker for leftmost tab
+    local previous_button = nil
+
+    -- Show and position the Keyboard tab if enabled
+    if keyui_settings.show_keyboard == true then
+        controls_frame.keyboard_button:ClearAllPoints() -- Reset previous points
+        controls_frame.keyboard_button:Show()
+        if not previous_button then
+            controls_frame.keyboard_button:SetPoint("TOPLEFT", controls_frame, "BOTTOMLEFT", 8, 0)
+        else
+            controls_frame.keyboard_button:SetPoint("BOTTOMLEFT", previous_button, "BOTTOMRIGHT", 8, 0)
+        end
+        previous_button = controls_frame.keyboard_button
+    end
+
+    -- Show and position the Mouse tab if enabled
+    if keyui_settings.show_mouse == true then
+        controls_frame.mouse_button:ClearAllPoints() -- Reset previous points
+        controls_frame.mouse_button:Show()
+        if not previous_button then
+            controls_frame.mouse_button:SetPoint("TOPLEFT", controls_frame, "BOTTOMLEFT", 8, 0)
+        else
+            controls_frame.mouse_button:SetPoint("BOTTOMLEFT", previous_button, "BOTTOMRIGHT", 8, 0)
+        end
+        previous_button = controls_frame.mouse_button
+    end
+
+    -- Show and position the Controller tab if enabled
+    if keyui_settings.show_controller == true then
+        controls_frame.controller_button:ClearAllPoints() -- Reset previous points
+        controls_frame.controller_button:Show()
+        if not previous_button then
+            controls_frame.controller_button:SetPoint("TOPLEFT", controls_frame, "BOTTOMLEFT", 8, 0)
+        else
+            controls_frame.controller_button:SetPoint("BOTTOMLEFT", previous_button, "BOTTOMRIGHT", 8, 0)
+        end
     end
 end
 
