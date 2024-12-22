@@ -76,3 +76,6 @@ addon.ctrl_checkbox = false
 addon.shift_checkbox = false
 
 addon.active_control_tab = ""
+
+addon.tutorial_frame1_created = false
+addon.tutorial_frame2_created = false

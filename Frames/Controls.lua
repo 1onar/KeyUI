@@ -1,73 +1,5 @@
 local name, addon = ...
 
--- -- Function to create a glowing tutorial highlight around the MinMax button
--- local function ShowTutorialFrame(Controls)
-
---     local arrow = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxArrowTemplate")
---     arrow:SetPoint("BOTTOM", Controls.MinMax, "TOP", 0, 4)
-
---     local frame = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxTemplate")
---     frame:SetPoint("BOTTOM", arrow, "TOP", 0, -6)
---     frame:SetSize(200, 50)
-
---     local frametext = frame:CreateFontString(nil, "ARTWORK", "GameFontWhite")
---     frametext:SetPoint("CENTER", frame, "CENTER")
---     frametext:SetText("Click to open settings")
-
---     local MaximizeButton = Controls.MinMax.MaximizeButton
---     local MinimizeButton = Controls.MinMax.MinimizeButton
-
---     local frame2 = CreateFrame("Frame", nil, Controls.MinMax, "GlowBoxTemplate")
---     frame2:SetPoint("CENTER", frame, "CENTER")
---     frame2:SetSize(200, 70)
---     frame2:Hide()
-
---     if MaximizeButton then
---         MaximizeButton:HookScript("OnClick", function()
---             if frame then
---                 arrow:Hide()
---                 frame:Hide()
-
---                 frame2:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", 3, 2)
---                 frame2:Show()
-
---                 local arrow_texture = frame2:CreateTexture(nil, "ARTWORK")
---                 arrow_texture:SetTexture("Interface\\HelpFrame\\Helptip")
---                 arrow_texture:SetSize(128, 32)
---                 arrow_texture:SetPoint("CENTER", frame2, "BOTTOMLEFT", -10, 5)
---                 arrow_texture:SetRotation(math.rad(270))
-
---                 local frametext2 = frame2:CreateFontString(nil, "ARTWORK", "GameFontWhite")
---                 frametext2:SetPoint("CENTER", frame2, "CENTER")
---                 frametext2:SetText("Click to select a layout")
-
---                 local close_frame = CreateFrame("Button", nil, frame2, "UIPanelCloseButton")
---                 close_frame:SetPoint("TOPRIGHT", 0, 0)
---                 close_frame:SetFrameLevel(frame2:GetFrameLevel() + 1)
---                 close_frame:SetScript("OnClick", function(s)
---                     frame2:Hide()
---                     keyui_settings.tutorial_completed = true
---                 end)
---             end
---         end)
---     end
-
---     if MinimizeButton then
---         MinimizeButton:HookScript("OnClick", function()
---             if frame then
---                 arrow:Hide()
---                 frame:Hide()
---                 frame2:Hide()
---             end
---         end)
---     end
--- end
-
-    -- -- Show tutorial if not completed
-    -- if keyui_settings.tutorial_completed ~= true then
-    --     ShowTutorialFrame(keyboard_control_frame)
-    -- end
-
 function addon:create_controls()
     local controls_frame = CreateFrame("Frame", "keyui_keyboard_control_frame", UIParent, "BackdropTemplate")
     addon.controls_frame = controls_frame
@@ -128,7 +60,6 @@ function addon:create_controls()
 
     addon:switch_layout_selector()
 
-    -- Size
     controls_frame.text_size = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controls_frame.text_size:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.text_size:SetPoint("CENTER", controls_frame, "LEFT", offset_one_third, 25)
@@ -226,10 +157,6 @@ function addon:create_controls()
         controls_frame.Slider:SetValue(current_value + 0.05)  -- Adjust the step if needed
     end)
 
-    --Size
-
-    --Buttons
-
     controls_frame.Display = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controls_frame.Display:SetText("Display Options")
     controls_frame.Display:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
@@ -243,7 +170,7 @@ function addon:create_controls()
     controls_frame.SwitchEmptyBinds:Show()
 
     local SwitchBindsText = controls_frame.SwitchEmptyBinds:CreateFontString(nil, "OVERLAY")
-    SwitchBindsText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
+    SwitchBindsText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
     SwitchBindsText:SetPoint("CENTER", 0, 0)
 
     -- Check the state of show_empty_binds in KeyUI_Settings
@@ -282,7 +209,7 @@ function addon:create_controls()
     controls_frame.SwitchInterfaceBinds:Show()
 
     local SwitchInterfaceText = controls_frame.SwitchInterfaceBinds:CreateFontString(nil, "OVERLAY")
-    SwitchInterfaceText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
+    SwitchInterfaceText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
     SwitchInterfaceText:SetPoint("CENTER", 0, 0)
 
     -- Handle showing/hiding interface binds
@@ -314,11 +241,6 @@ function addon:create_controls()
         GameTooltip:Hide()
     end)
 
-    --Buttons
-
-    --Modifier
-
-    --alt
     -- Create a font string for the text "Alt" and position it below the checkbutton
     controls_frame.AltText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.AltText:SetText("Alt")
@@ -343,16 +265,14 @@ function addon:create_controls()
             addon.modif.ALT = false
             addon.alt_checkbox = false
         end
-        
+
         -- Update the current modifier string and refresh keys based on the new state
         addon:update_modifier_string()
         addon:refresh_keys()
 
     end)
     SetCheckboxTooltip(controls_frame.AltCB, "Toggle Alt key modifier")
-    --alt
 
-    --ctrl
     -- Create a font string for the text "Ctrl" and position it below the checkbutton
     controls_frame.CtrlText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.CtrlText:SetText("Ctrl")
@@ -383,9 +303,7 @@ function addon:create_controls()
         addon:refresh_keys()
     end)
     SetCheckboxTooltip(controls_frame.CtrlCB, "Toggle Ctrl key modifier")
-    --ctrl
 
-    --shift
     -- Create a font string for the text "Shift" and position it below the checkbutton
     controls_frame.ShiftText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.ShiftText:SetText("Shift")
@@ -416,52 +334,6 @@ function addon:create_controls()
         addon:refresh_keys()
     end)
     SetCheckboxTooltip(controls_frame.ShiftCB, "Toggle Shift key modifier")
-    --shift
-
-    --Modifier
-
-    --Edit Menu
-
-    controls_frame.InputText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.InputText:SetText("Name")
-    controls_frame.InputText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.InputText:SetPoint("CENTER", controls_frame, "TOPLEFT", 380, -20)
-    controls_frame.InputText:Show()
-    controls_frame.InputText:SetTextColor(1, 1, 1)
-
-    controls_frame.Input = CreateFrame("EditBox", nil, controls_frame, "InputBoxInstructionsTemplate")
-    controls_frame.Input:SetSize(130, 30)
-    controls_frame.Input:SetPoint("CENTER", controls_frame.InputText, "CENTER", 0, -30)
-    controls_frame.Input:Show()
-    controls_frame.Input:SetAutoFocus(false)
-
-    controls_frame.EditText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.EditText:SetText("Edit Menu")
-    controls_frame.EditText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.EditText:SetPoint("CENTER", controls_frame, "TOPLEFT", offset_one_third, -20)
-    controls_frame.EditText:Show()
-    controls_frame.EditText:SetTextColor(1, 1, 1)
-
-    controls_frame.Save = CreateFrame("Button", nil, controls_frame, "UIPanelButtonTemplate")
-    controls_frame.Save:SetSize(70, 26)
-    controls_frame.Save:SetPoint("CENTER", controls_frame.EditText, "CENTER", 0, -30)
-    controls_frame.Save:Show()
-
-    controls_frame.Save:SetScript("OnClick", function() addon:save_keyboard_layout() end)
-    local SaveText = controls_frame.Save:CreateFontString(nil, "OVERLAY")
-    SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
-    SaveText:SetPoint("CENTER", 0, 1)
-    SaveText:SetText("Save")
-
-    controls_frame.Save:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Save the current layout.")
-        GameTooltip:Show()
-    end)
-
-    controls_frame.Save:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
-    end)
 
     -- Define the confirmation dialog
     StaticPopupDialogs["KEYUI_LAYOUT_CONFIRM_DELETE"] = {
@@ -480,9 +352,6 @@ function addon:create_controls()
                 if selectedLayout then
                     -- Remove the selected layout from the KeyboardEditLayouts table
                     keyui_settings.layout_edited_keyboard[selectedLayout] = nil
-
-                    -- Clear the text in the Input field for the keyboard
-                    controls_frame.Input:SetText("")
 
                     -- Print a message indicating which layout was deleted
                     print("KeyUI: Deleted the keyboard layout '" .. selectedLayout .. "'.")
@@ -510,9 +379,6 @@ function addon:create_controls()
                     -- Remove the selected layout from the MouseEditLayouts table
                     keyui_settings.layout_edited_mouse[selectedMouseLayout] = nil
 
-                    -- Clear the text in the Input field for the mouse
-                    controls_frame.Input:SetText("")
-
                     -- Print a message indicating which layout was deleted
                     print("KeyUI: Deleted the mouse layout '" .. selectedMouseLayout .. "'.")
 
@@ -538,9 +404,6 @@ function addon:create_controls()
                 if selectedcontrollerLayout then
                     -- Remove the selected layout from the controllerEditLayouts table
                     keyui_settings.layout_edited_controller[selectedcontrollerLayout] = nil
-
-                    -- Clear the text in the Input field for the controller
-                    controls_frame.Input:SetText("")
 
                     -- Print a message indicating which layout was deleted
                     print("KeyUI: Deleted the controller layout '" .. selectedcontrollerLayout .. "'.")
@@ -613,132 +476,6 @@ function addon:create_controls()
     controls_frame.Delete:SetScript("OnLeave", function(self)
         GameTooltip:Hide()
     end)
-
-    controls_frame.Lock = CreateFrame("Button", nil, controls_frame, "UIPanelButtonTemplate")
-    controls_frame.Lock:SetSize(70, 26)
-    controls_frame.Lock:SetPoint("RIGHT", controls_frame.Save, "LEFT", -5, 0)
-    controls_frame.Lock:Show()
-
-    -- Create and store the LockText in the frame table
-    controls_frame.LockText = controls_frame.Lock:CreateFontString(nil, "OVERLAY")
-    controls_frame.LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
-    controls_frame.LockText:SetPoint("CENTER", 0, 1)
-
-    if addon.keyboard_locked == false then
-        controls_frame.LockText:SetText("Lock")
-    else
-        controls_frame.LockText:SetText("Unlock")
-    end
-
-    local function ToggleLock()
-        if addon.keyboard_locked then
-            addon.keyboard_locked = false
-            controls_frame.LockText:SetText("Lock")
-            if controls_frame.glowBoxLock then
-                controls_frame.glowBoxLock:Show()
-                controls_frame.glowBoxSave:Hide()
-                controls_frame.glowBoxInput:Hide()
-            end
-
-            -- disable modifier
-            addon.modif.ALT = false
-            addon.modif.CTRL = false
-            addon.modif.SHIFT = false
-
-            -- reset checkbox states
-            addon.alt_checkbox = false
-            addon.ctrl_checkbox = false
-            addon.shift_checkbox = false
-            if addon.controls_frame.AltCB then
-                addon.controls_frame.AltCB:SetChecked(false)
-            end
-            if addon.controls_frame.CtrlCB then
-                addon.controls_frame.CtrlCB:SetChecked(false)
-            end
-            if addon.controls_frame.ShiftCB then
-                addon.controls_frame.ShiftCB:SetChecked(false)
-            end
-
-            print("KeyUI: The keyboard is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
-        else
-            addon.keyboard_locked = true
-            controls_frame.LockText:SetText("Unlock")
-            if controls_frame.glowBoxLock then
-                controls_frame.glowBoxLock:Hide()
-            end
-            if addon.keys_keyboard_edited == true then
-                controls_frame.glowBoxSave:Show()
-                controls_frame.glowBoxInput:Show()
-                print("KeyUI: Changes are now locked. Please enter a name and save your layout.")
-            else
-                controls_frame.glowBoxSave:Hide()
-                controls_frame.glowBoxInput:Hide()
-                print("KeyUI: No Changes detected (Keyboard).")
-            end
-        end
-    end
-
-    controls_frame.Lock:SetScript("OnClick", function(self) ToggleLock() end)
-
-    controls_frame.Lock:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Toggle Editor Mode")
-        GameTooltip:AddLine("- Assign new keybindings by pushing keys", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-
-    controls_frame.Lock:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
-    end)
-
-    -- Create the Discard button
-    controls_frame.Discard = CreateFrame("Button", nil, controls_frame, "UIPanelButtonTemplate")
-    controls_frame.Discard:SetSize(70, 26)  -- Set the size of the button
-    controls_frame.Discard:SetPoint("LEFT", controls_frame.Save, "RIGHT", 5, 0)
-    controls_frame.Discard:Show()
-
-    -- Create the font string for the button text
-    local DiscardText = controls_frame.Discard:CreateFontString(nil, "OVERLAY")
-    DiscardText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set the font
-    DiscardText:SetPoint("CENTER", 0, 1)  -- Center the text in the button
-    DiscardText:SetText("Discard")  -- Set the button text
-
-    -- Set the script to call the Discard function when clicked
-    controls_frame.Discard:SetScript("OnClick", function()
-        addon:discard_keyboard_changes()  -- Call the discard_keyboard_changes function
-    end)
-
-    controls_frame.Discard:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Discard Changes")
-        GameTooltip:AddLine("- Revert any unsaved keybinding changes", 1, 1, 1)
-        GameTooltip:AddLine("- Reset the keyboard layout to the last saved state", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-
-    controls_frame.Discard:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
-    end)
-
-    controls_frame.glowBoxLock = CreateFrame("Frame", nil, controls_frame, "GlowBorderTemplate")
-    controls_frame.glowBoxLock:SetSize(68, 24)
-    controls_frame.glowBoxLock:SetPoint("CENTER", controls_frame.Lock, "CENTER", 0, 0)
-    controls_frame.glowBoxLock:Hide()
-    controls_frame.glowBoxLock:SetFrameLevel(controls_frame.Lock:GetFrameLevel() - 1)
-
-    controls_frame.glowBoxSave = CreateFrame("Frame", nil, controls_frame, "GlowBorderTemplate")
-    controls_frame.glowBoxSave:SetSize(68, 24)
-    controls_frame.glowBoxSave:SetPoint("CENTER", controls_frame.Save, "CENTER", 0, 0)
-    controls_frame.glowBoxSave:Hide()
-    controls_frame.glowBoxSave:SetFrameLevel(controls_frame.Save:GetFrameLevel() - 1)
-
-    controls_frame.glowBoxInput = CreateFrame("Frame", nil, controls_frame, "GlowBorderTemplate")
-    controls_frame.glowBoxInput:SetSize(136, 18)
-    controls_frame.glowBoxInput:SetPoint("CENTER", controls_frame.Input, "CENTER", -2, 0)
-    controls_frame.glowBoxInput:Hide()
-    controls_frame.glowBoxInput:SetFrameLevel(controls_frame.Input:GetFrameLevel() - 1)
-
-    --Edit Menu
 
     controls_frame.Close = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")
     controls_frame.Close:SetSize(22, 22)
@@ -869,6 +606,23 @@ function addon:create_controls()
 
     addon.controls_frame:SetScript("OnShow", function()
         addon:update_tab_visibility()
+
+        if addon.name_input_dialog and addon.name_input_dialog:IsVisible() then
+            addon.name_input_dialog:Hide()
+        end
+
+        if addon.edit_layout_dialog and addon.edit_layout_dialog:IsVisible() then
+            addon.edit_layout_dialog:Hide()
+        end
+
+        -- Call the discard changes function
+        if addon.active_control_tab == "keyboard" and (addon.keys_keyboard_edited == true or addon.keyboard_locked == false) then
+            addon:discard_keyboard_changes()
+        elseif addon.active_control_tab == "mouse" and (addon.keys_mouse_edited == true or addon.mouse_locked == false) then
+            addon:discard_mouse_changes()
+        elseif addon.active_control_tab == "controller" and (addon.keys_controller_edited == true or addon.controller_locked == false) then
+            addon:discard_controller_changes()
+        end
     end)
 
     addon.controls_frame:SetScript("OnHide", function()
@@ -905,323 +659,543 @@ function addon:create_controls()
 
     end)
 
+    -- Create the "Edit Layout" button
+    addon.controls_frame.edit_layout_button = CreateFrame("Button", nil, addon.controls_frame, "UIPanelButtonTemplate")
+    addon.controls_frame.edit_layout_button:SetSize(150, 26)
+    addon.controls_frame.edit_layout_button:SetPoint("TOP", addon.controls_frame, "TOP", 0, -50)
+    addon.controls_frame.edit_layout_button:SetText("Edit Layout")
+
+    -- Access the FontString to modify font and color
+    local font_string = addon.controls_frame.edit_layout_button:GetFontString()
+    font_string:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
+    font_string:SetTextColor(1, 1, 1)
+
+    -- Attach the OnClick handler to the "Edit Layout" button
+    addon.controls_frame.edit_layout_button:SetScript("OnClick", function()
+
+        if not addon.edit_layout_dialog then
+            addon:create_edit_layout_dialog()
+        else
+            addon.edit_layout_dialog:Show()
+        end
+
+        if addon.active_control_tab == "keyboard" then
+            addon.keyboard_locked = false
+        elseif addon.active_control_tab == "mouse" then
+            addon.mouse_locked = false
+        elseif addon.active_control_tab == "controller" then
+            addon.controller_locked = false
+        end
+
+        -- disable modifier
+        addon.modif.ALT = false
+        addon.modif.CTRL = false
+        addon.modif.SHIFT = false
+
+        -- reset checkbox states
+        addon.alt_checkbox = false
+        addon.ctrl_checkbox = false
+        addon.shift_checkbox = false
+        if addon.controls_frame.AltCB then
+            addon.controls_frame.AltCB:SetChecked(false)
+        end
+        if addon.controls_frame.CtrlCB then
+            addon.controls_frame.CtrlCB:SetChecked(false)
+        end
+        if addon.controls_frame.ShiftCB then
+            addon.controls_frame.ShiftCB:SetChecked(false)
+        end
+
+        addon.controls_frame:Hide()
+    end)
+
     return controls_frame
 end
 
--- function addon:CreateMouseControl()
---     local mouse_control_frame = CreateFrame("Frame", "keyui_mouse_control_frame", UIParent, "TooltipBorderedFrameTemplate")
---     addon.mouse_control_frame = mouse_control_frame
+-- Define the function to show the Name Input dialog
+function addon:create_name_input_dialog()
 
---     mouse_control_frame:SetWidth((addon.mouse_image:GetWidth() + 40))
---     mouse_control_frame:SetHeight(190)
---     mouse_control_frame:SetBackdropColor(0, 0, 0, 1);
---     mouse_control_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+    -- Create the name input dialog frame
+    local name_input_frame = CreateFrame("Frame", "keyui_name_input_frame", UIParent, "BackdropTemplate")
+    name_input_frame:SetSize(400, 170)
+    name_input_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
+    name_input_frame:SetFrameStrata("DIALOG")
 
---     mouse_control_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
---     mouse_control_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
---     mouse_control_frame:SetMovable(true)
+    tinsert(UISpecialFrames, "keyui_name_input_frame")
 
---     -- Manage ESC key behavior based on the setting
---     if keyui_settings.prevent_esc_close ~= false then
---         tinsert(UISpecialFrames, "keyui_mouse_control_frame")
---     end
+    name_input_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
+    name_input_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    name_input_frame:SetMovable(true)
+    name_input_frame:SetClampedToScreen(true)
 
---     -- Calculate 1/2 of the width of keyui_mouse_control_frame
---     local offset_half = mouse_control_frame:GetWidth() * (1 / 2)
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
 
---     --Size start
---     mouse_control_frame.EditBox = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxTemplate")
---     mouse_control_frame.EditBox:SetWidth(60)
---     mouse_control_frame.EditBox:SetHeight(20)
---     mouse_control_frame.EditBox:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 30)
---     mouse_control_frame.EditBox:Show()
---     mouse_control_frame.EditBox:SetMaxLetters(4)
---     mouse_control_frame.EditBox:SetAutoFocus(false)
---     mouse_control_frame.EditBox:SetText(string.format("%.2f", addon.mouse_image:GetScale()))
---     mouse_control_frame.EditBox:SetJustifyH("CENTER")
+    name_input_frame:SetBackdrop(backdropInfo)
+    name_input_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
---     mouse_control_frame.EditBox:SetScript("OnEnterPressed", function(self)
---         local value = tonumber(self:GetText())
---         if value then
---             if value < 0.5 then
---                 value = 0.5
---             elseif value > 1.5 then
---                 value = 1.5
---             end
---             addon.mouse_image:SetScale(value)
---             self:SetText(string.format("%.2f", value))
---         end
---         self:ClearFocus()
---     end)
+    -- Title text
+    name_input_frame.title = name_input_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    name_input_frame.title:SetPoint("TOP", name_input_frame, "TOP", 0, -10)
+    name_input_frame.title:SetText("Save Layout")
+    name_input_frame.title:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 22)
+    name_input_frame.title:SetTextColor(1, 1, 1)
 
---     mouse_control_frame.LeftButton = CreateFrame("Button", nil, mouse_control_frame)
---     mouse_control_frame.LeftButton:SetSize(26, 26)
---     mouse_control_frame.LeftButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", -58, 0)
---     mouse_control_frame.LeftButton:Show()
---     mouse_control_frame.LeftButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
---     mouse_control_frame.LeftButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Down")
---     mouse_control_frame.LeftButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    -- Instruction text
+    name_input_frame.instruction = name_input_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    name_input_frame.instruction:SetPoint("TOP", name_input_frame.title, "BOTTOM", 0, -20)
+    name_input_frame.instruction:SetWidth(name_input_frame:GetWidth() - 20)
+    name_input_frame.instruction:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    name_input_frame.instruction:SetTextColor(1, 1, 1)
 
---     mouse_control_frame.RightButton = CreateFrame("Button", nil, mouse_control_frame)
---     mouse_control_frame.RightButton:SetSize(26, 26)
---     mouse_control_frame.RightButton:SetPoint("CENTER", mouse_control_frame.EditBox, "CENTER", 54, 0)
---     mouse_control_frame.RightButton:Show()
---     mouse_control_frame.RightButton:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
---     mouse_control_frame.RightButton:SetPushedTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Down")
---     mouse_control_frame.RightButton:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
+    -- Function to dynamically update title and instructions
+    local function update_input_content()
+        -- Get the device name and format it (first letter uppercase, rest lowercase)
+        local device_name = addon.active_control_tab:sub(1, 1):upper() .. addon.active_control_tab:sub(2):lower()
 
---     mouse_control_frame.LeftButton:SetScript("OnClick", function()
---         local currentValue = addon.mouse_image:GetScale()
---         local step = 0.05
---         local newValue = currentValue - step
---         if newValue < 0.5 then
---             newValue = 0.5
---         end
---         addon.mouse_image:SetScale(newValue)
---         mouse_control_frame.EditBox:SetText(string.format("%.2f", newValue))
---     end)
+        -- Set instruction text
+        local instructions = string.format("Enter a name to save the %s layout.", device_name)
 
---     mouse_control_frame.RightButton:SetScript("OnClick", function()
---         local currentValue = addon.mouse_image:GetScale()
---         local step = 0.05
---         local newValue = currentValue + step
---         if newValue > 1.5 then
---             newValue = 1.5
---         end
---         addon.mouse_image:SetScale(newValue)
---         mouse_control_frame.EditBox:SetText(string.format("%.2f", newValue))
---     end)
---     --Size end
+        -- Update the instruction text
+        name_input_frame.instruction:SetText(instructions)
+    end
 
---     --Text start
---     mouse_control_frame.Layout = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
---     mouse_control_frame.Layout:SetText("Layout")
---     mouse_control_frame.Layout:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
---     mouse_control_frame.Layout:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 160)
---     mouse_control_frame.Layout:SetTextColor(1, 1, 1)
+    -- Update content when the frame is shown
+    name_input_frame:SetScript("OnShow", update_input_content)
 
---     mouse_control_frame.Name = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
---     mouse_control_frame.Name:SetText("Name")
---     mouse_control_frame.Name:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
---     mouse_control_frame.Name:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 110)
---     mouse_control_frame.Name:SetTextColor(1, 1, 1)
+    -- Update content immediately for the first load
+    update_input_content()
 
---     mouse_control_frame.Size = mouse_control_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
---     mouse_control_frame.Size:SetText("Size")
---     mouse_control_frame.Size:SetFont("Fonts\\FRFIZQT__.TTF", 14)
---     mouse_control_frame.Size:SetPoint("LEFT", mouse_control_frame, "BOTTOMLEFT", 10, 30)
---     mouse_control_frame.Size:SetTextColor(1, 1, 1)
---     --Text end
+    -- Input box
+    name_input_frame.input_box = CreateFrame("EditBox", nil, name_input_frame, "InputBoxTemplate")
+    name_input_frame.input_box:SetSize(220, 30)
+    name_input_frame.input_box:SetScale(1.2)
+    name_input_frame.input_box:SetPoint("TOP", name_input_frame.instruction, "BOTTOM", 3, 0)
+    name_input_frame.input_box:SetAutoFocus(true)
 
---     --Edit start
---     mouse_control_frame.Input = CreateFrame("EditBox", nil, mouse_control_frame, "InputBoxInstructionsTemplate")
---     mouse_control_frame.Input:SetSize(130, 30)
---     mouse_control_frame.Input:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 110)
---     mouse_control_frame.Input:Show()
---     mouse_control_frame.Input:SetAutoFocus(false)
+    local input_name
 
---     mouse_control_frame.Save = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
---     mouse_control_frame.Save:SetSize(70, 26)
---     mouse_control_frame.Save:SetPoint("CENTER", mouse_control_frame, "BOTTOMLEFT", offset_half, 75)
---     mouse_control_frame.Save:Show()
+    if addon.active_control_tab == "keyboard" then
+        input_name = next(keyui_settings.layout_current_keyboard)
+    elseif addon.active_control_tab == "mouse" then
+        input_name = next(keyui_settings.layout_current_mouse)
+    elseif addon.active_control_tab == "controller" then
+        input_name = next(keyui_settings.layout_current_controller)
+    end
 
---     mouse_control_frame.Save:SetScript("OnClick", function() addon:save_mouse_layout() end)
---     local SaveText = mouse_control_frame.Save:CreateFontString(nil, "OVERLAY")
---     SaveText:SetFont("Fonts\\FRIZQT__.TTF", 12) -- Set your preferred font and size
---     SaveText:SetPoint("CENTER", 0, 1)
---     SaveText:SetText("Save")
+    name_input_frame.input_box:SetText(input_name)
 
---     mouse_control_frame.Save:SetScript("OnEnter", function(self)
---         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
---         GameTooltip:SetText("Save the current layout.")
---         GameTooltip:Show()
---     end)
+    local button_width = name_input_frame:GetWidth() / 2 - 30
 
---     mouse_control_frame.Save:SetScript("OnLeave", function(self)
---         GameTooltip:Hide()
---     end)
+    -- Save Button
+    name_input_frame.save_button = CreateFrame("Button", nil, name_input_frame)
+    name_input_frame.save_button:SetPoint("BOTTOMRIGHT", name_input_frame, "BOTTOM", -10, 20)
+    name_input_frame.save_button:SetSize(button_width, 30)
 
---     -- Define the confirmation dialog
---     StaticPopupDialogs["KEYUI_MOUSE_CONFIRM_DELETE"] = {
---         text = "Are you sure you want to delete the selected layout?",
---         button1 = "Yes",
---         button2 = "No",
---         OnAccept = function()
---             -- delete edited changes and remove glowboxes
---             addon:discard_mouse_changes()
+    -- Save Button Text
+    local save_text = name_input_frame.save_button:CreateFontString(nil, "OVERLAY")
+    save_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    save_text:SetPoint("CENTER", name_input_frame.save_button, "CENTER", 0, 0)
+    save_text:SetText("Save")
 
---             -- Function to delete the selected layout
---             local selectedLayout = UIDropDownMenu_GetText(addon.mouse_selector)
+    -- Save Button Left Cap Texture
+    local save_left = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_left:SetTexture("Interface/Buttons/Dropdown")
+    save_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
+    save_left:SetSize(16, 46)
+    save_left:SetPoint("LEFT", name_input_frame.save_button, "LEFT")
 
---             -- Ensure selectedLayout is not nil before proceeding
---             if selectedLayout then
---                 -- Remove the selected layout from the KeyboardEditLayouts table.
---                 keyui_settings.layout_edited_mouse[selectedLayout] = nil
+    -- Save Button Right Cap Texture
+    local save_right = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_right:SetTexture("Interface/Buttons/Dropdown")
+    save_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
+    save_right:SetSize(16, 46)
+    save_right:SetPoint("RIGHT", name_input_frame.save_button, "RIGHT")
 
---                 -- Clear the text in the Mouse.Input field.
---                 mouse_control_frame.Input:SetText("")
+    -- Save Button Middle Texture
+    local save_middle = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_middle:SetTexture("Interface/Buttons/Dropdown")
+    save_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
+    save_middle:SetPoint("LEFT", save_left, "RIGHT")
+    save_middle:SetPoint("RIGHT", save_right, "LEFT")
+    save_middle:SetHeight(46)
 
---                 -- Print a message indicating which layout was deleted.
---                 print("KeyUI: Deleted the layout '" .. selectedLayout .. "'.")
+    -- Hover Textures for Save Button
+    local save_hover_left = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_left:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
+    save_hover_left:SetSize(16, 46)
+    save_hover_left:SetPoint("LEFT", name_input_frame.save_button, "LEFT")
 
---                 wipe(keyui_settings.layout_current_mouse)
---                 UIDropDownMenu_SetText(addon.mouse_selector, "")
---                 addon:refresh_layouts()
---             else
---                 print("KeyUI: Error - No layout selected to delete.")
---             end
---         end,
---         timeout = 0,
---         whileDead = true,
---         hideOnEscape = true,
---         preferredIndex = 3, -- Avoids conflicts with other popups
---     }
+    local save_hover_right = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_right:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
+    save_hover_right:SetSize(16, 46)
+    save_hover_right:SetPoint("RIGHT", name_input_frame.save_button, "RIGHT")
 
---     mouse_control_frame.Delete = CreateFrame("Button", nil, mouse_control_frame, "UIPanelSquareButton")
---     mouse_control_frame.Delete:SetSize(28, 28)
---     mouse_control_frame.Delete:SetPoint("LEFT", addon.mouse_selector, "RIGHT", -12, 2)
---     mouse_control_frame.Delete:Show()
+    local save_hover_middle = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_middle:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
+    save_hover_middle:SetPoint("LEFT", save_hover_left, "RIGHT")
+    save_hover_middle:SetPoint("RIGHT", save_hover_right, "LEFT")
+    save_hover_middle:SetHeight(46)
 
---     -- OnClick handler to show confirmation dialog
---     mouse_control_frame.Delete:SetScript("OnClick", function(self)
---         if not addon.mouse_selector then
---             print("KeyUI: Error - No layout selected.")
---             return
---         end
+    local save_hover_text = name_input_frame.save_button:CreateFontString(nil, "HIGHLIGHT")
+    save_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    save_hover_text:SetPoint("CENTER", name_input_frame.save_button, "CENTER", 0, 0)
+    save_hover_text:SetText("Save")
 
---         -- Show the confirmation dialog
---         StaticPopup_Show("KEYUI_MOUSE_CONFIRM_DELETE")
---     end)
+    name_input_frame.save_button:SetScript("OnClick", function()
+        local layout_name = name_input_frame.input_box:GetText()
 
---     mouse_control_frame.Delete:SetScript("OnEnter", function(self)
---         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
---         GameTooltip:SetText("Delete Layout")
---         GameTooltip:AddLine("- Remove the current layout if it's custom", 1, 1, 1)
---         GameTooltip:Show()
---     end)
+        -- Call the save function
+        if layout_name ~= "" then
+            if addon.active_control_tab == "keyboard" then
+                addon:save_keyboard_layout(layout_name)
+            elseif addon.active_control_tab == "mouse" then
+                addon:save_mouse_layout(layout_name)
+            elseif addon.active_control_tab == "controller" then
+                addon:save_controller_layout(layout_name)
+            end
+        end
 
---     mouse_control_frame.Delete:SetScript("OnLeave", function(self)
---         GameTooltip:Hide()
---     end)
+        name_input_frame:Hide()
 
---     mouse_control_frame.Lock = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
---     mouse_control_frame.Lock:SetSize(70, 26)
---     mouse_control_frame.Lock:SetPoint("RIGHT", mouse_control_frame.Save, "LEFT", -5, 0)
---     mouse_control_frame.Lock:Show()
+        if addon.controls_frame then
+            addon.controls_frame:Show()
+        end
+    end)
 
---     -- Create and store the LockText in the frame table
---     mouse_control_frame.LockText = mouse_control_frame.Lock:CreateFontString(nil, "OVERLAY")
---     mouse_control_frame.LockText:SetFont("Fonts\\FRIZQT__.TTF", 12)
---     mouse_control_frame.LockText:SetPoint("CENTER", 0, 1)
+    -- Cancel Button
+    name_input_frame.cancel_button = CreateFrame("Button", nil, name_input_frame)
+    name_input_frame.cancel_button:SetPoint("BOTTOMLEFT", name_input_frame, "BOTTOM", 10, 20)
+    name_input_frame.cancel_button:SetSize(button_width, 30)
 
---     if addon.mouse_locked == false then
---         mouse_control_frame.LockText:SetText("Lock")
---     else
---         mouse_control_frame.LockText:SetText("Unlock")
---     end
+    -- Cancel Button Text
+    local cancel_text = name_input_frame.cancel_button:CreateFontString(nil, "OVERLAY")
+    cancel_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    cancel_text:SetPoint("CENTER", name_input_frame.cancel_button, "CENTER", 0, 0)
+    cancel_text:SetText("Cancel")
 
---     local function ToggleLock()
---         if addon.mouse_locked then
---             addon.mouse_locked = false
---             mouse_control_frame.LockText:SetText("Lock")
---             if mouse_control_frame.glowBoxLock then
---                 mouse_control_frame.glowBoxLock:Show()
---                 mouse_control_frame.glowBoxSave:Hide()
---                 mouse_control_frame.glowBoxInput:Hide()
---             end
---             print("KeyUI: The mouse is now unlocked! You can edit key bindings. 'Lock' the changes when done.")
---         else
---             addon.mouse_locked = true
---             mouse_control_frame.LockText:SetText("Unlock")
---             if mouse_control_frame.glowBoxLock then
---                 mouse_control_frame.glowBoxLock:Hide()
---             end
---             if addon.keys_mouse_edited == true then
---                 mouse_control_frame.glowBoxSave:Show()
---                 mouse_control_frame.glowBoxInput:Show()
---                 print("KeyUI: Changes are now locked. Please enter a name and save your layout.")
---             else
---                 mouse_control_frame.glowBoxSave:Hide()
---                 mouse_control_frame.glowBoxInput:Hide()
---                 print("KeyUI: No Changes detected (Mouse).")
---             end
---         end
---     end
+    -- Cancel Button Left Cap Texture
+    local cancel_left = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_left:SetTexture("Interface/Buttons/Dropdown")
+    cancel_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
+    cancel_left:SetSize(16, 46)
+    cancel_left:SetPoint("LEFT", name_input_frame.cancel_button, "LEFT")
 
---     mouse_control_frame.Lock:SetScript("OnClick", function(self) ToggleLock() end)
+    -- Cancel Button Right Cap Texture
+    local cancel_right = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_right:SetTexture("Interface/Buttons/Dropdown")
+    cancel_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
+    cancel_right:SetSize(16, 46)
+    cancel_right:SetPoint("RIGHT", name_input_frame.cancel_button, "RIGHT")
 
---     mouse_control_frame.Lock:SetScript("OnEnter", function(self)
---         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
---         GameTooltip:SetText("Toggle Editor Mode")
---         GameTooltip:AddLine("- Drag the keys with left mouse", 1, 1, 1)
---         GameTooltip:AddLine("- Delete keys with Shift + left-click mouse", 1, 1, 1)
---         GameTooltip:AddLine("- Assign new keybindings by pushing keys", 1, 1, 1)
---         GameTooltip:Show()
---     end)
+    -- Cancel Button Middle Texture
+    local cancel_middle = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_middle:SetTexture("Interface/Buttons/Dropdown")
+    cancel_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
+    cancel_middle:SetPoint("LEFT", cancel_left, "RIGHT")
+    cancel_middle:SetPoint("RIGHT", cancel_right, "LEFT")
+    cancel_middle:SetHeight(46)
 
---     mouse_control_frame.Lock:SetScript("OnLeave", function(self)
---         GameTooltip:Hide()
---     end)
+    -- Hover Textures for Cancel Button
+    local cancel_hover_left = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_left:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
+    cancel_hover_left:SetSize(16, 46)
+    cancel_hover_left:SetPoint("LEFT", name_input_frame.cancel_button, "LEFT")
 
---     -- Create the Discard button
---     mouse_control_frame.Discard = CreateFrame("Button", nil, mouse_control_frame, "UIPanelButtonTemplate")
---     mouse_control_frame.Discard:SetSize(70, 26)  -- Set the size of the button
---     mouse_control_frame.Discard:SetPoint("LEFT", mouse_control_frame.Save, "RIGHT", 5, 0)
---     mouse_control_frame.Discard:Show()
+    local cancel_hover_right = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_right:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
+    cancel_hover_right:SetSize(16, 46)
+    cancel_hover_right:SetPoint("RIGHT", name_input_frame.cancel_button, "RIGHT")
 
---     -- Create the font string for the button text
---     local DiscardText = mouse_control_frame.Discard:CreateFontString(nil, "OVERLAY")
---     DiscardText:SetFont("Fonts\\FRIZQT__.TTF", 12)  -- Set the font
---     DiscardText:SetPoint("CENTER", 0, 1)  -- Center the text in the button
---     DiscardText:SetText("Discard")  -- Set the button text
+    local cancel_hover_middle = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_middle:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
+    cancel_hover_middle:SetPoint("LEFT", cancel_hover_left, "RIGHT")
+    cancel_hover_middle:SetPoint("RIGHT", cancel_hover_right, "LEFT")
+    cancel_hover_middle:SetHeight(46)
 
---     -- Set the script to call the Discard function when clicked
---     mouse_control_frame.Discard:SetScript("OnClick", function()
---         addon:discard_mouse_changes()  -- Call the discard_mouse_changes function
---     end)
+    local cancel_hover_text = name_input_frame.cancel_button:CreateFontString(nil, "HIGHLIGHT")
+    cancel_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    cancel_hover_text:SetPoint("CENTER", name_input_frame.cancel_button, "CENTER", 0, 0)
+    cancel_hover_text:SetText("Cancel")
 
---     mouse_control_frame.Discard:SetScript("OnEnter", function(self)
---         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
---         GameTooltip:SetText("Discard Changes")
---         GameTooltip:AddLine("- Revert any unsaved keybinding changes", 1, 1, 1)
---         GameTooltip:AddLine("- Reset the keyboard layout to the last saved state", 1, 1, 1)
---         GameTooltip:Show()
---     end)
+    name_input_frame.cancel_button:SetScript("OnClick", function()
+        name_input_frame:Hide()
+        addon.edit_layout_dialog:Show()
+    end)
 
---     mouse_control_frame.Discard:SetScript("OnLeave", function(self)
---         GameTooltip:Hide()
---     end)
+    name_input_frame:SetScript("OnHide", function()
+        name_input_frame:Hide()
+    end)
 
---     mouse_control_frame.glowBoxLock = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
---     mouse_control_frame.glowBoxLock:SetSize(68, 24)
---     mouse_control_frame.glowBoxLock:SetPoint("CENTER", mouse_control_frame.Lock, "CENTER", 0, 0)
---     mouse_control_frame.glowBoxLock:Hide()
---     mouse_control_frame.glowBoxLock:SetFrameLevel(mouse_control_frame.Lock:GetFrameLevel() - 1)
+    addon.name_input_dialog = name_input_frame
+end
 
---     mouse_control_frame.glowBoxSave = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
---     mouse_control_frame.glowBoxSave:SetSize(68, 24)
---     mouse_control_frame.glowBoxSave:SetPoint("CENTER", mouse_control_frame.Save, "CENTER", 0, 0)
---     mouse_control_frame.glowBoxSave:Hide()
---     mouse_control_frame.glowBoxSave:SetFrameLevel(mouse_control_frame.Save:GetFrameLevel() - 1)
+-- Define the function to show the Edit Layout dialog
+function addon:create_edit_layout_dialog()
 
---     mouse_control_frame.glowBoxInput = CreateFrame("Frame", nil, mouse_control_frame, "GlowBorderTemplate")
---     mouse_control_frame.glowBoxInput:SetSize(136, 18)
---     mouse_control_frame.glowBoxInput:SetPoint("CENTER", mouse_control_frame.Input, "CENTER", -2, 0)
---     mouse_control_frame.glowBoxInput:Hide()
---     mouse_control_frame.glowBoxInput:SetFrameLevel(mouse_control_frame.Input:GetFrameLevel() - 1)
+    -- Create the dialog frame
+    local dialog_frame = CreateFrame("Frame", "keyui_dialog_frame", UIParent, "BackdropTemplate")
+    dialog_frame:SetSize(400, 170)
+    dialog_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
+    dialog_frame:SetFrameStrata("DIALOG")
+    dialog_frame:SetPropagateKeyboardInput(true)
 
---     --Edit end
+    tinsert(UISpecialFrames, "keyui_dialog_frame")
 
---     mouse_control_frame.Close = CreateFrame("Button", nil, mouse_control_frame, "UIPanelCloseButton")
---     mouse_control_frame.Close:SetSize(22, 22)
---     mouse_control_frame.Close:SetPoint("TOPRIGHT", 0, 0)
---     mouse_control_frame.Close:SetScript("OnClick", function(s)
---         addon:discard_mouse_changes()
---         mouse_control_frame:Hide()
---     end)
+    dialog_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
+    dialog_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    dialog_frame:SetMovable(true)
+    dialog_frame:SetClampedToScreen(true)
 
---     return mouse_control_frame
--- end
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    }
+
+    dialog_frame:SetBackdrop(backdropInfo)
+    dialog_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+
+    -- Title text
+    dialog_frame.title = dialog_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    dialog_frame.title:SetPoint("TOP", dialog_frame, "TOP", 0, -10)
+    dialog_frame.title:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 22)
+    dialog_frame.title:SetTextColor(1, 1, 1)
+
+    -- Instruction text
+    dialog_frame.instruction = dialog_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    dialog_frame.instruction:SetPoint("TOP", dialog_frame.title, "BOTTOM", 0, -20)
+    dialog_frame.instruction:SetWidth(dialog_frame:GetWidth() - 20)
+    dialog_frame.instruction:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    dialog_frame.instruction:SetTextColor(1, 1, 1)
+
+    -- Function to update title and instructions dynamically
+    local function update_dialog_content()
+        local device_name = addon.active_control_tab:sub(1, 1):upper() .. addon.active_control_tab:sub(2)
+        local instructions = ""
+
+        -- Add instructions for all device types
+        instructions = instructions ..
+            "- Hover over a button and press a key to bind it.\n"
+
+        -- Add additional instructions for mouse or controller
+        if addon.active_control_tab == "mouse" or addon.active_control_tab == "controller" then
+            instructions = instructions ..
+                "- Drag keys with the left mouse button.\n" ..
+                "- Remove keys by holding Shift and left-clicking.\n"
+        end
+
+        -- Update title and instruction text
+        dialog_frame.title:SetText(string.format("Edit %s Layout", device_name))
+        dialog_frame.instruction:SetText(instructions)
+
+        -- Ensure the instruction text is left-aligned
+        dialog_frame.instruction:SetJustifyH("LEFT")
+        dialog_frame.instruction:SetJustifyV("TOP")
+    end
+
+    -- Update content on show
+    dialog_frame:SetScript("OnShow", update_dialog_content)
+
+    -- Update content immediately for the first load
+    update_dialog_content()
+
+    local button_width = dialog_frame:GetWidth() / 2 - 30
+
+    -- Save button
+    dialog_frame.save_button = CreateFrame("Button", nil, dialog_frame)
+    dialog_frame.save_button:SetPoint("BOTTOMRIGHT", dialog_frame, "BOTTOM", -10, 20)
+    dialog_frame.save_button:SetSize(button_width, 30)
+
+    -- Button Text
+    local save_text = dialog_frame.save_button:CreateFontString(nil, "OVERLAY")
+    save_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    save_text:SetPoint("CENTER", dialog_frame.save_button, "CENTER", 0, 0)
+    save_text:SetText("Save")
+
+    -- Left Cap Texture
+    local save_left = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_left:SetTexture("Interface/Buttons/Dropdown")
+    save_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
+    save_left:SetSize(16, 46)
+    save_left:SetPoint("LEFT", dialog_frame.save_button, "LEFT")
+
+    -- Right Cap Texture
+    local save_right = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_right:SetTexture("Interface/Buttons/Dropdown")
+    save_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
+    save_right:SetSize(16, 46)
+    save_right:SetPoint("RIGHT", dialog_frame.save_button, "RIGHT")
+
+    -- Middle Texture
+    local save_middle = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
+    save_middle:SetTexture("Interface/Buttons/Dropdown")
+    save_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
+    save_middle:SetPoint("LEFT", save_left, "RIGHT")
+    save_middle:SetPoint("RIGHT", save_right, "LEFT")
+    save_middle:SetHeight(46)
+
+    -- Hover Texture for Save Button (Left)
+    local save_hover_left = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_left:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
+    save_hover_left:SetSize(16, 46)
+    save_hover_left:SetPoint("LEFT", dialog_frame.save_button, "LEFT")
+
+    -- Hover Texture for Save Button (Right)
+    local save_hover_right = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_right:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
+    save_hover_right:SetSize(16, 46)
+    save_hover_right:SetPoint("RIGHT", dialog_frame.save_button, "RIGHT")
+
+    -- Hover Middle Texture
+    local save_hover_middle = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
+    save_hover_middle:SetTexture("Interface/Buttons/Dropdown")
+    save_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
+    save_hover_middle:SetPoint("LEFT", save_hover_left, "RIGHT")
+    save_hover_middle:SetPoint("RIGHT", save_hover_right, "LEFT")
+    save_hover_middle:SetHeight(46)
+
+    -- Hover Text
+    local save_hover_text = dialog_frame.save_button:CreateFontString(nil, "HIGHLIGHT")
+    save_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    save_hover_text:SetPoint("CENTER", dialog_frame.save_button, "CENTER", 0, 0)
+    save_hover_text:SetText("Save")
+
+    dialog_frame.save_button:SetScript("OnClick", function()
+        -- Close the edit dialog and open the name input dialog
+        dialog_frame:Hide()
+
+        if not addon.name_input_dialog then
+            addon:create_name_input_dialog()
+        end
+
+        addon.name_input_dialog:Show()
+
+        local input_name
+
+        if addon.active_control_tab == "keyboard" then
+            input_name = next(keyui_settings.layout_current_keyboard)
+        elseif addon.active_control_tab == "mouse" then
+            input_name = next(keyui_settings.layout_current_mouse)
+        elseif addon.active_control_tab == "controller" then
+            input_name = next(keyui_settings.layout_current_controller)
+        end
+
+        addon.name_input_dialog.input_box:SetText(input_name)
+
+        if addon.active_control_tab == "keyboard" then
+            addon.keyboard_locked = true
+        elseif addon.active_control_tab == "mouse" then
+            addon.mouse_locked = true
+        elseif addon.active_control_tab == "controller" then
+            addon.controller_locked = true
+        end
+
+    end)
+
+    -- Cancel button
+    dialog_frame.cancel_button = CreateFrame("Button", nil, dialog_frame)
+    dialog_frame.cancel_button:SetPoint("BOTTOMLEFT", dialog_frame, "BOTTOM", 10, 20)
+    dialog_frame.cancel_button:SetSize(button_width, 30)
+
+    -- Button Text
+    local cancel_text = dialog_frame.cancel_button:CreateFontString(nil, "OVERLAY")
+    cancel_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    cancel_text:SetPoint("CENTER", dialog_frame.cancel_button, "CENTER", 0, 0)
+    cancel_text:SetText("Cancel")
+
+    -- Left Cap Texture
+    local cancel_left = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_left:SetTexture("Interface/Buttons/Dropdown")
+    cancel_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
+    cancel_left:SetSize(16, 46)
+    cancel_left:SetPoint("LEFT", dialog_frame.cancel_button, "LEFT")
+
+    -- Right Cap Texture
+    local cancel_right = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_right:SetTexture("Interface/Buttons/Dropdown")
+    cancel_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
+    cancel_right:SetSize(16, 46)
+    cancel_right:SetPoint("RIGHT", dialog_frame.cancel_button, "RIGHT")
+
+    -- Middle Texture
+    local cancel_middle = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
+    cancel_middle:SetTexture("Interface/Buttons/Dropdown")
+    cancel_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
+    cancel_middle:SetPoint("LEFT", cancel_left, "RIGHT")
+    cancel_middle:SetPoint("RIGHT", cancel_right, "LEFT")
+    cancel_middle:SetHeight(46)
+
+    -- Hover Texture for Cancel Button (Left)
+    local cancel_hover_left = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_left:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
+    cancel_hover_left:SetSize(16, 46)
+    cancel_hover_left:SetPoint("LEFT", dialog_frame.cancel_button, "LEFT")
+
+    -- Hover Texture for Cancel Button (Right)
+    local cancel_hover_right = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_right:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
+    cancel_hover_right:SetSize(16, 46)
+    cancel_hover_right:SetPoint("RIGHT", dialog_frame.cancel_button, "RIGHT")
+
+    -- Hover Middle Texture
+    local cancel_hover_middle = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
+    cancel_hover_middle:SetTexture("Interface/Buttons/Dropdown")
+    cancel_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
+    cancel_hover_middle:SetPoint("LEFT", cancel_hover_left, "RIGHT")
+    cancel_hover_middle:SetPoint("RIGHT", cancel_hover_right, "LEFT")
+    cancel_hover_middle:SetHeight(46)
+
+    -- Hover Text
+    local cancel_hover_text = dialog_frame.cancel_button:CreateFontString(nil, "HIGHLIGHT")
+    cancel_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    cancel_hover_text:SetPoint("CENTER", dialog_frame.cancel_button, "CENTER", 0, 0)
+    cancel_hover_text:SetText("Cancel")
+
+    dialog_frame.cancel_button:SetScript("OnClick", function()
+        dialog_frame:Hide()
+
+        -- Call the discard changes function
+        if addon.active_control_tab == "keyboard" then
+            addon:discard_keyboard_changes()
+        elseif addon.active_control_tab == "mouse" then
+            addon:discard_mouse_changes()
+        elseif addon.active_control_tab == "controller" then
+            addon:discard_controller_changes()
+        end
+
+        if addon.controls_frame then
+            addon.controls_frame:Show()
+            addon:show_controls_button_highlight()
+        end
+    end)
+
+
+    dialog_frame:SetScript("OnHide", function()
+        dialog_frame:Hide()
+    end)
+
+    addon.edit_layout_dialog = dialog_frame
+end
 
 -- Helper function to toggle visibility of tab button textures
 function addon:toggle_control_tab_button(button, showInactive)
@@ -1605,10 +1579,6 @@ function addon:select_keyboard_layout(layout)
     -- Discard Keyboard Editor Changes
     if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
         addon:discard_keyboard_changes()
-    else
-        -- clear text input field (discard_keyboard_changes does it already)
-        addon.controls_frame.Input:SetText("")
-        addon.controls_frame.Input:ClearFocus()
     end
 
     keyui_settings.key_bind_settings_keyboard.currentboard = layout
@@ -1704,10 +1674,6 @@ function addon:select_mouse_layout(layout)
     -- Discard mouse Editor Changes
     if addon.mouse_locked == false or addon.keys_mouse_edited == true then
         addon:discard_mouse_changes()
-    else
-        -- clear text input field (discard_mouse_changes does it already)
-        addon.controls_frame.Input:SetText("")
-        addon.controls_frame.Input:ClearFocus()
     end
 
     keyui_settings.key_bind_settings_mouse.currentboard = layout
@@ -1802,10 +1768,6 @@ function addon:select_controller_layout(layout)
     -- Discard controller Editor Changes
     if addon.controller_locked == false or addon.keys_controller_edited == true then
         addon:discard_controller_changes()
-    else
-        -- clear text input field (discard_controller_changes does it already)
-        addon.controls_frame.Input:SetText("")
-        addon.controls_frame.Input:ClearFocus()
     end
 
     -- Set the controller system type based on the layout's type if it exists

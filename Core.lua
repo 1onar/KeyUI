@@ -315,6 +315,11 @@ function addon:load()
         -- Load spells and refresh the key bindings.
         addon:load_spellbook()
         addon:refresh_layouts()
+
+        -- Show tutorial if not completed
+        if keyui_settings.tutorial_completed ~= true and addon.tutorial_frame1_created ~= true then
+            addon:create_tutorial_frame1()
+        end
     end
 end
 
@@ -428,6 +433,14 @@ function addon:hide_all_frames()
         addon.selection_frame:Hide()
     end
 
+    if addon.name_input_dialog then
+        addon.name_input_dialog:Hide()
+    end
+
+    if addon.edit_layout_dialog then
+        addon.edit_layout_dialog:Hide()
+    end
+
     addon.open = false
     addon.is_keyboard_frame_visible = false
     addon.is_mouse_image_visible = false
@@ -450,8 +463,8 @@ local function on_frame_hide(self)
         end
 
         -- Discard Controller Editor Changes when closing
-        if addon.Controller_locked == false or addon.keys_Controller_edited == true then
-            addon:discard_Controller_changes()
+        if addon.controller_locked == false or addon.keys_controller_edited == true then
+            addon:discard_controller_changes()
         end
     end
 end

@@ -203,6 +203,13 @@ function addon:create_mouse_image()
         toggle_button_textures(mouse_image.options_button, true) -- Show inactive textures
     end)
 
+    mouse_image:SetScript("OnHide", function()
+        -- Call the discard changes function
+        if addon.controller_locked == false or addon.keys_mouse_edited == true then
+            addon:discard_mouse_changes()
+        end
+    end)
+
     return mouse_image
 end
 
@@ -224,61 +231,55 @@ function addon:create_mouse_frame()
     return mouse_frame
 end
 
-function addon:save_mouse_layout()
-    local msg = addon.controls_frame.Input:GetText()
+function addon:save_mouse_layout(layout_name)
+    local name = layout_name
 
-    if addon.mouse_locked == true then
-        if msg ~= "" then
-            -- Clear the input field and focus
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
+    if name ~= "" then
 
-            print("KeyUI: Saved the new layout '" .. msg .. "'.")
+        print("KeyUI: Saved the new mouse layout '" .. name .. "'.")
 
-            -- Initialize a new table for the saved layout
-            keyui_settings.layout_edited_mouse[msg] = {}
+        -- Initialize a new table for the saved layout
+        keyui_settings.layout_edited_mouse[name] = {}
 
-            -- Iterate through all mouse buttons to save their data
-            for _, Mousebutton in ipairs(addon.keys_mouse) do
-                if Mousebutton:IsVisible() then
-                    -- Save button properties: label, position, width, and height
-                    keyui_settings.layout_edited_mouse[msg][#keyui_settings.layout_edited_mouse[msg] + 1] = {
-                        Mousebutton.raw_key,                                                -- Button name
-                        floor(Mousebutton:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
-                        floor(Mousebutton:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
-                        floor(Mousebutton:GetWidth() + 0.5),                                -- Width
-                        floor(Mousebutton:GetHeight() + 0.5)                                -- Height
-                    }
-                end
+        -- Iterate through all mouse buttons to save their data
+        for _, button in ipairs(addon.keys_mouse) do
+            if button:IsVisible() then
+                -- Save button properties: label, position, width, and height
+                keyui_settings.layout_edited_mouse[name][#keyui_settings.layout_edited_mouse[name] + 1] = {
+                    button.raw_key,                                                -- Button name
+                    floor(button:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
+                    floor(button:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
+                    floor(button:GetWidth() + 0.5),                                -- Width
+                    floor(button:GetHeight() + 0.5)                                -- Height
+                }
             end
-
-            -- Clear the current layout and assign the new one
-            wipe(keyui_settings.layout_current_mouse)
-            keyui_settings.layout_current_mouse[msg] = keyui_settings.layout_edited_mouse[msg]
-
-            -- Remove Keyboard edited flag
-            addon.keys_mouse_edited = false
-
-            -- Remove Save Button and Input Field Glow
-            addon.controls_frame.glowBoxSave:Hide()
-            addon.controls_frame.glowBoxInput:Hide()
-
-            -- Refresh the keys and update the dropdown menu
-            addon:refresh_layouts()
-        else
-            print("KeyUI: Please enter a name for the layout before saving.")
         end
+
+        -- Clear the current layout and assign the new one
+        wipe(keyui_settings.layout_current_mouse)
+        keyui_settings.layout_current_mouse[name] = keyui_settings.layout_edited_mouse[name]
+
+        -- Remove Mouse edited flag
+        addon.keys_mouse_edited = false
+
+        -- Refresh the keys and update the dropdown menu
+        addon:refresh_layouts()
+
+        if addon.mouse_selector then
+            addon.mouse_selector:SetDefaultText(name)
+        end
+
     else
-        print("KeyUI: Please lock the binds to save.")
+        print("KeyUI: Please enter a name for the layout before saving.")
     end
 end
 
 -- Discards any changes made to the mouse layout and resets the Control UI state
 function addon:discard_mouse_changes()
-    
-    if addon.keys_mouse_edited == true or addon.mouse_locked == false then
+
+    if addon.keys_mouse_edited == true then
         -- Print message to the player
-        print("KeyUI: Changes discarded. The mouse is reset and locked.")
+        print("KeyUI: Changes discarded.")
     end
 
     -- Remove mouse locked flag
@@ -286,31 +287,6 @@ function addon:discard_mouse_changes()
 
     -- Remove mouse edited flag
     addon.keys_mouse_edited = false
-
-    if addon.controls_frame then
-
-        -- Remove Lock Button, Save Button and Input Field Glow
-        if addon.controls_frame.glowBoxLock then
-            addon.controls_frame.glowBoxLock:Hide()
-        end
-        if addon.controls_frame.glowBoxSave then
-            addon.controls_frame.glowBoxSave:Hide()
-        end
-        if addon.controls_frame.glowBoxInput then
-            addon.controls_frame.glowBoxInput:Hide()
-        end
-
-        -- Update the Lock button text
-        if addon.controls_frame.LockText then
-            addon.controls_frame.LockText:SetText("Unlock")
-        end
-
-        -- clear mouse text input field (name)
-        if addon.controls_frame.Input then
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
-        end
-    end
 
     addon:refresh_layouts()
 end
@@ -435,17 +411,17 @@ function addon:create_mouse_buttons()
 
             mouse_button:SetScript("OnKeyDown", function(_, key)
                 addon:handle_key_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
+                addon.keys_mouse_edited = true
             end)
 
             mouse_button:SetScript("OnGamePadButtonDown", function(_, key)
                 addon:handle_gamepad_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
+                addon.keys_mouse_edited = true
             end)
 
             mouse_button:SetScript("OnMouseWheel", function(_, delta)
                 addon:handle_mouse_wheel(addon.current_hovered_button, delta)
-                addon.keys_keyboard_edited = true
+                addon.keys_mouse_edited = true
             end)
 
         end
@@ -531,12 +507,6 @@ function addon:generate_mouse_layout(layout_name)
     -- Discard Mouse Editor Changes
     if addon.mouse_locked == false or addon.keys_mouse_edited == true then
         addon:discard_mouse_changes()
-    else
-        if addon.mouse_control_frame then
-            -- clear text input field (discard_mouse_changes does it already)
-            addon.mouse_control_frame.Input:SetText("")
-            addon.mouse_control_frame.Input:ClearFocus()
-        end
     end
 
     -- Check whether the layout exists

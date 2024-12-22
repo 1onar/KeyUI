@@ -147,7 +147,7 @@ function addon:create_controller_frame()
     -- Set OnClick behavior for controls button
     controller_frame.controls_button:SetScript("OnClick", function()
         addon.active_control_tab = "controller"
-        addon:update_tab_textures()
+        addon:show_controls_button_highlight()
 
         -- Check if the controls frame exists
         if addon.controls_frame then
@@ -239,6 +239,13 @@ function addon:create_controller_frame()
     controller_frame.options_button:SetScript("OnLeave", function()
         controller_frame.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
         toggle_button_textures(controller_frame.options_button, true) -- Show inactive textures
+    end)
+
+    controller_frame:SetScript("OnHide", function()
+        -- Call the discard changes function
+        if addon.controller_locked == false or addon.keys_controller_edited == true then
+            addon:discard_controller_changes()
+        end
     end)
 
     return controller_frame
@@ -346,64 +353,57 @@ function addon:set_controller_system(system_type)
     addon:update_controller_image()
 end
 
-function addon:save_controller_layout()
-    local msg = addon.controls_frame.Input:GetText()
+function addon:save_controller_layout(layout_name)
+    local name = layout_name
 
-    if addon.controller_locked == true then
-        if msg ~= "" then
-            -- Clear the input field and focus
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
+    if name ~= "" then
 
-            print("KeyUI: Saved the new layout '" .. msg .. "'.")
+        print("KeyUI: Saved the new controller layout '" .. name .. "'.")
 
-            -- Initialize a new table for the saved layout
-            keyui_settings.layout_edited_controller[msg] = {}
+        -- Initialize a new table for the saved layout
+        keyui_settings.layout_edited_controller[name] = {}
 
-            -- Iterate through all controller buttons to save their data
-            for _, controllerbutton in ipairs(addon.keys_controller) do
-                if controllerbutton:IsVisible() then
-                    -- Save button properties: label, position, width, and height
-                    keyui_settings.layout_edited_controller[msg][#keyui_settings.layout_edited_controller[msg] + 1] = {
-                        controllerbutton.raw_key,                                                -- Button name
-                        floor(controllerbutton:GetLeft() - addon.controller_frame:GetLeft() + 0.5),   -- X position
-                        floor(controllerbutton:GetTop() - addon.controller_frame:GetTop() + 0.5),     -- Y position
-                        floor(controllerbutton:GetWidth() + 0.5),                                -- Width
-                        floor(controllerbutton:GetHeight() + 0.5)                                -- Height
-                    }
-                end
+        -- Iterate through all controller buttons to save their data
+        for _, button in ipairs(addon.keys_controller) do
+            if button:IsVisible() then
+                -- Save button properties: label, position, width, and height
+                keyui_settings.layout_edited_controller[name][#keyui_settings.layout_edited_controller[name] + 1] = {
+                    button.raw_key,                                                     -- Button name
+                    floor(button:GetLeft() - addon.controller_frame:GetLeft() + 0.5),   -- X position
+                    floor(button:GetTop() - addon.controller_frame:GetTop() + 0.5),     -- Y position
+                    floor(button:GetWidth() + 0.5),                                     -- Width
+                    floor(button:GetHeight() + 0.5)                                     -- Height
+                }
             end
+        end
 
-            -- Set the layout_type for the saved layout
-            keyui_settings.layout_edited_controller[msg].layout_type = addon.controller_system or "generic"
+        -- Set the layout_type for the saved layout
+        keyui_settings.layout_edited_controller[name].layout_type = addon.controller_system or "generic"
 
-            -- Clear the current layout and assign the new one
-            wipe(keyui_settings.layout_current_controller)
-            keyui_settings.layout_current_controller[msg] = keyui_settings.layout_edited_controller[msg]
+        -- Clear the current layout and assign the new one
+        wipe(keyui_settings.layout_current_controller)
+        keyui_settings.layout_current_controller[name] = keyui_settings.layout_edited_controller[name]
 
-            -- Remove Keyboard edited flag
-            addon.keys_controller_edited = false
+        -- Remove Controller edited flag
+        addon.keys_controller_edited = false
 
-            -- Remove Save Button and Input Field Glow
-            addon.controls_frame.glowBoxSave:Hide()
-            addon.controls_frame.glowBoxInput:Hide()
+        -- Refresh the keys and update the dropdown menu
+        addon:refresh_layouts()
 
-            -- Refresh the keys and update the dropdown menu
-            addon:refresh_layouts()
-        else
-            print("KeyUI: Please enter a name for the layout before saving.")
+        if addon.controller_selector then
+            addon.controller_selector:SetDefaultText(name)
         end
     else
-        print("KeyUI: Please lock the binds to save.")
+        print("KeyUI: Please enter a name for the layout before saving.")
     end
 end
 
 -- Discards any changes made to the controller layout and resets the Control UI state
 function addon:discard_controller_changes()
 
-    if addon.keys_controller_edited == true or addon.controller_locked == false then
+    if addon.keys_controller_edited == true then
         -- Print message to the player
-        print("KeyUI: Changes discarded. The controller is reset and locked.")
+        print("KeyUI: Changes discarded.")
     end
 
     -- Remove controller locked flag
@@ -411,31 +411,6 @@ function addon:discard_controller_changes()
 
     -- Remove controller edited flag
     addon.keys_controller_edited = false
-
-    if addon.controls_frame then
-
-        -- Remove Lock Button, Save Button and Input Field Glow
-        if addon.controls_frame.glowBoxLock then
-            addon.controls_frame.glowBoxLock:Hide()
-        end
-        if addon.controls_frame.glowBoxSave then
-            addon.controls_frame.glowBoxSave:Hide()
-        end
-        if addon.controls_frame.glowBoxInput then
-            addon.controls_frame.glowBoxInput:Hide()
-        end
-
-        -- Update the Lock button text
-        if addon.controls_frame.LockText then
-            addon.controls_frame.LockText:SetText("Unlock")
-        end
-
-        -- clear controller text input field (name)
-        if addon.controls_frame.Input then
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
-        end
-    end
 
     addon:refresh_layouts()
 end
@@ -574,17 +549,17 @@ function addon:create_controller_buttons()
 
             controller_button:SetScript("OnKeyDown", function(_, key)
                 addon:handle_key_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
+                addon.keys_controller_edited = true
             end)
 
             controller_button:SetScript("OnGamePadButtonDown", function(_, key)
                 addon:handle_gamepad_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
+                addon.keys_controller_edited = true
             end)
 
             controller_button:SetScript("OnMouseWheel", function(_, delta)
                 addon:handle_mouse_wheel(addon.current_hovered_button, delta)
-                addon.keys_keyboard_edited = true
+                addon.keys_controller_edited = true
             end)
 
         end
@@ -670,12 +645,6 @@ function addon:generate_controller_layout(layout_name)
     -- Discard controller Editor Changes
     if addon.controller_locked == false or addon.keys_controller_edited == true then
         addon:discard_controller_changes()
-    else
-        if addon.controller_control_frame then
-            -- clear text input field (discard_controller_changes does it already)
-            addon.controller_control_frame.Input:SetText("")
-            addon.controller_control_frame.Input:ClearFocus()
-        end
     end
 
     -- Check whether the layout exists

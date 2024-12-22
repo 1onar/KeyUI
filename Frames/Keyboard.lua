@@ -243,64 +243,65 @@ function addon:create_keyboard_frame()
         toggle_button_textures(keyboard_frame.options_button, true) -- Show inactive textures
     end)
 
+    keyboard_frame:SetScript("OnHide", function()
+        -- Call the discard changes function
+        if addon.controller_locked == false or addon.keys_keyboard_edited == true then
+            addon:discard_keyboard_changes()
+        end
+    end)
+
     return keyboard_frame
 end
 
-function addon:save_keyboard_layout()
-    local msg = addon.controls_frame.Input:GetText()
+function addon:save_keyboard_layout(layout_name)
+    local name = layout_name
 
-    if addon.keyboard_locked == true then
-        if msg ~= "" then
-            -- Clear the input field and focus
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
+    if name ~= "" then
 
-            print("KeyUI: Saved the new layout '" .. msg .. "'.")
+        print("KeyUI: Saved the new keyboard layout '" .. name .. "'.")
 
-            -- Initialize a new table for the saved layout
-            keyui_settings.layout_edited_keyboard[msg] = {}
+        -- Initialize a new table for the saved layout
+        keyui_settings.layout_edited_keyboard[name] = {}
 
-            -- Iterate through all keyboard buttons to save their data
-            for _, button in ipairs(addon.keys_keyboard) do
-                if button:IsVisible() then
-                    -- Save button properties: label, position, width, and height
-                    keyui_settings.layout_edited_keyboard[msg][#keyui_settings.layout_edited_keyboard[msg] + 1] = {
-                        button.raw_key,                                                 -- Button name
-                        floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position
-                        floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position
-                        floor(button:GetWidth() + 0.5),                                 -- Width
-                        floor(button:GetHeight() + 0.5)                                 -- Height
-                    }
-                end
+        -- Iterate through all keyboard buttons to save their data
+        for _, button in ipairs(addon.keys_keyboard) do
+            if button:IsVisible() then
+                -- Save button properties: label, position, width, and height
+                keyui_settings.layout_edited_keyboard[name][#keyui_settings.layout_edited_keyboard[name] + 1] = {
+                    button.raw_key,                                                 -- Button name
+                    floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position
+                    floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position
+                    floor(button:GetWidth() + 0.5),                                 -- Width
+                    floor(button:GetHeight() + 0.5)                                 -- Height
+                }
             end
-
-            -- Clear the current layout and assign the new one
-            wipe(keyui_settings.layout_current_keyboard)
-            keyui_settings.layout_current_keyboard[msg] = keyui_settings.layout_edited_keyboard[msg]
-
-            -- Remove Keyboard edited flag
-            addon.keys_keyboard_edited = false
-
-            -- Remove Save Button and Input Field Glow
-            addon.controls_frame.glowBoxSave:Hide()
-            addon.controls_frame.glowBoxInput:Hide()
-
-            -- Refresh the keys and update the dropdown menu
-            addon:refresh_layouts()
-        else
-            print("KeyUI: Please enter a name for the layout before saving.")
         end
+
+        -- Clear the current layout and assign the new one
+        wipe(keyui_settings.layout_current_keyboard)
+        keyui_settings.layout_current_keyboard[name] = keyui_settings.layout_edited_keyboard[name]
+
+        -- Remove Keyboard edited flag
+        addon.keys_keyboard_edited = false
+
+        -- Refresh the keys and update the dropdown menu
+        addon:refresh_layouts()
+
+        if addon.keyboard_selector then
+            addon.keyboard_selector:SetDefaultText(name)
+        end
+
     else
-        print("KeyUI: Please lock the binds to save.")
+        print("KeyUI: Please enter a name for the layout before saving.")
     end
 end
 
 -- Discards any changes made to the keyboard layout and resets the Control UI state
 function addon:discard_keyboard_changes()
 
-    if addon.keys_keyboard_edited == true or addon.keyboard_locked == false then
+    if addon.keys_keyboard_edited == true then
         -- Print message to the player
-        print("KeyUI: Changes discarded. The keyboard is reset and locked.")
+        print("KeyUI: Changes discarded.")
     end
 
     -- Remove Keyboard locked flag
@@ -308,31 +309,6 @@ function addon:discard_keyboard_changes()
 
     -- Remove Keyboard edited flag
     addon.keys_keyboard_edited = false
-
-    if addon.controls_frame then
-
-        -- Remove Lock Button, Save Button and Input Field Glow
-        if addon.controls_frame.glowBoxLock then
-            addon.controls_frame.glowBoxLock:Hide()
-        end
-        if addon.controls_frame.glowBoxSave then
-            addon.controls_frame.glowBoxSave:Hide()
-        end
-        if addon.controls_frame.glowBoxInput then
-            addon.controls_frame.glowBoxInput:Hide()
-        end
-
-        -- Update the Lock button text
-        if addon.controls_frame.LockText then
-            addon.controls_frame.LockText:SetText("Unlock")
-        end
-
-        -- clear keyboard text input field (name)
-        if addon.controls_frame.Input then
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
-        end
-    end
 
     addon:refresh_layouts()
 end
@@ -583,12 +559,6 @@ function addon:generate_keyboard_layout(layout_name)
     -- Discard Keyboard Editor Changes
     if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
         addon:discard_keyboard_changes()
-    else
-        if addon.controls_frame then
-            -- clear text input field (discard_keyboard_changes does it already)
-            addon.controls_frame.Input:SetText("")
-            addon.controls_frame.Input:ClearFocus()
-        end
     end
 
     -- Check whether the layout exists
