@@ -54,6 +54,12 @@ function addon:create_keyboard_frame()
     keyboard_frame:SetMovable(true)
     keyboard_frame:SetClampedToScreen(true)
 
+    -- Border frame to be toggled with selected texture from Editmode
+    keyboard_frame.edit_frame = CreateFrame("Frame", nil, keyboard_frame, "GlowBorderTemplate")
+    keyboard_frame.edit_frame:SetSize(keyboard_frame:GetWidth(), keyboard_frame:GetHeight())
+    keyboard_frame.edit_frame:SetPoint("CENTER", keyboard_frame, "CENTER")
+    keyboard_frame.edit_frame:Hide()
+
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)
         if showInactive then
@@ -283,6 +289,9 @@ function addon:save_keyboard_layout(layout_name)
 
         -- Remove Keyboard edited flag
         addon.keys_keyboard_edited = false
+        if addon.keyboard_frame.edit_frame then
+            addon.keyboard_frame.edit_frame:Hide()
+        end
 
         -- Refresh the keys and update the dropdown menu
         addon:refresh_layouts()
@@ -309,6 +318,9 @@ function addon:discard_keyboard_changes()
 
     -- Remove Keyboard edited flag
     addon.keys_keyboard_edited = false
+    if addon.keyboard_frame.edit_frame then
+        addon.keyboard_frame.edit_frame:Hide()
+    end
 
     addon:refresh_layouts()
 end
@@ -386,10 +398,14 @@ function addon:generate_keyboard_key_frames()
             -- Adjust the frame size based on the extreme positions of the keys.
             addon.keyboard_frame:SetWidth(right - left + 12)
             addon.keyboard_frame:SetHeight(top - bottom + 12)
+
+            addon.keyboard_frame.edit_frame:SetSize( addon.keyboard_frame:GetWidth(),  addon.keyboard_frame:GetHeight())
         else
             -- Set a fallback size if the layout is empty.
             addon.keyboard_frame:SetWidth(940)
             addon.keyboard_frame:SetHeight(382)
+
+            addon.keyboard_frame.edit_frame:SetSize( addon.keyboard_frame:GetWidth(),  addon.keyboard_frame:GetHeight())
         end
     end
 end

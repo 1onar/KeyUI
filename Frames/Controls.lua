@@ -681,10 +681,24 @@ function addon:create_controls()
 
         if addon.active_control_tab == "keyboard" then
             addon.keyboard_locked = false
+
+            if addon.keyboard_frame.edit_frame then
+                addon.keyboard_frame.edit_frame:Show()
+            end
+
         elseif addon.active_control_tab == "mouse" then
             addon.mouse_locked = false
+
+            if addon.mouse_image.edit_frame then
+                addon.mouse_image.edit_frame:Show()
+            end
+
         elseif addon.active_control_tab == "controller" then
             addon.controller_locked = false
+
+            if addon.controller_frame.edit_frame then
+                addon.controller_frame.edit_frame:Show()
+            end
         end
 
         -- disable modifier
@@ -932,7 +946,35 @@ function addon:create_name_input_dialog()
 
     name_input_frame.cancel_button:SetScript("OnClick", function()
         name_input_frame:Hide()
-        addon.edit_layout_dialog:Show()
+
+        if not addon.edit_layout_dialog then
+            addon:create_edit_layout_dialog()
+        else
+            addon.edit_layout_dialog:Show()
+        end
+
+        if addon.active_control_tab == "keyboard" then
+            addon.keyboard_locked = false
+
+            if addon.keyboard_frame.edit_frame then
+                addon.keyboard_frame.edit_frame:Show()
+            end
+
+        elseif addon.active_control_tab == "mouse" then
+            addon.mouse_locked = false
+
+            if addon.mouse_image.edit_frame then
+                addon.mouse_image.edit_frame:Show()
+            end
+
+        elseif addon.active_control_tab == "controller" then
+            addon.controller_locked = false
+
+            if addon.controller_frame.edit_frame then
+                addon.controller_frame.edit_frame:Show()
+            end
+
+        end
     end)
 
     name_input_frame:SetScript("OnHide", function()

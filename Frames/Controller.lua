@@ -53,6 +53,12 @@ function addon:create_controller_frame()
     controller_frame:SetMovable(true)
     controller_frame:SetClampedToScreen(true)
 
+    -- Border frame to be toggled with selected texture from Editmode
+    controller_frame.edit_frame = CreateFrame("Frame", nil, controller_frame, "GlowBorderTemplate")
+    controller_frame.edit_frame:SetSize(controller_frame:GetWidth(), controller_frame:GetHeight())
+    controller_frame.edit_frame:SetPoint("CENTER", controller_frame, "CENTER")
+    controller_frame.edit_frame:Hide()
+
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)
         if showInactive then
@@ -280,6 +286,8 @@ function addon:create_controller_image()
 
         addon.controller_frame:SetHeight(530)
 
+        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
+
     elseif addon.controller_system == "ds4" then
         -- Add ds4 controller texture
         controller_image.ds4 = controller_image:CreateTexture(nil, "ARTWORK")
@@ -294,6 +302,8 @@ function addon:create_controller_image()
         controller_image.ds4_lines:SetSize(1200, 590)
 
         addon.controller_frame:SetHeight(516)
+
+        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
 
     elseif addon.controller_system == "ds5" then
         -- Add ds5 controller texture
@@ -311,6 +321,8 @@ function addon:create_controller_image()
         addon.controller_frame:SetHeight(516)
         addon.controller_frame:SetWidth(920)
 
+        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
+
     elseif addon.controller_system == "deck" then
         -- Add deck controller texture
         controller_image.deck = controller_image:CreateTexture(nil, "ARTWORK")
@@ -326,6 +338,8 @@ function addon:create_controller_image()
 
         addon.controller_frame:SetHeight(600)
         addon.controller_frame:SetWidth(920)
+
+        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
 
     else
         return
@@ -386,6 +400,9 @@ function addon:save_controller_layout(layout_name)
 
         -- Remove Controller edited flag
         addon.keys_controller_edited = false
+        if addon.controller_frame.edit_frame then
+            addon.controller_frame.edit_frame:Hide()
+        end
 
         -- Refresh the keys and update the dropdown menu
         addon:refresh_layouts()
@@ -411,6 +428,9 @@ function addon:discard_controller_changes()
 
     -- Remove controller edited flag
     addon.keys_controller_edited = false
+    if addon.controller_frame.edit_frame then
+        addon.controller_frame.edit_frame:Hide()
+    end
 
     addon:refresh_layouts()
 end

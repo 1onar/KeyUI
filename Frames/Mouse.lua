@@ -57,6 +57,12 @@ function addon:create_mouse_image()
         mouse_image:Hide()
     end)
 
+    -- Border frame to be toggled with selected texture from Editmode
+    mouse_image.edit_frame = CreateFrame("Frame", nil, mouse_image, "GlowBorderTemplate")
+    mouse_image.edit_frame:SetSize(500, mouse_image:GetHeight())
+    mouse_image.edit_frame:SetPoint("RIGHT", mouse_image, "RIGHT")
+    mouse_image.edit_frame:Hide()
+
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)
         if showInactive then
@@ -261,6 +267,9 @@ function addon:save_mouse_layout(layout_name)
 
         -- Remove Mouse edited flag
         addon.keys_mouse_edited = false
+        if addon.mouse_image.edit_frame then
+            addon.mouse_image.edit_frame:Hide()
+        end
 
         -- Refresh the keys and update the dropdown menu
         addon:refresh_layouts()
@@ -287,6 +296,9 @@ function addon:discard_mouse_changes()
 
     -- Remove mouse edited flag
     addon.keys_mouse_edited = false
+    if addon.mouse_image.edit_frame then
+        addon.mouse_image.edit_frame:Hide()
+    end
 
     addon:refresh_layouts()
 end
