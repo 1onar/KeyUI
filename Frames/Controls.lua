@@ -9,7 +9,7 @@ function addon:create_controls()
         controls_frame:SetFrameLevel(keyboard_level + 3)
     end
 
-    controls_frame:SetHeight(260)
+    controls_frame:SetHeight(280)
     controls_frame:SetWidth(500)
     controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
 
@@ -47,37 +47,54 @@ function addon:create_controls()
         end)
     end
 
-    -- Calculate 1/3 and 2/3 of the width of keyboard_control_frame
-    local offset_one_third = controls_frame:GetWidth() * (1 / 3)
-    local offset_two_thirds = controls_frame:GetWidth() * (2 / 3)
+    local text_size = 20
 
-    -- Text "Layout"
-    controls_frame.Layout = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.Layout:SetText("Layout")
-    controls_frame.Layout:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.Layout:SetPoint("TOPLEFT", controls_frame, "TOPLEFT", 30, -30)
-    controls_frame.Layout:SetTextColor(1, 1, 1)
+    local first_setpoint = controls_frame:GetWidth() * (1 / 20)
+    local first_setpoint_cb = controls_frame:GetWidth() * (1 / 20) - 6
+    local second_setpoint = controls_frame:GetWidth() * (1 / 4.5)
+    local half_setpoint = controls_frame:GetWidth() * (1 / 2)
 
-    controls_frame.text_size = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.text_size:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.text_size:SetPoint("CENTER", controls_frame, "LEFT", offset_one_third, 25)
-    controls_frame.text_size:SetTextColor(1, 1, 1)
+    local layout_y = -40
+    local size_y = -110
+    local first_cb_y = -160
+    local second_cb_y = -200
+    local third_cb_y = -240
+
+    -- Create Text "Layout"
+    controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    controls_frame.layout_text:SetText("Layout")
+    controls_frame.layout_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", text_size)
+    controls_frame.layout_text:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint, layout_y)
+    controls_frame.layout_text:SetTextColor(1, 1, 1)
+
+    -- Create the "Size" label text
+    controls_frame.size_label_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    controls_frame.size_label_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", text_size)
+    controls_frame.size_label_text:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint, size_y)
+    controls_frame.size_label_text:SetTextColor(1, 1, 1)
+    controls_frame.size_label_text:SetText("Size")
 
     local minValue = 0.5  -- Minimum slider value
     local maxValue = 1.5  -- Maximum slider value
     local stepSize = 0.01  -- Minimum step size for slider value change
 
     -- Create the slider control
-    controls_frame.Slider = CreateFrame("Slider", nil, controls_frame, "MinimalSliderTemplate")
-    controls_frame.Slider:SetSize(180, 40)
-    controls_frame.Slider:SetPoint("CENTER", controls_frame.text_size, "CENTER", 0, -30)
-    controls_frame.Slider:Show()
+    controls_frame.size_slider = CreateFrame("Slider", nil, controls_frame, "MinimalSliderTemplate")
+    controls_frame.size_slider:SetSize(326, 40)
+    controls_frame.size_slider:SetPoint("LEFT", controls_frame, "TOPLEFT", second_setpoint + 16, size_y)  -- Position it to the right of the value text
+    controls_frame.size_slider:Show()
 
     -- Set the min and max values for the slider
-    controls_frame.Slider:SetMinMaxValues(minValue, maxValue)
-    controls_frame.Slider:SetValueStep(stepSize)  -- Set the step size for the slider
+    controls_frame.size_slider:SetMinMaxValues(minValue, maxValue)
+    controls_frame.size_slider:SetValueStep(stepSize)  -- Set the step size for the slider
 
-    -- Function to update the slider value and text based on the active control tab
+    -- Create the text for the value
+    controls_frame.size_value_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    controls_frame.size_value_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    controls_frame.size_value_text:SetPoint("BOTTOM", controls_frame.size_slider, "TOP", 0, -6)
+    controls_frame.size_value_text:SetTextColor(1, 1, 1)
+
+    -- Function to update the slider value and the text based on the active control tab
     local function update_slider_value()
         local scale_value = 1.0  -- Default scale value
 
@@ -90,34 +107,31 @@ function addon:create_controls()
         end
 
         -- Update the slider's value
-        controls_frame.Slider:SetValue(scale_value)
+        controls_frame.size_slider:SetValue(scale_value)
 
-        -- Update the displayed text
-        controls_frame.text_size:SetText("Size: " .. string.format("%.2f", scale_value))
+        -- Update the displayed text for the value
+        controls_frame.size_value_text:SetText(string.format("%.2f", scale_value))
     end
 
-    -- Initialize slider value based on the active control tab
+    -- Initialize the slider value based on the active control tab
     update_slider_value()
 
     -- Set the slider value when it changes
-    controls_frame.Slider:SetScript("OnValueChanged", function(self, value)
+    controls_frame.size_slider:SetScript("OnValueChanged", function(self, value)
         -- Round the value to the nearest multiple of the step size (0.01)
         local rounded_value = math.floor(value / stepSize + 0.5) * stepSize
 
         -- Check the active control tab and apply the scale change to the appropriate frame
         if addon.active_control_tab == "keyboard" then
-            -- Apply the rounded value to the keyboard frame's scale
             addon.keyboard_frame:SetScale(rounded_value)
         elseif addon.active_control_tab == "mouse" then
-            -- Apply the rounded value to the mouse image's scale
             addon.mouse_image:SetScale(rounded_value)
         elseif addon.active_control_tab == "controller" then
-            -- Apply the rounded value to the controller frame's scale
             addon.controller_frame:SetScale(rounded_value)
         end
 
         -- Update the displayed text with the new value
-        controls_frame.text_size:SetText("Size: " .. string.format("%.2f", rounded_value))
+        controls_frame.size_value_text:SetText(string.format("%.2f", rounded_value))
 
         -- Set the slider to the rounded value to ensure it matches the step size
         self:SetValue(rounded_value)
@@ -126,7 +140,7 @@ function addon:create_controls()
     -- Create the 'Back' button (left arrow button)
     local back_button = CreateFrame("Button", nil, controls_frame, "BackdropTemplate")
     back_button:SetSize(11, 19)
-    back_button:SetPoint("RIGHT", controls_frame.Slider, "LEFT", -4, 0)
+    back_button:SetPoint("RIGHT", controls_frame.size_slider, "LEFT", -4, 0)
 
     -- Set the texture for the 'Back' button using the Atlas
     local back_texture = back_button:CreateTexture(nil, "BACKGROUND")
@@ -135,14 +149,14 @@ function addon:create_controls()
 
     -- Action for back button click
     back_button:SetScript("OnClick", function()
-        local current_value = controls_frame.Slider:GetValue()
-        controls_frame.Slider:SetValue(current_value - 0.05)  -- Adjust the step if needed
+        local current_value = controls_frame.size_slider:GetValue()
+        controls_frame.size_slider:SetValue(current_value - 0.05)  -- Adjust the step if needed
     end)
 
     -- Create the 'Forward' button (right arrow button)
     local forward_button = CreateFrame("Button", nil, controls_frame, "BackdropTemplate")
     forward_button:SetSize(9, 18)
-    forward_button:SetPoint("LEFT", controls_frame.Slider, "RIGHT", 4, 0)
+    forward_button:SetPoint("LEFT", controls_frame.size_slider, "RIGHT", 4, 0)
 
     -- Set the texture for the 'Forward' button using the Atlas
     local forward_texture = forward_button:CreateTexture(nil, "BACKGROUND")
@@ -151,109 +165,192 @@ function addon:create_controls()
 
     -- Action for forward button click
     forward_button:SetScript("OnClick", function()
-        local current_value = controls_frame.Slider:GetValue()
-        controls_frame.Slider:SetValue(current_value + 0.05)  -- Adjust the step if needed
+        local current_value = controls_frame.size_slider:GetValue()
+        controls_frame.size_slider:SetValue(current_value + 0.05)  -- Adjust the step if needed
     end)
 
-    controls_frame.Display = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.Display:SetText("Display Options")
-    controls_frame.Display:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.Display:SetPoint("CENTER", controls_frame, "BOTTOMLEFT", offset_one_third, 60)
-    controls_frame.Display:Show()
-    controls_frame.Display:SetTextColor(1, 1, 1)
+    -- Create the checkbox for toggling empty key bindings visibility
+    controls_frame.empty_keys_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.empty_keys_cb:SetSize(32, 36)
+    controls_frame.empty_keys_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.empty_keys_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, first_cb_y)
+    controls_frame.empty_keys_cb:Show()
 
-    controls_frame.SwitchEmptyBinds = CreateFrame("Button", nil, controls_frame, "UIPanelButtonTemplate")
-    controls_frame.SwitchEmptyBinds:SetSize(150, 26)
-    controls_frame.SwitchEmptyBinds:SetPoint("LEFT", controls_frame.Display, "CENTER", 4, -30)
-    controls_frame.SwitchEmptyBinds:Show()
-
-    local SwitchBindsText = controls_frame.SwitchEmptyBinds:CreateFontString(nil, "OVERLAY")
-    SwitchBindsText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
-    SwitchBindsText:SetPoint("CENTER", 0, 0)
-
-    -- Check the state of show_empty_binds in KeyUI_Settings
-    if keyui_settings.show_empty_binds == true then
-        SwitchBindsText:SetText("Hide empty Keys")
+    -- Set the initial checkbox state based on the current setting for empty binds
+    if keyui_settings.show_empty_binds then
+        controls_frame.empty_keys_cb:SetChecked(true)
     else
-        SwitchBindsText:SetText("Show empty Keys")
+        controls_frame.empty_keys_cb:SetChecked(false)
     end
 
-    -- Function to toggle the empty binds setting
-    local function ToggleEmptyBinds()
-        if keyui_settings.show_empty_binds ~= true then
-            SwitchBindsText:SetText("Hide empty Keys")
+    -- Set the OnClick script for the empty keys checkbox
+    controls_frame.empty_keys_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
             keyui_settings.show_empty_binds = true
         else
-            SwitchBindsText:SetText("Show empty Keys")
             keyui_settings.show_empty_binds = false
         end
+
         addon:highlight_empty_binds()
-    end
-
-    controls_frame.SwitchEmptyBinds:SetScript("OnClick", ToggleEmptyBinds)
-    controls_frame.SwitchEmptyBinds:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Toggle highlighting of keys without keybinds")
-        GameTooltip:Show()
-    end)
-    controls_frame.SwitchEmptyBinds:SetScript("OnLeave", function()
-        GameTooltip:Hide()
     end)
 
-    controls_frame.SwitchInterfaceBinds = CreateFrame("Button", nil, controls_frame,
-        "UIPanelButtonTemplate")
-    controls_frame.SwitchInterfaceBinds:SetSize(150, 26)
-    controls_frame.SwitchInterfaceBinds:SetPoint("RIGHT", controls_frame.Display, "CENTER", -4, -30)
-    controls_frame.SwitchInterfaceBinds:Show()
+    -- Set the tooltip for the empty keys checkbox
+    SetCheckboxTooltip(controls_frame.empty_keys_cb, "Toggle highlighting of keys without keybinds")
 
-    local SwitchInterfaceText = controls_frame.SwitchInterfaceBinds:CreateFontString(nil, "OVERLAY")
-    SwitchInterfaceText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
-    SwitchInterfaceText:SetPoint("CENTER", 0, 0)
+    -- Create the font string for the "empty_keys" label text and position it
+    controls_frame.empty_keys_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.empty_keys_text:SetText("Empty Keys")
+    controls_frame.empty_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.empty_keys_text:SetPoint("LEFT", controls_frame.empty_keys_cb, "RIGHT", 10, 0)
+    controls_frame.empty_keys_text:Show()
 
-    -- Handle showing/hiding interface binds
+    -- Create the checkbox for toggling interface binds visibility
+    controls_frame.interface_keys_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.interface_keys_cb:SetSize(32, 36)
+    controls_frame.interface_keys_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.interface_keys_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, second_cb_y)
+    controls_frame.interface_keys_cb:Show()
+
+    -- Set the initial checkbox state based on the current setting for interface binds
     if keyui_settings.show_interface_binds then
-        SwitchInterfaceText:SetText("Hide Interface Binds")
+        controls_frame.interface_keys_cb:SetChecked(true)
     else
-        SwitchInterfaceText:SetText("Show Interface Binds")
+        controls_frame.interface_keys_cb:SetChecked(false)
     end
 
-    -- Function to toggle interface binds visibility
-    local function ToggleInterfaceBinds()
-        if not keyui_settings.show_interface_binds then
-            SwitchInterfaceText:SetText("Hide Interface Binds")
+    -- Set the OnClick script for the interface keys checkbox
+    controls_frame.interface_keys_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
             keyui_settings.show_interface_binds = true
         else
-            SwitchInterfaceText:SetText("Show Interface Binds")
             keyui_settings.show_interface_binds = false
         end
+
         addon:create_action_labels()
+    end)
+
+    -- Set the tooltip for the interface keys checkbox
+    SetCheckboxTooltip(controls_frame.interface_keys_cb, "Toggle the display of interface action names for keys")
+
+    -- Create the font string for the "interface_keys" label text and position it
+    controls_frame.interface_keys_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.interface_keys_text:SetText("Interface Binds")
+    controls_frame.interface_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.interface_keys_text:SetPoint("LEFT", controls_frame.interface_keys_cb, "RIGHT", 10, 0)
+    controls_frame.interface_keys_text:Show()
+
+    -- Create the checkbox for toggling button highlight effect (show_pushed_texture)
+    controls_frame.highlight_buttons_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.highlight_buttons_cb:SetSize(32, 36)
+    controls_frame.highlight_buttons_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.highlight_buttons_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, third_cb_y)
+    controls_frame.highlight_buttons_cb:Show()
+
+    -- Set the initial checkbox state based on the current setting for show_pushed_texture
+    if keyui_settings.show_pushed_texture then
+        controls_frame.highlight_buttons_cb:SetChecked(true)
+    else
+        controls_frame.highlight_buttons_cb:SetChecked(false)
     end
 
-    controls_frame.SwitchInterfaceBinds:SetScript("OnClick", ToggleInterfaceBinds)
-    controls_frame.SwitchInterfaceBinds:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText("Show/Hide the Interface Action of Keys")
-        GameTooltip:Show()
-    end)
-    controls_frame.SwitchInterfaceBinds:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+    -- Set the OnClick script for the highlight buttons checkbox
+    controls_frame.highlight_buttons_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
+            keyui_settings.show_pushed_texture = true
+        else
+            keyui_settings.show_pushed_texture = false
+        end
     end)
 
-    -- Create a font string for the text "Alt" and position it below the checkbutton
-    controls_frame.AltText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    controls_frame.AltText:SetText("Alt")
-    controls_frame.AltText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.AltText:SetPoint("CENTER", controls_frame.Display, "CENTER", 192, 0)
-    controls_frame.AltText:Show()
+    -- Set the tooltip for the highlight buttons checkbox
+    SetCheckboxTooltip(controls_frame.highlight_buttons_cb, "Toggle highlight effect on Blizzard action buttons when hovering KeyUI buttons")
 
-    controls_frame.AltCB = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
-    controls_frame.AltCB:SetSize(32, 36)
-    controls_frame.AltCB:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.AltCB:SetPoint("CENTER", controls_frame.AltText, "CENTER", 0, -30)
-    controls_frame.AltCB:Show()
+    -- Create the font string for the "Highlight Buttons" label text and position it
+    controls_frame.highlight_buttons_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.highlight_buttons_text:SetText("Highlight Buttons")
+    controls_frame.highlight_buttons_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.highlight_buttons_text:SetPoint("LEFT", controls_frame.highlight_buttons_cb, "RIGHT", 10, 0)
+    controls_frame.highlight_buttons_text:Show()
+
+    -- Create the checkbox for toggling modifier detection (detect_modifier)
+    controls_frame.detect_modifier_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.detect_modifier_cb:SetSize(32, 36)
+    controls_frame.detect_modifier_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.detect_modifier_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, first_cb_y)
+    controls_frame.detect_modifier_cb:Show()
+
+    -- Set the initial checkbox state based on the current setting for listen_to_modifier
+    if keyui_settings.listen_to_modifier then
+        controls_frame.detect_modifier_cb:SetChecked(true)
+    else
+        controls_frame.detect_modifier_cb:SetChecked(false)
+    end
+
+    -- Set the OnClick script for the detect modifier checkbox
+    controls_frame.detect_modifier_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
+            keyui_settings.listen_to_modifier = true
+        else
+            keyui_settings.listen_to_modifier = false
+        end
+
+        -- Optionally: Add any additional logic you want to trigger here
+    end)
+
+    -- Set the tooltip for the detect modifier checkbox
+    SetCheckboxTooltip(controls_frame.detect_modifier_cb, "Enable or disable detection of Shift, Ctrl, and Alt for key bindings")
+
+    -- Create the font string for the "Detect Modifier" label text and position it
+    controls_frame.detect_modifier_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.detect_modifier_text:SetText("Detect Modifier")
+    controls_frame.detect_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.detect_modifier_text:SetPoint("LEFT", controls_frame.detect_modifier_cb, "RIGHT", 10, 0)
+    controls_frame.detect_modifier_text:Show()
+
+    -- Create the checkbox for toggling dynamic modifier display (dynamic_modifier)
+    controls_frame.dynamic_modifier_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.dynamic_modifier_cb:SetSize(32, 36)
+    controls_frame.dynamic_modifier_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.dynamic_modifier_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, second_cb_y)
+    controls_frame.dynamic_modifier_cb:Show()
+
+    -- Set the initial checkbox state based on the current setting for dynamic_modifier
+    if keyui_settings.dynamic_modifier then
+        controls_frame.dynamic_modifier_cb:SetChecked(true)
+    else
+        controls_frame.dynamic_modifier_cb:SetChecked(false)
+    end
+
+    -- Set the OnClick script for the dynamic modifier checkbox
+    controls_frame.dynamic_modifier_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
+            keyui_settings.dynamic_modifier = true
+        else
+            keyui_settings.dynamic_modifier = false
+        end
+
+        -- Optionally: Add any additional logic you want to trigger here
+    end)
+
+    -- Set the tooltip for the dynamic modifier checkbox
+    SetCheckboxTooltip(controls_frame.dynamic_modifier_cb, "Enable or disable dynamic display of modified keys based on current modifiers.")
+
+    -- Create the font string for the "Dynamic Modifier" label text and position it
+    controls_frame.dynamic_modifier_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.dynamic_modifier_text:SetText("Dynamic Modifier")
+    controls_frame.dynamic_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.dynamic_modifier_text:SetPoint("LEFT", controls_frame.dynamic_modifier_cb, "RIGHT", 10, 0)
+    controls_frame.dynamic_modifier_text:Show()
+
+    -- Create a alt checkbox
+    controls_frame.alt_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.alt_cb:SetSize(32, 36)
+    controls_frame.alt_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.alt_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, third_cb_y)
+    controls_frame.alt_cb:Show()
 
     -- Set the OnClick script for the checkbutton
-    controls_frame.AltCB:SetScript("OnClick", function(s)
+    controls_frame.alt_cb:SetScript("OnClick", function(s)
         if s:GetChecked() then
             -- Set ALT modifier and update checkbox state
             addon.modif.ALT = true
@@ -269,23 +366,25 @@ function addon:create_controls()
         addon:refresh_keys()
 
     end)
-    SetCheckboxTooltip(controls_frame.AltCB, "Toggle Alt key modifier")
 
-    -- Create a font string for the text "Ctrl" and position it below the checkbutton
-    controls_frame.CtrlText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    controls_frame.CtrlText:SetText("Ctrl")
-    controls_frame.CtrlText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.CtrlText:SetPoint("CENTER", controls_frame.AltText, "CENTER", 50, 0)
-    controls_frame.CtrlText:Show()
+    SetCheckboxTooltip(controls_frame.alt_cb, "Toggle Alt key modifier")
 
-    controls_frame.CtrlCB = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
-    controls_frame.CtrlCB:SetSize(32, 36)
-    controls_frame.CtrlCB:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.CtrlCB:SetPoint("CENTER", controls_frame.CtrlText, "CENTER", 0, -30)
-    controls_frame.CtrlCB:Show()
+    -- Create a font string for the text "Alt" and position it below the checkbutton
+    controls_frame.alt_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.alt_text:SetText("Alt")
+    controls_frame.alt_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.alt_text:SetPoint("LEFT", controls_frame.alt_cb, "RIGHT", 4, 0)
+    controls_frame.alt_text:Show()
+
+    -- Create a ctrl checkbox
+    controls_frame.ctrl_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.ctrl_cb:SetSize(32, 36)
+    controls_frame.ctrl_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.ctrl_cb:SetPoint("CENTER", controls_frame.alt_cb, "CENTER", 80, 0)
+    controls_frame.ctrl_cb:Show()
 
     -- Set the OnClick script for the checkbutton
-    controls_frame.CtrlCB:SetScript("OnClick", function(s)
+    controls_frame.ctrl_cb:SetScript("OnClick", function(s)
         if s:GetChecked() then
             -- Set CTRL modifier and update checkbox state
             addon.modif.CTRL = true
@@ -300,23 +399,25 @@ function addon:create_controls()
         addon:update_modifier_string()
         addon:refresh_keys()
     end)
-    SetCheckboxTooltip(controls_frame.CtrlCB, "Toggle Ctrl key modifier")
 
-    -- Create a font string for the text "Shift" and position it below the checkbutton
-    controls_frame.ShiftText = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    controls_frame.ShiftText:SetText("Shift")
-    controls_frame.ShiftText:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.ShiftText:SetPoint("CENTER", controls_frame.CtrlText, "CENTER", 50, 0)
-    controls_frame.ShiftText:Show()
+    SetCheckboxTooltip(controls_frame.ctrl_cb, "Toggle Ctrl key modifier")
 
-    controls_frame.ShiftCB = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
-    controls_frame.ShiftCB:SetSize(32, 36)
-    controls_frame.ShiftCB:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.ShiftCB:SetPoint("CENTER", controls_frame.ShiftText, "CENTER", 0, -30)
-    controls_frame.ShiftCB:Show()
+    -- Create a font string for the text "Ctrl" and position it below the checkbutton
+    controls_frame.ctrl_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.ctrl_text:SetText("Ctrl")
+    controls_frame.ctrl_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.ctrl_text:SetPoint("LEFT", controls_frame.ctrl_cb, "RIGHT", 4, 0)
+    controls_frame.ctrl_text:Show()
+
+    -- Create a shift checkbox
+    controls_frame.shift_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.shift_cb:SetSize(32, 36)
+    controls_frame.shift_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.shift_cb:SetPoint("CENTER", controls_frame.ctrl_cb, "CENTER", 80, 0)
+    controls_frame.shift_cb:Show()
 
     -- Set the OnClick script for the checkbutton
-    controls_frame.ShiftCB:SetScript("OnClick", function(s)
+    controls_frame.shift_cb:SetScript("OnClick", function(s)
         if s:GetChecked() then
             -- Set SHIFT modifier and update checkbox state
             addon.modif.SHIFT = true
@@ -331,13 +432,21 @@ function addon:create_controls()
         addon:update_modifier_string()
         addon:refresh_keys()
     end)
-    SetCheckboxTooltip(controls_frame.ShiftCB, "Toggle Shift key modifier")
+
+    SetCheckboxTooltip(controls_frame.shift_cb, "Toggle Shift key modifier")
+
+    -- Create a font string for the text "Shift" and position it below the checkbutton
+    controls_frame.shift_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.shift_text:SetText("Shift")
+    controls_frame.shift_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.shift_text:SetPoint("LEFT", controls_frame.shift_cb, "RIGHT", 4, 0)
+    controls_frame.shift_text:Show()
 
     -- Create the "Close" button
-    controls_frame.Close = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")
-    controls_frame.Close:SetSize(22, 22)
-    controls_frame.Close:SetPoint("TOPRIGHT", 0, 0)
-    controls_frame.Close:SetScript("OnClick", function(s)
+    controls_frame.close_button = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")
+    controls_frame.close_button:SetSize(22, 22)
+    controls_frame.close_button:SetPoint("TOPRIGHT", 0, 0)
+    controls_frame.close_button:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
         controls_frame:Hide()
     end)
@@ -523,15 +632,62 @@ function addon:create_controls()
     end)
 
     -- Create the "Edit Layout" button
-    addon.controls_frame.edit_layout_button = CreateFrame("Button", nil, addon.controls_frame, "UIPanelButtonTemplate")
-    addon.controls_frame.edit_layout_button:SetSize(150, 26)
-    addon.controls_frame.edit_layout_button:SetPoint("TOPRIGHT", addon.controls_frame, "TOPRIGHT", -30, -30)
-    addon.controls_frame.edit_layout_button:SetText("Edit Layout")
+    addon.controls_frame.edit_layout_button = CreateFrame("Button", nil, addon.controls_frame)
+    addon.controls_frame.edit_layout_button:SetSize(160, 30)
+    addon.controls_frame.edit_layout_button:SetPoint("LEFT", controls_frame.layout_text, "RIGHT", 230, 1)
 
-    -- Access the FontString to modify font and color
-    local font_string = addon.controls_frame.edit_layout_button:GetFontString()
-    font_string:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12)
-    font_string:SetTextColor(1, 1, 1)
+    -- Create FontString for Edit Layout button Text
+    local edit_layout_text = addon.controls_frame.edit_layout_button:CreateFontString(nil, "OVERLAY")
+    edit_layout_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    edit_layout_text:SetPoint("CENTER", addon.controls_frame.edit_layout_button, "CENTER", 0, -1)
+    edit_layout_text:SetText("Edit Layout")
+
+    -- Left Cap Texture for Edit Layout Button
+    local edit_layout_left = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
+    edit_layout_left:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
+    edit_layout_left:SetSize(16, 43)
+    edit_layout_left:SetPoint("LEFT", addon.controls_frame.edit_layout_button, "LEFT")
+
+    -- Right Cap Texture for Edit Layout Button
+    local edit_layout_right = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
+    edit_layout_right:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
+    edit_layout_right:SetSize(16, 43)
+    edit_layout_right:SetPoint("RIGHT", addon.controls_frame.edit_layout_button, "RIGHT")
+
+    -- Middle Texture for Edit Layout Button
+    local edit_layout_middle = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
+    edit_layout_middle:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
+    edit_layout_middle:SetPoint("LEFT", edit_layout_left, "RIGHT")
+    edit_layout_middle:SetPoint("RIGHT", edit_layout_right, "LEFT")
+    edit_layout_middle:SetHeight(43)
+
+    -- Hover Textures for Edit Layout Button
+    local edit_layout_hover_left = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
+    edit_layout_hover_left:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
+    edit_layout_hover_left:SetSize(16, 43)
+    edit_layout_hover_left:SetPoint("LEFT", addon.controls_frame.edit_layout_button, "LEFT")
+
+    local edit_layout_hover_right = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
+    edit_layout_hover_right:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
+    edit_layout_hover_right:SetSize(16, 43)
+    edit_layout_hover_right:SetPoint("RIGHT", addon.controls_frame.edit_layout_button, "RIGHT")
+
+    local edit_layout_hover_middle = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
+    edit_layout_hover_middle:SetTexture("Interface/Buttons/Dropdown")
+    edit_layout_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
+    edit_layout_hover_middle:SetPoint("LEFT", edit_layout_hover_left, "RIGHT")
+    edit_layout_hover_middle:SetPoint("RIGHT", edit_layout_hover_right, "LEFT")
+    edit_layout_hover_middle:SetHeight(43)
+
+    local edit_layout_hover_text = addon.controls_frame.edit_layout_button:CreateFontString(nil, "HIGHLIGHT")
+    edit_layout_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    edit_layout_hover_text:SetPoint("CENTER", addon.controls_frame.edit_layout_button, "CENTER", 0, -1)
+    edit_layout_hover_text:SetText("Edit Layout")
 
     -- Attach the OnClick handler to the "Edit Layout" button
     addon.controls_frame.edit_layout_button:SetScript("OnClick", function()
@@ -573,14 +729,14 @@ function addon:create_controls()
         addon.alt_checkbox = false
         addon.ctrl_checkbox = false
         addon.shift_checkbox = false
-        if addon.controls_frame.AltCB then
-            addon.controls_frame.AltCB:SetChecked(false)
+        if addon.controls_frame.alt_cb then
+            addon.controls_frame.alt_cb:SetChecked(false)
         end
-        if addon.controls_frame.CtrlCB then
-            addon.controls_frame.CtrlCB:SetChecked(false)
+        if addon.controls_frame.ctrl_cb then
+            addon.controls_frame.ctrl_cb:SetChecked(false)
         end
-        if addon.controls_frame.ShiftCB then
-            addon.controls_frame.ShiftCB:SetChecked(false)
+        if addon.controls_frame.shift_cb then
+            addon.controls_frame.shift_cb:SetChecked(false)
         end
 
         addon.controls_frame:Hide()
@@ -1297,9 +1453,7 @@ function addon:switch_layout_selector()
         addon.controller_selector:Hide()
     end
 
-    if addon.controls_frame.Delete then
-        addon.controls_frame.Delete:Hide()
-    end
+    local second_Setpoint = addon.controls_frame:GetWidth() * (1 / 4.5)
 
     -- Check if the active control tab is "keyboard"
     if addon.active_control_tab == "keyboard" then
@@ -1309,24 +1463,10 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the keyboard selector UI element
-        addon.keyboard_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
+        addon.keyboard_selector:SetPoint("LEFT", addon.controls_frame, "TOPLEFT", second_Setpoint, -40)
 
         -- Show the keyboard layout selector
         addon.keyboard_selector:Show()
-
-        -- Set the position of the delete button and show it
-        if addon.controls_frame.Delete then
-            addon.controls_frame.Delete:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", 8, 0)
-            addon.controls_frame.Delete:Show()
-        end
-
-        -- Get and set the active layout
-        -- local keyboard_active_board = next(keyui_settings.layout_current_keyboard)
-        -- if keyboard_active_board == nil then
-        --     addon.keyboard_selector:SetText("")
-        -- else
-        --     addon.keyboard_selector:SetText(keyboard_active_board)
-        -- end
 
     -- Check if the active control tab is "mouse"
     elseif addon.active_control_tab == "mouse" then
@@ -1336,24 +1476,10 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the mouse selector UI element
-        addon.mouse_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
+        addon.mouse_selector:SetPoint("LEFT", addon.controls_frame, "TOPLEFT", second_Setpoint, -40)
 
         -- Show the mouse layout selector
         addon.mouse_selector:Show()
-
-        if addon.controls_frame.Delete then
-            -- Set the position of the delete button and show it
-            addon.controls_frame.Delete:SetPoint("LEFT", addon.mouse_selector, "RIGHT", 8, 0)
-            addon.controls_frame.Delete:Show()
-        end
-
-        -- Get and set the active layout
-        -- local mouse_active_board = next(keyui_settings.layout_current_mouse)
-        -- if mouse_active_board == nil then
-        --     addon.mouse_selector:SetText("")
-        -- else
-        --     addon.mouse_selector:SetText(mouse_active_board)
-        -- end
 
     -- Check if the active control tab is "controller"
     elseif addon.active_control_tab == "controller" then
@@ -1363,25 +1489,11 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the controller selector UI element
-        addon.controller_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
+        addon.controller_selector:SetPoint("LEFT", addon.controls_frame, "TOPLEFT", second_Setpoint, -40)
 
         -- Show the controller layout selector
         addon.controller_selector:Show()
 
-        if addon.controls_frame.Delete then
-            -- Set the position of the delete button and show it
-            addon.controls_frame.Delete:SetPoint("LEFT", addon.controller_selector, "RIGHT", 8, 0)
-            addon.controls_frame.Delete:Show()
-        end
-
-        -- Get and set the active layout
-        -- local controller_active_board = next(keyui_settings.layout_current_controller)
-        -- if controller_active_board == nil then
-        --     addon.controller_selector:SetText("")
-        -- else
-        --     addon.controller_selector:SetText(controller_active_board)
-        -- end
- 
     end
 end
 
@@ -1391,7 +1503,7 @@ function addon:keyboard_layout_selector()
     addon.keyboard_selector = keyboard_selector
 
     keyboard_selector:SetHeight(28)
-    keyboard_selector:SetWidth(200)
+    keyboard_selector:SetWidth(190)
 
     -- Order of keyboard layout categories
     local category_order = { "ISO", "ANSI", "DVORAK", "Razer", "Azeron", "ZSA" }
@@ -1582,7 +1694,7 @@ function addon:mouse_layout_selector()
     addon.mouse_selector = mouse_selector
 
     mouse_selector:SetHeight(28)
-    mouse_selector:SetWidth(200)
+    mouse_selector:SetWidth(190)
 
     -- Order of layouts
     local category_order = { "Layout_2+4x3", "Layout_4x3", "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle" }
@@ -1697,7 +1809,7 @@ function addon:controller_layout_selector()
     addon.controller_selector = controller_selector
 
     controller_selector:SetHeight(28)
-    controller_selector:SetWidth(200)
+    controller_selector:SetWidth(190)
 
     -- Order of layouts (including the layout type "xbox")
     local category_order = { "xbox", "ds4", "ds5", "deck" }

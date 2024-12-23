@@ -142,25 +142,12 @@ local options = {
                 addon:show_frames()
             end,
         },
-        -- toggle to enable or disable PushedTexture functionality
-        show_pushed_texture = {
-            type = "toggle",
-            name = "Highlight Buttons",
-            desc = "Enable or disable the highlight effect on action buttons",
-            order = 8,
-            get = function() return keyui_settings.show_pushed_texture end,
-            set = function(_, value)
-                keyui_settings.show_pushed_texture = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Action button highlighting", status)
-            end,
-        },
         -- Add a button to reset all settings to defaults
         reset_settings = {
             type = "execute",
             name = "Reset Addon Settings",
             desc = "Reset all KeyUI settings to their default values",
-            order = 10,
+            order = 7,
             confirm = true, -- Ask for confirmation
             confirmText = "Are you sure you want to reset all KeyUI settings to default?",
             func = function()
@@ -198,18 +185,6 @@ local options = {
                 ReloadUI()
             end,
         },
-        detect_modifier = {
-            type = "toggle",
-            name = "Detect Modifier",
-            desc = "Enable or disable detection of Shift, Ctrl, and Alt for key bindings",
-            order = 8,
-            get = function() return keyui_settings.listen_to_modifier end,
-            set = function(_, value)
-                keyui_settings.listen_to_modifier = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Modifier detection " .. status)
-            end,
-        },
         prevent_esc_close = {
             type = "toggle",
             name = "Enable ESC",
@@ -228,18 +203,6 @@ local options = {
 
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Closing with ESC " .. status)
-            end,
-        },
-        dynamic_modifier = {
-            type = "toggle",
-            name = "Dynamic Modifier",
-            desc = "Enable or disable dynamic display of modified keys based on current modifiers.",
-            order = 9,
-            get = function() return keyui_settings.dynamic_modifier end,
-            set = function(_, value)
-                keyui_settings.dynamic_modifier = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Dynamic modifier " .. status)
             end,
         },
     },
@@ -1234,12 +1197,12 @@ end
 
 -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
 local modifier_keys = {
-    LALT = { mod = "ALT", control_key = "AltCB" },
-    RALT = { mod = "ALT", control_key = "AltCB" },
-    LCTRL = { mod = "CTRL", control_key = "CtrlCB" },
-    RCTRL = { mod = "CTRL", control_key = "CtrlCB" },
-    LSHIFT = { mod = "SHIFT", control_key = "ShiftCB" },
-    RSHIFT = { mod = "SHIFT", control_key = "ShiftCB" },
+    LALT = { mod = "ALT", control_key = "alt_cb" },
+    RALT = { mod = "ALT", control_key = "alt_cb" },
+    LCTRL = { mod = "CTRL", control_key = "ctrl_cb" },
+    RCTRL = { mod = "CTRL", control_key = "ctrl_cb" },
+    LSHIFT = { mod = "SHIFT", control_key = "shift_cb" },
+    RSHIFT = { mod = "SHIFT", control_key = "shift_cb" },
 }
 
 -- Function to handle key press events
