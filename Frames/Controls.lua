@@ -116,6 +116,11 @@ function addon:create_controls()
     -- Initialize the slider value based on the active control tab
     update_slider_value()
 
+    -- Add an OnShow script to update the slider value when the frame is shown
+    controls_frame.size_slider:SetScript("OnShow", function()
+        update_slider_value()
+    end)
+
     -- Set the slider value when it changes
     controls_frame.size_slider:SetScript("OnValueChanged", function(self, value)
         -- Round the value to the nearest multiple of the step size (0.01)
