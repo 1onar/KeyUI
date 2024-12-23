@@ -358,7 +358,7 @@ function addon:refresh_layouts()
     end
 
     -- stop if keyboard and mouse are not visible
-    if addon.is_keyboard_frame_visible == false and addon.is_mouse_image_visible == false then
+    if addon.is_keyboard_visible == false and addon.is_mouse_visible == false and addon.is_controller_visible == false then
         return
     end
 
@@ -394,12 +394,12 @@ function addon:show_frames()
     local controller_image = addon:get_controller_image()
 
     if keyui_settings.show_keyboard == true then
-        addon.is_keyboard_frame_visible = true
+        addon.is_keyboard_visible = true
         keyboard_frame:Show()
     end
 
     if keyui_settings.show_mouse == true then
-        addon.is_mouse_image_visible = true
+        addon.is_mouse_visible = true
         mouse_image:Show()
         mouse_frame:Show()
     end
@@ -442,13 +442,13 @@ function addon:hide_all_frames()
     end
 
     addon.open = false
-    addon.is_keyboard_frame_visible = false
-    addon.is_mouse_image_visible = false
+    addon.is_keyboard_visible = false
+    addon.is_mouse_visible = false
     addon.is_controller_visible = false
 end
 
 local function on_frame_hide(self)
-    if (addon.is_keyboard_frame_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_image_visible == false or keyui_settings.show_mouse == false) and (addon.is_controller_frame_visible == false or keyui_settings.show_controller == false) then
+    if (addon.is_keyboard_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_visible == false or keyui_settings.show_mouse == false) and (addon.is_controller_visible == false or keyui_settings.show_controller == false) then
         addon.open = false
 
         -- Discard Keyboard Editor Changes when closing
@@ -478,12 +478,12 @@ function addon:get_keyboard_frame()
 
         addon.keyboard_frame:SetScript("OnHide", function()
             addon:save_keyboard_position()
-            addon.is_keyboard_frame_visible = false
+            addon.is_keyboard_visible = false
             on_frame_hide()
         end)
 
         addon.keyboard_frame:SetScript("OnShow", function()
-            addon.is_keyboard_frame_visible = true
+            addon.is_keyboard_visible = true
         end)
     end
     return addon.keyboard_frame
@@ -498,12 +498,12 @@ function addon:get_mouse_image()
 
         addon.mouse_image:SetScript("OnHide", function()
             addon:save_mouse_position()
-            addon.is_mouse_image_visible = false
+            addon.is_mouse_visible = false
             on_frame_hide()
         end)
 
         addon.mouse_image:SetScript("OnShow", function()
-            addon.is_mouse_image_visible = true
+            addon.is_mouse_visible = true
         end)
     end
     return addon.mouse_image
@@ -526,12 +526,12 @@ function addon:get_controller_frame()
 
         addon.controller_frame:SetScript("OnHide", function()
             addon:save_controller_position()
-            addon.is_controller_frame_visible = false
+            addon.is_controller_visible = false
             on_frame_hide()
         end)
 
         addon.controller_frame:SetScript("OnShow", function()
-            addon.is_controller_frame_visible = true
+            addon.is_controller_visible = true
         end)
     end
     return addon.controller_frame
@@ -969,7 +969,7 @@ function addon:refresh_keys()
     --print("refresh_keys function called")  -- print statement for debbuging
 
     -- if the keyboard is visible we create the keys
-    if addon.is_keyboard_frame_visible ~= false then -- true
+    if addon.is_keyboard_visible ~= false then -- true
         -- Set the keys
         for i = 1, #addon.keys_keyboard do
             addon:set_key(addon.keys_keyboard[i])
@@ -977,14 +977,14 @@ function addon:refresh_keys()
     end
 
     -- if the mouse is visible we create the keys
-    if addon.is_mouse_image_visible ~= false then -- true
+    if addon.is_mouse_visible ~= false then -- true
         for j = 1, #addon.keys_mouse do
             addon:set_key(addon.keys_mouse[j])
         end
     end
 
     -- if the controller is visible we create the keys
-    if addon.is_controller_image_visible ~= false then -- true
+    if addon.is_controller_visible ~= false then -- true
         for k = 1, #addon.keys_controller do
             addon:set_key(addon.keys_controller[k])
         end

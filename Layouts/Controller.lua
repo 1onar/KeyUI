@@ -35,8 +35,8 @@ addon.default_controller_layouts = {
         layout_type = "ds4",
 
         -- LEFT
-        { 'PADLSHOULDER',   -380,  416, 50, 50 },
-        { 'PADLTRIGGER',  -380,  360, 50, 50 },
+        { 'PADLSHOULDER',  -380,  416, 50, 50 },
+        { 'PADLTRIGGER',   -380,  360, 50, 50 },
         { 'PADDUP',        -380,  304, 50, 50 },
         { 'PADDLEFT',      -380,  249, 50, 50 },
         { 'PADDDOWN',      -380,  194, 50, 50 },

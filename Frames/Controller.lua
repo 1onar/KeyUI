@@ -153,7 +153,7 @@ function addon:create_controller_frame()
     -- Set OnClick behavior for controls button
     controller_frame.controls_button:SetScript("OnClick", function()
         addon.active_control_tab = "controller"
-        addon:show_controls_button_highlight()
+        addon:update_tab_textures()
 
         -- Check if the controls frame exists
         if addon.controls_frame then
@@ -371,11 +371,14 @@ function addon:save_controller_layout(layout_name)
     local name = layout_name
 
     if name ~= "" then
-
         print("KeyUI: Saved the new controller layout '" .. name .. "'.")
 
         -- Initialize a new table for the saved layout
         keyui_settings.layout_edited_controller[name] = {}
+
+        -- Get the center of the controller frame for relative X calculation
+        local controller_center_x = addon.controller_frame:GetLeft() + (addon.controller_frame:GetWidth() / 2)
+        local controller_bottom_y = addon.controller_frame:GetBottom()
 
         -- Iterate through all controller buttons to save their data
         for _, button in ipairs(addon.keys_controller) do
@@ -383,8 +386,8 @@ function addon:save_controller_layout(layout_name)
                 -- Save button properties: label, position, width, and height
                 keyui_settings.layout_edited_controller[name][#keyui_settings.layout_edited_controller[name] + 1] = {
                     button.raw_key,                                                     -- Button name
-                    floor(button:GetLeft() - addon.controller_frame:GetLeft() + 0.5),   -- X position
-                    floor(button:GetTop() - addon.controller_frame:GetTop() + 0.5),     -- Y position
+                    floor(button:GetCenter() - controller_center_x + 0.5),              -- X position relative to CENTER
+                    floor(button:GetBottom() - controller_bottom_y + 0.5),              -- Y position relative to BOTTOM
                     floor(button:GetWidth() + 0.5),                                     -- Width
                     floor(button:GetHeight() + 0.5)                                     -- Height
                 }

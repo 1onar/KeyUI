@@ -55,10 +55,8 @@ function addon:create_controls()
     controls_frame.Layout = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controls_frame.Layout:SetText("Layout")
     controls_frame.Layout:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.Layout:SetPoint("CENTER", controls_frame, "LEFT", 380, 25)
+    controls_frame.Layout:SetPoint("TOPLEFT", controls_frame, "TOPLEFT", 30, -30)
     controls_frame.Layout:SetTextColor(1, 1, 1)
-
-    addon:switch_layout_selector()
 
     controls_frame.text_size = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controls_frame.text_size:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
@@ -335,148 +333,7 @@ function addon:create_controls()
     end)
     SetCheckboxTooltip(controls_frame.ShiftCB, "Toggle Shift key modifier")
 
-    -- Define the confirmation dialog
-    StaticPopupDialogs["KEYUI_LAYOUT_CONFIRM_DELETE"] = {
-        text = "Are you sure you want to delete the selected layout?",
-        button1 = "Yes",
-        button2 = "No",
-        OnAccept = function()
-            -- delete edited changes and remove glowboxes
-            if addon.active_control_tab == "keyboard" then
-                addon:discard_keyboard_changes()
-
-                -- Function to delete the selected keyboard layout
-                local selectedLayout = UIDropDownMenu_GetText(addon.keyboard_selector)
-
-                -- Ensure selectedLayout is not nil before proceeding
-                if selectedLayout then
-                    -- Remove the selected layout from the KeyboardEditLayouts table
-                    keyui_settings.layout_edited_keyboard[selectedLayout] = nil
-
-                    -- Print a message indicating which layout was deleted
-                    print("KeyUI: Deleted the keyboard layout '" .. selectedLayout .. "'.")
-
-                    wipe(keyui_settings.layout_current_keyboard)
-
-                    if addon.keyboard_selector then
-                        addon.keyboard_selector:SetDefaultText("Select Layout")
-                        addon.keyboard_selector:Hide()
-                        addon.keyboard_selector:Show()
-                    end
-
-                    addon:refresh_layouts()
-                else
-                    print("KeyUI: Error - No keyboard layout selected to delete.")
-                end
-            elseif addon.active_control_tab == "mouse" then
-                addon:discard_mouse_changes()
-
-                -- Function to delete the selected mouse layout
-                local selectedMouseLayout = UIDropDownMenu_GetText(addon.mouse_selector)
-
-                -- Ensure selectedMouseLayout is not nil before proceeding
-                if selectedMouseLayout then
-                    -- Remove the selected layout from the MouseEditLayouts table
-                    keyui_settings.layout_edited_mouse[selectedMouseLayout] = nil
-
-                    -- Print a message indicating which layout was deleted
-                    print("KeyUI: Deleted the mouse layout '" .. selectedMouseLayout .. "'.")
-
-                    wipe(keyui_settings.layout_current_mouse)
-
-                    if addon.mouse_selector then
-                        addon.mouse_selector:SetDefaultText("Select Layout")
-                        addon.mouse_selector:Hide()
-                        addon.mouse_selector:Show()
-                    end
-
-                    addon:refresh_layouts()
-                else
-                    print("KeyUI: Error - No mouse layout selected to delete.")
-                end
-            elseif addon.active_control_tab == "controller" then
-                addon:discard_controller_changes()
-
-                -- Function to delete the selected controller layout
-                local selectedcontrollerLayout = UIDropDownMenu_GetText(addon.controller_selector)
-
-                -- Ensure selectedcontrollerLayout is not nil before proceeding
-                if selectedcontrollerLayout then
-                    -- Remove the selected layout from the controllerEditLayouts table
-                    keyui_settings.layout_edited_controller[selectedcontrollerLayout] = nil
-
-                    -- Print a message indicating which layout was deleted
-                    print("KeyUI: Deleted the controller layout '" .. selectedcontrollerLayout .. "'.")
-
-                    wipe(keyui_settings.layout_current_controller)
-
-                    addon.controller_system = nil  -- Set to nil if the layout_type is not defined
-                    addon:update_controller_image()
-
-                    if addon.controller_selector then
-                        addon.controller_selector:SetDefaultText("Select Layout")
-                        addon.controller_selector:Hide()
-                        addon.controller_selector:Show()
-                    end
-
-                    addon:refresh_layouts()
-                else
-                    print("KeyUI: Error - No controller layout selected to delete.")
-                end
-            end
-        end,
-        timeout = 0,
-        whileDead = true,
-        hideOnEscape = true,
-        preferredIndex = 3, -- Avoids conflicts with other popups
-    }
-
-    controls_frame.Delete = CreateFrame("Button", nil, controls_frame, "UIPanelSquareButton")
-    controls_frame.Delete:SetSize(28, 28)
-    controls_frame.Delete:Show()
-
-    if addon.active_control_tab == "keyboard" then
-        addon.controls_frame.Delete:SetPoint("LEFT", addon.keyboard_selector, "RIGHT", 8, 0)
-    elseif addon.active_control_tab == "mouse" then
-        addon.controls_frame.Delete:SetPoint("LEFT", addon.mouse_selector, "RIGHT", 8, 0)
-    elseif addon.active_control_tab == "controller" then
-        addon.controls_frame.Delete:SetPoint("LEFT", addon.controller_selector, "RIGHT", 8, 0)
-    end
-
-    -- OnClick handler to show confirmation dialog
-    controls_frame.Delete:SetScript("OnClick", function(self)
-        if addon.active_control_tab == "keyboard" then
-            if not addon.keyboard_selector then
-                print("KeyUI: Error - No keyboard layout selected.")
-                return
-            end
-        elseif addon.active_control_tab == "mouse" then
-            if not addon.mouse_selector then
-                print("KeyUI: Error - No mouse layout selected.")
-                return
-            end
-        elseif addon.active_control_tab == "controller" then
-            if not addon.controller_selector then
-                print("KeyUI: Error - No controller layout selected.")
-                return
-            end
-        end
-
-        -- Show the confirmation dialog
-        StaticPopup_Show("KEYUI_LAYOUT_CONFIRM_DELETE")
-    end)
-
-    controls_frame.Delete:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Delete Layout")
-        GameTooltip:AddLine("- Delete the current layout if it's custom", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-
-    controls_frame.Delete:SetScript("OnLeave", function(self)
-        GameTooltip:Hide()
-    end)
-
+    -- Create the "Close" button
     controls_frame.Close = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")
     controls_frame.Close:SetSize(22, 22)
     controls_frame.Close:SetPoint("TOPRIGHT", 0, 0)
@@ -602,10 +459,16 @@ function addon:create_controls()
 
     addon.controls_frame:SetScript("OnLoad", function()
         addon:update_tab_visibility()
+
+        -- Function to handle layout selection based on the active control tab
+        addon:switch_layout_selector()
     end)
 
     addon.controls_frame:SetScript("OnShow", function()
         addon:update_tab_visibility()
+
+        -- Function to handle layout selection based on the active control tab
+        addon:switch_layout_selector()
 
         if addon.name_input_dialog and addon.name_input_dialog:IsVisible() then
             addon.name_input_dialog:Hide()
@@ -662,7 +525,7 @@ function addon:create_controls()
     -- Create the "Edit Layout" button
     addon.controls_frame.edit_layout_button = CreateFrame("Button", nil, addon.controls_frame, "UIPanelButtonTemplate")
     addon.controls_frame.edit_layout_button:SetSize(150, 26)
-    addon.controls_frame.edit_layout_button:SetPoint("TOP", addon.controls_frame, "TOP", 0, -50)
+    addon.controls_frame.edit_layout_button:SetPoint("TOPRIGHT", addon.controls_frame, "TOPRIGHT", -30, -30)
     addon.controls_frame.edit_layout_button:SetText("Edit Layout")
 
     -- Access the FontString to modify font and color
@@ -731,7 +594,7 @@ function addon:create_name_input_dialog()
 
     -- Create the name input dialog frame
     local name_input_frame = CreateFrame("Frame", "keyui_name_input_frame", UIParent, "BackdropTemplate")
-    name_input_frame:SetSize(400, 170)
+    name_input_frame:SetSize(350, 170)
     name_input_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
     name_input_frame:SetFrameStrata("DIALOG")
 
@@ -788,22 +651,15 @@ function addon:create_name_input_dialog()
 
     -- Input box
     name_input_frame.input_box = CreateFrame("EditBox", nil, name_input_frame, "InputBoxTemplate")
-    name_input_frame.input_box:SetSize(220, 30)
+    name_input_frame.input_box:SetSize(240, 30)
     name_input_frame.input_box:SetScale(1.2)
     name_input_frame.input_box:SetPoint("TOP", name_input_frame.instruction, "BOTTOM", 3, 0)
     name_input_frame.input_box:SetAutoFocus(true)
 
-    local input_name
-
-    if addon.active_control_tab == "keyboard" then
-        input_name = next(keyui_settings.layout_current_keyboard)
-    elseif addon.active_control_tab == "mouse" then
-        input_name = next(keyui_settings.layout_current_mouse)
-    elseif addon.active_control_tab == "controller" then
-        input_name = next(keyui_settings.layout_current_controller)
-    end
-
-    name_input_frame.input_box:SetText(input_name)
+    -- Set OnShow function to clear the input box
+    name_input_frame:HookScript("OnShow", function()
+        name_input_frame.input_box:SetText("")
+    end)
 
     local button_width = name_input_frame:GetWidth() / 2 - 30
 
@@ -989,7 +845,7 @@ function addon:create_edit_layout_dialog()
 
     -- Create the dialog frame
     local dialog_frame = CreateFrame("Frame", "keyui_dialog_frame", UIParent, "BackdropTemplate")
-    dialog_frame:SetSize(400, 170)
+    dialog_frame:SetSize(350, 170)
     dialog_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
     dialog_frame:SetFrameStrata("DIALOG")
     dialog_frame:SetPropagateKeyboardInput(true)
@@ -1129,18 +985,6 @@ function addon:create_edit_layout_dialog()
         end
 
         addon.name_input_dialog:Show()
-
-        local input_name
-
-        if addon.active_control_tab == "keyboard" then
-            input_name = next(keyui_settings.layout_current_keyboard)
-        elseif addon.active_control_tab == "mouse" then
-            input_name = next(keyui_settings.layout_current_mouse)
-        elseif addon.active_control_tab == "controller" then
-            input_name = next(keyui_settings.layout_current_controller)
-        end
-
-        addon.name_input_dialog.input_box:SetText(input_name)
 
         if addon.active_control_tab == "keyboard" then
             addon.keyboard_locked = true
@@ -1365,6 +1209,79 @@ function addon:update_tab_visibility()
     end
 end
 
+-- Function to handle layout deletion based on the active control tab
+function addon:confirm_delete_layout(name)
+    StaticPopupDialogs["KEYUI_LAYOUT_CONFIRM_DELETE"] = {
+        text = "Are you sure you want to delete the layout '" .. name .. "'?",
+        button1 = "Yes",
+        button2 = "No",
+        OnAccept = function()
+            local function delete_layout(layout_type, discard_function, edited_table, current_table, selector, update_function)
+                discard_function()
+
+                -- Remove the selected layout
+                edited_table[name] = nil
+                print("KeyUI: Deleted the " .. layout_type .. " layout '" .. name .. "'.")
+
+                -- Check if the deleted layout is the currently active one
+                local current_layout_name = next(current_table)
+                if name == current_layout_name then
+                    wipe(current_table)
+
+                    if selector then
+                        selector:SetDefaultText("Select Layout")
+                        selector:Hide()
+                        selector:Show()
+                    end
+
+                    if update_function then
+                        update_function()
+                    end
+                end
+            end
+
+            -- Determine the active control tab and proceed with deletion
+            if addon.active_control_tab == "keyboard" then
+                delete_layout(
+                    "keyboard",
+                    addon.discard_keyboard_changes,
+                    keyui_settings.layout_edited_keyboard,
+                    keyui_settings.layout_current_keyboard,
+                    addon.keyboard_selector,
+                    addon.refresh_layouts
+                )
+            elseif addon.active_control_tab == "mouse" then
+                delete_layout(
+                    "mouse",
+                    addon.discard_mouse_changes,
+                    keyui_settings.layout_edited_mouse,
+                    keyui_settings.layout_current_mouse,
+                    addon.mouse_selector,
+                    addon.refresh_layouts
+                )
+            elseif addon.active_control_tab == "controller" then
+                delete_layout(
+                    "controller",
+                    addon.discard_controller_changes,
+                    keyui_settings.layout_edited_controller,
+                    keyui_settings.layout_current_controller,
+                    addon.controller_selector,
+                    function()
+                        addon.controller_system = nil
+                        addon:update_controller_image()
+                        addon:refresh_layouts()
+                    end
+                )
+            end
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3, -- Avoids conflicts with other popups
+    }
+    StaticPopup_Show("KEYUI_LAYOUT_CONFIRM_DELETE")
+end
+
 -- Function to handle layout selection based on the active control tab
 function addon:switch_layout_selector()
     -- Hide both the keyboard and mouse selectors before showing the correct one
@@ -1392,7 +1309,7 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the keyboard selector UI element
-        addon.keyboard_selector:SetPoint("CENTER", addon.controls_frame.Layout, "CENTER", -18, -30)
+        addon.keyboard_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
 
         -- Show the keyboard layout selector
         addon.keyboard_selector:Show()
@@ -1419,7 +1336,7 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the mouse selector UI element
-        addon.mouse_selector:SetPoint("CENTER", addon.controls_frame.Layout, "CENTER", -18, -30)
+        addon.mouse_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
 
         -- Show the mouse layout selector
         addon.mouse_selector:Show()
@@ -1446,7 +1363,7 @@ function addon:switch_layout_selector()
         end
 
         -- Set the position of the controller selector UI element
-        addon.controller_selector:SetPoint("CENTER", addon.controls_frame.Layout, "CENTER", -18, -30)
+        addon.controller_selector:SetPoint("LEFT", addon.controls_frame.Layout, "RIGHT", 10, 0)
 
         -- Show the controller layout selector
         addon.controller_selector:Show()
@@ -1464,7 +1381,7 @@ function addon:switch_layout_selector()
         -- else
         --     addon.controller_selector:SetText(controller_active_board)
         -- end
-        
+ 
     end
 end
 
@@ -1473,7 +1390,8 @@ function addon:keyboard_layout_selector()
     local keyboard_selector = CreateFrame("DropdownButton", nil, addon.controls_frame, "WowStyle1DropdownTemplate")
     addon.keyboard_selector = keyboard_selector
 
-    keyboard_selector:SetWidth(150)
+    keyboard_selector:SetHeight(28)
+    keyboard_selector:SetWidth(200)
 
     -- Order of keyboard layout categories
     local category_order = { "ISO", "ANSI", "DVORAK", "Razer", "Azeron", "ZSA" }
@@ -1524,12 +1442,12 @@ function addon:keyboard_layout_selector()
         ["QWERTY_HALF"] = "QWERTY Half",
         ["QWERTY_PRIMARY"] = "QWERTY Primary",
 
-        ["DVORAK_100%"] = "100%",
-        ["DVORAK_PRIMARY"] = "Primary",
-        ["DVORAK_RIGHT_100%"] = "100%",
-        ["DVORAK_RIGHT_PRIMARY"] = "Primary",
-        ["DVORAK_LEFT_100%"] = "100%",
-        ["DVORAK_LEFT_PRIMARY"] = "Primary",
+        ["DVORAK_100%"] = "DVORAK 100%",
+        ["DVORAK_PRIMARY"] = "DVORAK Primary",
+        ["DVORAK_RIGHT_100%"] = "DVORAK 100%",
+        ["DVORAK_RIGHT_PRIMARY"] = "DVORAK Primary",
+        ["DVORAK_LEFT_100%"] = "DVORAK 100%",
+        ["DVORAK_LEFT_PRIMARY"] = "DVORAK Primary",
 
         ["Tartarus_v1"] = "Tartarus v1",
         ["Tartarus_v2"] = "Tartarus v2",
@@ -1555,6 +1473,7 @@ function addon:keyboard_layout_selector()
 
     -- Dropdown menu setup function with user-friendly names
     local function keyboard_layout_selector_initialize(dropdown, rootDescription)
+
         -- Create title
         rootDescription:CreateTitle("Default Layouts")
 
@@ -1602,10 +1521,28 @@ function addon:keyboard_layout_selector()
         -- Add custom layouts
         if type(keyui_settings.layout_edited_keyboard) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_keyboard) do
-                local display_name = get_display_name(name)
-                rootDescription:CreateButton(display_name, function()
+                local display_name = get_display_name(name)  -- Get user-friendly name
+
+                -- Create a button for each custom layout
+                local layoutButton = rootDescription:CreateButton(display_name, function()
                     addon:select_custom_keyboard_layout(name, layout)
                     keyboard_selector:SetDefaultText(display_name)
+                end)
+
+                -- Use Compositor-style initialization for the hover frame
+                layoutButton:AddInitializer(function(button, description, menu)
+                    -- Create and attach the texture to the button
+                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
+					delete_button:SetPoint("RIGHT");
+					delete_button:SetScript("OnClick", function()
+                        -- Show the confirmation dialog
+                        addon:confirm_delete_layout(name)
+                        menu:Close()
+					end);
+
+                    MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
+						GameTooltip_SetTitle(tooltip, "Delete Layout")
+					end)
                 end)
             end
         end
@@ -1644,7 +1581,8 @@ function addon:mouse_layout_selector()
     local mouse_selector = CreateFrame("DropdownButton", nil, addon.controls_frame, "WowStyle1DropdownTemplate")
     addon.mouse_selector = mouse_selector
 
-    mouse_selector:SetWidth(150)
+    mouse_selector:SetHeight(28)
+    mouse_selector:SetWidth(200)
 
     -- Order of layouts
     local category_order = { "Layout_2+4x3", "Layout_4x3", "Layout_3x3", "Layout_3x2", "Layout_1+2x2", "Layout_2x2", "Layout_2x1", "Layout_Circle" }
@@ -1677,6 +1615,7 @@ function addon:mouse_layout_selector()
 
     -- Dropdown menu setup function
     local function mouse_layout_selector_initialize(dropdown, rootDescription)
+
         -- Create title
         rootDescription:CreateTitle("Default Layouts")
 
@@ -1698,9 +1637,27 @@ function addon:mouse_layout_selector()
         if type(keyui_settings.layout_edited_mouse) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_mouse) do
                 local display_name = get_display_name(name)  -- Get user-friendly name
-                rootDescription:CreateButton(display_name, function()
+
+                -- Create a button for each custom layout
+                local layoutButton = rootDescription:CreateButton(display_name, function()
                     addon:select_custom_mouse_layout(name, layout)  -- Select the custom layout
                     mouse_selector:SetDefaultText(display_name)
+                end)
+
+                -- Use Compositor-style initialization for the hover frame
+                layoutButton:AddInitializer(function(button, description, menu)
+                    -- Create and attach the texture to the button
+                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
+                    delete_button:SetPoint("RIGHT");
+                    delete_button:SetScript("OnClick", function()
+                        -- Show the confirmation dialog
+                        addon:confirm_delete_layout(name)
+                        menu:Close()
+                    end);
+
+                    MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
+                        GameTooltip_SetTitle(tooltip, "Delete Layout")
+                    end)
                 end)
             end
         end
@@ -1739,7 +1696,8 @@ function addon:controller_layout_selector()
     local controller_selector = CreateFrame("DropdownButton", nil, addon.controls_frame, "WowStyle1DropdownTemplate")
     addon.controller_selector = controller_selector
 
-    controller_selector:SetWidth(150)
+    controller_selector:SetHeight(28)
+    controller_selector:SetWidth(200)
 
     -- Order of layouts (including the layout type "xbox")
     local category_order = { "xbox", "ds4", "ds5", "deck" }
@@ -1768,6 +1726,7 @@ function addon:controller_layout_selector()
 
     -- Dropdown menu setup function
     local function controller_layout_selector_initialize(dropdown, rootDescription)
+
         -- Create title
         rootDescription:CreateTitle("Default Layouts")
 
@@ -1788,12 +1747,31 @@ function addon:controller_layout_selector()
         -- Add custom layouts
         if type(keyui_settings.layout_edited_controller) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_controller) do
+
                 -- Ensure we check the layout_type if it exists
                 if layout.layout_type then
                     local display_name = get_display_name(name)  -- Get user-friendly name
-                    rootDescription:CreateButton(display_name, function()
+
+                    -- Create a button for each custom layout
+                    local layoutButton = rootDescription:CreateButton(display_name, function()
                         addon:select_custom_controller_layout(name, layout)  -- Select the custom layout
                         controller_selector:SetDefaultText(display_name)
+                    end)
+
+                    -- Use Compositor-style initialization for the hover frame
+                    layoutButton:AddInitializer(function(button, description, menu)
+                        -- Create and attach the texture to the button
+                        local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
+                        delete_button:SetPoint("RIGHT");
+                        delete_button:SetScript("OnClick", function()
+                            -- Show the confirmation dialog
+                            addon:confirm_delete_layout(name)
+                            menu:Close()
+                        end);
+
+                        MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
+                            GameTooltip_SetTitle(tooltip, "Delete Layout")
+                        end)
                     end)
                 end
             end
