@@ -1,54 +1,83 @@
-# KeyUI - Visualize Your Keyboard and Mouse Bindings
+# KeyUI - Visualize and Customize Your Key Bindings
 
-KeyUI displays your keyboard and mouse to show what each button is bound to. It helps you manage and adjust your key configurations, whether you're revisiting an old character, starting a new one, or simply looking to enhance your keybinds.
+KeyUI is a powerful tool that allows you to visualize and customize your keyboard, mouse, and controller bindings directly within World of Warcraft. Whether you’re revisiting an old character, starting fresh, or optimizing your gameplay, KeyUI helps you manage and adjust your bindings with ease.
 
-![WoWScrnShot_111124_231056](https://github.com/user-attachments/assets/d0020bfe-f7af-4f4b-8923-4ce53003e59a)
+<div style="display: flex; align-items: center; gap: 10px;">
+  <img src="https://i.imgur.com/5Fxy5QZ.jpeg" alt="Image 1" style="height: 300px; object-fit: cover;" />
+  <img src="https://i.imgur.com/NDP7KZa.jpeg" alt="Image 2" style="height: 300px; object-fit: cover;" />
+</div>
+<div style="display: flex; justify-content: space-between; gap: 10px;">
+  <img src="https://i.imgur.com/wqagq6z.jpeg" alt="Image 1" style="height: 151px; object-fit: cover;" />
+  <img src="https://i.imgur.com/SuWPHWA.jpeg" alt="Image 2" style="height: 151px; object-fit: cover;" />
+  <img src="https://i.imgur.com/U82rWJ8.jpeg" alt="Image 3" style="height: 151px; object-fit: cover;" />
+  <img src="https://i.imgur.com/IMZWFkP.jpeg" alt="Image 4" style="height: 151px; object-fit: cover;" />
+</div>
 
+---
 
-## Features:
-- **Pre-made Layouts:** Choose from various pre-made keyboard and mouse layouts.
-- **Customizable Keys:** Edit the keys for both your keyboard and mouse layouts for better representation of your setup.
-- **Direct Key Binding:** Right-click on keyboard or mouse buttons to access a dropdown menu where you can directly bind a spell to the key. You can also bind any interface actions or action bar buttons directly to the keys.
-- **Drag and Drop Spells:** You can drag and drop spells from default action bars, the spell book, or within the addon, allowing flexible spell and keybinding management.
-- **Spell Highlighting:** When you hover over a spell, it is highlighted on the action bar, making it easier to locate.
-- **Mouse Customization:** Move mouse buttons to accurately represent your mouse layout.
-- **Show Interface Actions:** Displays the Interface Action for each key, providing clear visibility of what each key does.
-- **Highlight Unused Keys:** Easily identify which keys are not bound to any actions.
+## Features at a Glance:
+
+### **1. Multi-Device Support**  
+- Display and customize key bindings for **Keyboards**, **Mice**, and **Controllers** (Xbox, PS4, PS5, and Steam Deck).
+
+### **2. Pre-Made Layouts**  
+- Access pre-designed layouts for popular keyboards, mice, and controllers.  
+  - **Keyboards:** ISO, ANSI, DVORAK, Razer, Azeron.  
+  - **Controllers:** Xbox, PS4, PS5, Steam Deck.
+
+### **3. Easy Customization**  
+- Edit individual keys and buttons to fit your personal setup.  
+- Drag and drop spells directly onto your keys for flexible keybinding management.
+
+### **4. Advanced Key Features**  
+- **Highlight Unbound Keys:** Instantly identify keys with no bindings.
+
+  ![Highlight Unbound Keys](https://i.imgur.com/teo57n6.jpeg)
+
+- **Show Interface Actions:** Clearly display what each key does.
+
+  ![Interface Actions](https://i.imgur.com/YqqUxcP.jpeg)
+
+### **5. Context Menu for Easy Binding**  
+- Right-click on keys to open a dropdown menu for direct spell and action bindings.
+
+  <div style="display: flex; gap: 10px; align-items: center;">
+  <img src="https://i.imgur.com/03nIgC4.jpeg" alt="Context Menu 1" style="height: 300px; object-fit: cover;" />
+  <img src="https://i.imgur.com/eCCS3OU.jpeg" alt="Context Menu 2" style="height: 300px; object-fit: cover;" />
+  </div>
+
+---
 
 ## Supported Addons:
-KeyUI is compatible with the following popular addons:
-- **ElvUI**
-- **Bartender**
-- **Dominos**
+KeyUI integrates seamlessly with popular addons, including:  
+- **ElvUI**  
+- **Bartender**  
+- **Dominos**  
 
-## How to Open KeyUI:
-- Type `/kui` or `/keyui`.
-- Click the Minimap Button.
+---
 
-## Keyboard Layouts (Pre-Made):
-- **ISO**
-  - QWERTZ
-  - AZERTY
-- **ANSI**
-  - QWERTY
-- **DVORAK**
-  - Standard
-  - Right Hand
-  - Left Hand
-- **Razer**
-  - Tartarus v1
-  - Tartarus v2
-- **Azeron**
-  - Cyborg
-  - Cyborg II
+## Keyboard and Controller Layouts:
 
-## Mouse Layouts:
-With the pre-made layouts, the most common mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX** are covered. You can also rebuild your own mouse layout to better suit your preferences!
+### **Keyboard Pre-Made Layouts**  
+- **ISO:** QWERTZ, AZERTY  
+- **ANSI:** QWERTY  
+- **DVORAK:** Standard, Right Hand, Left Hand  
+- **Razer:** Tartarus v1, Tartarus v2  
+- **Azeron:** Cyborg, Cyborg II  
 
-## Tutorial Videos:
-[![YouTube](https://img.youtube.com/vi/4jNuNZVvpqY/0.jpg)](https://www.youtube.com/watch?v=4jNuNZVvpqY)
+### **Mouse Pre-Made Layouts**  
+- Popular gaming mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX**.  
 
-[![YouTube](https://img.youtube.com/vi/ClGztJtR2rQ/0.jpg)](https://www.youtube.com/watch?v=ClGztJtR2rQ)
+### **Controller Layouts**  
+- Layouts for **Xbox**, **PS4**, **PS5**, and **Steam Deck** controllers.  
+
+---
+
+## How to Use KeyUI:
+- **Open the Interface:** Type `/kui` or `/keyui` in the chat or click the minimap button.  
+- **Choose Your Layout:** Select a Keyboard, Mouse, or Controller layout from the main menu.  
+
+---
 
 ## FAQ:
 **The addon is blank.**  
