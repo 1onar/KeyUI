@@ -3,14 +3,14 @@
 KeyUI is a powerful tool that allows you to visualize and customize your keyboard, mouse, and controller bindings directly within World of Warcraft. Whether you’re revisiting an old character, starting fresh, or optimizing your gameplay, KeyUI helps you manage and adjust your bindings with ease.
 
 <div style="display: flex; align-items: center; gap: 10px;">
-  <img src="https://i.imgur.com/5Fxy5QZ.jpeg" alt="Image 1" style="height: 300px; object-fit: cover;" />
-  <img src="https://i.imgur.com/NDP7KZa.jpeg" alt="Image 2" style="height: 300px; object-fit: cover;" />
+  <img src="https://i.imgur.com/5Fxy5QZ.jpeg" alt="Image 1" style="height: 300px; width: 67%; object-fit: cover;" />
+  <img src="https://i.imgur.com/NDP7KZa.jpeg" alt="Image 2" style="height: 300px; width: 31%; object-fit: cover;" />
 </div>
 <div style="display: flex; justify-content: space-between; gap: 10px;">
-  <img src="https://i.imgur.com/wqagq6z.jpeg" alt="Image 1" style="height: 151px; object-fit: cover;" />
-  <img src="https://i.imgur.com/SuWPHWA.jpeg" alt="Image 2" style="height: 151px; object-fit: cover;" />
-  <img src="https://i.imgur.com/U82rWJ8.jpeg" alt="Image 3" style="height: 151px; object-fit: cover;" />
-  <img src="https://i.imgur.com/IMZWFkP.jpeg" alt="Image 4" style="height: 151px; object-fit: cover;" />
+  <img src="https://i.imgur.com/wqagq6z.jpeg" alt="Image 1" style="height: 151px; width: 24%; object-fit: cover;" />
+  <img src="https://i.imgur.com/SuWPHWA.jpeg" alt="Image 2" style="height: 151px; width: 24%; object-fit: cover;" />
+  <img src="https://i.imgur.com/U82rWJ8.jpeg" alt="Image 3" style="height: 151px; width: 24%; object-fit: cover;" />
+  <img src="https://i.imgur.com/IMZWFkP.jpeg" alt="Image 4" style="height: 151px; width: 24%; object-fit: cover;" />
 </div>
 
 ---
@@ -32,19 +32,16 @@ KeyUI is a powerful tool that allows you to visualize and customize your keyboar
 ### **4. Advanced Key Features**  
 - **Highlight Unbound Keys:** Instantly identify keys with no bindings.
 
-  ![Highlight Unbound Keys](https://i.imgur.com/teo57n6.jpeg)
+  <img src="https://i.imgur.com/teo57n6.jpeg" alt="Highlight Unbound Keys" style="width: 70%; object-fit: cover;" />
 
 - **Show Interface Actions:** Clearly display what each key does.
 
-  ![Interface Actions](https://i.imgur.com/YqqUxcP.jpeg)
+  <img src="https://i.imgur.com/YqqUxcP.jpeg" alt="Show Interface Actions" style="width: 70%; object-fit: cover;" />
 
 ### **5. Context Menu for Easy Binding**  
 - Right-click on keys to open a dropdown menu for direct spell and action bindings.
 
-  <div style="display: flex; gap: 10px; align-items: center;">
-  <img src="https://i.imgur.com/03nIgC4.jpeg" alt="Context Menu 1" style="height: 300px; object-fit: cover;" />
-  <img src="https://i.imgur.com/eCCS3OU.jpeg" alt="Context Menu 2" style="height: 300px; object-fit: cover;" />
-  </div>
+  <img src="https://i.imgur.com/A9QVLyw.jpeg" alt="Context Menu" style="width: 70%; object-fit: cover;" />
 
 ---
 
