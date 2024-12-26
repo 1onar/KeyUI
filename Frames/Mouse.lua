@@ -32,7 +32,7 @@ function addon:create_mouse_image()
         )
         mouse_image:SetScale(keyui_settings.mouse_position.scale)
     else
-        mouse_image:SetPoint("CENTER", UIParent, "CENTER", 450, 50)
+        mouse_image:SetPoint("TOP", UIParent, "TOP", 450, -320)
         mouse_image:SetScale(1)
     end
 

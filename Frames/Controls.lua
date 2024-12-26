@@ -9,7 +9,13 @@ function addon:create_controls()
         controls_frame:SetFrameLevel(keyboard_level + 3)
     end
 
-    controls_frame:SetHeight(280)
+    -- Set the initial height based on expanded settings
+    if keyui_settings.controls_expanded == true then
+        controls_frame:SetHeight(320)
+    else
+        controls_frame:SetHeight(200)
+    end
+
     controls_frame:SetWidth(500)
     controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
 
@@ -56,9 +62,10 @@ function addon:create_controls()
 
     local layout_y = -40
     local size_y = -110
-    local first_cb_y = -160
-    local second_cb_y = -200
-    local third_cb_y = -240
+    local expander_y = -170
+    local first_cb_y = -200
+    local second_cb_y = -240
+    local third_cb_y = -280
 
     -- Create Text "Layout"
     controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -179,7 +186,6 @@ function addon:create_controls()
     controls_frame.empty_keys_cb:SetSize(32, 36)
     controls_frame.empty_keys_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.empty_keys_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, first_cb_y)
-    controls_frame.empty_keys_cb:Show()
 
     -- Set the initial checkbox state based on the current setting for empty binds
     if keyui_settings.show_empty_binds then
@@ -207,14 +213,12 @@ function addon:create_controls()
     controls_frame.empty_keys_text:SetText("Empty Keys")
     controls_frame.empty_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.empty_keys_text:SetPoint("LEFT", controls_frame.empty_keys_cb, "RIGHT", 10, 0)
-    controls_frame.empty_keys_text:Show()
 
     -- Create the checkbox for toggling interface binds visibility
     controls_frame.interface_keys_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.interface_keys_cb:SetSize(32, 36)
     controls_frame.interface_keys_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.interface_keys_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, second_cb_y)
-    controls_frame.interface_keys_cb:Show()
 
     -- Set the initial checkbox state based on the current setting for interface binds
     if keyui_settings.show_interface_binds then
@@ -242,14 +246,12 @@ function addon:create_controls()
     controls_frame.interface_keys_text:SetText("Interface Binds")
     controls_frame.interface_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.interface_keys_text:SetPoint("LEFT", controls_frame.interface_keys_cb, "RIGHT", 10, 0)
-    controls_frame.interface_keys_text:Show()
 
     -- Create the checkbox for toggling button highlight effect (show_pushed_texture)
     controls_frame.highlight_buttons_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.highlight_buttons_cb:SetSize(32, 36)
     controls_frame.highlight_buttons_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.highlight_buttons_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, third_cb_y)
-    controls_frame.highlight_buttons_cb:Show()
 
     -- Set the initial checkbox state based on the current setting for show_pushed_texture
     if keyui_settings.show_pushed_texture then
@@ -275,14 +277,12 @@ function addon:create_controls()
     controls_frame.highlight_buttons_text:SetText("Highlight Buttons")
     controls_frame.highlight_buttons_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.highlight_buttons_text:SetPoint("LEFT", controls_frame.highlight_buttons_cb, "RIGHT", 10, 0)
-    controls_frame.highlight_buttons_text:Show()
 
     -- Create the checkbox for toggling modifier detection (detect_modifier)
     controls_frame.detect_modifier_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.detect_modifier_cb:SetSize(32, 36)
     controls_frame.detect_modifier_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.detect_modifier_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, first_cb_y)
-    controls_frame.detect_modifier_cb:Show()
 
     -- Set the initial checkbox state based on the current setting for listen_to_modifier
     if keyui_settings.listen_to_modifier then
@@ -310,14 +310,12 @@ function addon:create_controls()
     controls_frame.detect_modifier_text:SetText("Detect Modifier")
     controls_frame.detect_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.detect_modifier_text:SetPoint("LEFT", controls_frame.detect_modifier_cb, "RIGHT", 10, 0)
-    controls_frame.detect_modifier_text:Show()
 
     -- Create the checkbox for toggling dynamic modifier display (dynamic_modifier)
     controls_frame.dynamic_modifier_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.dynamic_modifier_cb:SetSize(32, 36)
     controls_frame.dynamic_modifier_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.dynamic_modifier_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, second_cb_y)
-    controls_frame.dynamic_modifier_cb:Show()
 
     -- Set the initial checkbox state based on the current setting for dynamic_modifier
     if keyui_settings.dynamic_modifier then
@@ -345,14 +343,12 @@ function addon:create_controls()
     controls_frame.dynamic_modifier_text:SetText("Dynamic Modifier")
     controls_frame.dynamic_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.dynamic_modifier_text:SetPoint("LEFT", controls_frame.dynamic_modifier_cb, "RIGHT", 10, 0)
-    controls_frame.dynamic_modifier_text:Show()
 
     -- Create a alt checkbox
     controls_frame.alt_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.alt_cb:SetSize(32, 36)
     controls_frame.alt_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.alt_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, third_cb_y)
-    controls_frame.alt_cb:Show()
 
     -- Set the OnClick script for the checkbutton
     controls_frame.alt_cb:SetScript("OnClick", function(s)
@@ -379,14 +375,12 @@ function addon:create_controls()
     controls_frame.alt_text:SetText("Alt")
     controls_frame.alt_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.alt_text:SetPoint("LEFT", controls_frame.alt_cb, "RIGHT", 4, 0)
-    controls_frame.alt_text:Show()
 
     -- Create a ctrl checkbox
     controls_frame.ctrl_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.ctrl_cb:SetSize(32, 36)
     controls_frame.ctrl_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.ctrl_cb:SetPoint("CENTER", controls_frame.alt_cb, "CENTER", 80, 0)
-    controls_frame.ctrl_cb:Show()
 
     -- Set the OnClick script for the checkbutton
     controls_frame.ctrl_cb:SetScript("OnClick", function(s)
@@ -412,14 +406,12 @@ function addon:create_controls()
     controls_frame.ctrl_text:SetText("Ctrl")
     controls_frame.ctrl_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.ctrl_text:SetPoint("LEFT", controls_frame.ctrl_cb, "RIGHT", 4, 0)
-    controls_frame.ctrl_text:Show()
 
     -- Create a shift checkbox
     controls_frame.shift_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.shift_cb:SetSize(32, 36)
     controls_frame.shift_cb:SetHitRectInsets(0, 0, 0, -10)
     controls_frame.shift_cb:SetPoint("CENTER", controls_frame.ctrl_cb, "CENTER", 80, 0)
-    controls_frame.shift_cb:Show()
 
     -- Set the OnClick script for the checkbutton
     controls_frame.shift_cb:SetScript("OnClick", function(s)
@@ -445,7 +437,152 @@ function addon:create_controls()
     controls_frame.shift_text:SetText("Shift")
     controls_frame.shift_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
     controls_frame.shift_text:SetPoint("LEFT", controls_frame.shift_cb, "RIGHT", 4, 0)
-    controls_frame.shift_text:Show()
+
+        -- Set the initial height based on expanded settings
+    if keyui_settings.controls_expanded == true then
+        controls_frame:SetHeight(320)
+    else
+        controls_frame:SetHeight(200)
+    end
+
+    -- Function to toggle the controls_expanded value
+    local function toggle_controls_expanded()
+        keyui_settings.controls_expanded = not keyui_settings.controls_expanded
+
+        -- Update the expander text and controls visibility based on the new state
+        if keyui_settings.controls_expanded then
+            controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
+            controls_frame:SetHeight(320)
+
+            -- Show controls when expanded
+            controls_frame.empty_keys_cb:Show()
+            controls_frame.empty_keys_text:Show()
+
+            controls_frame.interface_keys_cb:Show()
+            controls_frame.interface_keys_text:Show()
+
+            controls_frame.highlight_buttons_cb:Show()
+            controls_frame.highlight_buttons_text:Show()
+
+            controls_frame.detect_modifier_cb:Show()
+            controls_frame.detect_modifier_text:Show()
+
+            controls_frame.dynamic_modifier_cb:Show()
+            controls_frame.dynamic_modifier_text:Show()
+
+            controls_frame.alt_cb:Show()
+            controls_frame.alt_text:Show()
+
+            controls_frame.ctrl_cb:Show()
+            controls_frame.ctrl_text:Show()
+
+            controls_frame.shift_cb:Show()
+            controls_frame.shift_text:Show()
+        else
+            controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
+            controls_frame:SetHeight(200)
+
+            -- Hide controls when collapsed
+            controls_frame.empty_keys_cb:Hide()
+            controls_frame.empty_keys_text:Hide()
+
+            controls_frame.interface_keys_cb:Hide()
+            controls_frame.interface_keys_text:Hide()
+
+            controls_frame.highlight_buttons_cb:Hide()
+            controls_frame.highlight_buttons_text:Hide()
+
+            controls_frame.detect_modifier_cb:Hide()
+            controls_frame.detect_modifier_text:Hide()
+
+            controls_frame.dynamic_modifier_cb:Hide()
+            controls_frame.dynamic_modifier_text:Hide()
+
+            controls_frame.alt_cb:Hide()
+            controls_frame.alt_text:Hide()
+
+            controls_frame.ctrl_cb:Hide()
+            controls_frame.ctrl_text:Hide()
+
+            controls_frame.shift_cb:Hide()
+            controls_frame.shift_text:Hide()
+        end
+    end
+
+    -- Create Text "Expander"
+    controls_frame.expander_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+
+    -- Set the text based on controls_expanded value
+    if keyui_settings.controls_expanded then
+        controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
+    else
+        controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
+    end
+
+    controls_frame.expander_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expander_y)
+    controls_frame.expander_text:SetTextColor(1, 1, 1)
+
+    controls_frame.expander_text:SetScript("OnMouseDown", toggle_controls_expanded) -- Make expander text clickable to toggle state
+
+    -- Create Divider Frame
+    controls_frame.divider_frame = controls_frame:CreateTexture(nil, "ARTWORK")
+    controls_frame.divider_frame:SetTexture("Interface\\FriendsFrame\\UI-FriendsFrame-OnlineDivider")
+    controls_frame.divider_frame:SetPoint("BOTTOM", controls_frame.expander_text, "TOP", 0, 0)
+    controls_frame.divider_frame:SetSize(330, 16)
+
+    -- Initialize the visibility of the controls based on the current state of controls_expanded
+    if keyui_settings.controls_expanded then
+        -- Show controls when expanded
+        controls_frame.empty_keys_cb:Show()
+        controls_frame.empty_keys_text:Show()
+
+        controls_frame.interface_keys_cb:Show()
+        controls_frame.interface_keys_text:Show()
+
+        controls_frame.highlight_buttons_cb:Show()
+        controls_frame.highlight_buttons_text:Show()
+
+        controls_frame.detect_modifier_cb:Show()
+        controls_frame.detect_modifier_text:Show()
+
+        controls_frame.dynamic_modifier_cb:Show()
+        controls_frame.dynamic_modifier_text:Show()
+
+        controls_frame.alt_cb:Show()
+        controls_frame.alt_text:Show()
+
+        controls_frame.ctrl_cb:Show()
+        controls_frame.ctrl_text:Show()
+
+        controls_frame.shift_cb:Show()
+        controls_frame.shift_text:Show()
+    else
+        -- Hide controls when collapsed
+        controls_frame.empty_keys_cb:Hide()
+        controls_frame.empty_keys_text:Hide()
+
+        controls_frame.interface_keys_cb:Hide()
+        controls_frame.interface_keys_text:Hide()
+
+        controls_frame.highlight_buttons_cb:Hide()
+        controls_frame.highlight_buttons_text:Hide()
+
+        controls_frame.detect_modifier_cb:Hide()
+        controls_frame.detect_modifier_text:Hide()
+
+        controls_frame.dynamic_modifier_cb:Hide()
+        controls_frame.dynamic_modifier_text:Hide()
+
+        controls_frame.alt_cb:Hide()
+        controls_frame.alt_text:Hide()
+
+        controls_frame.ctrl_cb:Hide()
+        controls_frame.ctrl_text:Hide()
+
+        controls_frame.shift_cb:Hide()
+        controls_frame.shift_text:Hide()
+    end
 
     -- Create the "Close" button
     controls_frame.close_button = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")

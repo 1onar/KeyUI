@@ -26,6 +26,7 @@ function addon:InitializeGeneralSettings()
     set_if_nil("tutorial_completed", false)
     set_if_nil("listen_to_modifier", true)
     set_if_nil("dynamic_modifier", false)
+    set_if_nil("controls_expanded", false)
 end
 
 -- Initialize key binding and layout settings
