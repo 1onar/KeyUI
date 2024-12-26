@@ -62,10 +62,11 @@ function addon:create_controls()
 
     local layout_y = -40
     local size_y = -110
-    local expander_y = -170
-    local first_cb_y = -200
-    local second_cb_y = -240
-    local third_cb_y = -280
+    local collapsed_y = -170
+    local first_cb_y = -160
+    local second_cb_y = -200
+    local third_cb_y = -240
+    local expanded_y = -290
 
     -- Create Text "Layout"
     controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -478,6 +479,8 @@ function addon:create_controls()
 
             controls_frame.shift_cb:Show()
             controls_frame.shift_text:Show()
+
+            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
         else
             controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
             controls_frame:SetHeight(200)
@@ -506,6 +509,8 @@ function addon:create_controls()
 
             controls_frame.shift_cb:Hide()
             controls_frame.shift_text:Hide()
+
+            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
         end
     end
 
@@ -520,7 +525,6 @@ function addon:create_controls()
     end
 
     controls_frame.expander_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expander_y)
     controls_frame.expander_text:SetTextColor(1, 1, 1)
 
     controls_frame.expander_text:SetScript("OnMouseDown", toggle_controls_expanded) -- Make expander text clickable to toggle state
@@ -557,6 +561,8 @@ function addon:create_controls()
 
         controls_frame.shift_cb:Show()
         controls_frame.shift_text:Show()
+
+        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
     else
         -- Hide controls when collapsed
         controls_frame.empty_keys_cb:Hide()
@@ -582,6 +588,8 @@ function addon:create_controls()
 
         controls_frame.shift_cb:Hide()
         controls_frame.shift_text:Hide()
+
+        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
     end
 
     -- Create the "Close" button
