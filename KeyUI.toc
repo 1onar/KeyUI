@@ -7,7 +7,7 @@
 
 ## Title: KeyUI
 ## Notes: Visualize your keyboard, mouse and keybinds.
-## IconTexture: Interface\AddOns\KeyUI\Media\keyboard
+## IconTexture: Interface\AddOns\KeyUI\Media\keyui_icon.blp
 
 ## SavedVariables: keyui_settings
 

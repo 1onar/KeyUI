@@ -13,7 +13,7 @@ local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
 local miniButton = LDB:NewDataObject("KeyUI", {
     type = "data source",
     text = "KeyUI",
-    icon = "Interface\\AddOns\\KeyUI\\Media\\keyui_icon",
+    icon = "Interface\\AddOns\\KeyUI\\Media\\keyui_icon.blp",
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addon.open == true then
