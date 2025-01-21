@@ -570,12 +570,16 @@ function addon:button_mouse_over(button)
     end
 
     -- Display the key text with or without modifiers
-    if addon.no_modifier_keys[raw_key] then
-        -- For keys without modifiers, display only the key
-        addon.keyui_tooltip_frame.key:SetText(short_key)
+    if short_key then
+        if addon.no_modifier_keys[raw_key] then
+            -- For keys without modifiers, display only the key
+            addon.keyui_tooltip_frame.key:SetText(short_key)
+        else
+            -- For keys with modifiers, display the modifier string followed by the key
+            addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. short_key)
+        end
     else
-        -- For keys with modifiers, display the modifier string followed by the key
-        addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. short_key)
+        addon.keyui_tooltip_frame.key:SetText("")
     end
 
     -- Display the readable binding text
