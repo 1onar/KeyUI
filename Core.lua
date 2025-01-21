@@ -611,7 +611,7 @@ function addon:set_key(button)
     button.slot = nil
     button.active_slot = nil
 
-    local binding = GetBindingAction(addon.current_modifier_string .. (button.raw_key or "")) or ""
+    local binding = GetBindingAction(addon.current_modifier_string .. (button.raw_key or ""), true) or ""
 
     button.icon:Hide()
 
@@ -736,6 +736,14 @@ function addon:set_key(button)
             button.icon:SetTexture(GetActionTexture(button.slot))
             button.icon:Show()
         end
+    end
+
+    -- Logic for OPie Ring Bindings
+    if binding:find("CLICK ORL_RProxy") then
+        -- Assign a special icon for OPie rings
+        local opie_icon = "Interface\\AddOns\\OPie\\gfx\\opie_ring_icon.tga"
+        button.icon:SetTexture(opie_icon)
+        button.icon:Show()
     end
 
     -- code for setting icons for other actions (movement, pets, etc.)
