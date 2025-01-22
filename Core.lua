@@ -751,11 +751,14 @@ function addon:set_key(button)
     -- Logic for BindPad Macro Bindings
     local bindpad_macro = binding:match("CLICK BindPadMacro:([%w%-]+)")
     if bindpad_macro then
-        -- Handle BindPad Macro (using the BindPadMacro identifier)
-        button.slot = bindpad_macro  -- Use the macro name/identifier directly for the button slot
-        local bindpad_icon = "134394"  -- Replace with your desired BindPad icon path
-        button.icon:SetTexture(bindpad_icon)  -- Set the BindPad icon
-        button.icon:Show()
+        -- Fetch the macro slot information from BindPadCore
+        local padSlot = BindPadCore and BindPadCore.GetSlotInfo and BindPadCore.GetSlotInfo(bindpad_macro)
+
+        if padSlot and padSlot.texture then
+            -- Use the texture assigned in BindPad
+            button.icon:SetTexture(padSlot.texture)
+            button.icon:Show()
+        end
 
         -- Show improved text representation for BindPad macros
         local bindpad_text = "BindPad Macro " .. bindpad_macro
