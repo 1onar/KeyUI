@@ -50,6 +50,8 @@ KeyUI integrates seamlessly with popular addons, including:
 - **ElvUI**  
 - **Bartender**  
 - **Dominos**  
+- **OPie**  
+- **BindPad**  
 
 ---
 
