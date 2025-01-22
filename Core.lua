@@ -690,15 +690,17 @@ function addon:set_key(button)
         end
     end
 
-    -- Check if the binding is a Spell
-    local spell_name = binding:match("^Spell (.+)$")
-    if spell_name then
-        -- Get the icon for the spell
-        local spell_icon = C_Spell.GetSpellTexture(spell_name)
-        if spell_icon then
-            button.icon:SetTexture(spell_icon)
-            button.icon:Show()
-        end
+    -- Extract the spell name from the binding
+    local spell_name = binding:match("^Spell (.+)$") or binding:match("^SPELL (.+)$")
+    if not spell_name then return end
+
+    -- Retrieve the spell's texture and update the button's icon
+    local spell_icon = C_Spell.GetSpellTexture(spell_name)
+    if spell_icon then
+        button.icon:SetTexture(spell_icon)
+        button.icon:Show()
+    else
+        button.icon:Hide() -- Handle missing icons
     end
 
     -- Logic for BT4Button Bindings
@@ -747,7 +749,7 @@ function addon:set_key(button)
     end
 
     -- Logic for BindPad Macro Bindings
-    local bindpad_macro = binding:match("CLICK BindPadMacro:([%w%-]+)")  -- Match alphanumeric and hyphen characters
+    local bindpad_macro = binding:match("CLICK BindPadMacro:([%w%-]+)")
     if bindpad_macro then
         -- Handle BindPad Macro (using the BindPadMacro identifier)
         button.slot = bindpad_macro  -- Use the macro name/identifier directly for the button slot
