@@ -692,15 +692,16 @@ function addon:set_key(button)
 
     -- Extract the spell name from the binding
     local spell_name = binding:match("^Spell (.+)$") or binding:match("^SPELL (.+)$")
-    if not spell_name then return end
 
-    -- Retrieve the spell's texture and update the button's icon
-    local spell_icon = C_Spell.GetSpellTexture(spell_name)
-    if spell_icon then
-        button.icon:SetTexture(spell_icon)
-        button.icon:Show()
-    else
-        button.icon:Hide() -- Handle missing icons
+    if spell_name then
+        -- Retrieve the spell's texture and update the button's icon
+        local spell_icon = C_Spell.GetSpellTexture(spell_name)
+        if spell_icon then
+            button.icon:SetTexture(spell_icon)
+            button.icon:Show()
+        else
+            button.icon:Hide() -- Handle missing icons
+        end
     end
 
     -- Logic for BT4Button Bindings
@@ -748,21 +749,43 @@ function addon:set_key(button)
         button.icon:Show()
     end
 
-    -- Logic for BindPad Macro Bindings
-    local bindpad_macro = binding:match("CLICK BindPadMacro:([%w%-]+)")
-    if bindpad_macro then
-        -- Fetch the macro slot information from BindPadCore
-        local padSlot = BindPadCore and BindPadCore.GetSlotInfo and BindPadCore.GetSlotInfo(bindpad_macro)
+    -- Logic for BindPad
+    if C_AddOns.IsAddOnLoaded("BindPad") then
+        -- Extract the macro name, spell name, and item name from the binding
+        local bindpad_macro_name = binding:match("CLICK BindPadMacro:([%w%-]+)")  -- Extract the macro name
+        local bindpad_spell_name = binding:match("CLICK BindPadKey:SPELL ([%w%-]+)")  -- Extract the spell name
+        local bindpad_item_name = binding:match("CLICK BindPadKey:ITEM ([%w%-]+)")  -- Extract the item name
 
-        if padSlot and padSlot.texture then
-            -- Use the texture assigned in BindPad
-            button.icon:SetTexture(padSlot.texture)
-            button.icon:Show()
+        -- Proceed if any of the BindPad actions are found
+        if bindpad_macro_name or bindpad_spell_name or bindpad_item_name then
+
+            -- Iterate over all BindPad slots to find a matching action
+            for slot in BindPadCore.AllSlotInfoIter() do
+                -- Check if the slot's action matches the current binding
+                if slot.action == binding then
+
+                    -- If the slot has a texture, set it on the button icon
+                    if slot.texture then
+                        button.icon:SetTexture(slot.texture)
+                        button.icon:Show()
+                    end
+
+                    -- Update the binding text based on the action type (macro, spell, item)
+                    local bindpad_text
+                    if bindpad_macro_name then
+                        bindpad_text = "BindPad Macro: " .. (slot.name or bindpad_macro_name)  -- For macros
+                    elseif bindpad_spell_name then
+                        bindpad_text = "BindPad Spell: " .. (slot.name or bindpad_spell_name)  -- For spells
+                    elseif bindpad_item_name then
+                        bindpad_text = "BindPad Item: " .. (slot.name or bindpad_item_name)  -- For items
+                    end
+
+                    -- Set the updated binding text to include the action name
+                    binding = bindpad_text
+                    break  -- Exit the loop once the matching slot is found
+                end
+            end
         end
-
-        -- Show improved text representation for BindPad macros
-        local bindpad_text = "BindPad Macro " .. bindpad_macro
-        binding = bindpad_text
     end
 
     -- code for setting icons for other actions (movement, pets, etc.)
