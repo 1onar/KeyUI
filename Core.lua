@@ -607,86 +607,81 @@ end
 
 -- Determines the texture and text displayed on the button based on the key binding.
 function addon:set_key(button)
+
     -- Reset the button's slot and active_slot at the beginning
     button.slot = nil
     button.active_slot = nil
+    button.icon:Hide()
 
     local binding = GetBindingAction(addon.current_modifier_string .. (button.raw_key or ""), true) or ""
 
-    button.icon:Hide()
-
     -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
-    local function getActionButtonSlot(slot)
+    local function getActionButtonSlot(action_slot)
         -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
         if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
             if addon.bonusbar_offset == 1 then
-                return slot + 72  -- Maps to 73-84
+                return action_slot + 72  -- Maps to 73-84
             elseif addon.bonusbar_offset == 2 then
-                return slot + 84  -- Maps to 85-96
+                return action_slot + 84  -- Maps to 85-96
             elseif addon.bonusbar_offset == 3 then
-                return slot + 96  -- Maps to 97-108
+                return action_slot + 96  -- Maps to 97-108
             elseif addon.bonusbar_offset == 4 then
-                return slot + 108 -- Maps to 109-120
+                return action_slot + 108 -- Maps to 109-120
             end
         end
 
         -- Check if Dragonriding
         if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
-            return slot + 120 -- Maps to 121-132
+            return action_slot + 120 -- Maps to 121-132
         end
 
         -- Handle other action bar pages for all classes
         if addon.current_actionbar_page == 2 then
-            return slot + 12 -- Maps to 13-24
+            return action_slot + 12 -- Maps to 13-24
         elseif addon.current_actionbar_page == 3 then
-            return slot + 24 -- Maps to 25-36
+            return action_slot + 24 -- Maps to 25-36
         elseif addon.current_actionbar_page == 4 then
-            return slot + 36 -- Maps to 37-48
+            return action_slot + 36 -- Maps to 37-48
         elseif addon.current_actionbar_page == 5 then
-            return slot + 48 -- Maps to 49-60
+            return action_slot + 48 -- Maps to 49-60
         elseif addon.current_actionbar_page == 6 then
-            return slot + 60 -- Maps to 61-72
+            return action_slot + 60 -- Maps to 61-72
         end
 
-        return slot -- Default 1-12
+        return action_slot -- Default 1-12
     end
 
-    -- Standard ActionButton logic
-    for i = 1, GetNumBindings() do
-        local a = GetBinding(i)
-        if binding:find(a) then
-            -- Match for action button slots
-            local slot = binding:match("ACTIONBUTTON(%d+)")
-            local bar, bar2 = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+    -- Extract the slot for ACTIONBUTTON or MULTIACTIONBAR bindings
+    local action_slot = binding:match("ACTIONBUTTON(%d+)")
+    local multibar_id, multibar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
 
-            -- Handle MULTIACTIONBAR case
-            if bar and bar2 then
-                if bar == "0" then slot = tonumber(bar2) end
-                if bar == "1" then slot = 60 + tonumber(bar2) end
-                if bar == "2" then slot = 48 + tonumber(bar2) end
-                if bar == "3" then slot = 24 + tonumber(bar2) end
-                if bar == "4" then slot = 36 + tonumber(bar2) end
-                if bar == "5" then slot = 144 + tonumber(bar2) end
-                if bar == "6" then slot = 156 + tonumber(bar2) end
-                if bar == "7" then slot = 168 + tonumber(bar2) end
-            end
+    -- Handle MULTIACTIONBAR cases by calculating the correct slot
+    if multibar_id and multibar_button then
+        if multibar_id == "0" then action_slot = tonumber(multibar_button) end
+        if multibar_id == "1" then action_slot = 60 + tonumber(multibar_button) end
+        if multibar_id == "2" then action_slot = 48 + tonumber(multibar_button) end
+        if multibar_id == "3" then action_slot = 24 + tonumber(multibar_button) end
+        if multibar_id == "4" then action_slot = 36 + tonumber(multibar_button) end
+        if multibar_id == "5" then action_slot = 144 + tonumber(multibar_button) end
+        if multibar_id == "6" then action_slot = 156 + tonumber(multibar_button) end
+        if multibar_id == "7" then action_slot = 168 + tonumber(multibar_button) end
+    end
 
-            -- Apply class/bonus bar offset logic only for ACTIONBUTTON slots
-            if slot then
-                button.slot = slot -- Always stores the slot, regardless of whether an action is present
+    -- Apply bonus bar offset logic if it's an ACTIONBUTTON binding
+    if action_slot then
+        button.slot = action_slot -- Always store the slot
 
-                -- Check if it's not a MULTIACTIONBAR case before applying bonusBarOffset
-                if not bar then
-                    slot = getActionButtonSlot(slot)
-                    button.slot = slot
-                end
+        if not multibar_id then
+            -- Adjust the slot based on class, stance, or action bar page
+            action_slot = getActionButtonSlot(action_slot)
+            button.slot = action_slot
+        end
 
-                if HasAction(slot) then
-                    button.active_slot = slot -- Stores the slot only if an action is present
-                    button.icon:SetTexture(GetActionTexture(slot))
-                    button.icon:Show()
-                end
-            end
+        -- Check if the slot has an assigned action
+        if HasAction(action_slot) then
+            button.active_slot = action_slot -- Store the slot only if an action exists
+            button.icon:SetTexture(GetActionTexture(action_slot)) -- Set the action's texture
+            button.icon:Show()
         end
     end
 
