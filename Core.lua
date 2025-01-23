@@ -605,187 +605,101 @@ function addon:button_mouse_over(button)
     end
 end
 
--- Determines the texture and text displayed on the button based on the key binding.
+-- Determines the texture displayed on the button based on the key binding.
 function addon:set_key(button)
 
-    -- Reset the button's slot and active_slot at the beginning
-    button.slot = nil
-    button.active_slot = nil
-    button.icon:Hide()
+    -- Reset button state
+    addon:reset_button_state(button)
 
-    local binding = GetBindingAction(addon.current_modifier_string .. (button.raw_key or ""), true) or ""
+    -- Get the binding string
+    local binding = addon:get_binding(button.raw_key)
 
-    -- Determine action button slot based on Class and Stance and Action Bar Page (only for Action Button 1-12)
-    local function getActionButtonSlot(action_slot)
-        -- Check if the class is Druid or Rogue in Stance and if we are on the first action bar page
-        if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
-            if addon.bonusbar_offset == 1 then
-                return action_slot + 72  -- Maps to 73-84
-            elseif addon.bonusbar_offset == 2 then
-                return action_slot + 84  -- Maps to 85-96
-            elseif addon.bonusbar_offset == 3 then
-                return action_slot + 96  -- Maps to 97-108
-            elseif addon.bonusbar_offset == 4 then
-                return action_slot + 108 -- Maps to 109-120
-            end
-        end
+    -- Centralized keybind mapping table
+    local keybind_patterns = {
 
-        -- Check if Dragonriding
-        if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
-            return action_slot + 120 -- Maps to 121-132
-        end
+        -- ACTIONBUTTON
+        ["^ACTIONBUTTON(%d+)$"] = function(binding, button)
+            local slot = tonumber(binding:match("ACTIONBUTTON(%d+)"))
+            return addon:process_actionbutton_slot(slot, button)
+        end,
 
-        -- Handle other action bar pages for all classes
-        if addon.current_actionbar_page == 2 then
-            return action_slot + 12 -- Maps to 13-24
-        elseif addon.current_actionbar_page == 3 then
-            return action_slot + 24 -- Maps to 25-36
-        elseif addon.current_actionbar_page == 4 then
-            return action_slot + 36 -- Maps to 37-48
-        elseif addon.current_actionbar_page == 5 then
-            return action_slot + 48 -- Maps to 49-60
-        elseif addon.current_actionbar_page == 6 then
-            return action_slot + 60 -- Maps to 61-72
-        end
+        -- MULTIACTIONBARBUTTON
+        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
+            local bar, bar2 = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+            return addon:process_multiactionbar_slot(bar, bar2, button)
+        end,
 
-        return action_slot -- Default 1-12
-    end
+        -- BONUSACTIONBUTTON
+        ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
+            return addon:process_pet_action_slot(binding, button)
+        end,
 
-    -- Extract the slot for ACTIONBUTTON or MULTIACTIONBAR bindings
-    local action_slot = binding:match("ACTIONBUTTON(%d+)")
-    local multibar_id, multibar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+        -- SHAPESHIFTBUTTON
+        ["^SHAPESHIFTBUTTON(%d+)$"] = function(binding, button)
+            local slot = tonumber(binding:match("SHAPESHIFTBUTTON(%d+)"))
+            return addon:process_shapeshift_slot(slot, button)
+        end,
 
-    -- Handle MULTIACTIONBAR cases by calculating the correct slot
-    if multibar_id and multibar_button then
-        if multibar_id == "0" then action_slot = tonumber(multibar_button) end
-        if multibar_id == "1" then action_slot = 60 + tonumber(multibar_button) end
-        if multibar_id == "2" then action_slot = 48 + tonumber(multibar_button) end
-        if multibar_id == "3" then action_slot = 24 + tonumber(multibar_button) end
-        if multibar_id == "4" then action_slot = 36 + tonumber(multibar_button) end
-        if multibar_id == "5" then action_slot = 144 + tonumber(multibar_button) end
-        if multibar_id == "6" then action_slot = 156 + tonumber(multibar_button) end
-        if multibar_id == "7" then action_slot = 168 + tonumber(multibar_button) end
-    end
+        -- SPELL
+        ["^Spell (.+)$"] = function(binding, button)
+            local spell_name = binding:match("^Spell (.+)$")
+            return addon:process_spell(spell_name, button)
+        end,
+        ["^SPELL (.+)$"] = function(binding, button)
+            local spell_name = binding:match("^SPELL (.+)$")
+            return addon:process_spell(spell_name, button)
+        end,
 
-    -- Apply bonus bar offset logic if it's an ACTIONBUTTON binding
-    if action_slot then
-        button.slot = action_slot -- Always store the slot
+        -- ElvUI
+        ["^ELVUIBAR(%d+)BUTTON(%d+)$"] = function(binding, button)
+            local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
+            return addon:process_elvui(barIndex, buttonIndex, button)
+        end,
 
-        if not multibar_id then
-            -- Adjust the slot based on class, stance, or action bar page
-            action_slot = getActionButtonSlot(action_slot)
-            button.slot = action_slot
-        end
+        -- Bartender
+        ["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
+            local slot = tonumber(binding:match("BT4Button(%d+)"))
+            return addon:process_bartender(slot, button)
+        end,
 
-        -- Check if the slot has an assigned action
-        if HasAction(action_slot) then
-            button.active_slot = action_slot -- Store the slot only if an action exists
-            button.icon:SetTexture(GetActionTexture(action_slot)) -- Set the action's texture
-            button.icon:Show()
+        -- Dominos
+        ["^CLICK DominosActionButton(%d+):HOTKEY$"] = function(binding, button)
+            local slot = tonumber(binding:match("DominosActionButton(%d+)"))
+            return addon:process_dominos(slot, button)
+        end,
+    }
+
+    -- OPie
+    if C_AddOns.IsAddOnLoaded("OPie") then
+        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
+            return addon:process_opie(button)
         end
     end
 
-    -- Extract the spell name from the binding
-    local spell_name = binding:match("^Spell (.+)$") or binding:match("^SPELL (.+)$")
-
-    if spell_name then
-        -- Retrieve the spell's texture and update the button's icon
-        local spell_icon = C_Spell.GetSpellTexture(spell_name)
-        if spell_icon then
-            button.icon:SetTexture(spell_icon)
-            button.icon:Show()
-        else
-            button.icon:Hide() -- Handle missing icons
-        end
-    end
-
-    -- Logic for BT4Button Bindings
-    local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
-    if bt4_slot then
-        button.slot = tonumber(bt4_slot)     -- Set the button slot based on BT4Button
-        if HasAction(button.slot) then
-            button.active_slot = button.slot -- Active if there's an action
-            button.icon:SetTexture(GetActionTexture(button.slot))
-            button.icon:Show()
-        end
-    end
-
-    -- Logic to handle ElvUI action buttons
-    local elvui_binding = binding:find("^ELVUIBAR%d+BUTTON%d+$")
-    if elvui_binding then
-        local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
-        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-        if elvUIButton then
-            local actionID = elvUIButton._state_action
-            if elvUIButton._state_type == "action" and actionID then
-                button.icon:SetTexture(GetActionTexture(actionID))
-                button.icon:Show()
-                button.slot = actionID
-            end
-        end
-    end
-
-    -- Logic for Dominos ActionButton Bindings
-    local dominos_slot = binding:match("CLICK DominosActionButton(%d+):HOTKEY")
-    if dominos_slot then
-        button.slot = tonumber(dominos_slot) -- Set the button slot based on DominosActionButton
-        if HasAction(button.slot) then
-            button.active_slot = button.slot -- Active if there's an action
-            button.icon:SetTexture(GetActionTexture(button.slot))
-            button.icon:Show()
-        end
-    end
-
-    -- Logic for OPie Ring Bindings
-    if binding:find("CLICK ORL_RProxy") then
-        -- Assign a special icon for OPie rings
-        local opie_icon = "Interface\\AddOns\\OPie\\gfx\\opie_ring_icon.tga"
-        button.icon:SetTexture(opie_icon)
-        button.icon:Show()
-    end
-
-    -- Logic for BindPad
+    -- BindPad
     if C_AddOns.IsAddOnLoaded("BindPad") then
-        -- Extract the macro name, spell name, and item name from the binding
-        local bindpad_macro_name = binding:match("CLICK BindPadMacro:([%w%-]+)")  -- Extract the macro name
-        local bindpad_spell_name = binding:match("CLICK BindPadKey:SPELL ([%w%-]+)")  -- Extract the spell name
-        local bindpad_item_name = binding:match("CLICK BindPadKey:ITEM ([%w%-]+)")  -- Extract the item name
-
-        -- Proceed if any of the BindPad actions are found
-        if bindpad_macro_name or bindpad_spell_name or bindpad_item_name then
-
-            -- Iterate over all BindPad slots to find a matching action
-            for slot in BindPadCore.AllSlotInfoIter() do
-                -- Check if the slot's action matches the current binding
-                if slot.action == binding then
-
-                    -- If the slot has a texture, set it on the button icon
-                    if slot.texture then
-                        button.icon:SetTexture(slot.texture)
-                        button.icon:Show()
-                    end
-
-                    -- Update the binding text based on the action type (macro, spell, item)
-                    local bindpad_text
-                    if bindpad_macro_name then
-                        bindpad_text = "BindPad Macro: " .. (slot.name or bindpad_macro_name)  -- For macros
-                    elseif bindpad_spell_name then
-                        bindpad_text = "BindPad Spell: " .. (slot.name or bindpad_spell_name)  -- For spells
-                    elseif bindpad_item_name then
-                        bindpad_text = "BindPad Item: " .. (slot.name or bindpad_item_name)  -- For items
-                    end
-
-                    -- Set the updated binding text to include the action name
-                    binding = bindpad_text
-                    break  -- Exit the loop once the matching slot is found
-                end
-            end
+        keybind_patterns["^CLICK BindPadMacro:([%w%-]+)$"] = function(binding, button)
+            return addon:process_bindpad(binding, button)
+        end
+        keybind_patterns["^CLICK BindPadKey:SPELL ([%w%-]+)$"] = function(binding, button)
+            return addon:process_bindpad(binding, button)
+        end
+        keybind_patterns["^CLICK BindPadKey:ITEM ([%w%-]+)$"] = function(binding, button)
+            return addon:process_bindpad(binding, button)
         end
     end
 
-    -- code for setting icons for other actions (movement, pets, etc.)
-    local action_textures = {
-        --EXTRAACTIONBUTTON1 = 4200126,
+    -- Loop through the keybind patterns and process the binding
+    for pattern, handler in pairs(keybind_patterns) do
+        if binding:find(pattern) then
+            handler(binding, button)
+            break -- Exit loop once a match is found
+        end
+    end
+
+    -- Check for specific bindings and set the icon
+    local specific_bindings = {
+        EXTRAACTIONBUTTON1 = 4200126,
         MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
         MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
         STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
@@ -794,76 +708,295 @@ function addon:set_key(button)
         TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
     }
 
-    if action_textures[binding] then
-        button.icon:SetTexture(action_textures[binding])
+    if specific_bindings[binding] then
+        button.icon:SetTexture(specific_bindings[binding])
         button.icon:SetSize(30, 30)
         button.icon:Show()
     end
 
-    -- Handle Shapeshift Forms
-    local shapeshift_slot = binding:match("SHAPESHIFTBUTTON(%d+)")
-    if shapeshift_slot then
-        local icon, active, castable, spellID = GetShapeshiftFormInfo(tonumber(shapeshift_slot))
-        if icon then
-            button.icon:SetTexture(icon)
-            button.icon:Show()
-            button.spellid = spellID -- Set the spell ID for the shapeshift form
-        else
-            button.icon:Hide()       -- Hide icon if there's no valid shapeshift form
+    addon:update_button_display(binding, button)
+end
+
+-- Resets the button's state
+function addon:reset_button_state(button)
+    button.slot = nil
+    button.active_slot = nil
+    button.icon:SetTexture(nil)
+    button.icon:Hide()
+end
+
+-- Retrieves the binding action
+function addon:get_binding(raw_key)
+    return GetBindingAction(self.current_modifier_string .. (raw_key or ""), true) or ""
+end
+
+-- Handles processing for ACTIONBUTTON
+function addon:process_actionbutton_slot(slot, button)
+    if not slot then return end
+
+    -- Adjust the slot based on bonus bar offset and action bar page
+    local adjusted_slot = addon:get_action_button_slot(slot)
+    button.slot = adjusted_slot
+
+    -- Check if the slot has an action assigned
+    if HasAction(adjusted_slot) then
+        button.active_slot = adjusted_slot
+        button.icon:SetTexture(GetActionTexture(adjusted_slot))
+        button.icon:Show()
+    end
+end
+
+-- Adjusts the slot for ACTIONBUTTON bindings based on the class, stance, or action bar page
+function addon:get_action_button_slot(action_slot)
+    if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
+        if addon.bonusbar_offset == 1 then
+            return action_slot + 72
+        elseif addon.bonusbar_offset == 2 then
+            return action_slot + 84
+        elseif addon.bonusbar_offset == 3 then
+            return action_slot + 96
+        elseif addon.bonusbar_offset == 4 then
+            return action_slot + 108
         end
     end
 
-    -- Pet Action Bar logic
-    if PetHasActionBar() then
-        if binding:match("^BONUSACTIONBUTTON%d+$") then
-            for i = 1, 10 do
-                local petspellName = "BONUSACTIONBUTTON" .. i
-                if binding:match(petspellName) then
-                    -- GetPetActionInfo returns multiple values, including texture/token
-                    local petName, petTexture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID =
-                        GetPetActionInfo(i)
+    if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
+        return action_slot + 120
+    end
 
-                    -- If it's a token, use the token to get the texture
-                    if isToken then
-                        petTexture = _G[petTexture] or
-                            "Interface\\Icons\\" ..
-                            petTexture -- Use WoW's icon folder as fallback
-                    end
+    if addon.current_actionbar_page == 2 then
+        return action_slot + 12
+    elseif addon.current_actionbar_page == 3 then
+        return action_slot + 24
+    elseif addon.current_actionbar_page == 4 then
+        return action_slot + 36
+    elseif addon.current_actionbar_page == 5 then
+        return action_slot + 48
+    elseif addon.current_actionbar_page == 6 then
+        return action_slot + 60
+    end
 
-                    if petTexture then
-                        button.icon:SetTexture(petTexture)
-                        button.icon:Show()
+    return action_slot -- Default 1-12
+end
 
-                        -- Check if it's a Pet Spell (spellID is present)
-                        if spellID then
-                            button.slot = nil           -- No slot for Pet Spells
-                            button.spellid = spellID    -- Set spellID for Pet Spells
-                            button.petActionIndex = nil -- Not a pet mode
-                        else
-                            -- For Pet Modes (e.g., Wait, Move To)
-                            button.slot = nil
-                            button.spellid = nil
-                            button.petActionIndex = i -- Set petActionIndex for pet modes
-                        end
-                    else
-                        -- Handle empty buttons by clearing the slot, spellID, and petActionIndex
-                        button.icon:Hide()
-                        button.slot = nil
-                        button.spellid = nil
-                        button.petActionIndex = nil
-                    end
-                end
-            end
-        end
-    else
-        if binding:match("^BONUSACTIONBUTTON%d+$") then
-            button.icon:Hide()
+-- Handles processing for MULTIACTIONBAR
+function addon:process_multiactionbar_slot(bar, bar_button, button)
+    if not bar or not bar_button then return end
+
+    -- Calculate the slot based on the bar and button
+    local slot
+    if bar == 0 then
+        slot = bar_button
+    elseif bar == 1 then
+        slot = 60 + bar_button
+    elseif bar == 2 then
+        slot = 48 + bar_button
+    elseif bar == 3 then
+        slot = 24 + bar_button
+    elseif bar == 4 then
+        slot = 36 + bar_button
+    elseif bar == 5 then
+        slot = 144 + bar_button
+    elseif bar == 6 then
+        slot = 156 + bar_button
+    elseif bar == 7 then
+        slot = 168 + bar_button
+    end
+
+    button.slot = slot
+
+    -- Check if the slot has an action assigned
+    if slot and HasAction(slot) then
+        button.active_slot = slot
+        button.icon:SetTexture(GetActionTexture(slot))
+        button.icon:Show()
+    end
+end
+
+-- Handles processing for BONUSACTIONBUTTON
+function addon:process_pet_action_slot(binding, button)
+    if not PetHasActionBar() then
+        button.icon:Hide()
+        button.slot = nil
+        button.spellid = nil
+        button.pet_action_index = nil -- Clear pet action index when no pet action bar
+        return
+    end
+
+    -- Match the button index from the binding
+    local pet_action_index = tonumber(binding:match("^BONUSACTIONBUTTON(%d+)$"))
+    if not pet_action_index then return end
+
+    -- Get pet action information
+    local pet_name, pet_texture, is_token, is_active, auto_cast_allowed, auto_cast_enabled, spell_id =
+        GetPetActionInfo(pet_action_index)
+
+    -- Handle the texture if it's a token
+    if is_token then
+        pet_texture = _G[pet_texture] or "Interface\\Icons\\" .. pet_texture -- Fallback to WoW's icon folder
+    end
+
+    if pet_texture then
+        button.icon:SetTexture(pet_texture)
+        button.icon:Show()
+
+        if spell_id then
+            -- Pet spell
+            button.slot = nil -- No slot for pet spells
+            button.spellid = spell_id
+            button.pet_action_index = nil -- Not a pet mode
+        else
+            -- Pet mode (e.g., Stay, Follow, Move To)
             button.slot = nil
             button.spellid = nil
-            button.petActionIndex = nil -- Clear petActionIndex when no pet action bar
+            button.pet_action_index = pet_action_index -- Set pet action index
+        end
+    else
+        -- Handle empty buttons
+        button.icon:Hide()
+        button.slot = nil
+        button.spellid = nil
+        button.pet_action_index = nil
+    end
+end
+
+-- Handles processing for SHAPESHIFTBUTTON bindings
+function addon:process_shapeshift_slot(slot, button)
+    if not slot then return end
+
+    -- Retrieve information about the shapeshift form
+    local icon, is_active, is_castable, spellID = GetShapeshiftFormInfo(slot)
+
+    if icon then
+        button.icon:SetTexture(icon)         -- Set the icon texture
+        button.icon:Show()                   -- Show the icon
+        button.spellid = spellID             -- Store the spell ID
+        button.is_active = is_active         -- Track whether the form is active
+        button.is_castable = is_castable     -- Track whether the form is castable
+    else
+        -- Handle cases where no valid shapeshift form exists
+        button.icon:Hide()
+        button.spellid = nil
+        button.is_active = nil
+        button.is_castable = nil
+    end
+end
+
+-- Handles processing for SPELL bindings
+function addon:process_spell(spell_name, button)
+    if not spell_name then return end
+
+    -- Retrieve the spell's icon
+    local spell_icon = C_Spell.GetSpellTexture(spell_name)
+
+    if spell_icon then
+        button.icon:SetTexture(spell_icon)  -- Set the icon texture
+        button.icon:Show()                  -- Show the icon
+    else
+        button.icon:Hide()                  -- Hide the icon if not available
+        button.spellid = nil                -- Clear spell ID if no valid icon
+    end
+end
+
+-- Handles processing for ElvUI action bar buttons
+function addon:process_elvui(binding, button)
+    -- Check if the binding matches the ElvUI action bar format
+    local elvui_binding = binding:find("^ELVUIBAR%d+BUTTON%d+$")
+    if elvui_binding then
+        local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
+
+        -- Fetch the corresponding ElvUI button
+        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
+
+        if elvUIButton then
+            local actionID = elvUIButton._state_action
+            -- Ensure the button is an action button and the actionID exists
+            if elvUIButton._state_type == "action" and actionID then
+                local actionTexture = GetActionTexture(actionID)
+                if actionTexture then
+                    button.icon:SetTexture(actionTexture)  -- Set the action texture
+                    button.icon:Show()                     -- Show the icon
+                    button.slot = actionID                 -- Store the action ID in the button slot
+                else
+                    button.icon:Hide()                     -- Hide the icon if no valid texture is found
+                end
+            else
+                button.icon:Hide()  -- Hide the icon if not an action type or no actionID
+            end
         end
     end
+end
 
+-- Handles processing for Bartender 4 button bindings
+function addon:process_bartender(binding, button)
+    -- Check if the binding matches the BT4 action button format
+    local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
+    if bt4_slot then
+        button.slot = tonumber(bt4_slot)  -- Set the slot for BT4Button
+        if HasAction(button.slot) then
+            button.active_slot = button.slot  -- Mark as active if an action exists for the slot
+            local actionTexture = GetActionTexture(button.slot)
+            if actionTexture then
+                button.icon:SetTexture(actionTexture)  -- Set the action icon
+                button.icon:Show()                     -- Show the icon
+            else
+                button.icon:Hide()                     -- Hide the icon if no action texture is found
+            end
+        else
+            button.icon:Hide()  -- Hide the icon if there's no action for the slot
+        end
+    end
+end
+
+-- Handles processing for Dominos action button bindings
+function addon:process_dominos(binding, button)
+    -- Check if the binding matches the Dominos action button format
+    local dominos_slot = binding:match("CLICK DominosActionButton(%d+):HOTKEY")
+    if dominos_slot then
+        button.slot = tonumber(dominos_slot)  -- Set the slot for DominosActionButton
+        if HasAction(button.slot) then
+            button.active_slot = button.slot  -- Mark as active if an action exists for the slot
+            local actionTexture = GetActionTexture(button.slot)
+            if actionTexture then
+                button.icon:SetTexture(actionTexture)  -- Set the action icon
+                button.icon:Show()                     -- Show the icon
+            else
+                button.icon:Hide()                     -- Hide the icon if no action texture is found
+            end
+        else
+            button.icon:Hide()  -- Hide the icon if there's no action for the slot
+        end
+    end
+end
+
+-- Handles processing for OPie ring bindings
+function addon:process_opie(button)
+    -- Assign the OPie ring icon to the button
+    local opie_icon = "Interface\\AddOns\\OPie\\gfx\\opie_ring_icon.tga"
+    button.icon:SetTexture(opie_icon)   -- Set the texture to the OPie ring icon
+    button.icon:Show()                  -- Display the icon on the button
+end
+
+-- Logic for BindPad key bindings
+function addon:process_bindpad(binding, button)
+    -- Iterate over all BindPad slots to find a matching action
+    for slot in BindPadCore.AllSlotInfoIter() do
+        -- Check if the slot's action matches the current binding
+        if slot.action == binding then
+
+            -- If the slot has a texture, set it on the button icon
+            if slot.texture then
+                button.icon:SetTexture(slot.texture)
+                button.icon:Show()
+            end
+
+            break  -- Exit the loop once the matching slot is found
+        end
+    end
+end
+
+-- Determines the text displayed on the button based on the button and binding
+function addon:update_button_display(binding, button)
     -- store the interface command (Blizzard Interface Commands)
     button.binding = binding
 
@@ -955,26 +1088,28 @@ function addon:set_key(button)
         -- Use the Regular font for shorter text
         button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
     end
+
+    --------------------------------------------------------------------------------------------------------------------
+
+    -- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
+    -- Can be translated to a readable format via _G["BINDING_NAME_" ...]
+
+    -- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
+
+    -- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
+    -- Can be made readable via _G["KEY_" ...]
+
+    -- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
+
+    -- button.slot              -- Stores the action slot ID associated with the binding, regardless of action presence
+
+    -- button.active_slot       -- Holds the action slot ID only if the slot contains an active action, otherwise nil
+
+    -- button.icon              -- Stores the icon texture ID for the action slot
+
+    --------------------------------------------------------------------------------------------------------------------
+
 end
-
--- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
--- Can be translated to a readable format via _G["BINDING_NAME_" ...]
-
--- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
-
--- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
--- Can be made readable via _G["KEY_" ...]
-
--- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
-
--- button.slot              -- Stores the action slot ID associated with the binding, regardless of action presence
-
--- button.active_slot       -- Holds the action slot ID only if the slot contains an active action, otherwise nil
-
--- button.icon              -- Stores the icon texture ID for the action slot
-
---------------------------------------------------------------------------------------------------------------------
-
 
 -- Updates the textures/texts of the keys bindings.
 function addon:refresh_keys()
