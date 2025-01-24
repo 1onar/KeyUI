@@ -695,6 +695,9 @@ function addon:set_key(button)
     -- Get the binding string
     local binding = addon:get_binding(button.raw_key)
 
+    -- Store the interface command (Blizzard Interface Commands)
+    button.binding = binding
+
     -- Centralized keybind mapping table
     local keybind_patterns = {
 
@@ -1579,16 +1582,13 @@ local function rightclick_initialize(self, level)
                         info.func = function()
                             local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                             local spell = "Spell " .. spell_name
-
-                            print(key)
-                            print(spell)
-
+                            local binding_name = addon.current_clicked_key.readable_binding:GetText()
                             if addon.current_slot ~= nil then
                                 C_Spell.PickupSpell(spell_id)
                                 PlaceAction(addon.current_slot)
                                 ClearCursor()
                                 -- Print notification for new spell binding
-                                print("KeyUI: Bound |cffa335ee" .. pell_name .. "|r to |cffff8000" .. key"")
+                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                             else
                                 SetBinding(key, spell)
                                 SaveBindings(2)
@@ -1613,9 +1613,13 @@ local function rightclick_initialize(self, level)
                         local actionSlot = addon.action_slot_mapping[actionbutton]
                         local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                         local command = "Macro " .. title
+                        local binding_name = addon.current_clicked_key.readable_binding:GetText()
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
+                            ClearCursor()
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
@@ -1638,9 +1642,13 @@ local function rightclick_initialize(self, level)
                         local actionSlot = addon.action_slot_mapping[actionbutton]
                         local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                         local command = "Macro " .. title
+                        local binding_name = addon.current_clicked_key.readable_binding:GetText()
                         if actionSlot then
                             PickupMacro(title)
                             PlaceAction(actionSlot)
+                            ClearCursor()
+                            -- Print notification for new macro binding
+                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                         else
                             SetBinding(key, command)
                             SaveBindings(2)
