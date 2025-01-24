@@ -78,7 +78,7 @@ local options = {
             type = "toggle",
             name = "Minimap Button",
             desc = "Show or hide the minimap button",
-            order = 4,
+            order = 7,
             get = function() return not keyui_settings.minimap.hide end,
             set = function(_, value)
                 keyui_settings.minimap.hide = not value
@@ -95,7 +95,7 @@ local options = {
             type = "toggle",
             name = "Stay Open In Combat",
             desc = "Allow KeyUI to stay open during combat",
-            order = 5,
+            order = 8,
             get = function() return keyui_settings.stay_open_in_combat end,
             set = function(_, value)
                 keyui_settings.stay_open_in_combat = value
@@ -113,7 +113,6 @@ local options = {
                 keyui_settings.show_keyboard = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Keyboard visibility", status)
-                addon:show_frames()
             end,
         },
         show_mouse = {
@@ -126,7 +125,6 @@ local options = {
                 keyui_settings.show_mouse = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Mouse visibility", status)
-                addon:show_frames()
             end,
         },
         show_controller = {
@@ -139,7 +137,6 @@ local options = {
                 keyui_settings.show_controller = value
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Controller visibility", status)
-                addon:show_frames()
             end,
         },
         -- Add a button to reset all settings to defaults
@@ -147,7 +144,7 @@ local options = {
             type = "execute",
             name = "Reset Addon Settings",
             desc = "Reset all KeyUI settings to their default values",
-            order = 7,
+            order = 10,
             confirm = true, -- Ask for confirmation
             confirmText = "Are you sure you want to reset all KeyUI settings to default?",
             func = function()
@@ -179,6 +176,9 @@ local options = {
                         keyboard = {},
                         mouse = {},
                     },
+                    show_keyboard_background = true,
+                    show_mouse_graphic = true,
+                    show_controller_background = true,
                 }
 
                 -- Reload the UI to apply the changes
@@ -189,7 +189,7 @@ local options = {
             type = "toggle",
             name = "Enable ESC",
             desc = "Enable or disable the addon window closing when pressing ESC",
-            order = 6,
+            order = 9,
             get = function() return keyui_settings.prevent_esc_close end,
             set = function(_, value)
                 keyui_settings.prevent_esc_close = value
@@ -205,6 +205,42 @@ local options = {
                 print("KeyUI: Closing with ESC " .. status)
             end,
         },
+        show_keyboard_background = {
+            type = "toggle",
+            name = "Keyboard Background",
+            desc = "Show or hide the background and border of the keyboard frame",
+            order = 4,
+            get = function() return keyui_settings.show_keyboard_background end,
+            set = function(_, value)
+                keyui_settings.show_keyboard_background = value
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Keyboard background", status)
+            end,
+        },
+        show_mouse_graphic = {
+            type = "toggle",
+            name = " Mouse Graphic",
+            desc = "Show or hide the graphical representation of the mouse",
+            order = 5,
+            get = function() return keyui_settings.show_mouse_graphic end,
+            set = function(_, value)
+                keyui_settings.show_mouse_graphic = value
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Mouse graphic", status)
+            end,
+        },
+        show_controller_background = {
+            type = "toggle",
+            name = "Controller Background",
+            desc = "Show or hide the background and border of the controller frame",
+            order = 6,
+            get = function() return keyui_settings.show_controller_background end,
+            set = function(_, value)
+                keyui_settings.show_controller_background = value
+                local status = value and "enabled" or "disabled"
+                print("KeyUI: Controller background", status)
+            end,
+        },        
     },
 }
 
@@ -359,12 +395,32 @@ function addon:show_frames()
     if keyui_settings.show_keyboard == true then
         addon.is_keyboard_visible = true
         keyboard_frame:Show()
+        if keyui_settings.show_keyboard_background ~= true then
+            -- Remove the background and border if graphics are disabled
+            keyboard_frame:SetBackdrop(nil)
+        else
+            -- Restore the background and border if graphics are enabled
+            keyboard_frame:SetBackdrop({
+                bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+                edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+                tile = true,
+                tileSize = 8,
+                edgeSize = 14,
+                insets = { left = 2, right = 2, top = 2, bottom = 2 }
+            })
+            keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+        end
     end
 
     if keyui_settings.show_mouse == true then
         addon.is_mouse_visible = true
         mouse_image:Show()
         mouse_frame:Show()
+        if keyui_settings.show_mouse_graphic ~= true then
+            mouse_image.Texture:Hide()
+        else
+            mouse_image.Texture:Show()
+        end
     end
 
     if keyui_settings.show_controller == true then
@@ -372,6 +428,21 @@ function addon:show_frames()
         controller_frame:Show()
         if controller_image then
             controller_image:Show()
+        end
+        if keyui_settings.show_controller_background ~= true then
+            -- Remove the background and border if graphics are disabled
+            controller_frame:SetBackdrop(nil)
+        else
+            -- Restore the background and border if graphics are enabled
+            controller_frame:SetBackdrop({
+                bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+                edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+                tile = true,
+                tileSize = 8,
+                edgeSize = 14,
+                insets = { left = 2, right = 2, top = 2, bottom = 2 }
+            })
+            controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
         end
     end
 end

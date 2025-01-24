@@ -43,7 +43,7 @@ function addon:create_mouse_image()
 
     mouse_image.Texture = mouse_image:CreateTexture()
     mouse_image.Texture:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\mouse.tga")
-    mouse_image.Texture:SetPoint("Center", mouse_image, "Center", 0, 0)
+    mouse_image.Texture:SetPoint("CENTER", mouse_image, "CENTER", 0, 0)
     mouse_image.Texture:SetSize(390, 390)
 
     mouse_image.close_button = CreateFrame("Button", nil, mouse_image, "UIPanelCloseButton")
