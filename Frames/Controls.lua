@@ -203,7 +203,7 @@ function addon:create_controls()
             keyui_settings.show_empty_binds = false
         end
 
-        addon:highlight_empty_binds()
+        addon:refresh_keys()
     end)
 
     -- Set the tooltip for the empty keys checkbox
@@ -236,7 +236,7 @@ function addon:create_controls()
             keyui_settings.show_interface_binds = false
         end
 
-        addon:create_action_labels()
+        addon:refresh_keys()
     end)
 
     -- Set the tooltip for the interface keys checkbox

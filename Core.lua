@@ -689,12 +689,27 @@ function addon:set_key(button)
         end
     end
 
-    -- Loop through the keybind patterns and process the binding
-    for pattern, handler in pairs(keybind_patterns) do
-        if binding:find(pattern) then
-            handler(binding, button)
-            break -- Exit loop once a match is found
+    -- Loop through the keybind patterns and process the binding if the binding is not empty
+    if binding then --and binding ~= "" then
+        for pattern, handler in pairs(keybind_patterns) do
+            if binding:find(pattern) then
+                handler(binding, button)
+                break -- Exit loop once a match is found
+            end
         end
+
+        -- Hadnle nterface action labels if the option is enabled
+        if keyui_settings.show_interface_binds then
+            addon:create_action_labels(binding, button)
+        end
+    else
+        -- Handle empty bindings if the option is enabled
+        if keyui_settings.show_empty_binds then
+            addon:update_empty_binds(button)
+        end
+
+        addon:update_button_key_text(button)
+        return
     end
 
     -- Check for specific bindings and set the icon
@@ -714,7 +729,10 @@ function addon:set_key(button)
         button.icon:Show()
     end
 
-    addon:update_button_display(binding, button)
+    -- store the interface command (Blizzard Interface Commands)
+    --button.binding = binding                                          --needed?
+
+    addon:update_button_key_text(button)
 end
 
 -- Resets the button's state
@@ -723,6 +741,9 @@ function addon:reset_button_state(button)
     button.active_slot = nil
     button.icon:SetTexture(nil)
     button.icon:Hide()
+    button.highlight:Hide()
+    button.readable_binding:Hide()
+    button.readable_binding:SetText("")
 end
 
 -- Retrieves the binding action
@@ -996,9 +1017,7 @@ function addon:process_bindpad(binding, button)
 end
 
 -- Determines the text displayed on the button based on the button and binding
-function addon:update_button_display(binding, button)
-    -- store the interface command (Blizzard Interface Commands)
-    button.binding = binding
+function addon:update_button_key_text(button)
 
     -- Set visible key name based on the current modifier string
     local original_text = button.raw_key or "" -- Ensure original_text is never nil
@@ -1111,6 +1130,41 @@ function addon:update_button_display(binding, button)
 
 end
 
+-- Sets and displays the interface action label
+function addon:create_action_labels(binding, button)
+
+    -- Adjust the width of the readable_binding based on button width
+    button.readable_binding:SetWidth(button:GetWidth() - 4)
+
+    -- Check if the command corresponds to a Dominos action button
+    if binding and binding:match("CLICK DominosActionButton(%d+):HOTKEY") then
+        -- Handle the binding for Dominos action buttons
+        local dominos_slot = binding:match("DominosActionButton(%d+)")
+        if dominos_slot then
+            -- Set a custom label for Dominos buttons
+            local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
+            button.readable_binding:SetText(binding_name)
+        end
+    else
+        -- Standard handling for other buttons
+        local binding_name = _G["BINDING_NAME_" .. binding] or binding
+        button.readable_binding:SetText(binding_name)
+    end
+
+    button.readable_binding:Show()
+end
+
+-- Highlights empty key binds by changing the background color of unused keys.
+function addon:update_empty_binds(button)
+
+    -- Check if the key is not on the excluded list
+    if not addon.no_highlight[button.raw_key] then  -- Skip keys that are in the excluded list
+        button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg")  -- Apply a red background to indicate empty keys
+        button.highlight:SetSize(button.raw_key:GetWidth() - 10, button.raw_key:GetHeight() - 10)  -- Adjust the highlight size to fit the key dimensions with a margin
+        button.highlight:Show()  -- Display the highlight for the key
+    end
+end
+
 -- Updates the textures/texts of the keys bindings.
 function addon:refresh_keys()
     --print("refresh_keys function called")  -- print statement for debbuging
@@ -1134,239 +1188,6 @@ function addon:refresh_keys()
     if addon.is_controller_visible ~= false then -- true
         for k = 1, #addon.keys_controller do
             addon:set_key(addon.keys_controller[k])
-        end
-    end
-
-    -- create/update action labels
-    addon:create_action_labels()
-
-    -- Highlight empty binds if the setting is enabled
-    if keyui_settings.show_empty_binds then
-        addon:highlight_empty_binds()
-    end
-end
-
--- Highlights empty key binds by changing the background color of unused keys.
-function addon:highlight_empty_binds()
-    if keyui_settings.show_empty_binds then
-        -- Loop through all keyboard buttons if they exist
-        if self.keyboard_buttons then
-            for _, keyboard_button in pairs(self.keyboard_buttons) do
-                if keyboard_button.raw_key then
-                    local raw_key = keyboard_button.raw_key -- Get the label text
-
-                    -- Get Blizzard Interface Command for the button
-                    local binding = keyboard_button.binding and keyboard_button.binding or ""
-
-                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
-
-                    -- reset background before highlighting
-                    if not addon.no_highlight[key_name] then
-                        keyboard_button.highlight:Hide()
-                    end
-
-                    -- Check if the bind is empty and the key is not on the excluded list
-                    if binding == "" and not addon.no_highlight[key_name] then
-                        keyboard_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
-                        keyboard_button.highlight:SetSize(keyboard_button:GetWidth() - 10,
-                            keyboard_button:GetHeight() - 10)                                                       -- Dynamically set the size based on keyboard_button's width and height
-                        keyboard_button.highlight:Show()
-                    end
-                end
-            end
-        end
-
-        -- Loop through all mouse buttons if they exist
-        if self.mouse_buttons then
-            for _, mouse_button in pairs(self.mouse_buttons) do
-                if mouse_button.raw_key then
-                    local raw_key = mouse_button.raw_key -- Get the label text
-
-                    -- Get the Blizzard Interface Command for the button
-                    local binding = mouse_button.binding and mouse_button.binding or ""
-
-                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
-
-                    -- reset background before highlighting
-                    if not addon.no_highlight[key_name] then
-                        mouse_button.highlight:Hide()
-                    end
-
-                    -- Check if the bind is empty and the key is not on the excluded list
-                    if binding == "" and not addon.no_highlight[key_name] then
-                        mouse_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
-                        mouse_button.highlight:Show()
-                    end
-                end
-            end
-        end
-
-        -- Loop through all controller buttons if they exist
-        if self.controller_buttons then
-            for _, controller_button in pairs(self.controller_buttons) do
-                if controller_button.raw_key then
-                    local raw_key = controller_button.raw_key -- Get the label text
-
-                    -- Get the Blizzard Interface Command for the button
-                    local binding = controller_button.binding and controller_button.binding or ""
-
-                    local key_name = _G[raw_key] or raw_key -- Get the global name if it exists
-
-                    -- reset background before highlighting
-                    if not addon.no_highlight[key_name] then
-                        controller_button.highlight:Hide()
-                    end
-
-                    -- Check if the bind is empty and the key is not on the excluded list
-                    if binding == "" and not addon.no_highlight[key_name] then
-                        controller_button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg") -- Red color for empty keys
-                        controller_button.highlight:Show()
-                    end
-                end
-            end
-        end
-
-    else
-        -- Reset color for all buttons when not showing empty binds
-        if self.keyboard_buttons then
-            for _, keyboard_button in pairs(self.keyboard_buttons) do
-                keyboard_button.highlight:Hide()
-            end
-        end
-
-        if self.mouse_buttons then
-            for _, mouse_button in pairs(self.mouse_buttons) do
-                mouse_button.highlight:Hide()
-            end
-        end
-
-        if self.controller_buttons then
-            for _, controller_button in pairs(self.controller_buttons) do
-                controller_button.highlight:Hide()
-            end
-        end
-    end
-end
-
--- Sets and displays the interface action label on all buttons, using the binding name or command name and toggles the visibility based on settings.
-function addon:create_action_labels()
-    -- Loop through all keyboard buttons if they exist
-    if self.keyboard_buttons then
-        for _, keyboard_button in pairs(self.keyboard_buttons) do
-            if keyboard_button.readable_binding then
-                local command = keyboard_button.binding
-
-                -- Adjust the width of the readable_binding based on button width
-                keyboard_button.readable_binding:SetWidth(keyboard_button:GetWidth() - 4)
-
-                -- Check if the command corresponds to a Dominos action button
-                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
-                    -- Handle the binding for Dominos action buttons
-                    local dominos_slot = command:match("DominosActionButton(%d+)")
-                    if dominos_slot then
-                        -- Set a custom label for Dominos buttons
-                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
-                        keyboard_button.readable_binding:SetText(binding_name)
-                    else
-                        keyboard_button.readable_binding:SetText("")
-                    end
-                else
-                    -- Standard handling for other buttons
-                    if command then
-                        local binding_name = _G["BINDING_NAME_" .. command] or command
-                        keyboard_button.readable_binding:SetText(binding_name)
-                    else
-                        keyboard_button.readable_binding:SetText("")
-                    end
-                end
-
-                -- Toggle visibility of the interface action label based on settings
-                if keyui_settings.show_interface_binds then
-                    keyboard_button.readable_binding:Show()
-                else
-                    keyboard_button.readable_binding:Hide()
-                end
-            end
-        end
-    end
-
-    -- Loop through all mouse buttons if they exist
-    if self.mouse_buttons then
-        for _, mouse_button in pairs(self.mouse_buttons) do
-            if mouse_button.readable_binding then
-                local command = mouse_button.binding
-
-                -- Adjust the width of the readable_binding based on button width
-                mouse_button.readable_binding:SetWidth(mouse_button:GetWidth() - 4)
-
-                -- Check if the command corresponds to a Dominos action button
-                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
-                    -- Handle the binding for Dominos action buttons
-                    local dominos_slot = command:match("DominosActionButton(%d+)")
-                    if dominos_slot then
-                        -- Set a custom label for Dominos buttons
-                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
-                        mouse_button.readable_binding:SetText(binding_name)
-                    else
-                        mouse_button.readable_binding:SetText("")
-                    end
-                else
-                    -- Standard handling for other buttons
-                    if command then
-                        local binding_name = _G["BINDING_NAME_" .. command] or command
-                        mouse_button.readable_binding:SetText(binding_name)
-                    else
-                        mouse_button.readable_binding:SetText("")
-                    end
-                end
-
-                -- Toggle visibility of the interface action label based on settings
-                if keyui_settings.show_interface_binds then
-                    mouse_button.readable_binding:Show()
-                else
-                    mouse_button.readable_binding:Hide()
-                end
-            end
-        end
-    end
-
-    -- Loop through all controller buttons if they exist
-    if self.controller_buttons then
-        for _, controller_button in pairs(self.controller_buttons) do
-            if controller_button.readable_binding then
-                local command = controller_button.binding
-
-                -- Adjust the width of the readable_binding based on button width
-                controller_button.readable_binding:SetWidth(controller_button:GetWidth() - 4)
-
-                -- Check if the command corresponds to a Dominos action button
-                if command and command:match("CLICK DominosActionButton(%d+):HOTKEY") then
-                    -- Handle the binding for Dominos action buttons
-                    local dominos_slot = command:match("DominosActionButton(%d+)")
-                    if dominos_slot then
-                        -- Set a custom label for Dominos buttons
-                        local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
-                        controller_button.readable_binding:SetText(binding_name)
-                    else
-                        controller_button.readable_binding:SetText("")
-                    end
-                else
-                    -- Standard handling for other buttons
-                    if command then
-                        local binding_name = _G["BINDING_NAME_" .. command] or command
-                        controller_button.readable_binding:SetText(binding_name)
-                    else
-                        controller_button.readable_binding:SetText("")
-                    end
-                end
-
-                -- Toggle visibility of the interface action label based on settings
-                if keyui_settings.show_interface_binds then
-                    controller_button.readable_binding:Show()
-                else
-                    controller_button.readable_binding:Hide()
-                end
-            end
         end
     end
 end
@@ -1403,20 +1224,23 @@ local function handle_key_press(key)
         end
     end
 
-    -- Update background color for the pressed key (keyboard and mouse)
-    local function update_key_background(buttons, is_mouse)
+    -- Update background color for the pressed key (keyboard, mouse, and controller buttons)
+    local function update_key_background(buttons, input_type)
         for _, button in pairs(buttons) do
             if button.raw_key == key then
                 button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
 
-                -- Apply different size adjustments for keyboard and mouse buttons
-                if is_mouse then
+                -- Adjust highlight size and positioning based on the input type
+                if input_type == "mouse" then
                     -- Mouse button size adjustment
                     button.highlight:SetSize(button:GetWidth() - 6, button:GetHeight() - 6)  -- Smaller margin for mouse keys
-                    button.highlight:SetPoint("CENTER", button, "CENTER")   -- Set highlight to the center of the button
-                else
+                    button.highlight:SetPoint("CENTER", button, "CENTER")  -- Center the highlight on the button
+                elseif input_type == "keyboard" then
                     -- Keyboard button size adjustment
                     button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Larger margin for keyboard keys
+                elseif input_type == "controller" then
+                    -- Controller button size adjustment
+                    button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Larger margin for controller keys
                 end
 
                 -- Show the highlight for the pressed key
@@ -1425,11 +1249,15 @@ local function handle_key_press(key)
         end
     end
 
+    -- Update highlights for keyboard, mouse, and controller buttons
     if addon.keyboard_buttons then
-        update_key_background(addon.keyboard_buttons, false)  -- false indicates keyboard
+        update_key_background(addon.keyboard_buttons, "keyboard")
     end
-    if addon.keys_mouse then
-        update_key_background(addon.keys_mouse, true)  -- true indicates mouse
+    if addon.mouse_buttons then
+        update_key_background(addon.mouse_buttons, "mouse")
+    end
+    if addon.controller_buttons then
+        update_key_background(addon.controller_buttons, "controller")
     end
 
     -- Refresh modifiers and keys
@@ -1459,10 +1287,18 @@ local function handle_key_release(key)
             end
         end
 
-        if addon.keys_mouse then
-            for _, mouse_button in pairs(addon.keys_mouse) do
+        if addon.mouse_buttons then
+            for _, mouse_button in pairs(addon.mouse_buttons) do
                 if mouse_button.raw_key == key then
                     mouse_button.highlight:Hide()
+                end
+            end
+        end
+
+        if addon.controller_buttons then
+            for _, controller_button in pairs(addon.controller_buttons) do
+                if controller_button.raw_key == key then
+                    controller_button.highlight:Hide()
                 end
             end
         end
