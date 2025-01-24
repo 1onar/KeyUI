@@ -776,10 +776,8 @@ function addon:set_key(button)
             end
         end
 
-        -- Handle interface action labels if the option is enabled
-        if keyui_settings.show_interface_binds then
-            addon:create_action_labels(binding, button)
-        end
+        -- Handle interface action labels
+        addon:create_action_labels(binding, button)
     else
         -- Handle empty bindings if the option is enabled
         if keyui_settings.show_empty_binds then
@@ -1187,8 +1185,10 @@ function addon:create_action_labels(binding, button)
     -- Set the readable binding text
     button.readable_binding:SetText(binding_name)
 
-    -- Show the readable binding
-    button.readable_binding:Show()
+    -- Show the readable binding if the option is enabled
+    if keyui_settings.show_interface_binds then
+        button.readable_binding:Show()
+    end
 end
 
 -- Highlights empty key binds by changing the background color of unused keys.
