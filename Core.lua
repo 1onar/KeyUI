@@ -649,22 +649,28 @@ function addon:set_key(button)
             local spell_name = binding:match("^SPELL (.+)$")
             return addon:process_spell(spell_name, button)
         end,
-
-        -- ElvUI
-        ["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
-            return addon:process_elvui(binding, button)
-        end,
-
-        -- Bartender
-        ["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
-            return addon:process_bartender(binding, button)
-        end,
-
-        -- Dominos
-        ["^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$"] = function(binding, button)
-            return addon:process_dominos(binding, button)
-        end,
     }
+
+    --ElvUI
+    if C_AddOns.IsAddOnLoaded("ElvUI") then
+        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
+            return addon:process_elvui(binding, button)
+        end
+    end
+
+    -- Bartender
+    if C_AddOns.IsAddOnLoaded("Bartender4") then
+        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
+            return addon:process_bartender(binding, button)
+        end
+    end
+
+    -- Dominos
+    if C_AddOns.IsAddOnLoaded("Dominos") then
+        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
+            return addon:process_dominos(binding, button)
+        end
+    end
 
     -- OPie
     if C_AddOns.IsAddOnLoaded("OPie") then
@@ -1065,13 +1071,52 @@ end
 
 -- Sets and displays the interface action label
 function addon:create_action_labels(binding, button)
-
     -- Adjust the width of the readable_binding based on button width
     button.readable_binding:SetWidth(button:GetWidth() - 4)
 
-    local binding_name = _G["BINDING_NAME_" .. binding] or binding
+    local binding_name
+
+    -- Check if ElvUI is loaded and handle its bindings
+    if C_AddOns.IsAddOnLoaded("ElvUI") then
+        if binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$") then
+            local bar_index, button_index = binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$")
+            binding_name = "ElvUI ActionBar " .. bar_index .. " Button " .. button_index
+        end
+    end
+
+    -- Check if Dominos is loaded and handle its bindings
+    if C_AddOns.IsAddOnLoaded("Dominos") then
+        if binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$") then
+            local button_index = binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$")
+            binding_name = "Dominos Action Button " .. button_index
+        end
+    end
+
+    -- Check if BindPad is loaded and handle its bindings
+    if C_AddOns.IsAddOnLoaded("BindPad") then
+        if binding:match("^CLICK BindPadMacro:([^:]+)$") then
+            local macro_name = binding:match("^CLICK BindPadMacro:([^:]+)$")
+            binding_name = "BindPad Macro: " .. macro_name
+
+        elseif binding:match("^CLICK BindPadKey:SPELL (.+)$") then
+            local spell_name = binding:match("^CLICK BindPadKey:SPELL (.+)$")
+            binding_name = "BindPad Spell: " .. spell_name
+
+        elseif binding:match("^CLICK BindPadKey:ITEM (.+)$") then
+            local item_name = binding:match("^CLICK BindPadKey:ITEM (.+)$")
+            binding_name = "BindPad Item: " .. item_name
+        end
+    end
+
+    -- Fallback if no special pattern is matched
+    if not binding_name then
+        binding_name = _G["BINDING_NAME_" .. binding] or binding
+    end
+
+    -- Set the readable binding text
     button.readable_binding:SetText(binding_name)
 
+    -- Show the readable binding
     button.readable_binding:Show()
 end
 
