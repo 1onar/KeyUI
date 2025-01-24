@@ -762,13 +762,13 @@ function addon:set_key(button)
 
     -- BindPad
     if C_AddOns.IsAddOnLoaded("BindPad") then
-        keybind_patterns["^CLICK BindPadMacro:([%w%-]+)$"] = function(binding, button)
+        keybind_patterns["^CLICK BindPadMacro:([%w%-%s]+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
-        keybind_patterns["^CLICK BindPadKey:SPELL ([%w%-]+)$"] = function(binding, button)
+        keybind_patterns["^CLICK BindPadKey:SPELL ([%w%-%s]+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
-        keybind_patterns["^CLICK BindPadKey:ITEM ([%w%-]+)$"] = function(binding, button)
+        keybind_patterns["^CLICK BindPadKey:ITEM ([%w%-%s]+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
     end
@@ -1579,16 +1579,16 @@ local function rightclick_initialize(self, level)
                         info.func = function()
                             local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                             local spell = "Spell " .. spell_name
-                            local command = addon.current_clicked_key.binding
-                            local binding_name = _G["BINDING_NAME_" .. command] or command
+
+                            print(key)
+                            print(spell)
 
                             if addon.current_slot ~= nil then
                                 C_Spell.PickupSpell(spell_id)
                                 PlaceAction(addon.current_slot)
                                 ClearCursor()
                                 -- Print notification for new spell binding
-                                print("KeyUI: Bound |cffa335ee" ..
-                                    spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                                print("KeyUI: Bound |cffa335ee" .. pell_name .. "|r to |cffff8000" .. key"")
                             else
                                 SetBinding(key, spell)
                                 SaveBindings(2)
