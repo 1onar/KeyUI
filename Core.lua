@@ -724,14 +724,16 @@ function addon:set_key(button)
             return addon:process_shapeshift_slot(slot, button)
         end,
 
-        -- SPELL
+        -- Spell
         ["^Spell (.+)$"] = function(binding, button)
             local spell_name = binding:match("^Spell (.+)$")
             return addon:process_spell(spell_name, button)
         end,
-        ["^SPELL (.+)$"] = function(binding, button)
-            local spell_name = binding:match("^SPELL (.+)$")
-            return addon:process_spell(spell_name, button)
+
+        -- Macro
+        ["^Macro (.+)$"] = function(binding, button)
+            local macro_name = binding:match("^Macro (.+)$")
+            return addon:process_macro(macro_name, button)
         end,
     }
 
@@ -911,6 +913,8 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
 
     button.slot = slot
 
+    print(slot)
+
     -- Check if the slot has an action assigned
     if slot and HasAction(slot) then
         button.active_slot = slot
@@ -976,7 +980,7 @@ function addon:process_shapeshift_slot(slot, button)
     end
 end
 
--- Handles processing for SPELL bindings
+-- Handles processing for Spell bindings
 function addon:process_spell(spell_name, button)
     if not spell_name then return end
 
@@ -986,6 +990,19 @@ function addon:process_spell(spell_name, button)
     if spell_icon then
         button.icon:SetTexture(spell_icon)  -- Set the icon texture
         button.icon:Show()                  -- Show the icon
+    end
+end
+
+-- Handles processing for Macro bindings
+function addon:process_macro(macro_name, button)
+    if not macro_name then return end
+
+    -- Retrieve the macro's info
+    local name, icon = GetMacroInfo(macro_name)
+
+    if icon then
+        button.icon:SetTexture(icon)  -- Set the icon texture
+        button.icon:Show()            -- Show the icon
     end
 end
 
