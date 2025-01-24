@@ -651,21 +651,18 @@ function addon:set_key(button)
         end,
 
         -- ElvUI
-        ["^ELVUIBAR(%d+)BUTTON(%d+)$"] = function(binding, button)
-            local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
-            return addon:process_elvui(barIndex, buttonIndex, button)
+        ["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
+            return addon:process_elvui(binding, button)
         end,
 
         -- Bartender
         ["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
-            local slot = tonumber(binding:match("BT4Button(%d+)"))
-            return addon:process_bartender(slot, button)
+            return addon:process_bartender(binding, button)
         end,
 
         -- Dominos
-        ["^CLICK DominosActionButton(%d+):HOTKEY$"] = function(binding, button)
-            local slot = tonumber(binding:match("DominosActionButton(%d+)"))
-            return addon:process_dominos(slot, button)
+        ["^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$"] = function(binding, button)
+            return addon:process_dominos(binding, button)
         end,
     }
 
@@ -690,7 +687,11 @@ function addon:set_key(button)
     end
 
     -- Loop through the keybind patterns and process the binding if the binding is not empty
-    if binding then --and binding ~= "" then
+    if binding ~= "" then
+
+        -- Remove the highlight if the button has a binding
+        button.highlight:Hide()
+
         for pattern, handler in pairs(keybind_patterns) do
             if binding:find(pattern) then
                 handler(binding, button)
@@ -698,7 +699,7 @@ function addon:set_key(button)
             end
         end
 
-        -- Hadnle nterface action labels if the option is enabled
+        -- Handle interface action labels if the option is enabled
         if keyui_settings.show_interface_binds then
             addon:create_action_labels(binding, button)
         end
@@ -729,9 +730,6 @@ function addon:set_key(button)
         button.icon:Show()
     end
 
-    -- store the interface command (Blizzard Interface Commands)
-    --button.binding = binding                                          --needed?
-
     addon:update_button_key_text(button)
 end
 
@@ -741,7 +739,6 @@ function addon:reset_button_state(button)
     button.active_slot = nil
     button.icon:SetTexture(nil)
     button.icon:Hide()
-    button.highlight:Hide()
     button.readable_binding:Hide()
     button.readable_binding:SetText("")
 end
@@ -872,12 +869,6 @@ function addon:process_pet_action_slot(binding, button)
             button.spellid = nil
             button.pet_action_index = pet_action_index -- Set pet action index
         end
-    else
-        -- Handle empty buttons
-        button.icon:Hide()
-        button.slot = nil
-        button.spellid = nil
-        button.pet_action_index = nil
     end
 end
 
@@ -894,12 +885,6 @@ function addon:process_shapeshift_slot(slot, button)
         button.spellid = spellID             -- Store the spell ID
         button.is_active = is_active         -- Track whether the form is active
         button.is_castable = is_castable     -- Track whether the form is castable
-    else
-        -- Handle cases where no valid shapeshift form exists
-        button.icon:Hide()
-        button.spellid = nil
-        button.is_active = nil
-        button.is_castable = nil
     end
 end
 
@@ -913,36 +898,20 @@ function addon:process_spell(spell_name, button)
     if spell_icon then
         button.icon:SetTexture(spell_icon)  -- Set the icon texture
         button.icon:Show()                  -- Show the icon
-    else
-        button.icon:Hide()                  -- Hide the icon if not available
-        button.spellid = nil                -- Clear spell ID if no valid icon
     end
 end
 
 -- Handles processing for ElvUI action bar buttons
 function addon:process_elvui(binding, button)
-    -- Check if the binding matches the ElvUI action bar format
-    local elvui_binding = binding:find("^ELVUIBAR%d+BUTTON%d+$")
-    if elvui_binding then
-        local barIndex, buttonIndex = binding:match("ELVUIBAR(%d+)BUTTON(%d+)")
-
-        -- Fetch the corresponding ElvUI button
+    local barIndex, buttonIndex = binding:match("CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton")
+    if barIndex and buttonIndex then
         local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-
         if elvUIButton then
             local actionID = elvUIButton._state_action
-            -- Ensure the button is an action button and the actionID exists
             if elvUIButton._state_type == "action" and actionID then
-                local actionTexture = GetActionTexture(actionID)
-                if actionTexture then
-                    button.icon:SetTexture(actionTexture)  -- Set the action texture
-                    button.icon:Show()                     -- Show the icon
-                    button.slot = actionID                 -- Store the action ID in the button slot
-                else
-                    button.icon:Hide()                     -- Hide the icon if no valid texture is found
-                end
-            else
-                button.icon:Hide()  -- Hide the icon if not an action type or no actionID
+                button.icon:SetTexture(GetActionTexture(actionID))
+                button.icon:Show()
+                button.slot = actionID
             end
         end
     end
@@ -950,42 +919,27 @@ end
 
 -- Handles processing for Bartender 4 button bindings
 function addon:process_bartender(binding, button)
-    -- Check if the binding matches the BT4 action button format
     local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
-    if bt4_slot then
-        button.slot = tonumber(bt4_slot)  -- Set the slot for BT4Button
-        if HasAction(button.slot) then
-            button.active_slot = button.slot  -- Mark as active if an action exists for the slot
-            local actionTexture = GetActionTexture(button.slot)
-            if actionTexture then
-                button.icon:SetTexture(actionTexture)  -- Set the action icon
-                button.icon:Show()                     -- Show the icon
-            else
-                button.icon:Hide()                     -- Hide the icon if no action texture is found
-            end
-        else
-            button.icon:Hide()  -- Hide the icon if there's no action for the slot
-        end
+    button.slot = tonumber(bt4_slot)  -- Set the slot for BT4Button
+    if HasAction(button.slot) then
+        button.active_slot = button.slot -- Active if there's an action
+        button.icon:SetTexture(GetActionTexture(button.slot))
+        button.icon:Show()
     end
 end
 
 -- Handles processing for Dominos action button bindings
 function addon:process_dominos(binding, button)
-    -- Check if the binding matches the Dominos action button format
-    local dominos_slot = binding:match("CLICK DominosActionButton(%d+):HOTKEY")
+    local dominos_slot = tonumber(binding:match("DominosActionButton(%d+)"))
     if dominos_slot then
-        button.slot = tonumber(dominos_slot)  -- Set the slot for DominosActionButton
+        button.slot = dominos_slot  -- Set the slot for DominosActionButton
         if HasAction(button.slot) then
             button.active_slot = button.slot  -- Mark as active if an action exists for the slot
             local actionTexture = GetActionTexture(button.slot)
             if actionTexture then
                 button.icon:SetTexture(actionTexture)  -- Set the action icon
                 button.icon:Show()                     -- Show the icon
-            else
-                button.icon:Hide()                     -- Hide the icon if no action texture is found
             end
-        else
-            button.icon:Hide()  -- Hide the icon if there's no action for the slot
         end
     end
 end
@@ -1107,27 +1061,6 @@ function addon:update_button_key_text(button)
         -- Use the Regular font for shorter text
         button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
     end
-
-    --------------------------------------------------------------------------------------------------------------------
-
-    -- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
-    -- Can be translated to a readable format via _G["BINDING_NAME_" ...]
-
-    -- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
-
-    -- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
-    -- Can be made readable via _G["KEY_" ...]
-
-    -- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
-
-    -- button.slot              -- Stores the action slot ID associated with the binding, regardless of action presence
-
-    -- button.active_slot       -- Holds the action slot ID only if the slot contains an active action, otherwise nil
-
-    -- button.icon              -- Stores the icon texture ID for the action slot
-
-    --------------------------------------------------------------------------------------------------------------------
-
 end
 
 -- Sets and displays the interface action label
@@ -1136,20 +1069,8 @@ function addon:create_action_labels(binding, button)
     -- Adjust the width of the readable_binding based on button width
     button.readable_binding:SetWidth(button:GetWidth() - 4)
 
-    -- Check if the command corresponds to a Dominos action button
-    if binding and binding:match("CLICK DominosActionButton(%d+):HOTKEY") then
-        -- Handle the binding for Dominos action buttons
-        local dominos_slot = binding:match("DominosActionButton(%d+)")
-        if dominos_slot then
-            -- Set a custom label for Dominos buttons
-            local binding_name = "Dominos Button " .. dominos_slot -- Customize this as needed
-            button.readable_binding:SetText(binding_name)
-        end
-    else
-        -- Standard handling for other buttons
-        local binding_name = _G["BINDING_NAME_" .. binding] or binding
-        button.readable_binding:SetText(binding_name)
-    end
+    local binding_name = _G["BINDING_NAME_" .. binding] or binding
+    button.readable_binding:SetText(binding_name)
 
     button.readable_binding:Show()
 end
@@ -1160,7 +1081,7 @@ function addon:update_empty_binds(button)
     -- Check if the key is not on the excluded list
     if not addon.no_highlight[button.raw_key] then  -- Skip keys that are in the excluded list
         button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\red_bg")  -- Apply a red background to indicate empty keys
-        button.highlight:SetSize(button.raw_key:GetWidth() - 10, button.raw_key:GetHeight() - 10)  -- Adjust the highlight size to fit the key dimensions with a margin
+        button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Adjust the highlight size to fit the key dimensions with a margin
         button.highlight:Show()  -- Display the highlight for the key
     end
 end
@@ -1736,3 +1657,22 @@ end)
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
 SlashCmdList["KeyUI"] = function() addon:load() end
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+-- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
+-- Can be translated to a readable format via _G["BINDING_NAME_" ...]
+
+-- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
+
+-- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
+-- Can be made readable via _G["KEY_" ...]
+
+-- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
+
+-- button.slot              -- Stores the action slot ID associated with the binding, regardless of action presence
+
+-- button.active_slot       -- Holds the action slot ID only if the slot contains an active action, otherwise nil
+
+-- button.icon              -- Stores the icon texture ID for the action slot
