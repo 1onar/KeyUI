@@ -670,6 +670,16 @@ function addon:button_mouse_over(button)
         GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
         GameTooltip:SetAction(addon.current_hovered_button.active_slot) -- Use SetAction for ActionButtons
         GameTooltip:Show()
+    elseif addon.current_hovered_button.spellid then
+        GameTooltip:SetOwner(addon.current_hovered_button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetSpellByID(addon.current_hovered_button.spellid)
+        GameTooltip:Show()
+    elseif addon.current_hovered_button.pet_action_index then
+        GameTooltip:SetOwner(addon.current_hovered_button, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", button, "BOTTOMLEFT")
+        GameTooltip:SetPetAction(addon.current_hovered_button.pet_action_index)
+        GameTooltip:Show()
     else
         -- Hide the GameTooltip if no active slot is found
         GameTooltip:Hide()
