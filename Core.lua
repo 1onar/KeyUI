@@ -707,11 +707,12 @@ function addon:set_key(button)
             return addon:process_actionbutton_slot(slot, button)
         end,
 
-        -- MULTIACTIONBARBUTTON
-        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
-            local bar, bar2 = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
-            return addon:process_multiactionbar_slot(bar, bar2, button)
-        end,
+    -- MULTIACTIONBARBUTTON
+    ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
+        local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+        if not bar or not bar_button then return end
+        return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
+    end,
 
         -- BONUSACTIONBUTTON
         ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
@@ -909,11 +910,11 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
         slot = 156 + bar_button
     elseif bar == 7 then
         slot = 168 + bar_button
+    else
+        return
     end
 
     button.slot = slot
-
-    print(slot)
 
     -- Check if the slot has an action assigned
     if slot and HasAction(slot) then
