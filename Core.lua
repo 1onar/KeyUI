@@ -787,9 +787,6 @@ function addon:set_key(button)
     -- Loop through the keybind patterns and process the binding if the binding is not empty
     if binding ~= "" then
 
-        -- Remove the highlight if the button has a binding
-        button.highlight:Hide()
-
         for pattern, handler in pairs(keybind_patterns) do
             if binding:find(pattern) then
                 handler(binding, button)
@@ -814,33 +811,41 @@ function addon:set_key(button)
             button.icon:Show()
         end
 
-        -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
-        local modifiers = {
-            LALT = true,
-            RALT = true,
-            LCTRL = true,
-            RCTRL = true,
-            LSHIFT = true,
-            RSHIFT = true,
-        }
-
-        -- Check for modifiers (if key is a modifier, highlight it when pressed)
-        if modifiers[binding] then
-            -- Check if the modifier is actually pressed
-            local mod = binding:match("([A-Z]+)")  -- Extract the modifier part (e.g., "LALT", "LSHIFT")
-            if mod and addon.modif[mod] then
-                -- Highlight the button (as a modifier key) if it's pressed
-                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
-                button.highlight:Show()
-            end
-        end
-
         -- Handle interface action labels
         addon:create_action_labels(binding, button)
     else
         -- Handle empty bindings if the option is enabled
         if keyui_settings.show_empty_binds then
             addon:update_empty_binds(button)
+        end
+
+        -- Highlight the modifier button if it is pressed
+        if keyui_settings.listen_to_modifier == true then
+
+            local function highlight_modifier_button(button)
+                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
+                button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)
+                button.highlight:Show()
+            end
+
+            if IsLeftAltKeyDown() and button.raw_key == "LALT" then
+                highlight_modifier_button(button)
+            end
+            if IsRightAltKeyDown() and button.raw_key == "RALT" then
+                highlight_modifier_button(button)
+            end
+            if IsLeftControlKeyDown() and button.raw_key == "LCTRL" then
+                highlight_modifier_button(button)
+            end
+            if IsRightControlKeyDown() and button.raw_key == "RCTRL" then
+                highlight_modifier_button(button)
+            end
+            if IsLeftShiftKeyDown() and button.raw_key == "LSHIFT" then
+                highlight_modifier_button(button)
+            end
+            if IsRightShiftKeyDown() and button.raw_key == "RSHIFT" then
+                highlight_modifier_button(button)
+            end
         end
     end
 
@@ -856,7 +861,7 @@ function addon:reset_button_state(button)
     button.icon:Hide()
     button.readable_binding:Hide()
     button.readable_binding:SetText("")
-    button.highlight:Show()
+    button.highlight:Hide()
 end
 
 -- Retrieves the binding action
