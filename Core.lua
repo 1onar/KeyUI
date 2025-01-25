@@ -797,6 +797,23 @@ function addon:set_key(button)
             end
         end
 
+        -- Check for specific bindings and set the icon
+        local specific_bindings = {
+            EXTRAACTIONBUTTON1 = 4200126,
+            MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
+            MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
+            STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
+            STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_right",
+            TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_left",
+            TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
+        }
+
+        if specific_bindings[binding] then
+            button.icon:SetTexture(specific_bindings[binding])
+            button.icon:SetSize(30, 30)
+            button.icon:Show()
+        end
+
         -- Handle interface action labels
         addon:create_action_labels(binding, button)
     else
@@ -804,28 +821,10 @@ function addon:set_key(button)
         if keyui_settings.show_empty_binds then
             addon:update_empty_binds(button)
         end
-
-        addon:update_button_key_text(button)
         return
     end
 
-    -- Check for specific bindings and set the icon
-    local specific_bindings = {
-        EXTRAACTIONBUTTON1 = 4200126,
-        MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
-        MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
-        STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
-        STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_right",
-        TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_left",
-        TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
-    }
-
-    if specific_bindings[binding] then
-        button.icon:SetTexture(specific_bindings[binding])
-        button.icon:SetSize(30, 30)
-        button.icon:Show()
-    end
-
+    -- Update key text at the end
     addon:update_button_key_text(button)
 end
 
