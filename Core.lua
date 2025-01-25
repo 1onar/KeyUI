@@ -768,13 +768,18 @@ function addon:set_key(button)
 
     -- BindPad
     if C_AddOns.IsAddOnLoaded("BindPad") then
-        keybind_patterns["^CLICK BindPadMacro:([%w%-%s]+)$"] = function(binding, button)
+        -- Macro names can include anything; capture everything after "BindPadMacro:"
+        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
-        keybind_patterns["^CLICK BindPadKey:SPELL ([%w%-%s]+)$"] = function(binding, button)
+
+        -- Spell names can also be arbitrary; capture everything after "BindPadKey:SPELL "
+        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
-        keybind_patterns["^CLICK BindPadKey:ITEM ([%w%-%s]+)$"] = function(binding, button)
+
+        -- Item names can be arbitrary; capture everything after "BindPadKey:ITEM "
+        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
             return addon:process_bindpad(binding, button)
         end
     end
