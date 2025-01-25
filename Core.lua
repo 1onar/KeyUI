@@ -814,6 +814,27 @@ function addon:set_key(button)
             button.icon:Show()
         end
 
+    -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
+    local modifiers = {
+        LALT = true,
+        RALT = true,
+        LCTRL = true,
+        RCTRL = true,
+        LSHIFT = true,
+        RSHIFT = true,
+    }
+
+    -- Check for modifiers (if key is a modifier, highlight it when pressed)
+    if modifiers[binding] then
+        -- Check if the modifier is actually pressed
+        local mod = binding:match("([A-Z]+)")  -- Extract the modifier part (e.g., "LALT", "LSHIFT")
+        if mod and addon.modif[mod] then
+            -- Highlight the button (as a modifier key) if it's pressed
+            button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
+            button.highlight:Show()
+        end
+    end
+
         -- Handle interface action labels
         addon:create_action_labels(binding, button)
     else
@@ -836,6 +857,7 @@ function addon:reset_button_state(button)
     button.icon:Hide()
     button.readable_binding:Hide()
     button.readable_binding:SetText("")
+    button.highlight:Show()
 end
 
 -- Retrieves the binding action
@@ -1296,42 +1318,6 @@ local function handle_key_press(key)
         end
     end
 
-    -- Update background color for the pressed key (keyboard, mouse, and controller buttons)
-    local function update_key_background(buttons, input_type)
-        for _, button in pairs(buttons) do
-            if button.raw_key == key then
-                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
-
-                -- Adjust highlight size and positioning based on the input type
-                if input_type == "mouse" then
-                    -- Mouse button size adjustment
-                    button.highlight:SetSize(button:GetWidth() - 6, button:GetHeight() - 6)  -- Smaller margin for mouse keys
-                    button.highlight:SetPoint("CENTER", button, "CENTER")  -- Center the highlight on the button
-                elseif input_type == "keyboard" then
-                    -- Keyboard button size adjustment
-                    button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Larger margin for keyboard keys
-                elseif input_type == "controller" then
-                    -- Controller button size adjustment
-                    button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)  -- Larger margin for controller keys
-                end
-
-                -- Show the highlight for the pressed key
-                button.highlight:Show()
-            end
-        end
-    end
-
-    -- Update highlights for keyboard, mouse, and controller buttons
-    if addon.keyboard_buttons then
-        update_key_background(addon.keyboard_buttons, "keyboard")
-    end
-    if addon.mouse_buttons then
-        update_key_background(addon.mouse_buttons, "mouse")
-    end
-    if addon.controller_buttons then
-        update_key_background(addon.controller_buttons, "controller")
-    end
-
     -- Refresh modifiers and keys
     addon:update_modifier_string()
     addon:refresh_keys()
@@ -1348,31 +1334,6 @@ local function handle_key_release(key)
         -- Uncheck the control frame checkbox
         if addon.controls_frame and addon.controls_frame[modifier_data.control_key] then
             addon.controls_frame[modifier_data.control_key]:SetChecked(false)
-        end
-
-        -- Reset background color for the released key on both keyboard and mouse
-        if addon.keyboard_buttons then
-            for _, keyboard_button in pairs(addon.keyboard_buttons) do
-                if keyboard_button.raw_key == key then
-                    keyboard_button.highlight:Hide()
-                end
-            end
-        end
-
-        if addon.mouse_buttons then
-            for _, mouse_button in pairs(addon.mouse_buttons) do
-                if mouse_button.raw_key == key then
-                    mouse_button.highlight:Hide()
-                end
-            end
-        end
-
-        if addon.controller_buttons then
-            for _, controller_button in pairs(addon.controller_buttons) do
-                if controller_button.raw_key == key then
-                    controller_button.highlight:Hide()
-                end
-            end
         end
     end
 
