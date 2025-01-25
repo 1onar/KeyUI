@@ -707,12 +707,12 @@ function addon:set_key(button)
             return addon:process_actionbutton_slot(slot, button)
         end,
 
-    -- MULTIACTIONBARBUTTON
-    ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
-        local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
-        if not bar or not bar_button then return end
-        return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
-    end,
+        -- MULTIACTIONBARBUTTON
+        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
+            local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+            if not bar or not bar_button then return end
+            return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
+        end,
 
         -- BONUSACTIONBUTTON
         ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
@@ -814,26 +814,26 @@ function addon:set_key(button)
             button.icon:Show()
         end
 
-    -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
-    local modifiers = {
-        LALT = true,
-        RALT = true,
-        LCTRL = true,
-        RCTRL = true,
-        LSHIFT = true,
-        RSHIFT = true,
-    }
+        -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
+        local modifiers = {
+            LALT = true,
+            RALT = true,
+            LCTRL = true,
+            RCTRL = true,
+            LSHIFT = true,
+            RSHIFT = true,
+        }
 
-    -- Check for modifiers (if key is a modifier, highlight it when pressed)
-    if modifiers[binding] then
-        -- Check if the modifier is actually pressed
-        local mod = binding:match("([A-Z]+)")  -- Extract the modifier part (e.g., "LALT", "LSHIFT")
-        if mod and addon.modif[mod] then
-            -- Highlight the button (as a modifier key) if it's pressed
-            button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
-            button.highlight:Show()
+        -- Check for modifiers (if key is a modifier, highlight it when pressed)
+        if modifiers[binding] then
+            -- Check if the modifier is actually pressed
+            local mod = binding:match("([A-Z]+)")  -- Extract the modifier part (e.g., "LALT", "LSHIFT")
+            if mod and addon.modif[mod] then
+                -- Highlight the button (as a modifier key) if it's pressed
+                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
+                button.highlight:Show()
+            end
         end
-    end
 
         -- Handle interface action labels
         addon:create_action_labels(binding, button)
@@ -842,7 +842,6 @@ function addon:set_key(button)
         if keyui_settings.show_empty_binds then
             addon:update_empty_binds(button)
         end
-        return
     end
 
     -- Update key text at the end
