@@ -435,6 +435,8 @@ function addon:create_keyboard_buttons()
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:EnableGamePadButton(true)
+    keyboard_button:SetMovable(true)
+    keyboard_button:SetClampedToScreen(true)
 
     -- Create the backdrop for the background only (no edge)
     local backdropInfo = {
@@ -544,13 +546,14 @@ function addon:create_keyboard_buttons()
     end)
 
     -- Define behavior for mouse down actions (left-click).
-    keyboard_button:SetScript("OnMouseDown", function(self, Mousebutton)
+    keyboard_button:SetScript("OnMouseDown", function(self, mousebutton)
 
         local slot = self.slot
 
-        if Mousebutton == "LeftButton" then
+        if mousebutton == "LeftButton" then
             if addon.keyboard_locked == false then
-                return
+                addon:handle_drag_or_size(self, mousebutton)
+                addon.keys_keyboard_edited = true
             else
                 if slot then
                     PickupAction(slot)
@@ -558,15 +561,19 @@ function addon:create_keyboard_buttons()
             end
         else
             if addon.keyboard_locked == false then
-                addon:handle_key_down(self, Mousebutton)
+                addon:handle_key_down(self, mousebutton)
                 addon.keys_keyboard_edited = true
             end
         end
     end)
 
     -- Define behavior for mouse up actions (left-click and right-click).
-    keyboard_button:SetScript("OnMouseUp", function(self, Mousebutton)
-        if Mousebutton == "RightButton" then
+    keyboard_button:SetScript("OnMouseUp", function(self, mousebutton)
+        if mousebutton == "LeftButton" then
+            if addon.keyboard_locked == false then
+                addon:handle_release(self, mousebutton)
+            end
+        elseif mousebutton == "RightButton" then
             addon.current_clicked_key = self    -- save the current clicked key
             addon.current_slot = self.slot      -- save the current clicked slot
             ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)

@@ -360,6 +360,8 @@ function addon:create_mouse_buttons()
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
     mouse_button:EnableGamePadButton(true)
+    mouse_button:SetMovable(true)
+    mouse_button:SetClampedToScreen(true)
 
     -- Add Background Texture
     local background = mouse_button:CreateTexture(nil, "BACKGROUND")
@@ -374,9 +376,6 @@ function addon:create_mouse_buttons()
     border:SetAtlas("UI-HUD-ActionBar-IconFrame")
     border:SetAllPoints()
     mouse_button.border = border
-
-    mouse_button:SetMovable(true)
-    mouse_button:SetClampedToScreen(true)
 
     -- Mouse Keybind text string on the top right of the button (e.g. a-c-s-1)
     mouse_button.short_key = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -468,13 +467,13 @@ function addon:create_mouse_buttons()
         end
     end)
 
-    mouse_button:SetScript("OnMouseDown", function(self, button)
+    mouse_button:SetScript("OnMouseDown", function(self, mousebutton)
 
         local slot = self.slot
 
-        if button == "LeftButton" then
+        if mousebutton == "LeftButton" then
             if addon.mouse_locked == false then
-                addon:handle_drag_or_size(self, button)
+                addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_mouse_edited = true
             else
                 if slot then
@@ -483,18 +482,18 @@ function addon:create_mouse_buttons()
             end
         else
             if addon.mouse_locked == false then
-                addon:handle_key_down(self, button)
+                addon:handle_key_down(self, mousebutton)
                 addon.keys_mouse_edited = true
             end
         end
     end)
 
-    mouse_button:SetScript("OnMouseUp", function(self, button)
-        if button == "LeftButton" then
+    mouse_button:SetScript("OnMouseUp", function(self, mousebutton)
+        if mousebutton == "LeftButton" then
             if addon.mouse_locked == false then
-                addon:handle_release(self, button)
+                addon:handle_release(self, mousebutton)
             end
-        elseif button == "RightButton" then
+        elseif mousebutton == "RightButton" then
             addon.current_clicked_key = self    -- save the current clicked key
             addon.current_slot = self.slot      -- save the current clicked slot
             ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)

@@ -1195,14 +1195,9 @@ function addon:create_edit_layout_dialog()
 
         -- Add instructions for all device types
         instructions = instructions ..
-            "- Hover over a button and press a key to bind it.\n"
-
-        -- Add additional instructions for mouse or controller
-        if addon.active_control_tab == "mouse" or addon.active_control_tab == "controller" then
-            instructions = instructions ..
-                "- Drag keys with the left mouse button.\n" ..
-                "- Remove keys by holding Shift and left-clicking.\n"
-        end
+            "- Hover over a button and press a key to bind it.\n" ..
+            "- Drag keys with the left mouse button.\n" ..
+            "- Remove keys by holding Shift and left-clicking.\n"
 
         -- Update title and instruction text
         dialog_frame.title:SetText(string.format("Edit %s Layout", device_name))
