@@ -1,26 +1,39 @@
+-- The 'addon.default_keyboard_layouts' table stores different default keyboard layouts for the addon. 
+-- Each layout is represented by a key-value pair where the key is the layout name 
+-- and the value is a table describing the positions and sizes of each key.
+
+-- Key size variables are defined for various sizes of keys used across the layouts.
+-- These variables are used to position and size the keys dynamically.
+
+-- Button name  (column 1): The name of the button or key, such as 'ESCAPE', 'F1', '1', etc.
+-- X position   (column 2): The horizontal position of the key on the layout (measured in pixels).
+-- Y position   (column 3): The vertical position of the key on the layout (measured in pixels).
+-- Width        (column 4): The width of the key in the layout (measured in pixels).
+-- Height       (column 5): The height of the key in the layout (measured in pixels).
+-- Icon Width   (column 6): The width of the icon displayed on the key if needed (measured in pixels).
+-- Icon Height  (column 7): The height of the icon displayed on the key if needed (measured in pixels).
+
 local name, addon = ...
 
 -- Define key sizes
-local u = 60
-local u1_25 = 1.25 * u
-local u1_5 = 1.5 * u
-local u1_75 = 1.75 * u
-local u2 = 2 * u + 2
-local u2_25 = 2.25 * u
-local u2_75 = 2.75 * u
-local u6_25 = 6.25 * u + 8
+local u = 60                    -- Standard unit size for keys
+local u1_25 = 1.25 * u          -- 125% of standard size
+local u1_5 = 1.5 * u            -- 150% of standard size
+local u1_75 = 1.75 * u          -- 175% of standard size
+local u2 = 2 * u + 2            -- 200% of standard size
+local u2_25 = 2.25 * u          -- 225% of standard size
+local u2_75 = 2.75 * u          -- 275% of standard size
+local u6_25 = 6.25 * u + 8      -- 625% of standard size
 
 addon.default_keyboard_layouts = {
 
     -- ISO --
-
     -- QWERTZ --
-
     ['QWERTZ_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -156,12 +169,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1148, -316, u2,        u },
         { 'NUMPADDECIMAL',  1272, -316, u,         u },
     },
-
     ['QWERTZ_96%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -279,12 +291,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        998,  -316, u,         u },
         { 'NUMPADDECIMAL',  1060, -316, u,         u },
     },
-
     ['QWERTZ_80%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,    -6,   u,         u },
+        { 'ESCAPE',      6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -397,12 +408,11 @@ addon.default_keyboard_layouts = {
         { 'UP',          1011, -254, u,         u },
         { 'RIGHT',       1073, -316, u,         u },
     },
-
     ['QWERTZ_75%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -503,12 +513,11 @@ addon.default_keyboard_layouts = {
         { 'DOWN',        874, -316, u,         u },
         { 'RIGHT',       936, -316, u,         u },
     },
-
     ['QWERTZ_60%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         { '1',         68,  -6,   u,         u },
         { '2',         130, -6,   u,         u },
         { '3',         192, -6,   u,         u },
@@ -583,12 +592,11 @@ addon.default_keyboard_layouts = {
         { 'MENU',      782, -254, u1_25,     u },
         { 'RCTRL',     859, -254, u1_25,     u },
     },
-
     ['QWERTZ_1800'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -707,12 +715,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1018, -316, u,         u },
         { 'NUMPADDECIMAL',  1080, -316, u,         u },
     },
-
     ['QWERTZ_HALF'] = {
 
         -- 1 row
 
-        { 'ESCAPE',      6,   -6,   u,         u },
+        { 'ESCAPE',   6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -768,12 +775,11 @@ addon.default_keyboard_layouts = {
         { 'LALT',     163, -316, u1_25 + 1, u },
         { 'SPACE',    241, -316, 245,       u },
     },
-
     ['QWERTZ_PRIMARY'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -867,16 +873,13 @@ addon.default_keyboard_layouts = {
         { 'MENU',      782, -316, u1_25,     u },
         { 'RCTRL',     859, -316, u1_25,     u },
     },
-
     --
-
     -- AZERTY --
-
     ['AZERTY_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1013,12 +1016,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1148, -316, u2,        u },
         { 'NUMPADDECIMAL',  1272, -316, u,         u },
     },
-
     ['AZERTY_96%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -1136,12 +1138,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        998,  -316, u,         u },
         { 'NUMPADDECIMAL',  1060, -316, u,         u },
     },
-
     ['AZERTY_80%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,    -6,   u,         u },
+        { 'ESCAPE',      6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -1254,12 +1255,11 @@ addon.default_keyboard_layouts = {
         { 'UP',          1011, -254, u,         u },
         { 'RIGHT',       1073, -316, u,         u },
     },
-
     ['AZERTY_75%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -1360,12 +1360,11 @@ addon.default_keyboard_layouts = {
         { 'DOWN',        874, -316, u,         u },
         { 'RIGHT',       936, -316, u,         u },
     },
-
     ['AZERTY_60%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         { '&',         68,  -6,   u,         u },
         { 'é',         130, -6,   u,         u },
         { '"',         192, -6,   u,         u },
@@ -1440,12 +1439,11 @@ addon.default_keyboard_layouts = {
         { 'MENU',      782, -254, u1_25,     u },
         { 'RCTRL',     859, -254, u1_25,     u },
     },
-
     ['AZERTY_1800'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1564,12 +1562,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1018, -316, u,         u },
         { 'NUMPADDECIMAL',  1080, -316, u,         u },
     },
-
     ['AZERTY_HALF'] = {
 
         -- 1 row
 
-        { 'ESCAPE',      6,   -6,   u,         u },
+        { 'ESCAPE',   6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -1625,12 +1622,11 @@ addon.default_keyboard_layouts = {
         { 'LALT',     163, -316, u1_25 + 1, u },
         { 'SPACE',    241, -316, 245,       u },
     },
-
     ['AZERTY_PRIMARY'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -1724,20 +1720,16 @@ addon.default_keyboard_layouts = {
         { 'MENU',      782, -316, u1_25,     u },
         { 'RCTRL',     859, -316, u1_25,     u },
     },
-
     --
-
     --
 
     -- ANSI --
-
     -- QWERTY --
-
     ['QWERTY_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -1876,7 +1868,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         { 'F1',             68,   -6,   u,         u },
         { 'F2',             130,  -6,   u,         u },
         { 'F3',             192,  -6,   u,         u },
@@ -1997,7 +1989,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,    -6,   u,         u },
+        { 'ESCAPE',      6,    -6,   u,         u },
         -- 1u gap
         { 'F1',          130,  -6,   u,         u },
         { 'F2',          192,  -6,   u,         u },
@@ -2112,7 +2104,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',         6,   -6,   u,         u },
+        { 'ESCAPE',      6,   -6,   u,         u },
         { 'F1',          68,  -6,   u,         u },
         { 'F2',          130, -6,   u,         u },
         { 'F3',          192, -6,   u,         u },
@@ -2216,7 +2208,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         { '1',         68,  -6,   u,         u },
         { '2',         130, -6,   u,         u },
         { '3',         192, -6,   u,         u },
@@ -2294,7 +2286,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2416,7 +2408,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',      6,   -6,   u,         u },
+        { 'ESCAPE',   6,   -6,   u,         u },
         -- 1u gap
         { 'F1',       130, -6,   u,         u },
         { 'F2',       192, -6,   u,         u },
@@ -2475,7 +2467,7 @@ addon.default_keyboard_layouts = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -2567,18 +2559,15 @@ addon.default_keyboard_layouts = {
         { 'MENU',      782, -316, u1_25,     u },
         { 'RCTRL',     859, -316, u1_25,     u },
     },
-
     --
-
     --
 
     -- DVORAK --
-
     ['DVORAK_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2714,12 +2703,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1148, -316, u2,        u },
         { 'NUMPADDECIMAL',  1272, -316, u,         u },
     },
-
     ['DVORAK_PRIMARY'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -2812,12 +2800,11 @@ addon.default_keyboard_layouts = {
         { 'MENU',      780, -316, u,         u },
         { 'RCTRL',     842, -316, u1_5 + 2,  u },
     },
-
     ['DVORAK_RIGHT_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -2953,12 +2940,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1148, -316, u2,        u },
         { 'NUMPADDECIMAL',  1272, -316, u,         u },
     },
-
     ['DVORAK_RIGHT_PRIMARY'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -3051,12 +3037,11 @@ addon.default_keyboard_layouts = {
         { 'MENU',      780, -316, u,         u },
         { 'RCTRL',     842, -316, u1_5 + 2,  u },
     },
-
     ['DVORAK_LEFT_100%'] = {
 
         -- 1 row
 
-        { 'ESCAPE',            6,    -6,   u,         u },
+        { 'ESCAPE',         6,    -6,   u,         u },
         -- 1u gap
         { 'F1',             130,  -6,   u,         u },
         { 'F2',             192,  -6,   u,         u },
@@ -3192,12 +3177,11 @@ addon.default_keyboard_layouts = {
         { 'NUMPAD0',        1148, -316, u2,        u },
         { 'NUMPADDECIMAL',  1272, -316, u,         u },
     },
-
     ['DVORAK_LEFT_PRIMARY'] = {
 
         -- 1 row
 
-        { 'ESCAPE',       6,   -6,   u,         u },
+        { 'ESCAPE',    6,   -6,   u,         u },
         -- 1u gap
         { 'F1',        130, -6,   u,         u },
         { 'F2',        192, -6,   u,         u },
@@ -3290,11 +3274,9 @@ addon.default_keyboard_layouts = {
         { 'MENU',      780, -316, u,         u },
         { 'RCTRL',     842, -316, u1_5 + 2,  u },
     },
-
     --
 
     -- RAZER --
-
     ['Tartarus_v1'] = {
 
         { 'TAB',      6,   -16,  u, u },
@@ -3315,7 +3297,6 @@ addon.default_keyboard_layouts = {
         { 'C',        192, -130, u, u },
         { 'V',        254, -130, u, u },
     },
-
     ['Tartarus_v2'] = {
 
         { '1',        6,   -16,  u, u },
@@ -3341,11 +3322,9 @@ addon.default_keyboard_layouts = {
         { 'X',        130, -192, u, u },
         { 'C',        192, -192, u, u },
     },
-
     --
 
     -- AZERON --
-
     ['Cyborg'] = {
 
         { 'I',     130, -6,   u, u },
@@ -3380,7 +3359,6 @@ addon.default_keyboard_layouts = {
         { '=',     316, -316, u, u },
         { 'ESCAPE',   378, -316, u, u },
     },
-
     ['Cyborg_II'] = {
 
         { 'UP',    378, -6,   u, u },
@@ -3424,11 +3402,9 @@ addon.default_keyboard_layouts = {
         { 'M',     254, -316, u, u },
         { '=',     378, -316, u, u },
     },
-
     --
 
     -- ZSA --
-
     ['Moonlander_MK_I'] = {
 
         -- Row 1 left half
@@ -3543,7 +3519,55 @@ addon.default_keyboard_layouts = {
         { 'TAB',       688,  -328, u, u },
         { 'ENTER',     750,  -328, u, u },
     },
-
     --
 
+    -- LOGITECH --
+    ['G13'] = {
+
+        -- 1 row
+
+        { 'G1',        6,   -6,   u,         u },
+        { 'G2',        68,  -6,   u,         u },
+        { 'G3',        130, -6,   u,         u },
+        { 'G4',        192, -6,   u,         u },
+        { 'G5',        254, -6,   u,         u },
+        { 'G6',        316, -6,   u,         u },
+        { 'G7',        378, -6,   u,         u },
+
+        -- 2 row
+
+        { 'G8',        6,   -68,   u,        u },
+        { 'G9',        68,  -68,   u,        u },
+        { 'G10',       130, -68,   u,        u },
+        { 'G11',       192, -68,   u,        u },
+        { 'G12',       254, -68,   u,        u },
+        { 'G13',       316, -68,   u,        u },
+        { 'G14',       378, -68,   u,        u },
+
+        -- 3 row
+
+        { 'G15',       68,  -130,  u,        u },
+        { 'G16',       130, -130,  u,        u },
+        { 'G17',       192, -130,  u,        u },
+        { 'G18',       254, -130,  u,        u },
+        { 'G19',       316, -130,  u,        u },
+
+        -- 4 row
+
+        { 'G20',       130, -192,  u,        u },
+        { 'G21',       192, -192,  u,        u },
+        { 'G22',       254, -192,  u,        u },
+
+        -- Thumb
+
+        { '',          316, -285,  u,        u },               -- Button
+        { '',          378, -295, 40,       40,     30, 30 },   -- Left
+        { '',          420, -295, 40,       40,     30, 30 },   -- Click
+        { '',          462, -295, 40,       40,     30, 30 },   -- Right
+        { '',          420, -253, 40,       40,     30, 30 },   -- Up
+        { '',          420, -337, 40,       40,     30, 30 },   -- Down
+        { '',          410, -379,  u,        u },               -- Button
+
+    },
+    --
 }

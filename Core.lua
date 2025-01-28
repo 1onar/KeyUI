@@ -1157,8 +1157,16 @@ function addon:update_button_key_text(button)
 
     -- Set the short key format if button.short_key exists
     if button.short_key then
-        -- Adjust the width of the short_key based on button width
-        button.short_key:SetWidth(button:GetWidth() - 6)
+
+        -- Check if the button's width or height is 42 or less
+        if (button:GetWidth() <= 42) or (button:GetHeight() <= 42) then
+            -- Hide the short_key if the button is too small
+            button.short_key:Hide()
+        else
+            -- Adjust the width of the short_key based on the button's width
+            button.short_key:SetWidth(button:GetWidth() - 6)
+            button.short_key:Show() -- Ensure it is visible if not hidden
+        end
 
         -- Check if the key should be displayed without modifiers
         if addon.no_modifier_keys[original_text] then

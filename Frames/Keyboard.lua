@@ -272,13 +272,15 @@ function addon:save_keyboard_layout(layout_name)
         -- Iterate through all keyboard buttons to save their data
         for _, button in ipairs(addon.keys_keyboard) do
             if button:IsVisible() then
-                -- Save button properties: label, position, width, and height
+                -- Save button properties: label, position, width, height, and icon sizes
                 keyui_settings.layout_edited_keyboard[name][#keyui_settings.layout_edited_keyboard[name] + 1] = {
-                    button.raw_key,                                                 -- Button name
-                    floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position
-                    floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position
-                    floor(button:GetWidth() + 0.5),                                 -- Width
-                    floor(button:GetHeight() + 0.5)                                 -- Height
+                    button.raw_key,                                                 -- Button name (column 1)
+                    floor(button:GetLeft() - addon.keyboard_frame:GetLeft() + 0.5), -- X position (column 2)
+                    floor(button:GetTop() - addon.keyboard_frame:GetTop() + 0.5),   -- Y position (column 3)
+                    floor(button:GetWidth() + 0.5),                                 -- Width (column 4)
+                    floor(button:GetHeight() + 0.5),                                -- Height (column 5)
+                    floor(button.icon:GetWidth() + 0.5),                            -- Icon Width (column 6)
+                    floor(button.icon:GetHeight() + 0.5)                            -- Icon Height (column 7)
                 }
             end
         end
@@ -371,8 +373,22 @@ function addon:generate_keyboard_key_frames()
                         button:SetWidth(button_data[4])
                         button:SetHeight(button_data[5])
                     else
-                        button:SetWidth(60)
-                        button:SetHeight(60)
+                        button:SetWidth(60)     -- Default width
+                        button:SetHeight(60)    -- Default height
+                    end
+
+                    -- Check if custom icon sizes are provided.
+                    local icon_width = button_data[6]
+                    local icon_height = button_data[7]
+
+                    if icon_width and icon_height then
+                        -- Use custom icon size if specified.
+                        button.icon:SetWidth(icon_width)
+                        button.icon:SetHeight(icon_height)
+                    else
+                        -- Use default icon size based on the key size.
+                        button.icon:SetWidth(50)
+                        button.icon:SetHeight(50)
                     end
 
                     -- Store the key in the array if it's not already present.
@@ -461,7 +477,7 @@ function addon:create_keyboard_buttons()
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
-    keyboard_button.icon:SetSize(50, 50)
+    --keyboard_button.icon:SetSize(50, 50)
     keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
     keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 
