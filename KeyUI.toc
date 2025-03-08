@@ -1,5 +1,6 @@
 ## Interface: 110105
 ## Author: Blandros
+## Category: Action Bars
 ## Version: @project-version@
 ## X-Curse-Project-ID: 913973
 ## X-WoWI-ID: 26644
