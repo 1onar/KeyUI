@@ -241,7 +241,7 @@ function addon:create_selection_frame()
         texture:SetAllPoints(frame)
 
         -- Border frame to be toggled with selected texture from Editmode
-        local border_frame = CreateFrame("Frame", nil, frame, "GlowBorderTemplate")
+        local border_frame = CreateFrame("Frame", nil, frame)
         border_frame:SetSize(frame_width, frame_height)
         border_frame:SetPoint("CENTER", frame, "CENTER")
 

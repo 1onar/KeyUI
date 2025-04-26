@@ -54,7 +54,7 @@ function addon:create_controller_frame()
     controller_frame:SetClampedToScreen(true)
 
     -- Border frame to be toggled with selected texture from Editmode
-    controller_frame.edit_frame = CreateFrame("Frame", nil, controller_frame, "GlowBorderTemplate")
+    controller_frame.edit_frame = CreateFrame("Frame", nil, controller_frame)
     controller_frame.edit_frame:SetSize(controller_frame:GetWidth(), controller_frame:GetHeight())
     controller_frame.edit_frame:SetPoint("CENTER", controller_frame, "CENTER")
     controller_frame.edit_frame:Hide()

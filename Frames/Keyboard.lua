@@ -55,7 +55,7 @@ function addon:create_keyboard_frame()
     keyboard_frame:SetClampedToScreen(true)
 
     -- Border frame to be toggled with selected texture from Editmode
-    keyboard_frame.edit_frame = CreateFrame("Frame", nil, keyboard_frame, "GlowBorderTemplate")
+    keyboard_frame.edit_frame = CreateFrame("Frame", nil, keyboard_frame)
     keyboard_frame.edit_frame:SetSize(keyboard_frame:GetWidth(), keyboard_frame:GetHeight())
     keyboard_frame.edit_frame:SetPoint("CENTER", keyboard_frame, "CENTER")
     keyboard_frame.edit_frame:Hide()
