@@ -57,6 +57,10 @@ function addon:create_controller_frame()
     controller_frame.edit_frame = CreateFrame("Frame", nil, controller_frame)
     controller_frame.edit_frame:SetSize(controller_frame:GetWidth(), controller_frame:GetHeight())
     controller_frame.edit_frame:SetPoint("CENTER", controller_frame, "CENTER")
+
+    addon:create_glow_border(controller_frame.edit_frame)
+
+    -- Initially hide the border frame
     controller_frame.edit_frame:Hide()
 
     -- Helper function to toggle visibility of tab button textures

@@ -19,6 +19,7 @@ Mappings.lua
 Layouts\Keyboard.lua
 Layouts\Mouse.lua
 Layouts\Controller.lua
+Frames\Visuals.lua
 Frames\Selection.lua
 Frames\Keyboard.lua
 Frames\Mouse.lua

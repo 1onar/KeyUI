@@ -61,6 +61,11 @@ function addon:create_mouse_image()
     mouse_image.edit_frame = CreateFrame("Frame", nil, mouse_image)
     mouse_image.edit_frame:SetSize(500, mouse_image:GetHeight())
     mouse_image.edit_frame:SetPoint("RIGHT", mouse_image, "RIGHT")
+
+    -- Apply the glow border using the global function
+    addon:create_glow_border(mouse_image.edit_frame)
+
+    -- Initially hide the border frame
     mouse_image.edit_frame:Hide()
 
     -- Helper function to toggle visibility of tab button textures

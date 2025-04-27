@@ -58,6 +58,10 @@ function addon:create_keyboard_frame()
     keyboard_frame.edit_frame = CreateFrame("Frame", nil, keyboard_frame)
     keyboard_frame.edit_frame:SetSize(keyboard_frame:GetWidth(), keyboard_frame:GetHeight())
     keyboard_frame.edit_frame:SetPoint("CENTER", keyboard_frame, "CENTER")
+
+    addon:create_glow_border(keyboard_frame.edit_frame)
+
+    -- Initially hide the border frame
     keyboard_frame.edit_frame:Hide()
 
     -- Helper function to toggle visibility of tab button textures
