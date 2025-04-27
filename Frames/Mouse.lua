@@ -58,7 +58,7 @@ function addon:create_mouse_image()
     end)
 
     -- Border frame to be toggled with selected texture from Editmode
-    mouse_image.edit_frame = CreateFrame("Frame", nil, mouse_image, "GlowBorderTemplate")
+    mouse_image.edit_frame = CreateFrame("Frame", nil, mouse_image)
     mouse_image.edit_frame:SetSize(500, mouse_image:GetHeight())
     mouse_image.edit_frame:SetPoint("RIGHT", mouse_image, "RIGHT")
     mouse_image.edit_frame:Hide()
