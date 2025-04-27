@@ -366,6 +366,10 @@ function addon:generate_keyboard_key_frames()
             local cx, cy = addon.keyboard_frame:GetCenter()
             local left, right, top, bottom = cx, cx, cy, cy
 
+            -- Variables to track the maximum width and height
+            local max_width = 0
+            local max_height = 0
+
             -- Loop through each key in the layout and position it within the frame.
             for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layout_data do
@@ -402,7 +406,7 @@ function addon:generate_keyboard_key_frames()
 
                     -- Position the key within the frame.
                     button:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", button_data[2], button_data[3])
-                    button.raw_key= button_data[1]
+                    button.raw_key = button_data[1]
                     button.is_modifier = modifier_keys[button.raw_key] or false
                     button:Show()
 
@@ -412,20 +416,29 @@ function addon:generate_keyboard_key_frames()
                     if r > right then right = r end
                     if t > top then top = t end
                     if b < bottom then bottom = b end
+
+                    -- Update the max width and height based on button position and size
+                    if button_data[2] + button_data[4] > max_width then
+                        max_width = button_data[2] + button_data[4]
+                    end
+                    if button_data[3] - button_data[5] < max_height then
+                        max_height = button_data[3] - button_data[5]
+                    end
                 end
             end
 
-            -- Adjust the frame size based on the extreme positions of the keys.
-            addon.keyboard_frame:SetWidth(right - left + 12)
-            addon.keyboard_frame:SetHeight(top - bottom + 12)
+            -- Adjust the frame size based on the maximum width and height.
+            -- Handle negative Y-values correctly by ensuring proper expansion of the frame
+            addon.keyboard_frame:SetWidth(max_width + 6)
+            addon.keyboard_frame:SetHeight(max_height - 6)
 
-            addon.keyboard_frame.edit_frame:SetSize( addon.keyboard_frame:GetWidth(),  addon.keyboard_frame:GetHeight())
+            addon.keyboard_frame.edit_frame:SetSize(addon.keyboard_frame:GetWidth(), addon.keyboard_frame:GetHeight())
         else
             -- Set a fallback size if the layout is empty.
             addon.keyboard_frame:SetWidth(940)
             addon.keyboard_frame:SetHeight(382)
 
-            addon.keyboard_frame.edit_frame:SetSize( addon.keyboard_frame:GetWidth(),  addon.keyboard_frame:GetHeight())
+            addon.keyboard_frame.edit_frame:SetSize(addon.keyboard_frame:GetWidth(), addon.keyboard_frame:GetHeight())
         end
     end
 end

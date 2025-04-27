@@ -448,6 +448,7 @@ local modifier_keys = {
     LSHIFT = true, RSHIFT = true,
 }
 
+-- This function updates the controller layout by creating, positioning, and resizing button frames based on the current configuration.
 function addon:generate_controller_key_frames()
     -- Clear existing keys to avoid leftover data from previous layouts
     for i = 1, #addon.keys_controller do
