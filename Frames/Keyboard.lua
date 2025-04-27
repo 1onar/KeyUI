@@ -45,7 +45,7 @@ function addon:create_keyboard_frame()
         )
         keyboard_frame:SetScale(keyui_settings.keyboard_position.scale)
     else
-        keyboard_frame:SetPoint("TOP", UIParent, "TOP", -300, -320)
+        keyboard_frame:SetPoint("CENTER", UIParent, "CENTER", -300, 0)
         keyboard_frame:SetScale(1)
     end
 

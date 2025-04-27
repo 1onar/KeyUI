@@ -44,7 +44,7 @@ function addon:create_controller_frame()
         )
         controller_frame:SetScale(keyui_settings.controller_position.scale)
     else
-        controller_frame:SetPoint("TOP", UIParent, "TOP", 0, -320)
+        controller_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         controller_frame:SetScale(1)
     end
 
