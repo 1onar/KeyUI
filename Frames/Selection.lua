@@ -232,70 +232,114 @@ function addon:create_selection_frame()
         local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
         frame:SetSize(frame_width - 4, frame_height)
 
-        -- Set the position of the frame to the center of its x_offset, but keep the child centered
+        -- Position the frame (centered, based on x_offset)
         frame:SetPoint("CENTER", parent, "CENTER", x_offset, 0)
 
-        -- Add the texture to the child frame
+        -- Set the texture of the frame
         local texture = frame:CreateTexture(nil, "ARTWORK")
         texture:SetTexture(texture_path)
         texture:SetAllPoints(frame)
 
-        -- Border frame to be toggled with selected texture from Editmode
-        local border_frame = CreateFrame("Frame", nil, frame)
+        -- Border frame for the glow effect
+        local border_frame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
         border_frame:SetSize(frame_width, frame_height)
         border_frame:SetPoint("CENTER", frame, "CENTER")
 
-        -- Add a label text to the frame
+        -- Apply the Nine-Slice textures from UIFrameTutorialGlow
+        -- Corners of the border
+        local topLeft = border_frame:CreateTexture(nil, "BORDER")
+        topLeft:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        topLeft:SetSize(16, 16)
+        topLeft:SetTexCoord(0.03125, 0.53125, 0.570312, 0.695312)
+        topLeft:SetPoint("TOPLEFT", border_frame, "TOPLEFT", -8, 8)
+
+        local topRight = border_frame:CreateTexture(nil, "BORDER")
+        topRight:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        topRight:SetSize(16, 16)
+        topRight:SetTexCoord(0.03125, 0.53125, 0.710938, 0.835938)
+        topRight:SetPoint("TOPRIGHT", border_frame, "TOPRIGHT", 7, 8)
+
+        local bottomLeft = border_frame:CreateTexture(nil, "BORDER")
+        bottomLeft:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        bottomLeft:SetSize(16, 16)
+        bottomLeft:SetTexCoord(0.03125, 0.53125, 0.289062, 0.414062)
+        bottomLeft:SetPoint("BOTTOMLEFT", border_frame, "BOTTOMLEFT", -8, -8)
+
+        local bottomRight = border_frame:CreateTexture(nil, "BORDER")
+        bottomRight:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        bottomRight:SetSize(16, 16)
+        bottomRight:SetTexCoord(0.03125, 0.53125, 0.429688, 0.554688)
+        bottomRight:SetPoint("BOTTOMRIGHT", border_frame, "BOTTOMRIGHT", 8, -8)
+
+        -- Top and bottom edges of the border (EdgeTop and EdgeBottom)
+        local top = border_frame:CreateTexture(nil, "BORDER")
+        top:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        top:SetSize(16, 16)
+        top:SetPoint("TOPLEFT", topLeft, "TOPRIGHT")
+        top:SetPoint("BOTTOMRIGHT", topRight, "BOTTOMLEFT")
+        top:SetTexCoord(0, 0.5, 0.148438, 0.273438)
+
+        local bottom = border_frame:CreateTexture(nil, "BORDER")
+        bottom:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+        bottom:SetSize(16, 16)
+        bottom:SetPoint("TOPLEFT", bottomLeft, "TOPRIGHT")
+        bottom:SetPoint("BOTTOMRIGHT", bottomRight, "BOTTOMLEFT")
+        bottom:SetTexCoord(0, 0.5, 0.0078125, 0.132812)
+
+        -- Vertical edges of the border (EdgeLeft and EdgeRight)
+        local left = border_frame:CreateTexture(nil, "BORDER")
+        left:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlowVertical")
+        left:SetPoint("TOPLEFT", topLeft, "BOTTOMLEFT")
+        left:SetPoint("BOTTOMRIGHT", bottomLeft, "TOPRIGHT")
+        left:SetTexCoord(0.015625, 0.265625, 0, 1)
+
+        local right = border_frame:CreateTexture(nil, "BORDER")
+        right:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlowVertical")
+        right:SetPoint("TOPLEFT", topRight, "BOTTOMLEFT", 1, 0)
+        right:SetPoint("BOTTOMRIGHT", bottomRight, "TOPRIGHT", 1, 0)
+        right:SetTexCoord(0.296875, 0.546875, 0, 1)
+
+        -- Add text to the frame
         local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         label:SetText(label_text)
         label:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 22, "OUTLINE")
         label:SetTextColor(1, 1, 1, 1)
         label:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -20)
 
-        -- Initialize visibility based on keyui_settings
+        -- Initial visibility based on keyui_settings
         if keyui_settings[settings_key] then
             border_frame:Show()
         else
             border_frame:Hide()
         end
 
-        -- Handle the click event to toggle visibility and update keyui_settings
+        -- Handle click to toggle visibility
         frame:SetScript("OnMouseDown", function(self)
             if keyui_settings[settings_key] then
                 border_frame:Hide()
                 keyui_settings[settings_key] = false
-                if load_button and keyui_settings.show_keyboard == false and keyui_settings.show_mouse == false and keyui_settings.show_controller == false then
-                    load_button:Disable()
-                end
             else
                 border_frame:Show()
                 keyui_settings[settings_key] = true
-                if load_button then
-                    load_button:Enable()
-                end
             end
         end)
 
-        -- Set scale effect on hover without moving
+        -- Hover effect to change the size
         frame:SetScript("OnEnter", function(self)
-            self:SetWidth(frame_width + 4) -- Slightly increase width on hover
-            self:SetHeight(frame_height + 8) -- Slightly increase height on hover
-            border_frame:SetWidth(frame_width) -- Slightly increase width on hover
-            border_frame:SetHeight(frame_height + 6) -- Slightly increase height on hover
+            self:SetWidth(frame_width + 4)
+            self:SetHeight(frame_height + 8)
+            border_frame:SetWidth(frame_width)
+            border_frame:SetHeight(frame_height + 6)
         end)
 
         frame:SetScript("OnLeave", function(self)
-            self:SetWidth(frame_width)  -- Reset width
-            self:SetHeight(frame_height) -- Reset height
-            border_frame:SetWidth(frame_width - 4)  -- Reset width
-            border_frame:SetHeight(frame_height) -- Reset height
+            self:SetWidth(frame_width)
+            self:SetHeight(frame_height)
+            border_frame:SetWidth(frame_width - 4)
+            border_frame:SetHeight(frame_height)
         end)
 
-        frame:SetScript("OnShow", function()
-            border_frame:Hide()
-        end)
-
-        -- Set the frame level of the child frame to be higher than the selection frame but lower than the border frame
+        -- Set frame level to ensure the text remains visible
         frame:SetFrameLevel(parent:GetFrameLevel() + 1)
 
         return frame
