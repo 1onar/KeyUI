@@ -447,7 +447,7 @@ function addon:create_keyboard_buttons()
         bgFile = "Interface\\AddOns\\KeyUI\\Media\\Background\\darkgrey_bg",
         tile = true,
         tileSize = 8,
-        insets = { left = 4, right = 4, top = 0, bottom = 4 }
+        insets = { left = 3, right = 3, top = 0, bottom = 4 }
     }
     keyboard_button:SetBackdrop(backdropInfo)
 
