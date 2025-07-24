@@ -393,10 +393,12 @@ function addon:generate_keyboard_key_frames()
                         -- Use custom icon size if specified.
                         button.icon:SetWidth(icon_width)
                         button.icon:SetHeight(icon_height)
+                        button.original_icon_size = { width = icon_width, height = icon_height }    -- Store original icon size
                     else
                         -- Use default icon size based on the key size.
                         button.icon:SetWidth(50)
                         button.icon:SetHeight(50)
+                        button.original_icon_size = { width = 50, height = 50 }    -- Store original icon size
                     end
 
                     -- Store the key in the array if it's not already present.
@@ -496,7 +498,7 @@ function addon:create_keyboard_buttons()
 
     -- Icon texture for the button.
     keyboard_button.icon = keyboard_button:CreateTexture(nil, "ARTWORK")
-    --keyboard_button.icon:SetSize(50, 50)
+    --keyboard_button.icon:SetSize(50, 50)  -- Default size, will be set in addon:generate_keyboard_key_frames
     keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
     keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 

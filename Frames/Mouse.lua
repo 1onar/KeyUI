@@ -342,6 +342,15 @@ function addon:generate_mouse_key_frames()
                     button:SetWidth(button_data[4] or 50)
                     button:SetHeight(button_data[5] or 50)
 
+                    -- Set the mouse button's icon size
+                    local icon_width, icon_height = 44, 44
+                    button.icon:SetSize(icon_width, icon_height)
+
+                    -- If the button doesn't have an original icon size, set it
+                    if not button.original_icon_size then
+                        button.original_icon_size = { width = icon_width, height = icon_height }
+                    end
+
                     if not addon.keys_mouse[i] then
                         addon.keys_mouse[i] = button
                     end
@@ -404,7 +413,7 @@ function addon:create_mouse_buttons()
 
     -- Icon texture for the button.
     mouse_button.icon = mouse_button:CreateTexture(nil, "ARTWORK")
-    mouse_button.icon:SetSize(44, 44)
+    --mouse_button.icon:SetSize(44, 44) -- Default size will be set in addon:generate_mouse_key_frames
     mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
     mouse_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 

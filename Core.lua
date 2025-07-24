@@ -692,6 +692,13 @@ function addon:set_key(button)
     -- Reset button state
     addon:reset_button_state(button)
 
+    -- Reset the buttons original icon size
+    if button.original_icon_size then
+        button.icon:SetSize(button.original_icon_size.width, button.original_icon_size.height)
+    else
+        button.icon:SetSize(50, 50) -- Fallback
+    end
+
     -- Get the binding string
     local binding = addon:get_binding(button.raw_key)
 

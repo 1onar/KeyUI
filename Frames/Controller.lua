@@ -477,6 +477,15 @@ function addon:generate_controller_key_frames()
                     button:SetWidth(button_data[4] or 50)
                     button:SetHeight(button_data[5] or 50)
 
+                    -- Set the controller button's icon size
+                    local icon_width, icon_height = 44, 44
+                    button.icon:SetSize(icon_width, icon_height)
+
+                    -- If the button doesn't have an original icon size, set it
+                    if not button.original_icon_size then
+                        button.original_icon_size = { width = icon_width, height = icon_height }
+                    end
+
                     if not addon.keys_controller[i] then
                         addon.keys_controller[i] = button
                     end
@@ -554,7 +563,7 @@ function addon:create_controller_buttons()
 
     -- Icon texture for the button.
     controller_button.icon = controller_button:CreateTexture(nil, "ARTWORK")
-    controller_button.icon:SetSize(44, 44)
+    --controller_button.icon:SetSize(44, 44)    -- Default size will be set in addon:generate_controller_key_frames
     controller_button.icon:SetPoint("CENTER", controller_button, "CENTER", 0, 0)
     controller_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 
