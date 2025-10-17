@@ -1667,7 +1667,24 @@ function addon:keyboard_layout_selector()
         },
         ["Razer"] = { "Tartarus_v1", "Tartarus_v2" },
         ["Logitech"] = { "G13" },
-        ["Azeron"] = { "Cyborg", "Cyborg_II" },
+        ["Azeron"] = {
+            ["Cyborg"] = {
+                ["Left"]  = { "Cyborg_Left" },
+                ["Right"] = { "Cyborg_Right" },
+            },
+            ["Cyborg II"] = {
+                ["Left"]  = { "Cyborg_II_Left" },
+                ["Right"] = { "Cyborg_II_Right" },
+            },
+            ["Keyzen"] = {
+                ["Left"]  = { "Keyzen_Left" },
+                ["Right"] = { "Keyzen_Right" },
+            },
+            ["Cyro"] = {
+                ["Left"]  = { "Cyro_Left" },
+                ["Right"] = { "Cyro_Right" },
+            },
+        },
         ["ZSA"] = { "Moonlander_MK_I" },
     }
 
@@ -1709,8 +1726,15 @@ function addon:keyboard_layout_selector()
 
         ["Tartarus_v1"] = "Tartarus v1",
         ["Tartarus_v2"] = "Tartarus v2",
-        ["Cyborg"] = "Cyborg",
-        ["Cyborg_II"] = "Cyborg II",
+
+        ["Cyborg_Left"] = "Cyborg (Left)",
+        ["Cyborg_Right"] = "Cyborg (Right)",
+        ["Cyborg_II_Left"] = "Cyborg II (Left)",
+        ["Cyborg_II_Right"] = "Cyborg II (Right)",
+        ["Keyzen_Left"] = "Keyzen (Left)",
+        ["Keyzen_Right"] = "Keyzen (Right)",
+        ["Cyro_Left"] = "Cyro (Left)",
+        ["Cyro_Right"] = "Cyro (Right)",
 
         ["Moonlander_MK_I"] = "Moonlander Mark I",
 
@@ -1720,6 +1744,58 @@ function addon:keyboard_layout_selector()
     -- Function to retrieve the user-friendly name
     local function get_display_name(internal_name)
         return layout_display_names[internal_name] or internal_name
+    end
+
+    -- Explicit order for Azeron
+    local azeron_order = { "Cyborg", "Cyborg II", "Keyzen", "Cyro" }
+
+    -- Recursive function to add layouts to dropdown
+    local function add_layouts_to_dropdown(parentButton, layouts, parentCategory)
+        local keys = {}
+        for k in pairs(layouts) do table.insert(keys, k) end
+
+        -- Special sorting for Azeron
+        if parentCategory == "Azeron" then
+            keys = azeron_order
+        else
+            table.sort(keys)  -- Alphabetical sort
+        end
+
+        for _, name in ipairs(keys) do
+            local value = layouts[name]
+            if type(value) == "table" then
+                -- Check if it is a leaf level
+                local isLeaf = true
+                for _, v in pairs(value) do
+                    if type(v) == "table" then
+                        isLeaf = false
+                        break
+                    end
+                end
+
+                local submenu = parentButton:CreateButton(name)
+                if isLeaf then
+                    -- Leaf level: add layouts
+                    for _, layout in ipairs(value) do
+                        local display_name = get_display_name(layout)
+                        submenu:CreateButton(display_name, function()
+                            addon:select_keyboard_layout(layout)
+                            keyboard_selector:SetDefaultText(display_name)
+                        end)
+                    end
+                else
+                    -- Deeper level -> recursive call
+                    add_layouts_to_dropdown(submenu, value, nil)
+                end
+            else
+                -- Single string -> create button directly
+                local display_name = get_display_name(value)
+                parentButton:CreateButton(display_name, function()
+                    addon:select_keyboard_layout(value)
+                    keyboard_selector:SetDefaultText(display_name)
+                end)
+            end
+        end
     end
 
     local active_keyboard_board = next(keyui_settings.layout_current_keyboard)
@@ -1745,30 +1821,8 @@ function addon:keyboard_layout_selector()
                 -- Create the main category button
                 local categoryButton = rootDescription:CreateButton(category)
 
-                -- For each subcategory or layout, create a submenu or button
-                for subcategory, layout_list in pairs(layouts) do
-                    -- If the subcategory is a table, it's a second-level submenu
-                    if type(layout_list) == "table" then
-                        -- Create a submenu for the subcategory
-                        local submenuButton = categoryButton:CreateButton(subcategory)
-
-                        -- Add the layouts to this submenu
-                        for _, layout in ipairs(layout_list) do
-                            local display_name = get_display_name(layout) -- Get the user-friendly name
-                            submenuButton:CreateButton(display_name, function()
-                                addon:select_keyboard_layout(layout) -- Use the original name
-                                keyboard_selector:SetDefaultText(display_name)
-                            end)
-                        end
-                    else
-                        -- If it's a simple layout (not a table), create a button for it
-                        local display_name = get_display_name(layout_list)
-                        categoryButton:CreateButton(display_name, function()
-                            addon:select_keyboard_layout(layout_list)
-                            keyboard_selector:SetDefaultText(display_name)
-                        end)
-                    end
-                end
+                -- Add subfolders/layouts recursively
+                add_layouts_to_dropdown(categoryButton, layouts, category)
             end
         end
 
