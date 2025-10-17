@@ -1,4 +1,4 @@
-## Interface: 110205
+## Interface: 110207
 ## Author: Blandros
 ## Category: Action Bars
 ## Version: @project-version@
