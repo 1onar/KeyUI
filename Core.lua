@@ -65,7 +65,7 @@ local function clear_key_collection(collection)
     end
 end
 
-function addon:ResetAddonSettings()
+local function hide_resettable_frames(self)
     hide_widget(self.keyboard_frame)
     hide_widget(self.mouse_image)
     hide_widget(self.mouse_frame)
@@ -91,15 +91,19 @@ function addon:ResetAddonSettings()
     self.current_clicked_key = nil
     self.current_hovered_button = nil
     self.current_pushed_button = nil
+end
 
+local function reset_saved_variables()
     local minimap_db = keyui_settings.minimap
     wipe(keyui_settings)
     keyui_settings.minimap = minimap_db or {}
     wipe(keyui_settings.minimap)
     keyui_settings.minimap.hide = false
 
-    self:InitializeSettings()
+    addon:InitializeSettings()
+end
 
+local function reset_runtime_flags(self)
     clear_key_collection(self.keys_keyboard)
     clear_key_collection(self.keys_mouse)
     clear_key_collection(self.keys_controller)
@@ -133,7 +137,9 @@ function addon:ResetAddonSettings()
 
     self.tutorial_frame1_created = false
     self.tutorial_frame2_created = false
+end
 
+local function reset_frame_positions(self)
     if self.keyboard_frame then
         self.keyboard_frame:ClearAllPoints()
         self.keyboard_frame:SetPoint("CENTER", UIParent, "CENTER", -300, 0)
@@ -178,21 +184,34 @@ function addon:ResetAddonSettings()
     if self.controls_frame then
         self.controls_frame:ClearAllPoints()
         self.controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
-        self.controls_frame:SetHeight(200)
+        local expanded_height = keyui_settings.controls_expanded and 320 or 200
+        self.controls_frame:SetHeight(expanded_height)
     end
 
     if self.selection_frame then
         self.selection_frame:ClearAllPoints()
         self.selection_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 160)
     end
+end
 
-    if LibDBIcon then
-        if keyui_settings.minimap.hide then
-            LibDBIcon:Hide("KeyUI")
-        else
-            LibDBIcon:Show("KeyUI")
-        end
+local function sync_minimap_button()
+    if not LibDBIcon then
+        return
     end
+
+    if keyui_settings.minimap.hide then
+        LibDBIcon:Hide("KeyUI")
+    else
+        LibDBIcon:Show("KeyUI")
+    end
+end
+
+function addon:ResetAddonSettings()
+    hide_resettable_frames(self)
+    reset_saved_variables()
+    reset_runtime_flags(self)
+    reset_frame_positions(self)
+    sync_minimap_button()
 
     print("KeyUI: Settings reset to defaults.")
 end

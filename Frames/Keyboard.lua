@@ -98,10 +98,8 @@ function addon:create_keyboard_frame()
     keyboard_frame.close_button:SetPoint("BOTTOMRIGHT", keyboard_frame, "TOPRIGHT", -8, 0)
     keyboard_frame.close_button:SetFrameLevel(keyboard_level - 1)
 
-    -- Set button text
     keyboard_frame.close_button:SetText("Close")
 
-    -- Apply custom font to the controls button
     keyboard_frame.close_button:SetNormalFontObject(custom_font)
     keyboard_frame.close_button:SetHighlightFontObject(custom_font)
     keyboard_frame.close_button:SetDisabledFontObject(custom_font)
@@ -111,7 +109,6 @@ function addon:create_keyboard_frame()
     text:SetPoint("BOTTOM", keyboard_frame.close_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white
 
-    -- Set OnClick behavior for close button
     keyboard_frame.close_button:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
         if addon.controls_frame then
@@ -120,13 +117,10 @@ function addon:create_keyboard_frame()
         keyboard_frame:Hide()
     end)
 
-    -- Ensure the close button always appears inactive
     toggle_button_textures(keyboard_frame.close_button, true)
 
-    -- Set initial transparency for close button (out of focus)
     keyboard_frame.close_button:SetAlpha(0.5)
 
-    -- Set behavior when mouse enters and leaves the close button
     keyboard_frame.close_button:SetScript("OnEnter", function()
         keyboard_frame.close_button:SetAlpha(1) -- Make the button fully visible on hover
         toggle_button_textures(keyboard_frame.close_button, false) -- Show active textures
@@ -142,10 +136,8 @@ function addon:create_keyboard_frame()
     keyboard_frame.controls_button:SetPoint("BOTTOMRIGHT", keyboard_frame.close_button, "BOTTOMLEFT", -4, 0)
     keyboard_frame.controls_button:SetFrameLevel(keyboard_level - 1)
 
-    -- Set button text
     keyboard_frame.controls_button:SetText("Controls")
 
-    -- Apply custom font to the controls button
     keyboard_frame.controls_button:SetNormalFontObject(custom_font)
     keyboard_frame.controls_button:SetHighlightFontObject(custom_font)
     keyboard_frame.controls_button:SetDisabledFontObject(custom_font)
@@ -155,7 +147,6 @@ function addon:create_keyboard_frame()
     text:SetPoint("BOTTOM", keyboard_frame.controls_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white
 
-    -- Set OnClick behavior for controls button
     keyboard_frame.controls_button:SetScript("OnClick", function()
         addon.active_control_tab = "keyboard"
         addon:update_tab_textures()
@@ -187,13 +178,10 @@ function addon:create_keyboard_frame()
         addon:update_tab_visibility()
     end)
 
-    -- Ensure the controls button always appears inactive
     toggle_button_textures(keyboard_frame.controls_button, true)
 
-    -- Set initial transparency (out of focus) for controls button
     keyboard_frame.controls_button:SetAlpha(0.5)
 
-    -- Set behavior when mouse enters and leaves the controls button
     keyboard_frame.controls_button:SetScript("OnEnter", function()
         keyboard_frame.controls_button:SetAlpha(1) -- Make the button fully visible on hover
         toggle_button_textures(keyboard_frame.controls_button, false) -- Show active textures
@@ -346,11 +334,10 @@ function addon:generate_keyboard_key_frames()
     end
     addon.keys_keyboard = {}
 
-    -- Set up the new layout if a valid configuration is available.
-    if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
-        -- Set a default small size before calculating the dynamic size.
-        addon.keyboard_frame:SetWidth(100)
-        addon.keyboard_frame:SetHeight(100)
+        if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
+            -- Set a default small size before calculating the dynamic size.
+            addon.keyboard_frame:SetWidth(100)
+            addon.keyboard_frame:SetHeight(100)
 
         -- Check if the layout contains any data.
         local layout_not_empty = false
@@ -361,78 +348,56 @@ function addon:generate_keyboard_key_frames()
             end
         end
 
-        -- Proceed only if the layout is not empty.
         if layout_not_empty then
-            local cx, cy = addon.keyboard_frame:GetCenter()
-            local left, right, top, bottom = cx, cx, cy, cy
-
-            -- Variables to track the maximum width and height
-            local max_width = 0
-            local max_height = 0
+            local max_horizontal_extent = 0
+            local max_vertical_extent = 0
 
             -- Loop through each key in the layout and position it within the frame.
             for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layout_data do
                     local button = addon.keys_keyboard[i] or addon:create_keyboard_buttons()
                     local button_data = layout_data[i]
+                    local key_label, offset_x, offset_y, key_width, key_height, icon_width, icon_height =
+                        button_data[1], button_data[2], button_data[3], button_data[4], button_data[5], button_data[6], button_data[7]
 
-                    -- Set the size of the key based on the provided data or use defaults.
-                    if button_data[4] then
-                        button:SetWidth(button_data[4])
-                        button:SetHeight(button_data[5])
+                    if key_width and key_height then
+                        button:SetWidth(key_width)
+                        button:SetHeight(key_height)
                     else
-                        button:SetWidth(60)     -- Default width
-                        button:SetHeight(60)    -- Default height
+                        button:SetWidth(60)
+                        button:SetHeight(60)
                     end
-
-                    -- Check if custom icon sizes are provided.
-                    local icon_width = button_data[6]
-                    local icon_height = button_data[7]
 
                     if icon_width and icon_height then
-                        -- Use custom icon size if specified.
                         button.icon:SetWidth(icon_width)
                         button.icon:SetHeight(icon_height)
-                        button.original_icon_size = { width = icon_width, height = icon_height }    -- Store original icon size
+                        button.original_icon_size = { width = icon_width, height = icon_height }
                     else
-                        -- Use default icon size based on the key size.
                         button.icon:SetWidth(50)
                         button.icon:SetHeight(50)
-                        button.original_icon_size = { width = 50, height = 50 }    -- Store original icon size
+                        button.original_icon_size = { width = 50, height = 50 }
                     end
 
-                    -- Store the key in the array if it's not already present.
                     if not addon.keys_keyboard[i] then
                         addon.keys_keyboard[i] = button
                     end
 
-                    -- Position the key within the frame.
-                    button:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", button_data[2], button_data[3])
-                    button.raw_key = button_data[1]
+                    button:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", offset_x, offset_y)
+                    button.raw_key = key_label
                     button.is_modifier = modifier_keys[button.raw_key] or false
                     button:Show()
 
-                    -- Update the boundaries for resizing the frame.
-                    local l, r, t, b = button:GetLeft(), button:GetRight(), button:GetTop(), button:GetBottom()
-                    if l < left then left = l end
-                    if r > right then right = r end
-                    if t > top then top = t end
-                    if b < bottom then bottom = b end
-
-                    -- Update the max width and height based on button position and size
-                    if button_data[2] + button_data[4] > max_width then
-                        max_width = button_data[2] + button_data[4]
+                    if offset_x + (key_width or 60) > max_horizontal_extent then
+                        max_horizontal_extent = offset_x + (key_width or 60)
                     end
-                    if button_data[3] - button_data[5] < max_height then
-                        max_height = button_data[3] - button_data[5]
+                    if offset_y - (key_height or 60) < max_vertical_extent then
+                        max_vertical_extent = offset_y - (key_height or 60)
                     end
                 end
             end
 
-            -- Adjust the frame size based on the maximum width and height.
-            -- Handle negative Y-values correctly by ensuring proper expansion of the frame
-            addon.keyboard_frame:SetWidth(max_width + 6)
-            addon.keyboard_frame:SetHeight(max_height - 6)
+            addon.keyboard_frame:SetWidth(max_horizontal_extent + 6)
+            addon.keyboard_frame:SetHeight(max_vertical_extent - 6)
 
             addon.keyboard_frame.edit_frame:SetSize(addon.keyboard_frame:GetWidth(), addon.keyboard_frame:GetHeight())
         else
