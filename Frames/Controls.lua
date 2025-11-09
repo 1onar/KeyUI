@@ -1,28 +1,25 @@
 local name, addon = ...
 
 local function SetUtilityButtonTooltip(button, text, optionalDescription)
-    if MenuTemplates.SetUtilityButtonTooltipText then
-        MenuTemplates.SetUtilityButtonTooltipText(button, text)
-    else
-        button:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip_SetTitle(GameTooltip, text)
-            if optionalDescription then
-                GameTooltip_AddNormalLine(GameTooltip, optionalDescription, true)
-            end
-        end)
-        button:SetScript("OnLeave", function()
-            GameTooltip:Hide()
-        end)
-    end
+    button.tooltipHeading = text
+    button.tooltipBody = optionalDescription
+    button:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if self.tooltipHeading then
+            GameTooltip_SetTitle(GameTooltip, self.tooltipHeading)
+        end
+        if self.tooltipBody and self.tooltipBody ~= "" then
+            GameTooltip_AddNormalLine(GameTooltip, self.tooltipBody, true)
+        end
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
 end
 
 local function SetUtilityButtonClick(button, handler)
-    if MenuTemplates.SetUtilityButtonClickHandler then
-        MenuTemplates.SetUtilityButtonClickHandler(button, handler)
-    else
-        button:SetScript("OnClick", handler)
-    end
+    button:SetScript("OnClick", handler)
 end
 
 function addon:create_controls()
@@ -1870,35 +1867,29 @@ function addon:keyboard_layout_selector()
                 end)
 
                 layoutButton:DeactivateSubmenu()
-                layoutButton:CreateButton("Copy Layout", function()
+                local copyButton = layoutButton:CreateButton("Copy Layout", function()
                     addon:ShowLayoutCopyPopup("keyboard", layout_name)
                 end)
-                layoutButton:CreateButton("Rename Layout", function()
+
+                local renameButton = layoutButton:CreateButton("Rename Layout", function()
                     addon:ShowLayoutRenamePopup("keyboard", layout_name)
                 end)
-                layoutButton:CreateButton("Export Layout", function()
+
+                local exportButton = layoutButton:CreateButton("Export Layout", function()
                     addon:ShowLayoutExportPopup("keyboard", layout_name, layout_data)
                 end)
 
                 layoutButton:AddInitializer(function(button, description, menu)
                     local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
-                    SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
-                    if MenuTemplates.SetUtilityButtonAnchor then
-                        MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
-                    else
-                        gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
-                    end
+                    SetUtilityButtonTooltip(gearButton, "Layout options", "Open submenu to copy or rename this layout.")
+                    gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
                     SetUtilityButtonClick(gearButton, function()
                         description:ForceOpenSubmenu()
                     end)
 
                     local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
-                    SetUtilityButtonTooltip(delete_button, "Delete Layout")
-                    if MenuTemplates.SetUtilityButtonAnchor then
-                        MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
-                    else
-                        delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
-                    end
+                    SetUtilityButtonTooltip(delete_button, "Delete layout", "Remove this custom layout.")
+                    delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
                     SetUtilityButtonClick(delete_button, function()
                         addon:confirm_delete_layout(layout_name)
                         menu:Close()
@@ -2011,35 +2002,29 @@ function addon:mouse_layout_selector()
                 end)
 
                 layoutButton:DeactivateSubmenu()
-                layoutButton:CreateButton("Copy Layout", function()
+                local copyButton = layoutButton:CreateButton("Copy Layout", function()
                     addon:ShowLayoutCopyPopup("mouse", layout_name)
                 end)
-                layoutButton:CreateButton("Rename Layout", function()
+
+                local renameButton = layoutButton:CreateButton("Rename Layout", function()
                     addon:ShowLayoutRenamePopup("mouse", layout_name)
                 end)
-                layoutButton:CreateButton("Export Layout", function()
+
+                local exportButton = layoutButton:CreateButton("Export Layout", function()
                     addon:ShowLayoutExportPopup("mouse", layout_name, layout_data)
                 end)
 
                 layoutButton:AddInitializer(function(button, description, menu)
                     local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
-                    SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
-                    if MenuTemplates.SetUtilityButtonAnchor then
-                        MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
-                    else
-                        gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
-                    end
+                    SetUtilityButtonTooltip(gearButton, "Layout options", "Open submenu to copy or rename this layout.")
+                    gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
                     SetUtilityButtonClick(gearButton, function()
                         description:ForceOpenSubmenu()
                     end)
 
                     local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
-                    SetUtilityButtonTooltip(delete_button, "Delete Layout")
-                    if MenuTemplates.SetUtilityButtonAnchor then
-                        MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
-                    else
-                        delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
-                    end
+                    SetUtilityButtonTooltip(delete_button, "Delete layout", "Remove this custom layout.")
+                    delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
                     SetUtilityButtonClick(delete_button, function()
                         addon:confirm_delete_layout(layout_name)
                         menu:Close()
@@ -2149,35 +2134,29 @@ function addon:controller_layout_selector()
                     end)
 
                     layoutButton:DeactivateSubmenu()
-                    layoutButton:CreateButton("Copy Layout", function()
+                    local copyButton = layoutButton:CreateButton("Copy Layout", function()
                         addon:ShowLayoutCopyPopup("controller", layout_name)
                     end)
-                    layoutButton:CreateButton("Rename Layout", function()
+
+                    local renameButton = layoutButton:CreateButton("Rename Layout", function()
                         addon:ShowLayoutRenamePopup("controller", layout_name)
                     end)
-                    layoutButton:CreateButton("Export Layout", function()
+
+                    local exportButton = layoutButton:CreateButton("Export Layout", function()
                         addon:ShowLayoutExportPopup("controller", layout_name, layout_data)
                     end)
 
                     layoutButton:AddInitializer(function(button, description, menu)
                         local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
-                        SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
-                        if MenuTemplates.SetUtilityButtonAnchor then
-                            MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
-                        else
-                            gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
-                        end
+                        SetUtilityButtonTooltip(gearButton, "Layout options", "Open submenu to copy or rename this layout.")
+                        gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
                         SetUtilityButtonClick(gearButton, function()
                             description:ForceOpenSubmenu()
                         end)
 
                         local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
-                        SetUtilityButtonTooltip(delete_button, "Delete Layout")
-                        if MenuTemplates.SetUtilityButtonAnchor then
-                            MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
-                        else
-                            delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
-                        end
+                        SetUtilityButtonTooltip(delete_button, "Delete layout", "Remove this custom layout.")
+                        delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
                         SetUtilityButtonClick(delete_button, function()
                             addon:confirm_delete_layout(layout_name)
                             menu:Close()
