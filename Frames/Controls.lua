@@ -1,5 +1,30 @@
 local name, addon = ...
 
+local function SetUtilityButtonTooltip(button, text, optionalDescription)
+    if MenuTemplates.SetUtilityButtonTooltipText then
+        MenuTemplates.SetUtilityButtonTooltipText(button, text)
+    else
+        button:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip_SetTitle(GameTooltip, text)
+            if optionalDescription then
+                GameTooltip_AddNormalLine(GameTooltip, optionalDescription, true)
+            end
+        end)
+        button:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+    end
+end
+
+local function SetUtilityButtonClick(button, handler)
+    if MenuTemplates.SetUtilityButtonClickHandler then
+        MenuTemplates.SetUtilityButtonClickHandler(button, handler)
+    else
+        button:SetScript("OnClick", handler)
+    end
+end
+
 function addon:create_controls()
     local controls_frame = CreateFrame("Frame", "keyui_keyboard_control_frame", UIParent, "BackdropTemplate")
     addon.controls_frame = controls_frame
@@ -1835,31 +1860,57 @@ function addon:keyboard_layout_selector()
         -- Add custom layouts
         if type(keyui_settings.layout_edited_keyboard) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_keyboard) do
-                local display_name = get_display_name(name)  -- Get user-friendly name
+                local layout_name = name
+                local layout_data = layout
+                local display_name = get_display_name(layout_name)
 
-                -- Create a button for each custom layout
                 local layoutButton = rootDescription:CreateButton(display_name, function()
-                    addon:select_custom_keyboard_layout(name, layout)
+                    addon:select_custom_keyboard_layout(layout_name, layout_data)
                     keyboard_selector:SetDefaultText(display_name)
                 end)
 
-                -- Use Compositor-style initialization for the hover frame
-                layoutButton:AddInitializer(function(button, description, menu)
-                    -- Create and attach the texture to the button
-                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
-					delete_button:SetPoint("RIGHT");
-					delete_button:SetScript("OnClick", function()
-                        -- Show the confirmation dialog
-                        addon:confirm_delete_layout(name)
-                        menu:Close()
-					end);
+                layoutButton:DeactivateSubmenu()
+                layoutButton:CreateButton("Copy Layout", function()
+                    addon:ShowLayoutCopyPopup("keyboard", layout_name)
+                end)
+                layoutButton:CreateButton("Rename Layout", function()
+                    addon:ShowLayoutRenamePopup("keyboard", layout_name)
+                end)
+                layoutButton:CreateButton("Export Layout", function()
+                    addon:ShowLayoutExportPopup("keyboard", layout_name, layout_data)
+                end)
 
-                    MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
-						GameTooltip_SetTitle(tooltip, "Delete Layout")
-					end)
+                layoutButton:AddInitializer(function(button, description, menu)
+                    local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
+                    SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
+                    if MenuTemplates.SetUtilityButtonAnchor then
+                        MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
+                    else
+                        gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+                    end
+                    SetUtilityButtonClick(gearButton, function()
+                        description:ForceOpenSubmenu()
+                    end)
+
+                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
+                    SetUtilityButtonTooltip(delete_button, "Delete Layout")
+                    if MenuTemplates.SetUtilityButtonAnchor then
+                        MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
+                    else
+                        delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
+                    end
+                    SetUtilityButtonClick(delete_button, function()
+                        addon:confirm_delete_layout(layout_name)
+                        menu:Close()
+                    end)
                 end)
             end
         end
+
+        rootDescription:CreateDivider()
+        rootDescription:CreateButton("Import Layout", function()
+            addon:ShowLayoutImportPopup("keyboard")
+        end)
     end
 
     -- Initialize the dropdown menu
@@ -1950,31 +2001,57 @@ function addon:mouse_layout_selector()
         -- Add custom layouts
         if type(keyui_settings.layout_edited_mouse) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_mouse) do
-                local display_name = get_display_name(name)  -- Get user-friendly name
+                local layout_name = name
+                local layout_data = layout
+                local display_name = get_display_name(layout_name)
 
-                -- Create a button for each custom layout
                 local layoutButton = rootDescription:CreateButton(display_name, function()
-                    addon:select_custom_mouse_layout(name, layout)  -- Select the custom layout
+                    addon:select_custom_mouse_layout(layout_name, layout_data)
                     mouse_selector:SetDefaultText(display_name)
                 end)
 
-                -- Use Compositor-style initialization for the hover frame
-                layoutButton:AddInitializer(function(button, description, menu)
-                    -- Create and attach the texture to the button
-                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
-                    delete_button:SetPoint("RIGHT");
-                    delete_button:SetScript("OnClick", function()
-                        -- Show the confirmation dialog
-                        addon:confirm_delete_layout(name)
-                        menu:Close()
-                    end);
+                layoutButton:DeactivateSubmenu()
+                layoutButton:CreateButton("Copy Layout", function()
+                    addon:ShowLayoutCopyPopup("mouse", layout_name)
+                end)
+                layoutButton:CreateButton("Rename Layout", function()
+                    addon:ShowLayoutRenamePopup("mouse", layout_name)
+                end)
+                layoutButton:CreateButton("Export Layout", function()
+                    addon:ShowLayoutExportPopup("mouse", layout_name, layout_data)
+                end)
 
-                    MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
-                        GameTooltip_SetTitle(tooltip, "Delete Layout")
+                layoutButton:AddInitializer(function(button, description, menu)
+                    local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
+                    SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
+                    if MenuTemplates.SetUtilityButtonAnchor then
+                        MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
+                    else
+                        gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+                    end
+                    SetUtilityButtonClick(gearButton, function()
+                        description:ForceOpenSubmenu()
+                    end)
+
+                    local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
+                    SetUtilityButtonTooltip(delete_button, "Delete Layout")
+                    if MenuTemplates.SetUtilityButtonAnchor then
+                        MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
+                    else
+                        delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
+                    end
+                    SetUtilityButtonClick(delete_button, function()
+                        addon:confirm_delete_layout(layout_name)
+                        menu:Close()
                     end)
                 end)
             end
         end
+
+        rootDescription:CreateDivider()
+        rootDescription:CreateButton("Import Layout", function()
+            addon:ShowLayoutImportPopup("mouse")
+        end)
     end
 
     -- Initialize the dropdown menu
@@ -2061,35 +2138,59 @@ function addon:controller_layout_selector()
         -- Add custom layouts
         if type(keyui_settings.layout_edited_controller) == "table" then
             for name, layout in pairs(keyui_settings.layout_edited_controller) do
-
-                -- Ensure we check the layout_type if it exists
                 if layout.layout_type then
-                    local display_name = get_display_name(name)  -- Get user-friendly name
+                    local layout_name = name
+                    local layout_data = layout
+                    local display_name = get_display_name(layout_name)
 
-                    -- Create a button for each custom layout
                     local layoutButton = rootDescription:CreateButton(display_name, function()
-                        addon:select_custom_controller_layout(name, layout)  -- Select the custom layout
+                        addon:select_custom_controller_layout(layout_name, layout_data)
                         controller_selector:SetDefaultText(display_name)
                     end)
 
-                    -- Use Compositor-style initialization for the hover frame
-                    layoutButton:AddInitializer(function(button, description, menu)
-                        -- Create and attach the texture to the button
-                        local delete_button = MenuTemplates.AttachAutoHideCancelButton(button);
-                        delete_button:SetPoint("RIGHT");
-                        delete_button:SetScript("OnClick", function()
-                            -- Show the confirmation dialog
-                            addon:confirm_delete_layout(name)
-                            menu:Close()
-                        end);
+                    layoutButton:DeactivateSubmenu()
+                    layoutButton:CreateButton("Copy Layout", function()
+                        addon:ShowLayoutCopyPopup("controller", layout_name)
+                    end)
+                    layoutButton:CreateButton("Rename Layout", function()
+                        addon:ShowLayoutRenamePopup("controller", layout_name)
+                    end)
+                    layoutButton:CreateButton("Export Layout", function()
+                        addon:ShowLayoutExportPopup("controller", layout_name, layout_data)
+                    end)
 
-                        MenuUtil.HookTooltipScripts(delete_button, function(tooltip)
-                            GameTooltip_SetTitle(tooltip, "Delete Layout")
+                    layoutButton:AddInitializer(function(button, description, menu)
+                        local gearButton = MenuTemplates.AttachAutoHideGearButton(button)
+                        SetUtilityButtonTooltip(gearButton, "Layout rename/copy")
+                        if MenuTemplates.SetUtilityButtonAnchor then
+                            MenuTemplates.SetUtilityButtonAnchor(gearButton, MenuVariants.GearButtonAnchor, button)
+                        else
+                            gearButton:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+                        end
+                        SetUtilityButtonClick(gearButton, function()
+                            description:ForceOpenSubmenu()
+                        end)
+
+                        local delete_button = MenuTemplates.AttachAutoHideCancelButton(button)
+                        SetUtilityButtonTooltip(delete_button, "Delete Layout")
+                        if MenuTemplates.SetUtilityButtonAnchor then
+                            MenuTemplates.SetUtilityButtonAnchor(delete_button, MenuVariants.CancelButtonAnchor, gearButton)
+                        else
+                            delete_button:SetPoint("RIGHT", gearButton, "LEFT", -4, 0)
+                        end
+                        SetUtilityButtonClick(delete_button, function()
+                            addon:confirm_delete_layout(layout_name)
+                            menu:Close()
                         end)
                     end)
                 end
             end
         end
+
+        rootDescription:CreateDivider()
+        rootDescription:CreateButton("Import Layout", function()
+            addon:ShowLayoutImportPopup("controller")
+        end)
     end
 
     -- Initialize the dropdown menu

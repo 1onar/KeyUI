@@ -7,6 +7,21 @@ local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
 local PROFILE_EXPORT_VERSION = 1
+local LAYOUT_EXPORT_VERSION = 1
+
+local get_layout_meta
+local layout_type_labels = {
+    keyboard = "Keyboard",
+    mouse = "Mouse",
+    controller = "Controller",
+}
+
+local function sanitize_layout_name(name)
+    if type(name) ~= "string" then
+        return ""
+    end
+    return (name:gsub("^%s+", ""):gsub("%s+$", ""))
+end
 
 -- Create the options frame and add it to the Interface Options
 local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
@@ -172,26 +187,11 @@ function addon:BuildProfileSnapshot()
 end
 
 function addon:SerializeProfile(snapshot)
-    return serialize_value(snapshot)
+    return self:SerializeTable(snapshot)
 end
 
 function addon:DeserializeProfile(serialized)
-    local success, value_or_error = pcall(function()
-        local value, position = deserialize_value(serialized, 1)
-        if position <= #serialized then
-            local remainder = serialized:sub(position):match("^%s*(.-)%s*$")
-            if remainder ~= "" then
-                error("Trailing data in profile string")
-            end
-        end
-        return value
-    end)
-
-    if not success then
-        return false, value_or_error
-    end
-
-    return true, value_or_error
+    return self:DeserializeTable(serialized)
 end
 
 function addon:GetProfileExportString()
@@ -268,12 +268,329 @@ function addon:ImportProfileString(serialized)
     return true
 end
 
+function addon:RenameLayout(layout_type, old_name, new_name)
+    local meta = get_layout_meta(layout_type)
+    if not meta then
+        return false, "Unsupported layout type."
+    end
+
+    local container = meta.edited()
+    local layout = container and container[old_name]
+    if not layout then
+        return false, "Layout not found."
+    end
+
+    new_name = sanitize_layout_name(new_name)
+    if new_name == "" then
+        return false, "Name cannot be empty."
+    end
+
+    if container[new_name] then
+        return false, "A layout with that name already exists."
+    end
+
+    container[new_name] = layout
+    container[old_name] = nil
+
+    local current_container = meta.current()
+    if current_container[old_name] then
+        current_container[new_name] = current_container[old_name]
+        current_container[old_name] = nil
+    end
+
+    local keybind = meta.keybind()
+    if keybind.currentboard == old_name then
+        keybind.currentboard = new_name
+    end
+
+    local selector_field = meta.selector
+    if selector_field and addon[selector_field] then
+        addon[selector_field]:SetDefaultText(new_name)
+    end
+
+    print(("KeyUI: Renamed %s layout '%s' to '%s'."):format(layout_type_labels[layout_type] or layout_type, old_name, new_name))
+    addon:refresh_layouts()
+    return true
+end
+
+function addon:CopyLayout(layout_type, source_name, new_name)
+    local meta = get_layout_meta(layout_type)
+    if not meta then
+        return false, "Unsupported layout type."
+    end
+
+    local container = meta.edited()
+    local source = container and container[source_name]
+    if not source then
+        return false, "Layout not found."
+    end
+
+    new_name = sanitize_layout_name(new_name)
+    if new_name == "" then
+        return false, "Name cannot be empty."
+    end
+
+    if container[new_name] then
+        return false, "A layout with that name already exists."
+    end
+
+    container[new_name] = deep_copy(source)
+
+    local current_container = meta.current()
+    wipe(current_container)
+    current_container[new_name] = container[new_name]
+
+    local keybind = meta.keybind()
+    keybind.currentboard = new_name
+
+    local selector_field = meta.selector
+    if selector_field and addon[selector_field] then
+        addon[selector_field]:SetDefaultText(new_name)
+    end
+
+    print(("KeyUI: Copied %s layout '%s' to '%s'."):format(layout_type_labels[layout_type] or layout_type, source_name, new_name))
+    addon:refresh_layouts()
+    return true
+end
+
 function addon:ShowProfileExportPopup()
     StaticPopup_Show("KEYUI_EXPORT_PROFILE")
 end
 
 function addon:ShowProfileImportPopup()
     StaticPopup_Show("KEYUI_IMPORT_PROFILE")
+end
+
+function addon:ShowLayoutRenamePopup(layout_type, layout_name)
+    StaticPopup_Show("KEYUI_LAYOUT_RENAME", nil, nil, {
+        layoutType = layout_type,
+        layoutName = layout_name,
+    })
+end
+
+function addon:ShowLayoutCopyPopup(layout_type, layout_name)
+    StaticPopup_Show("KEYUI_LAYOUT_COPY", nil, nil, {
+        layoutType = layout_type,
+        layoutName = layout_name,
+    })
+end
+
+function addon:SerializeTable(payload)
+    return serialize_value(payload)
+end
+
+function addon:DeserializeTable(serialized)
+    local success, value_or_error = pcall(function()
+        local value, position = deserialize_value(serialized, 1)
+        if position <= #serialized then
+            local remainder = serialized:sub(position):match("^%s*(.-)%s*$")
+            if remainder ~= "" then
+                error("Trailing data in serialized string")
+            end
+        end
+        return value
+    end)
+
+    if not success then
+        return false, value_or_error
+    end
+
+    return true, value_or_error
+end
+
+local layout_meta_map = {
+    keyboard = {
+        edited = function()
+            keyui_settings.layout_edited_keyboard = keyui_settings.layout_edited_keyboard or {}
+            return keyui_settings.layout_edited_keyboard
+        end,
+        current = function()
+            keyui_settings.layout_current_keyboard = keyui_settings.layout_current_keyboard or {}
+            return keyui_settings.layout_current_keyboard
+        end,
+        keybind = function()
+            keyui_settings.key_bind_settings_keyboard = keyui_settings.key_bind_settings_keyboard or {}
+            return keyui_settings.key_bind_settings_keyboard
+        end,
+        selector = "keyboard_selector",
+        show_setting = "show_keyboard",
+    },
+    mouse = {
+        edited = function()
+            keyui_settings.layout_edited_mouse = keyui_settings.layout_edited_mouse or {}
+            return keyui_settings.layout_edited_mouse
+        end,
+        current = function()
+            keyui_settings.layout_current_mouse = keyui_settings.layout_current_mouse or {}
+            return keyui_settings.layout_current_mouse
+        end,
+        keybind = function()
+            keyui_settings.key_bind_settings_mouse = keyui_settings.key_bind_settings_mouse or {}
+            return keyui_settings.key_bind_settings_mouse
+        end,
+        selector = "mouse_selector",
+        show_setting = "show_mouse",
+    },
+    controller = {
+        edited = function()
+            keyui_settings.layout_edited_controller = keyui_settings.layout_edited_controller or {}
+            return keyui_settings.layout_edited_controller
+        end,
+        current = function()
+            keyui_settings.layout_current_controller = keyui_settings.layout_current_controller or {}
+            return keyui_settings.layout_current_controller
+        end,
+        keybind = function()
+            keyui_settings.key_bind_settings_controller = keyui_settings.key_bind_settings_controller or {}
+            return keyui_settings.key_bind_settings_controller
+        end,
+        selector = "controller_selector",
+        show_setting = "show_controller",
+    },
+}
+
+get_layout_meta = function(layout_type)
+    return layout_meta_map[layout_type]
+end
+
+local function get_layout_container(layout_type)
+    local meta = get_layout_meta(layout_type)
+    if not meta then return end
+    return meta.edited()
+end
+
+local function ensure_unique_layout_name(container, base_name)
+    local candidate = base_name
+    if not container[candidate] then
+        return candidate
+    end
+    local suffix = 2
+    repeat
+        candidate = ("%s (%d)"):format(base_name, suffix)
+        suffix = suffix + 1
+    until not container[candidate]
+    return candidate
+end
+
+function addon:SerializeLayoutPayload(layout_type, layout_name, layout_data)
+    if type(layout_data) ~= "table" then
+        return nil, "Layout data is invalid."
+    end
+
+    local payload = {
+        version = LAYOUT_EXPORT_VERSION,
+        layoutType = layout_type,
+        name = layout_name,
+        layout = deep_copy(layout_data),
+    }
+
+    local ok, encoded = pcall(self.SerializeTable, self, payload)
+    if not ok then
+        return nil, encoded
+    end
+    return encoded
+end
+
+function addon:DeserializeLayoutPayload(serialized)
+    local ok, payload = self:DeserializeTable(serialized)
+    if not ok then
+        return false, payload
+    end
+
+    if type(payload) ~= "table" then
+        return false, "Layout payload malformed."
+    end
+
+    if payload.version ~= LAYOUT_EXPORT_VERSION then
+        return false, "Unsupported layout version."
+    end
+
+    if type(payload.layoutType) ~= "string" then
+        return false, "Layout type missing."
+    end
+
+    if type(payload.layout) ~= "table" then
+        return false, "Layout data missing."
+    end
+
+    return true, payload
+end
+
+function addon:ImportLayoutString(layout_type, serialized)
+    if type(serialized) ~= "string" then
+        return false, "Invalid layout string."
+    end
+
+    local trimmed = serialized:match("^%s*(.-)%s*$")
+    if trimmed == "" then
+        return false, "Layout string is empty."
+    end
+
+    local ok, payload = self:DeserializeLayoutPayload(trimmed)
+    if not ok then
+        return false, payload
+    end
+
+    if payload.layoutType ~= layout_type then
+        local expected = layout_type_labels[layout_type] or layout_type
+        local actual = layout_type_labels[payload.layoutType] or payload.layoutType
+        return false, ("Layout is for %s, not %s."):format(actual, expected)
+    end
+
+    local meta = get_layout_meta(layout_type)
+    if not meta then
+        return false, "Unsupported layout category."
+    end
+
+    local container = meta.edited()
+
+    local base_name = payload.name
+    if type(base_name) ~= "string" or base_name == "" then
+        base_name = ("Imported %s Layout"):format(layout_type_labels[layout_type] or "")
+    end
+
+    local unique_name = ensure_unique_layout_name(container, base_name)
+    container[unique_name] = deep_copy(payload.layout)
+
+    local current_container = meta.current()
+    wipe(current_container)
+    current_container[unique_name] = container[unique_name]
+
+    local keybind = meta.keybind()
+    keybind.currentboard = unique_name
+
+    local selector_field = meta.selector
+    if selector_field and addon[selector_field] then
+        addon[selector_field]:SetDefaultText(unique_name)
+    end
+
+    print(("KeyUI: Imported %s layout '%s'."):format(layout_type_labels[layout_type] or layout_type, unique_name))
+    if addon.open then
+        addon:refresh_layouts()
+    elseif meta.show_setting and keyui_settings[meta.show_setting] then
+        addon:load()
+    end
+    return true
+end
+
+function addon:ShowLayoutExportPopup(layout_type, layout_name, layout_data)
+    local encoded, err = self:SerializeLayoutPayload(layout_type, layout_name, layout_data)
+    if not encoded then
+        print(("KeyUI: Unable to export layout - %s"):format(err or "Unknown error"))
+        return
+    end
+
+    StaticPopup_Show("KEYUI_EXPORT_LAYOUT", nil, nil, {
+        payload = encoded,
+        name = layout_name,
+        layoutType = layout_type,
+    })
+end
+
+function addon:ShowLayoutImportPopup(layout_type)
+    StaticPopup_Show("KEYUI_IMPORT_LAYOUT", nil, nil, {
+        layoutType = layout_type,
+    })
 end
 
 function addon:SyncMinimapButton()
@@ -2238,6 +2555,154 @@ StaticPopupDialogs["KEYUI_IMPORT_PROFILE"] = {
         local ok, err = addon:ImportProfileString(text)
         if not ok then
             print(("KeyUI: Import failed - %s"):format(err or "Unknown error"))
+        end
+    end,
+}
+
+StaticPopupDialogs["KEYUI_EXPORT_LAYOUT"] = {
+    text = "Copy the layout string below.",
+    button1 = CLOSE,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then
+            return
+        end
+
+        local layout_label = data and layout_type_labels[data.layoutType] or "KeyUI"
+        local layout_name = data and data.name or "Layout"
+        if self.text then
+            self.text:SetFormattedText("Copy the %s layout '%s' string below:", layout_label, layout_name)
+        end
+
+        editBox:SetText(data and data.payload or "Failed to build layout string.")
+        editBox:SetFocus()
+        editBox:HighlightText()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        self:ClearFocus()
+    end,
+}
+
+StaticPopupDialogs["KEYUI_IMPORT_LAYOUT"] = {
+    text = "Paste a layout string below:",
+    button1 = ACCEPT,
+    button2 = CANCEL,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then
+            return
+        end
+
+        local layout_label = data and layout_type_labels[data.layoutType] or "KeyUI"
+        if self.text then
+            self.text:SetFormattedText("Paste a %s layout string to import:", layout_label)
+        end
+
+        editBox:SetText("")
+        editBox:SetFocus()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        StaticPopup_OnClick(self:GetParent(), 1)
+    end,
+    OnAccept = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        local text = editBox and editBox:GetText() or ""
+        local layout_type = data and data.layoutType or "keyboard"
+        local ok, err = addon:ImportLayoutString(layout_type, text)
+        if not ok then
+            print(("KeyUI: Layout import failed - %s"):format(err or "Unknown error"))
+        end
+    end,
+}
+
+StaticPopupDialogs["KEYUI_LAYOUT_RENAME"] = {
+    text = "Enter a new name for this layout:",
+    button1 = SAVE,
+    button2 = CANCEL,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then return end
+        editBox:SetText(data and data.layoutName or "")
+        editBox:HighlightText()
+        editBox:SetFocus()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        StaticPopup_OnClick(self:GetParent(), 1)
+    end,
+    OnAccept = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        local new_name = editBox and editBox:GetText() or ""
+        local layout_type = data and data.layoutType or "keyboard"
+        local old_name = data and data.layoutName or ""
+        local ok, err = addon:RenameLayout(layout_type, old_name, new_name)
+        if not ok then
+            print(("KeyUI: Unable to rename layout - %s"):format(err or "Unknown error"))
+        else
+            self:Hide()
+        end
+    end,
+}
+
+StaticPopupDialogs["KEYUI_LAYOUT_COPY"] = {
+    text = "Enter a name for the copied layout:",
+    button1 = ACCEPT,
+    button2 = CANCEL,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then return end
+        local base = data and data.layoutName and (data.layoutName .. " Copy") or "New Layout"
+        local layout_type = data and data.layoutType or "keyboard"
+        local container = get_layout_container(layout_type) or {}
+        local suggestion = ensure_unique_layout_name(container, sanitize_layout_name(base))
+        editBox:SetText(suggestion)
+        editBox:HighlightText()
+        editBox:SetFocus()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        StaticPopup_OnClick(self:GetParent(), 1)
+    end,
+    OnAccept = function(self, data)
+        local editBox = self.editBox or self.EditBox
+        local new_name = editBox and editBox:GetText() or ""
+        local layout_type = data and data.layoutType or "keyboard"
+        local source_name = data and data.layoutName or ""
+        local ok, err = addon:CopyLayout(layout_type, source_name, new_name)
+        if not ok then
+            print(("KeyUI: Unable to copy layout - %s"):format(err or "Unknown error"))
+        else
+            self:Hide()
         end
     end,
 }
