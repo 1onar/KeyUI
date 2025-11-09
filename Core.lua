@@ -1322,6 +1322,7 @@ end
 -- This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:button_mouse_over(button)
     local raw_key = button.raw_key or ""
+    local readable_key = (addon.short_keys and addon.short_keys[raw_key]) or _G["KEY_" .. raw_key] or raw_key
     local short_key = button.short_key:GetText()
     local readable_binding = button.readable_binding:GetText() or ""
     local short_modifier_string = (addon.current_modifier_string or "")
@@ -1345,11 +1346,13 @@ function addon:button_mouse_over(button)
     -- Display the key text with or without modifiers
     if short_key then
         if addon.no_modifier_keys[raw_key] then
-            -- For keys without modifiers, display only the key
             addon.keyui_tooltip_frame.key:SetText(short_key)
         else
-            -- For keys with modifiers, display the modifier string followed by the key
-            addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. short_key)
+            if keyui_settings.dynamic_modifier then
+                addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. (readable_key or short_key))
+            else
+                addon.keyui_tooltip_frame.key:SetText(short_modifier_string .. short_key)
+            end
         end
     else
         addon.keyui_tooltip_frame.key:SetText("")
