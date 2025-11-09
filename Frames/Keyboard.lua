@@ -242,9 +242,16 @@ function addon:create_keyboard_frame()
     end)
 
     keyboard_frame:SetScript("OnHide", function()
-        -- Call the discard changes function
         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
             addon:discard_keyboard_changes()
+        end
+        addon.keyboard_layout_dirty = true
+    end)
+
+    keyboard_frame:SetScript("OnShow", function()
+        if addon.keyboard_layout_dirty == true then
+            addon:generate_keyboard_key_frames()
+            addon.keyboard_layout_dirty = false
         end
     end)
 

@@ -252,9 +252,16 @@ function addon:create_controller_frame()
     end)
 
     controller_frame:SetScript("OnHide", function()
-        -- Call the discard changes function
         if addon.controller_locked == false or addon.keys_controller_edited == true then
             addon:discard_controller_changes()
+        end
+        addon.controller_layout_dirty = true
+    end)
+
+    controller_frame:SetScript("OnShow", function()
+        if addon.controller_layout_dirty == true then
+            addon:generate_controller_key_frames()
+            addon.controller_layout_dirty = false
         end
     end)
 

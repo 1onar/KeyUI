@@ -215,9 +215,16 @@ function addon:create_mouse_image()
     end)
 
     mouse_image:SetScript("OnHide", function()
-        -- Call the discard changes function
         if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             addon:discard_mouse_changes()
+        end
+        addon.mouse_layout_dirty = true
+    end)
+
+    mouse_image:SetScript("OnShow", function()
+        if addon.mouse_layout_dirty == true then
+            addon:generate_mouse_key_frames()
+            addon.mouse_layout_dirty = false
         end
     end)
 
@@ -238,6 +245,13 @@ function addon:create_mouse_frame()
     mouse_frame:SetPoint("RIGHT", addon.mouse_image, "LEFT", 5, -25)
     mouse_frame:SetScale(1)
     mouse_frame:Hide()
+
+    mouse_frame:SetScript("OnShow", function()
+        if addon.mouse_layout_dirty == true then
+            addon:generate_mouse_key_frames()
+            addon.mouse_layout_dirty = false
+        end
+    end)
 
     return mouse_frame
 end
