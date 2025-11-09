@@ -295,7 +295,11 @@ function addon:create_selection_frame()
         end)
 
         selection_backdrop_frame:SetScript("OnShow", function()
-            border_frame:Hide()
+            if keyui_settings[settings_key] then
+                border_frame:Show()
+            else
+                border_frame:Hide()
+            end
         end)
 
         -- Set the frame level of the child frame to be higher than the selection frame but lower than the border frame

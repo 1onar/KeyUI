@@ -148,38 +148,10 @@ local options = {
             confirm = true, -- Ask for confirmation
             confirmText = "Are you sure you want to reset all KeyUI settings to default?",
             func = function()
-                -- Reset all SavedVariables to their default values
-                keyui_settings = {
-                    show_keyboard = false,
-                    show_mouse = false,
-                    show_controller = false,
-                    stay_open_in_combat = true,
-                    show_pushed_texture = true,
-                    prevent_esc_close = true,
-                    keyboard_position = {},
-                    mouse_position = {},
-                    minimap = { hide = false },
-                    show_empty_binds = false,
-                    show_interface_binds = false,
-                    tutorial_completed = false,
-                    listen_to_modifier = true,
-                    dynamic_modifier = false,
-                    key_bind_settings = {
-                        keyboard = {},
-                        mouse = {},
-                    },
-                    layout_current = {
-                        keyboard = {},
-                        mouse = {},
-                    },
-                    layout_edited = {
-                        keyboard = {},
-                        mouse = {},
-                    },
-                    show_keyboard_background = true,
-                    show_mouse_graphic = true,
-                    show_controller_background = true,
-                }
+                -- Reset the SavedVariables table while preserving the reference
+                wipe(keyui_settings)
+                addon:InitializeGeneralSettings()
+                addon:InitializeKeyBindSettings()
 
                 -- Reload the UI to apply the changes
                 ReloadUI()

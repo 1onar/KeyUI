@@ -50,7 +50,7 @@ function addon:create_mouse_image()
     mouse_image.close_button:SetSize(22, 22)
     mouse_image.close_button:SetPoint("TOPRIGHT", mouse_image, "TOPRIGHT", 0, 0)
     mouse_image.close_button:SetScript("OnClick", function(s)
-        addon:discard_keyboard_changes()
+        addon:discard_mouse_changes()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
@@ -216,7 +216,7 @@ function addon:create_mouse_image()
 
     mouse_image:SetScript("OnHide", function()
         -- Call the discard changes function
-        if addon.controller_locked == false or addon.keys_mouse_edited == true then
+        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
             addon:discard_mouse_changes()
         end
     end)

@@ -255,7 +255,7 @@ function addon:create_keyboard_frame()
 
     keyboard_frame:SetScript("OnHide", function()
         -- Call the discard changes function
-        if addon.controller_locked == false or addon.keys_keyboard_edited == true then
+        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
             addon:discard_keyboard_changes()
         end
     end)
