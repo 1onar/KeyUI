@@ -6,6 +6,8 @@ local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
+local PROFILE_EXPORT_VERSION = 1
+
 -- Create the options frame and add it to the Interface Options
 local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
 
@@ -47,6 +49,244 @@ local miniButton = LDB:NewDataObject("KeyUI", {
         tooltip:AddLine("|cffffffffRight-Click|r |cFF00FF00to open options|r")
     end,
 })
+
+local function deep_copy(value, copies)
+    if type(value) ~= "table" then
+        return value
+    end
+
+    copies = copies or {}
+    if copies[value] then
+        return copies[value]
+    end
+
+    local clone = {}
+    copies[value] = clone
+
+    for key, inner in pairs(value) do
+        clone[deep_copy(key, copies)] = deep_copy(inner, copies)
+    end
+
+    return clone
+end
+
+local serialize_value -- forward declaration
+
+local function serialize_table(tbl)
+    local out = { "{" }
+
+    for index = 1, #tbl do
+        out[#out + 1] = serialize_value(index)
+        out[#out + 1] = serialize_value(tbl[index])
+    end
+
+    local extra_keys = {}
+    for key in pairs(tbl) do
+        if not (type(key) == "number" and key % 1 == 0 and key >= 1 and key <= #tbl) then
+            extra_keys[#extra_keys + 1] = key
+        end
+    end
+
+    table.sort(extra_keys, function(a, b)
+        return tostring(a) < tostring(b)
+    end)
+
+    for _, key in ipairs(extra_keys) do
+        out[#out + 1] = serialize_value(key)
+        out[#out + 1] = serialize_value(tbl[key])
+    end
+
+    out[#out + 1] = "}"
+    return table.concat(out)
+end
+
+serialize_value = function(value)
+    local value_type = type(value)
+    if value_type == "string" then
+        return "s" .. #value .. ":" .. value
+    elseif value_type == "number" then
+        return "n" .. tostring(value) .. ";"
+    elseif value_type == "boolean" then
+        return value and "b1;" or "b0;"
+    elseif value_type == "table" then
+        return serialize_table(value)
+    else
+        error("Unsupported type: " .. value_type)
+    end
+end
+
+local function deserialize_value(data, index)
+    local prefix = data:sub(index, index)
+
+    if prefix == "s" then
+        local colon = data:find(":", index + 1, true)
+        if not colon then error("Malformed string token") end
+        local length = tonumber(data:sub(index + 1, colon - 1))
+        if not length then error("Invalid string length") end
+
+        local start_pos = colon + 1
+        local end_pos = start_pos + length - 1
+        if end_pos > #data then error("String length exceeds payload") end
+
+        local value = data:sub(start_pos, end_pos)
+        return value, end_pos + 1
+    elseif prefix == "n" then
+        local semi = data:find(";", index + 1, true)
+        if not semi then error("Malformed number token") end
+        local number_value = tonumber(data:sub(index + 1, semi - 1))
+        if not number_value then error("Invalid number value") end
+        return number_value, semi + 1
+    elseif prefix == "b" then
+        local semi = data:find(";", index + 1, true)
+        if not semi then error("Malformed boolean token") end
+        local bool_value = data:sub(index + 1, semi - 1)
+        if bool_value ~= "1" and bool_value ~= "0" then
+            error("Invalid boolean value")
+        end
+        return bool_value == "1", semi + 1
+    elseif prefix == "{" then
+        local tbl = {}
+        local cursor = index + 1
+        while cursor <= #data do
+            local control = data:sub(cursor, cursor)
+            if control == "}" then
+                return tbl, cursor + 1
+            end
+            local key
+            key, cursor = deserialize_value(data, cursor)
+            local value
+            value, cursor = deserialize_value(data, cursor)
+            tbl[key] = value
+        end
+        error("Unterminated table token")
+    else
+        error("Unknown token '" .. prefix .. "'")
+    end
+end
+
+function addon:BuildProfileSnapshot()
+    return {
+        version = PROFILE_EXPORT_VERSION,
+        settings = deep_copy(keyui_settings),
+    }
+end
+
+function addon:SerializeProfile(snapshot)
+    return serialize_value(snapshot)
+end
+
+function addon:DeserializeProfile(serialized)
+    local success, value_or_error = pcall(function()
+        local value, position = deserialize_value(serialized, 1)
+        if position <= #serialized then
+            local remainder = serialized:sub(position):match("^%s*(.-)%s*$")
+            if remainder ~= "" then
+                error("Trailing data in profile string")
+            end
+        end
+        return value
+    end)
+
+    if not success then
+        return false, value_or_error
+    end
+
+    return true, value_or_error
+end
+
+function addon:GetProfileExportString()
+    local snapshot = self:BuildProfileSnapshot()
+    local ok, payload = pcall(self.SerializeProfile, self, snapshot)
+    if not ok then
+        return nil, payload
+    end
+    return payload
+end
+
+function addon:ApplyProfileSnapshot(snapshot)
+    if type(snapshot) ~= "table" then
+        return false, "Invalid profile data"
+    end
+
+    if snapshot.version ~= PROFILE_EXPORT_VERSION then
+        return false, "Unsupported profile version"
+    end
+
+    if type(snapshot.settings) ~= "table" then
+        return false, "Profile missing settings data"
+    end
+
+    local sanitized = deep_copy(snapshot.settings)
+
+    wipe(keyui_settings)
+    for key, value in pairs(sanitized) do
+        keyui_settings[key] = value
+    end
+
+    self:InitializeSettings()
+
+    self.keyboard_layout_dirty = true
+    self.mouse_layout_dirty = true
+    self.controller_layout_dirty = true
+
+    self:hide_all_frames()
+
+    self:SyncMinimapButton()
+
+    if keyui_settings.show_keyboard or keyui_settings.show_mouse or keyui_settings.show_controller then
+        self:load()
+    end
+
+    print("KeyUI: Profile imported.")
+    return true
+end
+
+function addon:ImportProfileString(serialized)
+    if type(serialized) ~= "string" then
+        return false, "Invalid profile string"
+    end
+
+    local trimmed = serialized:match("^%s*(.-)%s*$")
+    if trimmed == "" then
+        return false, "Profile string is empty"
+    end
+
+    local ok, data_or_error = self:DeserializeProfile(trimmed)
+    if not ok then
+        return false, data_or_error
+    end
+
+    local success, apply_error = self:ApplyProfileSnapshot(data_or_error)
+    if not success then
+        return false, apply_error
+    end
+
+    if Settings and SettingsPanel and SettingsPanel:IsShown() then
+        HideUIPanel(SettingsPanel)
+    end
+
+    return true
+end
+
+function addon:ShowProfileExportPopup()
+    StaticPopup_Show("KEYUI_EXPORT_PROFILE")
+end
+
+function addon:ShowProfileImportPopup()
+    StaticPopup_Show("KEYUI_IMPORT_PROFILE")
+end
+
+function addon:SyncMinimapButton()
+    if not LibDBIcon then
+        return
+    end
+
+    if keyui_settings.minimap and keyui_settings.minimap.hide then
+        LibDBIcon:Hide("KeyUI")
+    else
+        LibDBIcon:Show("KeyUI")
+    end
+end
 
 local function hide_widget(widget)
     if widget and widget.Hide then
@@ -194,24 +434,12 @@ local function reset_frame_positions(self)
     end
 end
 
-local function sync_minimap_button()
-    if not LibDBIcon then
-        return
-    end
-
-    if keyui_settings.minimap.hide then
-        LibDBIcon:Hide("KeyUI")
-    else
-        LibDBIcon:Show("KeyUI")
-    end
-end
-
 function addon:ResetAddonSettings()
     hide_resettable_frames(self)
     reset_saved_variables()
     reset_runtime_flags(self)
     reset_frame_positions(self)
-    sync_minimap_button()
+    self:SyncMinimapButton()
 
     print("KeyUI: Settings reset to defaults.")
 end
@@ -374,7 +602,30 @@ local options = {
                 local status = value and "enabled" or "disabled"
                 print("KeyUI: Controller background", status)
             end,
-        },        
+        },
+        profile_header = {
+            type = "header",
+            name = "Profiles",
+            order = 20,
+        },
+        export_profile = {
+            type = "execute",
+            name = "Export Profile",
+            desc = "Copy your current KeyUI configuration as a sharable string",
+            order = 21,
+            func = function()
+                addon:ShowProfileExportPopup()
+            end,
+        },
+        import_profile = {
+            type = "execute",
+            name = "Import Profile",
+            desc = "Paste a profile string to apply someone else's configuration",
+            order = 22,
+            func = function()
+                addon:ShowProfileImportPopup()
+            end,
+        },
     },
 }
 
@@ -1927,6 +2178,69 @@ end)
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
 SlashCmdList["KeyUI"] = function() addon:load() end
+
+StaticPopupDialogs["KEYUI_EXPORT_PROFILE"] = {
+    text = "Copy the profile string below to share your KeyUI configuration.",
+    button1 = CLOSE,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then
+            return
+        end
+        local text, err = addon:GetProfileExportString()
+        if text then
+            editBox:SetText(text)
+        else
+            editBox:SetText(err or "Failed to generate profile string.")
+        end
+        editBox:SetFocus()
+        editBox:HighlightText()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        self:ClearFocus()
+    end,
+}
+
+StaticPopupDialogs["KEYUI_IMPORT_PROFILE"] = {
+    text = "Paste a KeyUI profile string to import:",
+    button1 = ACCEPT,
+    button2 = CANCEL,
+    hasEditBox = true,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self)
+        local editBox = self.editBox or self.EditBox
+        if not editBox then
+            return
+        end
+        editBox:SetText("")
+        editBox:SetFocus()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        StaticPopup_OnClick(self:GetParent(), 1)
+    end,
+    OnAccept = function(self)
+        local editBox = self.editBox or self.EditBox
+        local text = editBox and editBox:GetText() or ""
+        local ok, err = addon:ImportProfileString(text)
+        if not ok then
+            print(("KeyUI: Import failed - %s"):format(err or "Unknown error"))
+        end
+    end,
+}
 
 
 --------------------------------------------------------------------------------------------------------------------
