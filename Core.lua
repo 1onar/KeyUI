@@ -48,6 +48,155 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     end,
 })
 
+local function hide_widget(widget)
+    if widget and widget.Hide then
+        widget:Hide()
+    end
+end
+
+local function clear_key_collection(collection)
+    if not collection then return end
+    for i = #collection, 1, -1 do
+        local button = collection[i]
+        if button and button.Hide then
+            button:Hide()
+        end
+        collection[i] = nil
+    end
+end
+
+function addon:ResetAddonSettings()
+    hide_widget(self.keyboard_frame)
+    hide_widget(self.mouse_image)
+    hide_widget(self.mouse_frame)
+    hide_widget(self.controller_frame)
+    hide_widget(self.controller_image)
+    hide_widget(self.controls_frame)
+    hide_widget(self.selection_frame)
+    hide_widget(self.keyui_tooltip_frame)
+    hide_widget(self.dropdown)
+    hide_widget(self.name_input_dialog)
+    hide_widget(self.edit_layout_dialog)
+    hide_widget(self.keyboard_selector)
+    hide_widget(self.mouse_selector)
+    hide_widget(self.controller_selector)
+
+    self.dropdown = nil
+    self.keyboard_selector = nil
+    self.mouse_selector = nil
+    self.controller_selector = nil
+    self.keyui_tooltip_frame = nil
+    self.name_input_dialog = nil
+    self.edit_layout_dialog = nil
+    self.current_clicked_key = nil
+    self.current_hovered_button = nil
+    self.current_pushed_button = nil
+
+    local minimap_db = keyui_settings.minimap
+    wipe(keyui_settings)
+    keyui_settings.minimap = minimap_db or {}
+    wipe(keyui_settings.minimap)
+    keyui_settings.minimap.hide = false
+
+    self:InitializeSettings()
+
+    clear_key_collection(self.keys_keyboard)
+    clear_key_collection(self.keys_mouse)
+    clear_key_collection(self.keys_controller)
+
+    self.keys_keyboard = {}
+    self.keys_mouse = {}
+    self.keys_controller = {}
+
+    self.keyboard_locked = true
+    self.mouse_locked = true
+    self.controller_locked = true
+
+    self.keys_keyboard_edited = false
+    self.keys_mouse_edited = false
+    self.keys_controller_edited = false
+
+    self.open = false
+    self.in_combat = false
+    self.is_keyboard_visible = false
+    self.is_mouse_visible = false
+    self.is_controller_visible = false
+
+    self.controller_system = nil
+
+    self.modif = { ALT = false, CTRL = false, SHIFT = false }
+    self.current_modifier_string = ""
+    self.alt_checkbox = false
+    self.ctrl_checkbox = false
+    self.shift_checkbox = false
+    self.active_control_tab = ""
+
+    self.tutorial_frame1_created = false
+    self.tutorial_frame2_created = false
+
+    if self.keyboard_frame then
+        self.keyboard_frame:ClearAllPoints()
+        self.keyboard_frame:SetPoint("CENTER", UIParent, "CENTER", -300, 0)
+        self.keyboard_frame:SetScale(1)
+        if self.keyboard_frame.edit_frame then
+            self.keyboard_frame.edit_frame:Hide()
+        end
+    end
+
+    if self.mouse_image then
+        self.mouse_image:ClearAllPoints()
+        self.mouse_image:SetPoint("CENTER", UIParent, "CENTER", 450, 0)
+        self.mouse_image:SetScale(1)
+        if self.mouse_image.edit_frame then
+            self.mouse_image.edit_frame:Hide()
+        end
+    end
+
+    if self.mouse_frame then
+        self.mouse_frame:ClearAllPoints()
+        if self.mouse_image then
+            self.mouse_frame:SetPoint("RIGHT", self.mouse_image, "LEFT", 5, -25)
+        else
+            self.mouse_frame:SetPoint("RIGHT", UIParent, "CENTER", 0, -25)
+        end
+        self.mouse_frame:SetScale(1)
+    end
+
+    if self.controller_frame then
+        self.controller_frame:ClearAllPoints()
+        self.controller_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+        self.controller_frame:SetScale(1)
+        if self.controller_frame.edit_frame then
+            self.controller_frame.edit_frame:Hide()
+        end
+    end
+
+    if self.controller_image then
+        self.controller_image:Hide()
+    end
+
+    if self.controls_frame then
+        self.controls_frame:ClearAllPoints()
+        self.controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
+        self.controls_frame:SetHeight(200)
+    end
+
+    if self.selection_frame then
+        self.selection_frame:ClearAllPoints()
+        self.selection_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 160)
+    end
+
+    if LibDBIcon then
+        if keyui_settings.minimap.hide then
+            LibDBIcon:Hide("KeyUI")
+        else
+            LibDBIcon:Show("KeyUI")
+        end
+    end
+
+    print("KeyUI: Settings reset to defaults.")
+end
+
 local function set_esc_close_enabled(frame, enabled)
     if not frame or not frame:GetName() then return end
 
@@ -148,13 +297,7 @@ local options = {
             confirm = true, -- Ask for confirmation
             confirmText = "Are you sure you want to reset all KeyUI settings to default?",
             func = function()
-                -- Reset the SavedVariables table while preserving the reference
-                wipe(keyui_settings)
-                addon:InitializeGeneralSettings()
-                addon:InitializeKeyBindSettings()
-
-                -- Reload the UI to apply the changes
-                ReloadUI()
+                addon:ResetAddonSettings()
             end,
         },
         prevent_esc_close = {
