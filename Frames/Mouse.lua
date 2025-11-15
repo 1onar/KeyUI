@@ -58,15 +58,11 @@ function addon:create_mouse_image()
     end)
 
     -- Border frame to be toggled with selected texture from Editmode
-    mouse_image.edit_frame = CreateFrame("Frame", nil, mouse_image)
-    mouse_image.edit_frame:SetSize(500, mouse_image:GetHeight())
-    mouse_image.edit_frame:SetPoint("RIGHT", mouse_image, "RIGHT")
-
-    -- Apply the glow border using the global function
-    addon:create_glow_border(mouse_image.edit_frame)
-
-    -- Initially hide the border frame
-    mouse_image.edit_frame:Hide()
+    mouse_image.edit_frame = addon:CreateGlowFrame(mouse_image, {
+        point = { "RIGHT", mouse_image, "RIGHT" },
+        width = 500,
+        height = mouse_image:GetHeight(),
+    })
 
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)

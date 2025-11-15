@@ -54,14 +54,11 @@ function addon:create_controller_frame()
     controller_frame:SetClampedToScreen(true)
 
     -- Border frame to be toggled with selected texture from Editmode
-    controller_frame.edit_frame = CreateFrame("Frame", nil, controller_frame)
-    controller_frame.edit_frame:SetSize(controller_frame:GetWidth(), controller_frame:GetHeight())
-    controller_frame.edit_frame:SetPoint("CENTER", controller_frame, "CENTER")
-
-    addon:create_glow_border(controller_frame.edit_frame)
-
-    -- Initially hide the border frame
-    controller_frame.edit_frame:Hide()
+    controller_frame.edit_frame = addon:CreateGlowFrame(controller_frame, {
+        point = { "CENTER", controller_frame, "CENTER" },
+        width = controller_frame:GetWidth(),
+        height = controller_frame:GetHeight(),
+    })
 
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)

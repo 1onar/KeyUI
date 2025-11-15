@@ -804,62 +804,14 @@ function addon:create_controls()
     end)
 
     -- Create the "Edit Layout" button
-    addon.controls_frame.edit_layout_button = CreateFrame("Button", nil, addon.controls_frame)
-    addon.controls_frame.edit_layout_button:SetSize(160, 30)
+    addon.controls_frame.edit_layout_button = addon:CreateStyledButton(addon.controls_frame, {
+        width = 160,
+        height = 30,
+        label = "Edit Layout",
+        textureHeight = 43,
+        textOffsetY = -1,
+    })
     addon.controls_frame.edit_layout_button:SetPoint("LEFT", controls_frame.layout_text, "RIGHT", 230, 1)
-
-    -- Create FontString for Edit Layout button Text
-    local edit_layout_text = addon.controls_frame.edit_layout_button:CreateFontString(nil, "OVERLAY")
-    edit_layout_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    edit_layout_text:SetPoint("CENTER", addon.controls_frame.edit_layout_button, "CENTER", 0, -1)
-    edit_layout_text:SetText("Edit Layout")
-
-    -- Left Cap Texture for Edit Layout Button
-    local edit_layout_left = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
-    edit_layout_left:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
-    edit_layout_left:SetSize(16, 43)
-    edit_layout_left:SetPoint("LEFT", addon.controls_frame.edit_layout_button, "LEFT")
-
-    -- Right Cap Texture for Edit Layout Button
-    local edit_layout_right = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
-    edit_layout_right:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
-    edit_layout_right:SetSize(16, 43)
-    edit_layout_right:SetPoint("RIGHT", addon.controls_frame.edit_layout_button, "RIGHT")
-
-    -- Middle Texture for Edit Layout Button
-    local edit_layout_middle = addon.controls_frame.edit_layout_button:CreateTexture(nil, "ARTWORK")
-    edit_layout_middle:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
-    edit_layout_middle:SetPoint("LEFT", edit_layout_left, "RIGHT")
-    edit_layout_middle:SetPoint("RIGHT", edit_layout_right, "LEFT")
-    edit_layout_middle:SetHeight(43)
-
-    -- Hover Textures for Edit Layout Button
-    local edit_layout_hover_left = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
-    edit_layout_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    edit_layout_hover_left:SetSize(16, 43)
-    edit_layout_hover_left:SetPoint("LEFT", addon.controls_frame.edit_layout_button, "LEFT")
-
-    local edit_layout_hover_right = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
-    edit_layout_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    edit_layout_hover_right:SetSize(16, 43)
-    edit_layout_hover_right:SetPoint("RIGHT", addon.controls_frame.edit_layout_button, "RIGHT")
-
-    local edit_layout_hover_middle = addon.controls_frame.edit_layout_button:CreateTexture(nil, "HIGHLIGHT")
-    edit_layout_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    edit_layout_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    edit_layout_hover_middle:SetPoint("LEFT", edit_layout_hover_left, "RIGHT")
-    edit_layout_hover_middle:SetPoint("RIGHT", edit_layout_hover_right, "LEFT")
-    edit_layout_hover_middle:SetHeight(43)
-
-    local edit_layout_hover_text = addon.controls_frame.edit_layout_button:CreateFontString(nil, "HIGHLIGHT")
-    edit_layout_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    edit_layout_hover_text:SetPoint("CENTER", addon.controls_frame.edit_layout_button, "CENTER", 0, -1)
-    edit_layout_hover_text:SetText("Edit Layout")
 
     -- Attach the OnClick handler to the "Edit Layout" button
     addon.controls_frame.edit_layout_button:SetScript("OnClick", function()
@@ -992,62 +944,13 @@ function addon:create_name_input_dialog()
     local button_width = name_input_frame:GetWidth() / 2 - 30
 
     -- Save Button
-    name_input_frame.save_button = CreateFrame("Button", nil, name_input_frame)
-    name_input_frame.save_button:SetPoint("BOTTOMRIGHT", name_input_frame, "BOTTOM", -10, 20)
-    name_input_frame.save_button:SetSize(button_width, 30)
-
-    -- Save Button Text
-    local save_text = name_input_frame.save_button:CreateFontString(nil, "OVERLAY")
-    save_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    save_text:SetPoint("CENTER", name_input_frame.save_button, "CENTER", 0, 0)
-    save_text:SetText("Save")
-
-    -- Save Button Left Cap Texture
-    local save_left = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_left:SetTexture("Interface/Buttons/Dropdown")
-    save_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
-    save_left:SetSize(16, 46)
-    save_left:SetPoint("LEFT", name_input_frame.save_button, "LEFT")
-
-    -- Save Button Right Cap Texture
-    local save_right = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_right:SetTexture("Interface/Buttons/Dropdown")
-    save_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
-    save_right:SetSize(16, 46)
-    save_right:SetPoint("RIGHT", name_input_frame.save_button, "RIGHT")
-
-    -- Save Button Middle Texture
-    local save_middle = name_input_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_middle:SetTexture("Interface/Buttons/Dropdown")
-    save_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
-    save_middle:SetPoint("LEFT", save_left, "RIGHT")
-    save_middle:SetPoint("RIGHT", save_right, "LEFT")
-    save_middle:SetHeight(46)
-
-    -- Hover Textures for Save Button
-    local save_hover_left = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    save_hover_left:SetSize(16, 46)
-    save_hover_left:SetPoint("LEFT", name_input_frame.save_button, "LEFT")
-
-    local save_hover_right = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    save_hover_right:SetSize(16, 46)
-    save_hover_right:SetPoint("RIGHT", name_input_frame.save_button, "RIGHT")
-
-    local save_hover_middle = name_input_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    save_hover_middle:SetPoint("LEFT", save_hover_left, "RIGHT")
-    save_hover_middle:SetPoint("RIGHT", save_hover_right, "LEFT")
-    save_hover_middle:SetHeight(46)
-
-    local save_hover_text = name_input_frame.save_button:CreateFontString(nil, "HIGHLIGHT")
-    save_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    save_hover_text:SetPoint("CENTER", name_input_frame.save_button, "CENTER", 0, 0)
-    save_hover_text:SetText("Save")
+    name_input_frame.save_button = addon:CreateStyledButton(name_input_frame, {
+        width = button_width,
+        height = 30,
+        label = "Save",
+        textureHeight = 46,
+        point = { "BOTTOMRIGHT", name_input_frame, "BOTTOM", -10, 20 },
+    })
 
     name_input_frame.save_button:SetScript("OnClick", function()
         local layout_name = name_input_frame.input_box:GetText()
@@ -1071,62 +974,13 @@ function addon:create_name_input_dialog()
     end)
 
     -- Cancel Button
-    name_input_frame.cancel_button = CreateFrame("Button", nil, name_input_frame)
-    name_input_frame.cancel_button:SetPoint("BOTTOMLEFT", name_input_frame, "BOTTOM", 10, 20)
-    name_input_frame.cancel_button:SetSize(button_width, 30)
-
-    -- Cancel Button Text
-    local cancel_text = name_input_frame.cancel_button:CreateFontString(nil, "OVERLAY")
-    cancel_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_text:SetPoint("CENTER", name_input_frame.cancel_button, "CENTER", 0, 0)
-    cancel_text:SetText("Cancel")
-
-    -- Cancel Button Left Cap Texture
-    local cancel_left = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547)
-    cancel_left:SetSize(16, 46)
-    cancel_left:SetPoint("LEFT", name_input_frame.cancel_button, "LEFT")
-
-    -- Cancel Button Right Cap Texture
-    local cancel_right = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797)
-    cancel_right:SetSize(16, 46)
-    cancel_right:SetPoint("RIGHT", name_input_frame.cancel_button, "RIGHT")
-
-    -- Cancel Button Middle Texture
-    local cancel_middle = name_input_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547)
-    cancel_middle:SetPoint("LEFT", cancel_left, "RIGHT")
-    cancel_middle:SetPoint("RIGHT", cancel_right, "LEFT")
-    cancel_middle:SetHeight(46)
-
-    -- Hover Textures for Cancel Button
-    local cancel_hover_left = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    cancel_hover_left:SetSize(16, 46)
-    cancel_hover_left:SetPoint("LEFT", name_input_frame.cancel_button, "LEFT")
-
-    local cancel_hover_right = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    cancel_hover_right:SetSize(16, 46)
-    cancel_hover_right:SetPoint("RIGHT", name_input_frame.cancel_button, "RIGHT")
-
-    local cancel_hover_middle = name_input_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    cancel_hover_middle:SetPoint("LEFT", cancel_hover_left, "RIGHT")
-    cancel_hover_middle:SetPoint("RIGHT", cancel_hover_right, "LEFT")
-    cancel_hover_middle:SetHeight(46)
-
-    local cancel_hover_text = name_input_frame.cancel_button:CreateFontString(nil, "HIGHLIGHT")
-    cancel_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_hover_text:SetPoint("CENTER", name_input_frame.cancel_button, "CENTER", 0, 0)
-    cancel_hover_text:SetText("Cancel")
+    name_input_frame.cancel_button = addon:CreateStyledButton(name_input_frame, {
+        width = button_width,
+        height = 30,
+        label = "Cancel",
+        textureHeight = 46,
+        point = { "BOTTOMLEFT", name_input_frame, "BOTTOM", 10, 20 },
+    })
 
     name_input_frame.cancel_button:SetScript("OnClick", function()
         name_input_frame:Hide()
@@ -1239,65 +1093,13 @@ function addon:create_edit_layout_dialog()
     local button_width = dialog_frame:GetWidth() / 2 - 30
 
     -- Save button
-    dialog_frame.save_button = CreateFrame("Button", nil, dialog_frame)
-    dialog_frame.save_button:SetPoint("BOTTOMRIGHT", dialog_frame, "BOTTOM", -10, 20)
-    dialog_frame.save_button:SetSize(button_width, 30)
-
-    -- Button Text
-    local save_text = dialog_frame.save_button:CreateFontString(nil, "OVERLAY")
-    save_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    save_text:SetPoint("CENTER", dialog_frame.save_button, "CENTER", 0, 0)
-    save_text:SetText("Save")
-
-    -- Left Cap Texture
-    local save_left = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_left:SetTexture("Interface/Buttons/Dropdown")
-    save_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
-    save_left:SetSize(16, 46)
-    save_left:SetPoint("LEFT", dialog_frame.save_button, "LEFT")
-
-    -- Right Cap Texture
-    local save_right = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_right:SetTexture("Interface/Buttons/Dropdown")
-    save_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
-    save_right:SetSize(16, 46)
-    save_right:SetPoint("RIGHT", dialog_frame.save_button, "RIGHT")
-
-    -- Middle Texture
-    local save_middle = dialog_frame.save_button:CreateTexture(nil, "ARTWORK")
-    save_middle:SetTexture("Interface/Buttons/Dropdown")
-    save_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
-    save_middle:SetPoint("LEFT", save_left, "RIGHT")
-    save_middle:SetPoint("RIGHT", save_right, "LEFT")
-    save_middle:SetHeight(46)
-
-    -- Hover Texture for Save Button (Left)
-    local save_hover_left = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    save_hover_left:SetSize(16, 46)
-    save_hover_left:SetPoint("LEFT", dialog_frame.save_button, "LEFT")
-
-    -- Hover Texture for Save Button (Right)
-    local save_hover_right = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    save_hover_right:SetSize(16, 46)
-    save_hover_right:SetPoint("RIGHT", dialog_frame.save_button, "RIGHT")
-
-    -- Hover Middle Texture
-    local save_hover_middle = dialog_frame.save_button:CreateTexture(nil, "HIGHLIGHT")
-    save_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    save_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    save_hover_middle:SetPoint("LEFT", save_hover_left, "RIGHT")
-    save_hover_middle:SetPoint("RIGHT", save_hover_right, "LEFT")
-    save_hover_middle:SetHeight(46)
-
-    -- Hover Text
-    local save_hover_text = dialog_frame.save_button:CreateFontString(nil, "HIGHLIGHT")
-    save_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    save_hover_text:SetPoint("CENTER", dialog_frame.save_button, "CENTER", 0, 0)
-    save_hover_text:SetText("Save")
+    dialog_frame.save_button = addon:CreateStyledButton(dialog_frame, {
+        width = button_width,
+        height = 30,
+        label = "Save",
+        textureHeight = 46,
+        point = { "BOTTOMRIGHT", dialog_frame, "BOTTOM", -10, 20 },
+    })
 
     dialog_frame.save_button:SetScript("OnClick", function()
         -- Close the edit dialog and open the name input dialog
@@ -1320,65 +1122,13 @@ function addon:create_edit_layout_dialog()
     end)
 
     -- Cancel button
-    dialog_frame.cancel_button = CreateFrame("Button", nil, dialog_frame)
-    dialog_frame.cancel_button:SetPoint("BOTTOMLEFT", dialog_frame, "BOTTOM", 10, 20)
-    dialog_frame.cancel_button:SetSize(button_width, 30)
-
-    -- Button Text
-    local cancel_text = dialog_frame.cancel_button:CreateFontString(nil, "OVERLAY")
-    cancel_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_text:SetPoint("CENTER", dialog_frame.cancel_button, "CENTER", 0, 0)
-    cancel_text:SetText("Cancel")
-
-    -- Left Cap Texture
-    local cancel_left = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
-    cancel_left:SetSize(16, 46)
-    cancel_left:SetPoint("LEFT", dialog_frame.cancel_button, "LEFT")
-
-    -- Right Cap Texture
-    local cancel_right = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
-    cancel_right:SetSize(16, 46)
-    cancel_right:SetPoint("RIGHT", dialog_frame.cancel_button, "RIGHT")
-
-    -- Middle Texture
-    local cancel_middle = dialog_frame.cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
-    cancel_middle:SetPoint("LEFT", cancel_left, "RIGHT")
-    cancel_middle:SetPoint("RIGHT", cancel_right, "LEFT")
-    cancel_middle:SetHeight(46)
-
-    -- Hover Texture for Cancel Button (Left)
-    local cancel_hover_left = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    cancel_hover_left:SetSize(16, 46)
-    cancel_hover_left:SetPoint("LEFT", dialog_frame.cancel_button, "LEFT")
-
-    -- Hover Texture for Cancel Button (Right)
-    local cancel_hover_right = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    cancel_hover_right:SetSize(16, 46)
-    cancel_hover_right:SetPoint("RIGHT", dialog_frame.cancel_button, "RIGHT")
-
-    -- Hover Middle Texture
-    local cancel_hover_middle = dialog_frame.cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    cancel_hover_middle:SetPoint("LEFT", cancel_hover_left, "RIGHT")
-    cancel_hover_middle:SetPoint("RIGHT", cancel_hover_right, "LEFT")
-    cancel_hover_middle:SetHeight(46)
-
-    -- Hover Text
-    local cancel_hover_text = dialog_frame.cancel_button:CreateFontString(nil, "HIGHLIGHT")
-    cancel_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_hover_text:SetPoint("CENTER", dialog_frame.cancel_button, "CENTER", 0, 0)
-    cancel_hover_text:SetText("Cancel")
+    dialog_frame.cancel_button = addon:CreateStyledButton(dialog_frame, {
+        width = button_width,
+        height = 30,
+        label = "Cancel",
+        textureHeight = 46,
+        point = { "BOTTOMLEFT", dialog_frame, "BOTTOM", 10, 20 },
+    })
 
     dialog_frame.cancel_button:SetScript("OnClick", function()
         dialog_frame:Hide()

@@ -55,14 +55,11 @@ function addon:create_keyboard_frame()
     keyboard_frame:SetClampedToScreen(true)
 
     -- Border frame to be toggled with selected texture from Editmode
-    keyboard_frame.edit_frame = CreateFrame("Frame", nil, keyboard_frame)
-    keyboard_frame.edit_frame:SetSize(keyboard_frame:GetWidth(), keyboard_frame:GetHeight())
-    keyboard_frame.edit_frame:SetPoint("CENTER", keyboard_frame, "CENTER")
-
-    addon:create_glow_border(keyboard_frame.edit_frame)
-
-    -- Initially hide the border frame
-    keyboard_frame.edit_frame:Hide()
+    keyboard_frame.edit_frame = addon:CreateGlowFrame(keyboard_frame, {
+        point = { "CENTER", keyboard_frame, "CENTER" },
+        width = keyboard_frame:GetWidth(),
+        height = keyboard_frame:GetHeight(),
+    })
 
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)

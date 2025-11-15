@@ -1,19 +1,5 @@
 local name, addon = ...
 
-local function update_disabled_state(button, text, left_texture, middle_texture, right_texture)
-    if button and not button:IsEnabled() then
-        text:SetTextColor(0.192, 0.192, 0.192) -- Grau für deaktivierten Text
-        left_texture:SetVertexColor(0.4, 0.4, 0.4) -- Grautöne für deaktivierte Texturen
-        middle_texture:SetVertexColor(0.4, 0.4, 0.4)
-        right_texture:SetVertexColor(0.4, 0.4, 0.4)
-    else
-        text:SetTextColor(1, 1, 1) -- Weiß für aktivierten Text
-        left_texture:SetVertexColor(1, 1, 1) -- Standardfarben für aktive Texturen
-        middle_texture:SetVertexColor(1, 1, 1)
-        right_texture:SetVertexColor(1, 1, 1)
-    end
-end
-
 function addon:create_selection_frame()
     -- Create the main selection frame
     local selection_frame = CreateFrame("Frame", "keyui_selection_frame", UIParent, "BackdropTemplate")
@@ -79,139 +65,31 @@ function addon:create_selection_frame()
     bottom_frame:SetBackdropColor(0.1, 0.1, 0.1, 1)
 
     -- Load Button
-    local load_button = CreateFrame("Button", nil, selection_frame)
-    load_button:SetPoint("CENTER", bottom_frame, "LEFT", one_quarter_offset, 0) -- Adjust positioning
-    load_button:SetSize(button_width, 30)
+    local load_button = addon:CreateStyledButton(selection_frame, {
+        width = button_width,
+        height = 30,
+        label = "Load",
+        textureHeight = 46,
+    })
+    load_button:SetPoint("CENTER", bottom_frame, "LEFT", one_quarter_offset, 0)
     if keyui_settings.show_keyboard == false and keyui_settings.show_mouse == false and keyui_settings.show_controller == false then
         load_button:Disable()
     end
 
-    local load_text = load_button:CreateFontString(nil, "OVERLAY")
-    load_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    load_text:SetPoint("CENTER", load_button, "CENTER", 0, 0)
-    load_text:SetText("Load")
-
-    -- Left Cap Texture
-    local load_left = load_button:CreateTexture(nil, "ARTWORK")
-    load_left:SetTexture("Interface/Buttons/Dropdown")
-    load_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
-    load_left:SetSize(16, 46)
-    load_left:SetPoint("LEFT", load_button, "LEFT")
-
-    -- Right Cap Texture
-    local load_right = load_button:CreateTexture(nil, "ARTWORK")
-    load_right:SetTexture("Interface/Buttons/Dropdown")
-    load_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
-    load_right:SetSize(16, 46)
-    load_right:SetPoint("RIGHT", load_button, "RIGHT")
-
-    -- Middle Texture
-    local load_middle = load_button:CreateTexture(nil, "ARTWORK")
-    load_middle:SetTexture("Interface/Buttons/Dropdown")
-    load_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
-    load_middle:SetPoint("LEFT", load_left, "RIGHT")
-    load_middle:SetPoint("RIGHT", load_right, "LEFT")
-    load_middle:SetHeight(46)
-
-    -- Hover Texture for Load Button
-    local load_hover_left = load_button:CreateTexture(nil, "HIGHLIGHT")
-    load_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    load_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    load_hover_left:SetSize(16, 46)
-    load_hover_left:SetPoint("LEFT", load_button, "LEFT")
-
-    local load_hover_right = load_button:CreateTexture(nil, "HIGHLIGHT")
-    load_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    load_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    load_hover_right:SetSize(16, 46)
-    load_hover_right:SetPoint("RIGHT", load_button, "RIGHT")
-
-    local load_hover_middle = load_button:CreateTexture(nil, "HIGHLIGHT")
-    load_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    load_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    load_hover_middle:SetPoint("LEFT", load_hover_left, "RIGHT")
-    load_hover_middle:SetPoint("RIGHT", load_hover_right, "LEFT")
-    load_hover_middle:SetHeight(46)
-
-    local load_hover_text = load_button:CreateFontString(nil, "HIGHLIGHT")
-    load_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    load_hover_text:SetPoint("CENTER", load_button, "CENTER", 0, 0)
-    load_hover_text:SetText("Load")
-
     -- Cancel Button
-    local cancel_button = CreateFrame("Button", nil, selection_frame)
-    cancel_button:SetPoint("CENTER", bottom_frame, "LEFT", three_quarter_offset, 0) -- Adjust positioning
-    cancel_button:SetSize(button_width, 30)
-
-    local cancel_text = cancel_button:CreateFontString(nil, "OVERLAY")
-    cancel_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_text:SetPoint("CENTER", cancel_button, "CENTER", 0, 0)
-    cancel_text:SetText("Cancel")
-
-    -- Left Cap Texture
-    local cancel_left = cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_left:SetTexCoord(0.03125, 0.53125, 0.470703, 0.560547) -- TexCoords for "dropdown-left-cap"
-    cancel_left:SetSize(16, 46)
-    cancel_left:SetPoint("LEFT", cancel_button, "LEFT")
-
-    -- Right Cap Texture
-    local cancel_right = cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_right:SetTexCoord(0.03125, 0.53125, 0.751953, 0.841797) -- TexCoords for "dropdown-right-cap"
-    cancel_right:SetSize(16, 46)
-    cancel_right:SetPoint("RIGHT", cancel_button, "RIGHT")
-
-    -- Middle Texture
-    local cancel_middle = cancel_button:CreateTexture(nil, "ARTWORK")
-    cancel_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_middle:SetTexCoord(0, 0.5, 0.0957031, 0.185547) -- TexCoords for "_dropdown-middle"
-    cancel_middle:SetPoint("LEFT", cancel_left, "RIGHT")
-    cancel_middle:SetPoint("RIGHT", cancel_right, "LEFT")
-    cancel_middle:SetHeight(46)
-
-    -- Hover Texture for Cancel Button
-    local cancel_hover_left = cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_left:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_left:SetTexCoord(0.03125, 0.53125, 0.283203, 0.373047) -- TexCoords for "dropdown-hover-left-cap"
-    cancel_hover_left:SetSize(16, 46)
-    cancel_hover_left:SetPoint("LEFT", cancel_button, "LEFT")
-
-    local cancel_hover_right = cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_right:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_right:SetTexCoord(0.03125, 0.53125, 0.376953, 0.466797) -- TexCoords for "dropdown-hover-right-cap"
-    cancel_hover_right:SetSize(16, 46)
-    cancel_hover_right:SetPoint("RIGHT", cancel_button, "RIGHT")
-
-    local cancel_hover_middle = cancel_button:CreateTexture(nil, "HIGHLIGHT")
-    cancel_hover_middle:SetTexture("Interface/Buttons/Dropdown")
-    cancel_hover_middle:SetTexCoord(0, 0.5, 0.00195312, 0.0917969) -- TexCoords for "_dropdown-hover-middle"
-    cancel_hover_middle:SetPoint("LEFT", cancel_hover_left, "RIGHT")
-    cancel_hover_middle:SetPoint("RIGHT", cancel_hover_right, "LEFT")
-    cancel_hover_middle:SetHeight(46)
-
-    local cancel_hover_text = cancel_button:CreateFontString(nil, "HIGHLIGHT")
-    cancel_hover_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
-    cancel_hover_text:SetPoint("CENTER", cancel_button, "CENTER", 0, 0)
-    cancel_hover_text:SetText("Cancel")
+    local cancel_button = addon:CreateStyledButton(selection_frame, {
+        width = button_width,
+        height = 30,
+        label = "Cancel",
+        textureHeight = 46,
+    })
+    cancel_button:SetPoint("CENTER", bottom_frame, "LEFT", three_quarter_offset, 0)
 
     load_button:SetScript("OnShow", function()
         if keyui_settings.show_keyboard == false and keyui_settings.show_mouse == false and keyui_settings.show_controller == false then
             load_button:Disable()
         end
     end)
-
-    -- Apply the update logic for load_button
-    load_button:HookScript("OnEnable", function()
-        update_disabled_state(load_button, load_text, load_left, load_middle, load_right)
-    end)
-
-    load_button:HookScript("OnDisable", function()
-        update_disabled_state(load_button, load_text, load_left, load_middle, load_right)
-    end)
-
-    -- Initial state update for load_button
-    update_disabled_state(load_button, load_text, load_left, load_middle, load_right)
 
     -- Scripts for button functionality
     load_button:SetScript("OnClick", function()
@@ -241,12 +119,11 @@ function addon:create_selection_frame()
         texture:SetAllPoints(selection_backdrop_frame)
 
         -- Border frame to be toggled with selected texture from Editmode
-        local border_frame = CreateFrame("Frame", nil, selection_backdrop_frame)
-        border_frame:SetSize(frame_width, frame_height)
-        border_frame:SetPoint("CENTER", selection_backdrop_frame, "CENTER")
-
-        -- Create glow border using the global function
-        addon:create_glow_border(border_frame)
+        local border_frame = addon:CreateGlowFrame(selection_backdrop_frame, {
+            point = { "CENTER", selection_backdrop_frame, "CENTER" },
+            width = frame_width,
+            height = frame_height,
+        })
 
         -- Add a label text to the frame
         local label = selection_backdrop_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
