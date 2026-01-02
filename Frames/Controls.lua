@@ -468,6 +468,20 @@ function addon:create_controls()
         controls_frame:SetHeight(200)
     end
 
+    -- Helper function to set visibility of all control checkboxes
+    local function set_controls_visibility(visible)
+        local controls = {
+            "empty_keys", "interface_keys", "highlight_buttons",
+            "detect_modifier", "dynamic_modifier",
+            "alt", "ctrl", "shift"
+        }
+
+        for _, name in ipairs(controls) do
+            controls_frame[name .. "_cb"]:SetShown(visible)
+            controls_frame[name .. "_text"]:SetShown(visible)
+        end
+    end
+
     -- Function to toggle the controls_expanded value
     local function toggle_controls_expanded()
         keyui_settings.controls_expanded = not keyui_settings.controls_expanded
@@ -476,62 +490,12 @@ function addon:create_controls()
         if keyui_settings.controls_expanded then
             controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
             controls_frame:SetHeight(320)
-
-            -- Show controls when expanded
-            controls_frame.empty_keys_cb:Show()
-            controls_frame.empty_keys_text:Show()
-
-            controls_frame.interface_keys_cb:Show()
-            controls_frame.interface_keys_text:Show()
-
-            controls_frame.highlight_buttons_cb:Show()
-            controls_frame.highlight_buttons_text:Show()
-
-            controls_frame.detect_modifier_cb:Show()
-            controls_frame.detect_modifier_text:Show()
-
-            controls_frame.dynamic_modifier_cb:Show()
-            controls_frame.dynamic_modifier_text:Show()
-
-            controls_frame.alt_cb:Show()
-            controls_frame.alt_text:Show()
-
-            controls_frame.ctrl_cb:Show()
-            controls_frame.ctrl_text:Show()
-
-            controls_frame.shift_cb:Show()
-            controls_frame.shift_text:Show()
-
+            set_controls_visibility(true)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
         else
             controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
             controls_frame:SetHeight(200)
-
-            -- Hide controls when collapsed
-            controls_frame.empty_keys_cb:Hide()
-            controls_frame.empty_keys_text:Hide()
-
-            controls_frame.interface_keys_cb:Hide()
-            controls_frame.interface_keys_text:Hide()
-
-            controls_frame.highlight_buttons_cb:Hide()
-            controls_frame.highlight_buttons_text:Hide()
-
-            controls_frame.detect_modifier_cb:Hide()
-            controls_frame.detect_modifier_text:Hide()
-
-            controls_frame.dynamic_modifier_cb:Hide()
-            controls_frame.dynamic_modifier_text:Hide()
-
-            controls_frame.alt_cb:Hide()
-            controls_frame.alt_text:Hide()
-
-            controls_frame.ctrl_cb:Hide()
-            controls_frame.ctrl_text:Hide()
-
-            controls_frame.shift_cb:Hide()
-            controls_frame.shift_text:Hide()
-
+            set_controls_visibility(false)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
         end
     end
@@ -551,66 +515,19 @@ function addon:create_controls()
 
     controls_frame.expander_text:SetScript("OnMouseDown", toggle_controls_expanded) -- Make expander text clickable to toggle state
 
+    -- Set initial visibility of controls based on controls_expanded
+    set_controls_visibility(keyui_settings.controls_expanded)
+
     -- Create Divider Frame
     controls_frame.divider_frame = controls_frame:CreateTexture(nil, "ARTWORK")
     controls_frame.divider_frame:SetTexture("Interface\\FriendsFrame\\UI-FriendsFrame-OnlineDivider")
     controls_frame.divider_frame:SetPoint("BOTTOM", controls_frame.expander_text, "TOP", 0, 0)
     controls_frame.divider_frame:SetSize(330, 16)
 
-    -- Initialize the visibility of the controls based on the current state of controls_expanded
+    -- Set initial expander position based on controls_expanded
     if keyui_settings.controls_expanded then
-        -- Show controls when expanded
-        controls_frame.empty_keys_cb:Show()
-        controls_frame.empty_keys_text:Show()
-
-        controls_frame.interface_keys_cb:Show()
-        controls_frame.interface_keys_text:Show()
-
-        controls_frame.highlight_buttons_cb:Show()
-        controls_frame.highlight_buttons_text:Show()
-
-        controls_frame.detect_modifier_cb:Show()
-        controls_frame.detect_modifier_text:Show()
-
-        controls_frame.dynamic_modifier_cb:Show()
-        controls_frame.dynamic_modifier_text:Show()
-
-        controls_frame.alt_cb:Show()
-        controls_frame.alt_text:Show()
-
-        controls_frame.ctrl_cb:Show()
-        controls_frame.ctrl_text:Show()
-
-        controls_frame.shift_cb:Show()
-        controls_frame.shift_text:Show()
-
         controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
     else
-        -- Hide controls when collapsed
-        controls_frame.empty_keys_cb:Hide()
-        controls_frame.empty_keys_text:Hide()
-
-        controls_frame.interface_keys_cb:Hide()
-        controls_frame.interface_keys_text:Hide()
-
-        controls_frame.highlight_buttons_cb:Hide()
-        controls_frame.highlight_buttons_text:Hide()
-
-        controls_frame.detect_modifier_cb:Hide()
-        controls_frame.detect_modifier_text:Hide()
-
-        controls_frame.dynamic_modifier_cb:Hide()
-        controls_frame.dynamic_modifier_text:Hide()
-
-        controls_frame.alt_cb:Hide()
-        controls_frame.alt_text:Hide()
-
-        controls_frame.ctrl_cb:Hide()
-        controls_frame.ctrl_text:Hide()
-
-        controls_frame.shift_cb:Hide()
-        controls_frame.shift_text:Hide()
-
         controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
     end
 
