@@ -2193,14 +2193,14 @@ function addon:handle_drag_or_size(self, button)
         self:Hide()
     elseif button == "LeftButton" then
         self:StartMoving()
-        addon.isMoving = true -- Add a flag to indicate the frame is being moved
+        addon.is_moving = true -- Add a flag to indicate the frame is being moved
     end
 end
 
 function addon:handle_release(self, button)
     if button == "LeftButton" then
         self:StopMovingOrSizing()
-        addon.isMoving = false -- Reset the flag when the movement is stopped
+        addon.is_moving = false -- Reset the flag when the movement is stopped
     end
 end
 

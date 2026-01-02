@@ -586,7 +586,7 @@ function addon:create_controller_buttons()
 
         local active_slot = self.active_slot
 
-        if addon.controller_locked == false and not addon.isMoving then
+        if addon.controller_locked == false and not addon.is_moving then
 
             controller_button:SetScript("OnKeyDown", function(_, key)
                 addon:handle_key_down(addon.current_hovered_button, key)

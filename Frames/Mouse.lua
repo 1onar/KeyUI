@@ -442,7 +442,7 @@ function addon:create_mouse_buttons()
 
         local active_slot = self.active_slot
 
-        if addon.mouse_locked == false and not addon.isMoving then
+        if addon.mouse_locked == false and not addon.is_moving then
 
             mouse_button:SetScript("OnKeyDown", function(_, key)
                 addon:handle_key_down(addon.current_hovered_button, key)
