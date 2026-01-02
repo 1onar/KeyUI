@@ -9,6 +9,114 @@ local LDB = LibStub("LibDataBroker-1.1")
 local PROFILE_EXPORT_VERSION = 1
 local LAYOUT_EXPORT_VERSION = 1
 
+-- Global keybind patterns cache (initialized on load)
+local keybind_patterns = {}
+
+-- Initialize keybind patterns with addon integrations
+local function initialize_keybind_patterns()
+    keybind_patterns = {
+        -- ACTIONBUTTON
+        ["^ACTIONBUTTON(%d+)$"] = function(binding, button)
+            local slot = tonumber(binding:match("ACTIONBUTTON(%d+)"))
+            return addon:process_actionbutton_slot(slot, button)
+        end,
+
+        -- MULTIACTIONBARBUTTON
+        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
+            local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+            if not bar or not bar_button then return end
+            return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
+        end,
+
+        -- BONUSACTIONBUTTON
+        ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
+            return addon:process_pet_action_slot(binding, button)
+        end,
+
+        -- SHAPESHIFTBUTTON
+        ["^SHAPESHIFTBUTTON(%d+)$"] = function(binding, button)
+            local slot = tonumber(binding:match("SHAPESHIFTBUTTON(%d+)"))
+            return addon:process_shapeshift_slot(slot, button)
+        end,
+
+        -- Spell
+        ["^Spell (.+)$"] = function(binding, button)
+            local spell_name = binding:match("^Spell (.+)$")
+            return addon:process_spell(spell_name, button)
+        end,
+
+        -- Macro
+        ["^Macro (.+)$"] = function(binding, button)
+            local macro_name = binding:match("^Macro (.+)$")
+            return addon:process_macro(macro_name, button)
+        end,
+    }
+
+    -- ElvUI integration with error handling
+    if C_AddOns.IsAddOnLoaded("ElvUI") then
+        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
+            local success, err = pcall(addon.process_elvui, addon, binding, button)
+            if not success then
+                print("KeyUI: ElvUI integration error:", err)
+            end
+        end
+    end
+
+    -- Bartender integration with error handling
+    if C_AddOns.IsAddOnLoaded("Bartender4") then
+        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
+            local success, err = pcall(addon.process_bartender, addon, binding, button)
+            if not success then
+                print("KeyUI: Bartender4 integration error:", err)
+            end
+        end
+    end
+
+    -- Dominos integration with error handling
+    if C_AddOns.IsAddOnLoaded("Dominos") then
+        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_dominos, addon, binding, button)
+            if not success then
+                print("KeyUI: Dominos integration error:", err)
+            end
+        end
+    end
+
+    -- OPie integration with error handling
+    if C_AddOns.IsAddOnLoaded("OPie") then
+        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
+            local success, err = pcall(addon.process_opie, addon, button)
+            if not success then
+                print("KeyUI: OPie integration error:", err)
+            end
+        end
+    end
+
+    -- BindPad integration with error handling
+    if C_AddOns.IsAddOnLoaded("BindPad") then
+        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+
+        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+
+        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+    end
+end
+
 local get_layout_meta
 local layout_type_labels = {
     keyboard = "Keyboard",
@@ -1410,95 +1518,8 @@ function addon:set_key(button)
     -- Store the interface command (Blizzard Interface Commands)
     button.binding = binding
 
-    -- Centralized keybind mapping table
-    local keybind_patterns = {
-
-        -- ACTIONBUTTON
-        ["^ACTIONBUTTON(%d+)$"] = function(binding, button)
-            local slot = tonumber(binding:match("ACTIONBUTTON(%d+)"))
-            return addon:process_actionbutton_slot(slot, button)
-        end,
-
-        -- MULTIACTIONBARBUTTON
-        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
-            local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
-            if not bar or not bar_button then return end
-            return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
-        end,
-
-        -- BONUSACTIONBUTTON
-        ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
-            return addon:process_pet_action_slot(binding, button)
-        end,
-
-        -- SHAPESHIFTBUTTON
-        ["^SHAPESHIFTBUTTON(%d+)$"] = function(binding, button)
-            local slot = tonumber(binding:match("SHAPESHIFTBUTTON(%d+)"))
-            return addon:process_shapeshift_slot(slot, button)
-        end,
-
-        -- Spell
-        ["^Spell (.+)$"] = function(binding, button)
-            local spell_name = binding:match("^Spell (.+)$")
-            return addon:process_spell(spell_name, button)
-        end,
-
-        -- Macro
-        ["^Macro (.+)$"] = function(binding, button)
-            local macro_name = binding:match("^Macro (.+)$")
-            return addon:process_macro(macro_name, button)
-        end,
-    }
-
-    --ElvUI
-    if C_AddOns.IsAddOnLoaded("ElvUI") then
-        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
-            return addon:process_elvui(binding, button)
-        end
-    end
-
-    -- Bartender
-    if C_AddOns.IsAddOnLoaded("Bartender4") then
-        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
-            return addon:process_bartender(binding, button)
-        end
-    end
-
-    -- Dominos
-    if C_AddOns.IsAddOnLoaded("Dominos") then
-        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
-            return addon:process_dominos(binding, button)
-        end
-    end
-
-    -- OPie
-    if C_AddOns.IsAddOnLoaded("OPie") then
-        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
-            return addon:process_opie(button)
-        end
-    end
-
-    -- BindPad
-    if C_AddOns.IsAddOnLoaded("BindPad") then
-        -- Macro names can include anything; capture everything after "BindPadMacro:"
-        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
-            return addon:process_bindpad(binding, button)
-        end
-
-        -- Spell names can also be arbitrary; capture everything after "BindPadKey:SPELL "
-        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
-            return addon:process_bindpad(binding, button)
-        end
-
-        -- Item names can be arbitrary; capture everything after "BindPadKey:ITEM "
-        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
-            return addon:process_bindpad(binding, button)
-        end
-    end
-
     -- Loop through the keybind patterns and process the binding if the binding is not empty
     if binding ~= "" then
-
         for pattern, handler in pairs(keybind_patterns) do
             if binding:find(pattern) then
                 handler(binding, button)
@@ -1591,9 +1612,12 @@ function addon:process_actionbutton_slot(slot, button)
 
     -- Check if the slot has an action assigned
     if HasAction(adjusted_slot) then
-        button.active_slot = adjusted_slot
-        button.icon:SetTexture(GetActionTexture(adjusted_slot))
-        button.icon:Show()
+        local texture = GetActionTexture(adjusted_slot)
+        if texture then
+            button.active_slot = adjusted_slot
+            button.icon:SetTexture(texture)
+            button.icon:Show()
+        end
     end
 end
 
@@ -2180,6 +2204,9 @@ function addon:handle_release(self, button)
     end
 end
 
+-- TODO: Migrate to MenuUtil/Menu system (UIDropDownMenu is deprecated in 11.0.0+)
+-- This still works but should be migrated to the new Menu API
+-- See Controls.lua for examples of the new MenuUtil.CreateRootMenuDescription() system
 local function rightclick_initialize(self, level)
     level = level or 1
     local info = UIDropDownMenu_CreateInfo()
@@ -2482,6 +2509,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
         elseif event == "PLAYER_LOGIN" then
+            -- Initialize keybind patterns cache (with addon integrations)
+            initialize_keybind_patterns()
+
             -- Check which class
             addon.class_name = UnitClassBase("player")
             -- Check the BonusBarOffset
