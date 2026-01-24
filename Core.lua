@@ -870,6 +870,20 @@ function addon:ResetAddonSettings()
     reset_frame_positions(self)
     self:SyncMinimapButton()
 
+    -- Refresh Settings Panel UI to reflect reset values
+    if Settings and Settings.SetValue then
+        -- Update all registered settings to trigger UI refresh
+        Settings.SetValue("KEYUI_MINIMAP_BUTTON", not keyui_settings.minimap.hide)
+        Settings.SetValue("KEYUI_STAY_OPEN_COMBAT", keyui_settings.stay_open_in_combat)
+        Settings.SetValue("KEYUI_SHOW_KEYBOARD", keyui_settings.show_keyboard)
+        Settings.SetValue("KEYUI_SHOW_MOUSE", keyui_settings.show_mouse)
+        Settings.SetValue("KEYUI_SHOW_CONTROLLER", keyui_settings.show_controller)
+        Settings.SetValue("KEYUI_KEYBOARD_BACKGROUND", keyui_settings.show_keyboard_background)
+        Settings.SetValue("KEYUI_MOUSE_GRAPHIC", keyui_settings.show_mouse_graphic)
+        Settings.SetValue("KEYUI_CONTROLLER_BACKGROUND", keyui_settings.show_controller_background)
+        Settings.SetValue("KEYUI_ENABLE_ESC", keyui_settings.close_on_esc)
+    end
+
     print("KeyUI: Settings reset to defaults.")
 end
 

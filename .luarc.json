@@ -45,9 +45,12 @@
     "diagnostics.disable": [
         "duplicate-set-field",
         "undefined-global",
-        "lowercase-global"
+        "lowercase-global",
+        "undefined-field"
     ],
-    "workspace.library": [],
+    "workspace.library": [
+        "Blizzard_APIDocumentation"
+    ],
     "workspace.ignoreDir": [
         ".vscode",
         "zwischenablage"

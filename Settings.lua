@@ -53,7 +53,7 @@ local function InitializeSettingsPanel()
         keyui_settings,
         Settings.VarType.Boolean,
         "Show Keyboard",
-        Settings.Default.True
+        Settings.Default.False
     )
     Settings.CreateCheckbox(category, showKeyboardSetting, "Show or hide the keyboard frame")
 
@@ -65,7 +65,7 @@ local function InitializeSettingsPanel()
         keyui_settings,
         Settings.VarType.Boolean,
         "Show Mouse",
-        Settings.Default.True
+        Settings.Default.False
     )
     Settings.CreateCheckbox(category, showMouseSetting, "Show or hide the mouse frame")
 
@@ -157,7 +157,7 @@ local function InitializeSettingsPanel()
         "KEYUI_ENABLE_ESC",
         Settings.VarType.Boolean,
         "Enable ESC",
-        Settings.Default.False,
+        Settings.Default.True,
         GetEscValue,
         SetEscValue
     )
