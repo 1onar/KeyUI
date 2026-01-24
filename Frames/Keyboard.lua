@@ -9,7 +9,6 @@ function addon:save_keyboard_position()
 end
 
 function addon:create_keyboard_frame()
-    -- Create the keyboard frame and assign it to the addon table
     local keyboard_frame = CreateFrame("Frame", "keyui_keyboard_frame", UIParent, "BackdropTemplate")
     addon.keyboard_frame = keyboard_frame
 
@@ -18,10 +17,12 @@ function addon:create_keyboard_frame()
         tinsert(UISpecialFrames, "keyui_keyboard_frame")
     end
 
+    -- Set initial size and hide frame
     keyboard_frame:SetHeight(382)
     keyboard_frame:SetWidth(940)
     keyboard_frame:Hide()
 
+    -- Configure backdrop with background and border
     local backdropInfo = {
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
         edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
@@ -30,7 +31,6 @@ function addon:create_keyboard_frame()
         edgeSize = 14,
         insets = { left = 2, right = 2, top = 2, bottom = 2 }
     }
-
     keyboard_frame:SetBackdrop(backdropInfo)
     keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
@@ -49,12 +49,13 @@ function addon:create_keyboard_frame()
         keyboard_frame:SetScale(1)
     end
 
+    -- Enable dragging and movement
     keyboard_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
     keyboard_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
     keyboard_frame:SetMovable(true)
     keyboard_frame:SetClampedToScreen(true)
 
-    -- Border frame to be toggled with selected texture from Editmode
+    -- Create edit mode glow border frame
     keyboard_frame.edit_frame = addon:CreateGlowFrame(keyboard_frame, {
         point = { "CENTER", keyboard_frame, "CENTER" },
         width = keyboard_frame:GetWidth(),
@@ -218,7 +219,7 @@ function addon:create_keyboard_frame()
 
     -- Set OnClick behavior for options button
     keyboard_frame.options_button:SetScript("OnClick", function()
-        Settings.OpenToCategory("KeyUI")
+        addon:OpenSettings()
     end)
 
     -- Ensure the options button always appears inactive
@@ -329,21 +330,21 @@ local modifier_keys = {
     LSHIFT = true, RSHIFT = true,
 }
 
--- This function updates the keyboard layout by creating, positioning, and resizing key frames based on the current configuration.
+-- Updates the keyboard layout by creating, positioning, and resizing key frames based on the current configuration
 function addon:generate_keyboard_key_frames()
-    -- Clear the existing key array to avoid leftover data from previous layouts.
+    -- Clear existing key array to avoid leftover data from previous layouts
     for i = 1, #addon.keys_keyboard do
         addon.keys_keyboard[i]:Hide()
         addon.keys_keyboard[i] = nil
     end
     addon.keys_keyboard = {}
 
-        if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
-            -- Set a default small size before calculating the dynamic size.
-            addon.keyboard_frame:SetWidth(100)
-            addon.keyboard_frame:SetHeight(100)
+    if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
+        -- Set temporary small size before calculating the dynamic size
+        addon.keyboard_frame:SetWidth(100)
+        addon.keyboard_frame:SetHeight(100)
 
-        -- Check if the layout contains any data.
+        -- Check if the layout contains any data
         local layout_not_empty = false
         for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
             if #layout_data > 0 then
@@ -356,7 +357,7 @@ function addon:generate_keyboard_key_frames()
             local max_horizontal_extent = 0
             local max_vertical_extent = 0
 
-            -- Loop through each key in the layout and position it within the frame.
+            -- Loop through each key in the layout and position it within the frame
             for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layout_data do
                     local button = addon.keys_keyboard[i] or addon:create_keyboard_buttons()
@@ -391,6 +392,7 @@ function addon:generate_keyboard_key_frames()
                     button.is_modifier = modifier_keys[button.raw_key] or false
                     button:Show()
 
+                    -- Track maximum extents for frame size calculation
                     if offset_x + (key_width or 60) > max_horizontal_extent then
                         max_horizontal_extent = offset_x + (key_width or 60)
                     end
@@ -400,12 +402,13 @@ function addon:generate_keyboard_key_frames()
                 end
             end
 
+            -- Set frame size based on calculated extents (use abs for height due to negative offset_y)
             addon.keyboard_frame:SetWidth(max_horizontal_extent + 6)
-            addon.keyboard_frame:SetHeight(max_vertical_extent - 6)
+            addon.keyboard_frame:SetHeight(math.abs(max_vertical_extent) + 6)
 
             addon.keyboard_frame.edit_frame:SetSize(addon.keyboard_frame:GetWidth(), addon.keyboard_frame:GetHeight())
         else
-            -- Set a fallback size if the layout is empty.
+            -- Set fallback size if the layout is empty
             addon.keyboard_frame:SetWidth(940)
             addon.keyboard_frame:SetHeight(382)
 

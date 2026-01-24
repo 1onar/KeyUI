@@ -17,10 +17,12 @@ function addon:create_controller_frame()
         tinsert(UISpecialFrames, "keyui_controller_frame")
     end
 
+    -- Set initial size and hide frame
     controller_frame:SetWidth(950)
     controller_frame:SetHeight(500)
     controller_frame:Hide()
 
+    -- Configure backdrop with background and border
     local backdropInfo = {
         bgFile = "Interface/Tooltips/UI-Tooltip-Background",
         edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
@@ -29,7 +31,6 @@ function addon:create_controller_frame()
         edgeSize = 14,
         insets = { left = 2, right = 2, top = 2, bottom = 2 }
     }
-
     controller_frame:SetBackdrop(backdropInfo)
     controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
@@ -48,12 +49,13 @@ function addon:create_controller_frame()
         controller_frame:SetScale(1)
     end
 
+    -- Enable dragging and movement
     controller_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
     controller_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
     controller_frame:SetMovable(true)
     controller_frame:SetClampedToScreen(true)
 
-    -- Border frame to be toggled with selected texture from Editmode
+    -- Create edit mode glow border frame
     controller_frame.edit_frame = addon:CreateGlowFrame(controller_frame, {
         point = { "CENTER", controller_frame, "CENTER" },
         width = controller_frame:GetWidth(),
@@ -228,7 +230,7 @@ function addon:create_controller_frame()
 
     -- Set OnClick behavior for options button
     controller_frame.options_button:SetScript("OnClick", function()
-        Settings.OpenToCategory("KeyUI")
+        addon:OpenSettings()
     end)
 
     -- Ensure the options button always appears inactive

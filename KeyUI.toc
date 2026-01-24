@@ -1,4 +1,4 @@
-## Interface: 110207
+## Interface: 120000
 ## Author: Blandros
 ## Category: Action Bars
 ## Version: @project-version@
@@ -26,4 +26,5 @@ Frames\Mouse.lua
 Frames\Controller.lua
 Frames\Controls.lua
 Core.lua
+Settings.lua
 Frames\Tutorial.lua

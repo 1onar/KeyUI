@@ -1,8 +1,6 @@
 local name, addon = ...
 
 -- Initialize libraries
-local AceConfig = LibStub("AceConfig-3.0")
-local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
 local LDB = LibStub("LibDataBroker-1.1")
 
@@ -131,8 +129,14 @@ local function sanitize_layout_name(name)
     return (name:gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
--- Create the options frame and add it to the Interface Options
-local optionsFrame = AceConfigDialog:AddToBlizOptions("KeyUI", "KeyUI")
+-- Helper function to open settings panel (Midnight compatibility)
+function addon:OpenSettings()
+    if self.settingsCategory and self.settingsCategory.GetID then
+        Settings.OpenToCategory(self.settingsCategory:GetID())
+    else
+        print("KeyUI: Settings panel not available. Please reload the UI with /reload")
+    end
+end
 
 -- Minimap button setup using LibDataBroker
 local miniButton = LDB:NewDataObject("KeyUI", {
@@ -153,8 +157,8 @@ local miniButton = LDB:NewDataObject("KeyUI", {
                 end
             end
         elseif btn == "RightButton" then
-            -- Open the Blizzard settings page
-            Settings.OpenToCategory("KeyUI")
+            -- Open the Blizzard settings page (Midnight 12.0+ compatibility)
+            addon:OpenSettings()
         end
     end,
 
@@ -869,191 +873,6 @@ function addon:ResetAddonSettings()
     print("KeyUI: Settings reset to defaults.")
 end
 
-local function set_esc_close_enabled(frame, enabled)
-    if not frame or not frame:GetName() then return end
-
-    if enabled then
-        -- Remove the frame from UISpecialFrames if ESC closing is disabled
-        for i, frameName in ipairs(UISpecialFrames) do
-            if frameName == frame:GetName() then
-                tremove(UISpecialFrames, i)
-                --print(frame:GetName() .. " removed from UISpecialFrames")
-                break
-            end
-        end
-    else
-        -- Add the frame back to UISpecialFrames to allow ESC closing
-        if not tContains(UISpecialFrames, frame:GetName()) then
-            tinsert(UISpecialFrames, frame:GetName())
-            --print(frame:GetName() .. " added to UISpecialFrames")
-        end
-    end
-end
-
--- Define the options table for AceConfig
-local options = {
-    type = "group",
-    name = "KeyUI",
-    args = {
-        minimap = {
-            type = "toggle",
-            name = "Minimap Button",
-            desc = "Show or hide the minimap button",
-            order = 7,
-            get = function() return not keyui_settings.minimap.hide end,
-            set = function(_, value)
-                keyui_settings.minimap.hide = not value
-                if value then
-                    LibDBIcon:Show("KeyUI")
-                    print("KeyUI: Minimap button enabled")
-                else
-                    LibDBIcon:Hide("KeyUI")
-                    print("KeyUI: Minimap button disabled")
-                end
-            end,
-        },
-        stay_open_in_combat = {
-            type = "toggle",
-            name = "Stay Open In Combat",
-            desc = "Allow KeyUI to stay open during combat",
-            order = 8,
-            get = function() return keyui_settings.stay_open_in_combat end,
-            set = function(_, value)
-                keyui_settings.stay_open_in_combat = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Stay open in combat " .. status)
-            end,
-        },
-        show_keyboard = {
-            type = "toggle",
-            name = "Show Keyboard",
-            desc = "Show or hide the keyboard frame",
-            order = 1,
-            get = function() return keyui_settings.show_keyboard end,
-            set = function(_, value)
-                keyui_settings.show_keyboard = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Keyboard visibility", status)
-            end,
-        },
-        show_mouse = {
-            type = "toggle",
-            name = "Show Mouse",
-            desc = "Show or hide the mouse frame",
-            order = 2,
-            get = function() return keyui_settings.show_mouse end,
-            set = function(_, value)
-                keyui_settings.show_mouse = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Mouse visibility", status)
-            end,
-        },
-        show_controller = {
-            type = "toggle",
-            name = "Show Controller",
-            desc = "Show or hide the controller frame",
-            order = 3,
-            get = function() return keyui_settings.show_controller end,
-            set = function(_, value)
-                keyui_settings.show_controller = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Controller visibility", status)
-            end,
-        },
-        -- Add a button to reset all settings to defaults
-        reset_settings = {
-            type = "execute",
-            name = "Reset Addon Settings",
-            desc = "Reset all KeyUI settings to their default values",
-            order = 10,
-            confirm = true, -- Ask for confirmation
-            confirmText = "Are you sure you want to reset all KeyUI settings to default?",
-            func = function()
-                addon:ResetAddonSettings()
-            end,
-        },
-        prevent_esc_close = {
-            type = "toggle",
-            name = "Enable ESC",
-            desc = "Enable or disable the addon window closing when pressing ESC",
-            order = 9,
-            get = function() return keyui_settings.prevent_esc_close end,
-            set = function(_, value)
-                keyui_settings.prevent_esc_close = value
-
-                -- Immediately update the ESC closing behavior for all relevant frames
-                set_esc_close_enabled(addon.keyboard_frame, not keyui_settings.prevent_esc_close)
-                set_esc_close_enabled(addon.controls_frame, not keyui_settings.prevent_esc_close)
-                set_esc_close_enabled(addon.mouse_image, not keyui_settings.prevent_esc_close)
-                set_esc_close_enabled(addon.mouse_frame, not keyui_settings.prevent_esc_close)
-                set_esc_close_enabled(addon.mouse_control_frame, not keyui_settings.prevent_esc_close)
-
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Closing with ESC " .. status)
-            end,
-        },
-        show_keyboard_background = {
-            type = "toggle",
-            name = "Keyboard Background",
-            desc = "Show or hide the background and border of the keyboard frame",
-            order = 4,
-            get = function() return keyui_settings.show_keyboard_background end,
-            set = function(_, value)
-                keyui_settings.show_keyboard_background = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Keyboard background", status)
-            end,
-        },
-        show_mouse_graphic = {
-            type = "toggle",
-            name = " Mouse Graphic",
-            desc = "Show or hide the graphical representation of the mouse",
-            order = 5,
-            get = function() return keyui_settings.show_mouse_graphic end,
-            set = function(_, value)
-                keyui_settings.show_mouse_graphic = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Mouse graphic", status)
-            end,
-        },
-        show_controller_background = {
-            type = "toggle",
-            name = "Controller Background",
-            desc = "Show or hide the background and border of the controller frame",
-            order = 6,
-            get = function() return keyui_settings.show_controller_background end,
-            set = function(_, value)
-                keyui_settings.show_controller_background = value
-                local status = value and "enabled" or "disabled"
-                print("KeyUI: Controller background", status)
-            end,
-        },
-        profile_header = {
-            type = "header",
-            name = "Profiles",
-            order = 20,
-        },
-        export_profile = {
-            type = "execute",
-            name = "Export Profile",
-            desc = "Copy your current KeyUI configuration as a sharable string",
-            order = 21,
-            func = function()
-                addon:ShowProfileExportPopup()
-            end,
-        },
-        import_profile = {
-            type = "execute",
-            name = "Import Profile",
-            desc = "Paste a profile string to apply someone else's configuration",
-            order = 22,
-            func = function()
-                addon:ShowProfileImportPopup()
-            end,
-        },
-    },
-}
-
 -- Handle addon load event and initialize
 EventUtil.ContinueOnAddOnLoaded(..., function()
     -- Load additional saved settings and update the UI
@@ -1062,8 +881,10 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     -- Register the minimap button using LibDBIcon
     LibDBIcon:Register("KeyUI", miniButton, keyui_settings.minimap)
 
-    -- Register the options table
-    AceConfig:RegisterOptionsTable("KeyUI", options)
+    -- Initialize Settings panel
+    if addon.InitializeSettingsPanel then
+        addon.InitializeSettingsPanel()
+    end
 end)
 
 -- Main function to load the addon.
@@ -1205,6 +1026,7 @@ function addon:show_frames()
     if keyui_settings.show_keyboard == true then
         addon.is_keyboard_visible = true
         keyboard_frame:Show()
+
         if keyui_settings.show_keyboard_background ~= true then
             -- Remove the background and border if graphics are disabled
             keyboard_frame:SetBackdrop(nil)
@@ -1710,7 +1532,7 @@ function addon:process_pet_action_slot(binding, button)
 
     -- Handle the texture if it's a token
     if is_token then
-        pet_texture = _G[pet_texture] or "Interface\\Icons\\" .. pet_texture -- Fallback to WoW's icon folder
+        pet_texture = _G[pet_texture] or ("Interface\\Icons\\" .. pet_texture) -- Fallback to WoW's icon folder
     end
 
     if pet_texture then
@@ -2306,7 +2128,7 @@ local function rightclick_initialize(self, level)
                 local spell_id = spell.id
 
                 if spell_id then
-                    if IsSpellKnown(spell_id) then
+                    if C_Spell.IsSpellKnown(spell_id) then
                         local spell_icon = C_Spell.GetSpellTexture(spell_id)
 
                         info.text = spell_name

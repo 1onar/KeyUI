@@ -36,16 +36,19 @@ function addon:create_mouse_image()
         mouse_image:SetScale(1)
     end
 
+    -- Enable dragging and movement
     mouse_image:SetScript("OnMouseDown", function(self) self:StartMoving() end)
     mouse_image:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
     mouse_image:SetMovable(true)
     mouse_image:SetClampedToScreen(true)
 
+    -- Set mouse texture
     mouse_image.Texture = mouse_image:CreateTexture()
     mouse_image.Texture:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\mouse.tga")
     mouse_image.Texture:SetPoint("CENTER", mouse_image, "CENTER", 0, 0)
     mouse_image.Texture:SetSize(390, 390)
 
+    -- Create close button
     mouse_image.close_button = CreateFrame("Button", nil, mouse_image, "UIPanelCloseButton")
     mouse_image.close_button:SetSize(22, 22)
     mouse_image.close_button:SetPoint("TOPRIGHT", mouse_image, "TOPRIGHT", 0, 0)
@@ -57,7 +60,7 @@ function addon:create_mouse_image()
         mouse_image:Hide()
     end)
 
-    -- Border frame to be toggled with selected texture from Editmode
+    -- Create edit mode glow border frame
     mouse_image.edit_frame = addon:CreateGlowFrame(mouse_image, {
         point = { "RIGHT", mouse_image, "RIGHT" },
         width = 500,
@@ -190,7 +193,7 @@ function addon:create_mouse_image()
 
     -- Set OnClick behavior for options button
     mouse_image.options_button:SetScript("OnClick", function()
-        Settings.OpenToCategory("KeyUI")
+        addon:OpenSettings()
     end)
 
     -- Ensure the options button always appears inactive
