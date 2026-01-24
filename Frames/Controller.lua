@@ -13,7 +13,7 @@ function addon:create_controller_frame()
     addon.controller_frame = controller_frame
 
     -- Manage ESC key behavior based on the setting
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_controller_frame")
     end
 
@@ -273,7 +273,7 @@ function addon:create_controller_image()
     addon.controller_image = controller_image
 
     -- Add to UISpecialFrames to allow closing with ESC key if the setting permits
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_controller_image")
     end
 

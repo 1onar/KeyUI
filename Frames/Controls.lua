@@ -47,7 +47,7 @@ function addon:create_controls()
     controls_frame:SetClampedToScreen(true)
 
     -- Manage ESC key behavior based on the setting
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_keyboard_control_frame")
     end
 

@@ -13,7 +13,7 @@ function addon:create_mouse_image()
     addon.mouse_image = mouse_image
 
     -- Manage ESC key behavior based on the setting
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_mouse_image")
     end
 
@@ -235,7 +235,7 @@ function addon:create_mouse_frame()
     addon.mouse_frame = mouse_frame
 
     -- Manage ESC key behavior based on the setting
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_mouse_frame")
     end
 

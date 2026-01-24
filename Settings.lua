@@ -119,11 +119,11 @@ local function InitializeSettingsPanel()
 
     -- Enable ESC Setting (with special handler)
     local function GetEscValue()
-        return keyui_settings.prevent_esc_close
+        return keyui_settings.close_on_esc
     end
 
     local function SetEscValue(value)
-        keyui_settings.prevent_esc_close = value
+        keyui_settings.close_on_esc = value
 
         -- Update ESC behavior for all frames
         local function set_esc_close_enabled(frame, enabled)
@@ -142,11 +142,11 @@ local function InitializeSettingsPanel()
             end
         end
 
-        set_esc_close_enabled(addon.keyboard_frame, not value)
-        set_esc_close_enabled(addon.controls_frame, not value)
-        set_esc_close_enabled(addon.mouse_image, not value)
-        set_esc_close_enabled(addon.mouse_frame, not value)
-        set_esc_close_enabled(addon.mouse_control_frame, not value)
+        set_esc_close_enabled(addon.keyboard_frame, value)
+        set_esc_close_enabled(addon.controls_frame, value)
+        set_esc_close_enabled(addon.mouse_image, value)
+        set_esc_close_enabled(addon.mouse_frame, value)
+        set_esc_close_enabled(addon.mouse_control_frame, value)
 
         local status = value and "enabled" or "disabled"
         print("KeyUI: Closing with ESC " .. status)
@@ -192,11 +192,11 @@ local function InitializeSettingsPanel()
 
     -- Reset Settings Button (with confirmation dialog)
     local resetButton = CreateSettingsButtonInitializer(
-        "Reset Addon Settings",
-        "Reset All Settings",
+        "Full Reset",
+        "Full Reset",
         function()
             StaticPopupDialogs["KEYUI_CONFIRM_RESET"] = {
-                text = "Are you sure you want to reset all KeyUI settings to default?",
+                text = "Are you sure you want to reset ALL KeyUI data (settings, layouts, positions, keybinds) to default?",
                 button1 = "Yes",
                 button2 = "No",
                 OnAccept = function()
@@ -209,7 +209,7 @@ local function InitializeSettingsPanel()
             }
             StaticPopup_Show("KEYUI_CONFIRM_RESET")
         end,
-        "Reset all KeyUI settings to their default values",
+        "Completely resets all KeyUI data: settings, custom layouts, frame positions, and keybind configurations",
         true
     )
     layout:AddInitializer(resetButton)

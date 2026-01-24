@@ -13,7 +13,7 @@ function addon:create_keyboard_frame()
     addon.keyboard_frame = keyboard_frame
 
     -- Manage ESC key behavior based on the setting
-    if keyui_settings.prevent_esc_close ~= false then
+    if keyui_settings.close_on_esc == true then
         tinsert(UISpecialFrames, "keyui_keyboard_frame")
     end
 

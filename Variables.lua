@@ -11,6 +11,12 @@ end
 
 -- Initialize general settings with default values if they are nil
 function addon:InitializeGeneralSettings()
+    -- Migrate old setting to new name
+    if keyui_settings.prevent_esc_close ~= nil then
+        keyui_settings.close_on_esc = not keyui_settings.prevent_esc_close
+        keyui_settings.prevent_esc_close = nil
+    end
+
     set_if_nil("show_keyboard", false)
     set_if_nil("show_mouse", false)
     set_if_nil("show_controller", false)
@@ -19,7 +25,7 @@ function addon:InitializeGeneralSettings()
     set_if_nil("show_controller_background", true)
     set_if_nil("stay_open_in_combat", true)
     set_if_nil("show_pushed_texture", true)
-    set_if_nil("prevent_esc_close", true)
+    set_if_nil("close_on_esc", false)
     set_if_nil("keyboard_position", {})
     set_if_nil("mouse_position", {})
     set_if_nil("controller_position", {})
