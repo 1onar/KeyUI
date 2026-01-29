@@ -523,7 +523,7 @@ function addon:create_mouse_buttons()
         elseif mousebutton == "RightButton" then
             addon.current_clicked_key = self    -- save the current clicked key
             addon.current_slot = self.slot      -- save the current clicked slot
-            ToggleDropDownMenu(1, nil, addon.dropdown, self, 30, 20)
+            MenuUtil.CreateContextMenu(self, addon.context_menu_generator)
         end
     end)
 

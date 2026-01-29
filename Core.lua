@@ -950,9 +950,6 @@ function addon:load()
             end
         end
 
-        -- Ensure the dropdown menu is created.
-        addon:create_context_menu()
-
         -- Initialize the tooltip if not already created.
         addon.keyui_tooltip_frame = addon.keyui_tooltip_frame or addon:create_tooltip()
 
@@ -2040,227 +2037,209 @@ function addon:handle_release(self, button)
     end
 end
 
--- TODO: Migrate to MenuUtil/Menu system (UIDropDownMenu is deprecated in 11.0.0+)
--- This still works but should be migrated to the new Menu API
--- See Controls.lua for examples of the new MenuUtil.CreateRootMenuDescription() system
-local function rightclick_initialize(self, level)
-    level = level or 1
-    local info = UIDropDownMenu_CreateInfo()
-    local value = UIDROPDOWNMENU_MENU_VALUE
+-- ============================================================================
+-- MenuUtil Context Menu System (Modern WoW 11.0.0+ API)
+-- ============================================================================
 
-    if level == 1 then
-        info.text = _G["SPELLS"]
-        info.value = "Spell"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
+-- Helper function: Build spells submenu
+local function build_spells_submenu(parentMenu)
+    for tabName, _ in pairs(addon.spells) do
+        local tabButton = parentMenu:CreateButton(tabName)
 
-        info.text = _G["MACRO"]
-        info.value = "Macro"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
+        -- Add individual spells for this tab
+        for _, spell in pairs(addon.spells[tabName]) do
+            local spell_name = spell.name
+            local spell_id = spell.id
 
-        info.text = _G["INTERFACE_LABEL"]
-        info.value = "UIBind"
-        info.hasArrow = true
-        info.func = function() end
-        UIDropDownMenu_AddButton(info, level)
+            if spell_id and C_SpellBook.IsSpellKnown(spell_id) then
+                local spell_icon = C_Spell.GetSpellTexture(spell_id)
 
-        info.text = _G["UNBIND"]
-        info.value = 1
-        info.hasArrow = false
-        info.func = function()
-            if addon.current_clicked_key.raw_key ~= "" then
-                SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or ""))
-                SaveBindings(2)
-                -- Print notification of key unbinding
-                local keyText = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
-            end
-        end
-        UIDropDownMenu_AddButton(info, level)
-    elseif level == 2 then
-        if value == "Spell" then
-            for tabName, _ in pairs(addon.spells) do
-                info.text = tabName
-                info.value = 'tab:' .. tabName
-                info.hasArrow = true
-                info.func = function() end
-                UIDropDownMenu_AddButton(info, level)
-            end
-        end
-
-        if value == "Macro" then
-            info.text = "General Macro"
-            info.value = "General Macro"
-            info.hasArrow = true
-            info.func = function() end
-            UIDropDownMenu_AddButton(info, level)
-
-            info.text = "Player Macro"
-            info.value = "Player Macro"
-            info.hasArrow = true
-            info.func = function() end
-            UIDropDownMenu_AddButton(info, level)
-        end
-
-        if value == "UIBind" then
-            local categories = {
-                "MOVEMENT",
-                "INTERFACE",
-                "ACTIONBAR",
-                "ACTIONBAR2",
-                "ACTIONBAR3",
-                "ACTIONBAR4",
-                "ACTIONBAR5",
-                "ACTIONBAR6",
-                "ACTIONBAR7",
-                "ACTIONBAR8",
-                "CHAT",
-                "TARGETING",
-                "RAID_TARGET",
-                "VEHICLE",
-                "CAMERA",
-                "PING_SYSTEM",
-                "MISC",
-            }
-
-            for _, category in ipairs(categories) do
-                local info = UIDropDownMenu_CreateInfo()
-                info.text = _G["BINDING_HEADER_" .. category] or category
-                info.hasArrow = true
-                info.value = category
-                UIDropDownMenu_AddButton(info, level)
-            end
-        end
-    elseif level == 3 then
-        if value:find("^tab:") then
-            local tabName = value:match('^tab:(.+)')
-            for _, spell in pairs(addon.spells[tabName]) do
-                local spell_name = spell.name
-                local spell_id = spell.id
-
-                if spell_id then
-                    if C_Spell.IsSpellKnown(spell_id) then
-                        local spell_icon = C_Spell.GetSpellTexture(spell_id)
-
-                        info.text = spell_name
-                        info.value = spell_name
-                        info.icon = spell_icon
-                        info.hasArrow = false
-                        info.func = function()
-                            local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                            local spell = "Spell " .. spell_name
-                            local binding_name = addon.current_clicked_key.readable_binding:GetText()
-                            if addon.current_slot ~= nil then
-                                C_Spell.PickupSpell(spell_id)
-                                PlaceAction(addon.current_slot)
-                                ClearCursor()
-                                -- Print notification for new spell binding
-                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
-                            else
-                                SetBinding(key, spell)
-                                SaveBindings(2)
-                                -- Print notification for new spell binding
-                                print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
-                            end
-                        end
-                        UIDropDownMenu_AddButton(info, level)
-                    end
-                end
-            end
-        elseif value == "General Macro" then
-            for i = 1, 36 do
-                local title, icon, _ = GetMacroInfo(i)
-                if title then
-                    info.text = title
-                    info.value = title
-                    info.icon = icon
-                    info.hasArrow = false
-                    info.func = function(self)
-                        local actionbutton = addon.current_clicked_key.binding
-                        local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                        local command = "Macro " .. title
-                        local binding_name = addon.current_clicked_key.readable_binding:GetText()
-                        if actionSlot then
-                            PickupMacro(title)
-                            PlaceAction(actionSlot)
-                            ClearCursor()
-                            -- Print notification for new macro binding
-                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
-                        else
-                            SetBinding(key, command)
-                            SaveBindings(2)
-                            -- Print notification for new macro binding
-                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
-                        end
-                    end
-                    UIDropDownMenu_AddButton(info, level)
-                end
-            end
-        elseif value == "Player Macro" then
-            for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-                local title, _, _ = GetMacroInfo(i)
-                if title then
-                    info.text = title
-                    info.value = title
-                    info.hasArrow = false
-                    info.func = function(self)
-                        local actionbutton = addon.current_clicked_key.binding
-                        local actionSlot = addon.action_slot_mapping[actionbutton]
-                        local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                        local command = "Macro " .. title
-                        local binding_name = addon.current_clicked_key.readable_binding:GetText()
-                        if actionSlot then
-                            PickupMacro(title)
-                            PlaceAction(actionSlot)
-                            ClearCursor()
-                            -- Print notification for new macro binding
-                            print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
-                        else
-                            SetBinding(key, command)
-                            SaveBindings(2)
-                            -- Print notification for new macro binding
-                            print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
-                        end
-                    end
-                    UIDropDownMenu_AddButton(info, level)
-                end
-            end
-        elseif addon.binding_mapping[value] then
-            local keybindings = addon.binding_mapping[value]
-            for _, keybinding in ipairs(keybindings) do
-                local binding_name = keybinding[1]
-                local binding_readable = _G["BINDING_NAME_" .. binding_name]
-                info.text = binding_readable or binding_name
-                info.value = binding_name
-                info.hasArrow = false
-                info.func = function(self)
+                local spellButton = tabButton:CreateButton(spell_name, function()
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                    SetBinding(key, binding_name)
-                    SaveBindings(2)
-                    -- Print notification for interface binding
-                    print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
+                    local spell = "Spell " .. spell_name
+                    local binding_name = addon.current_clicked_key.readable_binding:GetText()
+
+                    if addon.current_slot ~= nil then
+                        C_Spell.PickupSpell(spell_id)
+                        PlaceAction(addon.current_slot)
+                        ClearCursor()
+                        print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                    else
+                        SetBinding(key, spell)
+                        SaveBindings(2)
+                        print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
+                    end
+                end)
+
+                -- Add icon via initializer
+                if spell_icon then
+                    spellButton:AddInitializer(function(button, description, menu)
+                        local iconTexture = button:AttachTexture()
+                        iconTexture:SetSize(16, 16)
+                        iconTexture:SetPoint("LEFT", button, "LEFT", 4, 0)
+                        iconTexture:SetTexture(spell_icon)
+
+                        if button.fontString then
+                            button.fontString:ClearAllPoints()
+                            button.fontString:SetPoint("LEFT", iconTexture, "RIGHT", 4, 0)
+                        end
+                    end)
                 end
-                UIDropDownMenu_AddButton(info, level)
             end
         end
     end
 end
 
--- Creates the dropdown menu for selecting key bindings.
-function addon:create_context_menu()
-    if not addon.dropdown then
-        local dropdown = CreateFrame("Frame", nil, addon.keyboard_frame, "UIDropDownMenuTemplate")
-        UIDropDownMenu_SetWidth(dropdown, 60)
-        UIDropDownMenu_SetButtonWidth(dropdown, 20)
-        UIDropDownMenu_Initialize(dropdown, rightclick_initialize, "MENU")
-        dropdown:Hide()
-        addon.dropdown = dropdown -- Save the dropdown for later use
+-- Helper function: Build macros submenu
+local function build_macros_submenu(parentMenu)
+    -- General Macros (1-36)
+    local generalMacroMenu = parentMenu:CreateButton("General Macro")
+    for i = 1, 36 do
+        local title, icon, _ = GetMacroInfo(i)
+        if title then
+            local macroButton = generalMacroMenu:CreateButton(title, function()
+                local actionbutton = addon.current_clicked_key.binding
+                local actionSlot = addon.action_slot_mapping[actionbutton]
+                local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+                local command = "Macro " .. title
+                local binding_name = addon.current_clicked_key.readable_binding:GetText()
+
+                if actionSlot then
+                    PickupMacro(title)
+                    PlaceAction(actionSlot)
+                    ClearCursor()
+                    print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                else
+                    SetBinding(key, command)
+                    SaveBindings(2)
+                    print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
+                end
+            end)
+
+            -- Add icon if available
+            if icon then
+                macroButton:AddInitializer(function(button, description, menu)
+                    local iconTexture = button:AttachTexture()
+                    iconTexture:SetSize(16, 16)
+                    iconTexture:SetPoint("LEFT", button, "LEFT", 4, 0)
+                    iconTexture:SetTexture(icon)
+
+                    if button.fontString then
+                        button.fontString:ClearAllPoints()
+                        button.fontString:SetPoint("LEFT", iconTexture, "RIGHT", 4, 0)
+                    end
+                end)
+            end
+        end
     end
-    return addon.dropdown
+
+    -- Player Macros (37-54)
+    local playerMacroMenu = parentMenu:CreateButton("Player Macro")
+    for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+        local title, icon, _ = GetMacroInfo(i)
+        if title then
+            local macroButton = playerMacroMenu:CreateButton(title, function()
+                local actionbutton = addon.current_clicked_key.binding
+                local actionSlot = addon.action_slot_mapping[actionbutton]
+                local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+                local command = "Macro " .. title
+                local binding_name = addon.current_clicked_key.readable_binding:GetText()
+
+                if actionSlot then
+                    PickupMacro(title)
+                    PlaceAction(actionSlot)
+                    ClearCursor()
+                    print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                else
+                    SetBinding(key, command)
+                    SaveBindings(2)
+                    print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
+                end
+            end)
+
+            if icon then
+                macroButton:AddInitializer(function(button, description, menu)
+                    local iconTexture = button:AttachTexture()
+                    iconTexture:SetSize(16, 16)
+                    iconTexture:SetPoint("LEFT", button, "LEFT", 4, 0)
+                    iconTexture:SetTexture(icon)
+
+                    if button.fontString then
+                        button.fontString:ClearAllPoints()
+                        button.fontString:SetPoint("LEFT", iconTexture, "RIGHT", 4, 0)
+                    end
+                end)
+            end
+        end
+    end
+end
+
+-- Helper function: Build interface bindings submenu
+local function build_interface_bindings_submenu(parentMenu)
+    local categories = {
+        "MOVEMENT",
+        "INTERFACE",
+        "ACTIONBAR",
+        "ACTIONBAR2",
+        "ACTIONBAR3",
+        "ACTIONBAR4",
+        "ACTIONBAR5",
+        "ACTIONBAR6",
+        "ACTIONBAR7",
+        "ACTIONBAR8",
+        "CHAT",
+        "TARGETING",
+        "RAID_TARGET",
+        "VEHICLE",
+        "CAMERA",
+        "PING_SYSTEM",
+        "MISC",
+    }
+
+    for _, category in ipairs(categories) do
+        local categoryName = _G["BINDING_HEADER_" .. category] or category
+        local categoryMenu = parentMenu:CreateButton(categoryName)
+
+        if addon.binding_mapping[category] then
+            local keybindings = addon.binding_mapping[category]
+            for _, keybinding in ipairs(keybindings) do
+                local binding_name = keybinding[1]
+                local binding_readable = _G["BINDING_NAME_" .. binding_name]
+
+                categoryMenu:CreateButton(binding_readable or binding_name, function()
+                    local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+                    SetBinding(key, binding_name)
+                    SaveBindings(2)
+                    print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
+                end)
+            end
+        end
+    end
+end
+
+-- Main context menu generator for MenuUtil
+function addon.context_menu_generator(owner, rootDescription)
+    -- Spells submenu
+    local spellsMenu = rootDescription:CreateButton(_G["SPELLS"])
+    build_spells_submenu(spellsMenu)
+
+    -- Macros submenu
+    local macrosMenu = rootDescription:CreateButton(_G["MACRO"])
+    build_macros_submenu(macrosMenu)
+
+    -- Interface Bindings submenu
+    local uiBindMenu = rootDescription:CreateButton(_G["INTERFACE_LABEL"])
+    build_interface_bindings_submenu(uiBindMenu)
+
+    -- Unbind action (direct button)
+    rootDescription:CreateButton(_G["UNBIND"], function()
+        if addon.current_clicked_key.raw_key ~= "" then
+            SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or ""))
+            SaveBindings(2)
+            local keyText = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+            print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
+        end
+    end)
 end
 
 -- Event frame to handle all relevant events
