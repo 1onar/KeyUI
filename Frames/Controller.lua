@@ -86,7 +86,8 @@ function addon:create_controller_frame()
 
     -- Apply custom font to the tab buttons
     local custom_font = CreateFont("controller_tab_custom_font")
-    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12, "OUTLINE")
+    custom_font:SetFont(addon:GetFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(custom_font, 0.75, false, "OUTLINE")
 
     -- Get controller Frame Level
     local controller_level = addon.controller_frame:GetFrameLevel()
@@ -559,7 +560,8 @@ function addon:create_controller_buttons()
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     controller_button.readable_binding = controller_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controller_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
+    controller_button.readable_binding:SetFont(addon:GetCondensedFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(controller_button.readable_binding, 0.75, true, "OUTLINE")
     controller_button.readable_binding:SetTextColor(1, 1, 1)
     controller_button.readable_binding:SetHeight(25)
     --controller_button.readable_binding:SetWidth(46)    -- will be calculated in addon:create_action_labels

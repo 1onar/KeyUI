@@ -91,7 +91,8 @@ function addon:create_mouse_image()
 
     -- Apply custom font to the tab buttons
     local custom_font = CreateFont("mouse_tab_custom_font")
-    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12, "OUTLINE")
+    custom_font:SetFont(addon:GetFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(custom_font, 0.75, false, "OUTLINE")
 
     -- Get mouse Frame Level
     local mouse_level = addon.mouse_image:GetFrameLevel()
@@ -416,7 +417,8 @@ function addon:create_mouse_buttons()
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     mouse_button.readable_binding = mouse_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    mouse_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
+    mouse_button.readable_binding:SetFont(addon:GetCondensedFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(mouse_button.readable_binding, 0.75, true, "OUTLINE")
     mouse_button.readable_binding:SetTextColor(1, 1, 1)
     mouse_button.readable_binding:SetHeight(25)
     --mouse_button.readable_binding:SetWidth(46)    -- will be calculated in addon:create_action_labels

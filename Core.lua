@@ -882,7 +882,11 @@ function addon:ResetAddonSettings()
         Settings.SetValue("KEYUI_MOUSE_GRAPHIC", keyui_settings.show_mouse_graphic)
         Settings.SetValue("KEYUI_CONTROLLER_BACKGROUND", keyui_settings.show_controller_background)
         Settings.SetValue("KEYUI_ENABLE_ESC", keyui_settings.close_on_esc)
+        Settings.SetValue("KEYUI_FONT_FACE", keyui_settings.font_face)
+        Settings.SetValue("KEYUI_FONT_SIZE", keyui_settings.font_base_size)
     end
+
+    addon:RefreshAllFonts()
 
     print("KeyUI: Settings reset to defaults.")
 end
@@ -1247,12 +1251,14 @@ function addon:create_tooltip()
     keyui_tooltip_frame.key = keyui_tooltip_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyui_tooltip_frame.key:SetPoint("CENTER", keyui_tooltip_frame, "CENTER", 0, 10)
     keyui_tooltip_frame.key:SetTextColor(1, 1, 1)
-    keyui_tooltip_frame.key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    keyui_tooltip_frame.key:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(keyui_tooltip_frame.key, 1.0)
 
     keyui_tooltip_frame.binding = keyui_tooltip_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     keyui_tooltip_frame.binding:SetPoint("CENTER", keyui_tooltip_frame, "CENTER", 0, -10)
     keyui_tooltip_frame.binding:SetTextColor(1, 1, 1)
-    keyui_tooltip_frame.binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    keyui_tooltip_frame.binding:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(keyui_tooltip_frame.binding, 1.0)
 
     -- Hide the GameTooltip when this custom tooltip hides.
     keyui_tooltip_frame:SetScript("OnHide", function() GameTooltip:Hide() end)
@@ -1769,10 +1775,10 @@ function addon:update_button_key_text(button)
     -- Use Condensed font if the combined text exceeds max_allowed_chars
     if string.len(combined_text) > max_allowed_chars then
         -- Use the Condensed font for longer text
-        button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 16, "OUTLINE")
+        button.short_key:SetFont(addon:GetCondensedFont(), addon:GetFontSize(1.0), "OUTLINE")
     else
         -- Use the Regular font for shorter text
-        button.short_key:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
+        button.short_key:SetFont(addon:GetFont(), addon:GetFontSize(1.0), "OUTLINE")
     end
 end
 

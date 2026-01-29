@@ -86,7 +86,8 @@ function addon:create_keyboard_frame()
 
     -- Apply custom font to the tab buttons
     local custom_font = CreateFont("keyboard_tab_custom_font")
-    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 12, "OUTLINE")
+    custom_font:SetFont(addon:GetFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(custom_font, 0.75, false, "OUTLINE")
 
     -- Get Keyboard Frame Level
     local keyboard_level = addon.keyboard_frame:GetFrameLevel()
@@ -460,7 +461,8 @@ function addon:create_keyboard_buttons()
 
     -- Font string to display the interface action text (toggled by function addon:create_action_labels)
     keyboard_button.readable_binding = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    keyboard_button.readable_binding:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF", 12, "OUTLINE")
+    keyboard_button.readable_binding:SetFont(addon:GetCondensedFont(), addon:GetFontSize(0.75), "OUTLINE")
+    addon:RegisterFontString(keyboard_button.readable_binding, 0.75, true, "OUTLINE")
     keyboard_button.readable_binding:SetTextColor(1, 1, 1)
     keyboard_button.readable_binding:SetHeight(30)
     --keyboard_button.readable_binding:SetWidth(56)     -- will be calculated in addon:create_action_labels

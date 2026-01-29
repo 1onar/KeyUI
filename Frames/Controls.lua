@@ -75,7 +75,7 @@ function addon:create_controls()
         end)
     end
 
-    local text_size = 20
+    local text_size = addon:GetFontSize(1.25)
 
     local first_setpoint = controls_frame:GetWidth() * (1 / 20)
     local first_setpoint_cb = controls_frame:GetWidth() * (1 / 20) - 6
@@ -93,13 +93,15 @@ function addon:create_controls()
     -- Create Text "Layout"
     controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controls_frame.layout_text:SetText("Layout")
-    controls_frame.layout_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", text_size)
+    controls_frame.layout_text:SetFont(addon:GetFont(), text_size)
+    addon:RegisterFontString(controls_frame.layout_text, 1.25)
     controls_frame.layout_text:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint, layout_y)
     controls_frame.layout_text:SetTextColor(1, 1, 1)
 
     -- Create the "Size" label text
     controls_frame.size_label_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.size_label_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", text_size)
+    controls_frame.size_label_text:SetFont(addon:GetFont(), text_size)
+    addon:RegisterFontString(controls_frame.size_label_text, 1.25)
     controls_frame.size_label_text:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint, size_y)
     controls_frame.size_label_text:SetTextColor(1, 1, 1)
     controls_frame.size_label_text:SetText("Size")
@@ -120,7 +122,8 @@ function addon:create_controls()
 
     -- Create the text for the value
     controls_frame.size_value_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    controls_frame.size_value_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    controls_frame.size_value_text:SetFont(addon:GetFont(), addon:GetFontSize(0.875))
+    addon:RegisterFontString(controls_frame.size_value_text, 0.875)
     controls_frame.size_value_text:SetPoint("BOTTOM", controls_frame.size_slider, "TOP", 0, -6)
     controls_frame.size_value_text:SetTextColor(1, 1, 1)
 
@@ -234,7 +237,8 @@ function addon:create_controls()
     -- Create the font string for the "empty_keys" label text and position it
     controls_frame.empty_keys_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.empty_keys_text:SetText("Empty Keys")
-    controls_frame.empty_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.empty_keys_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.empty_keys_text, 1.0)
     controls_frame.empty_keys_text:SetPoint("LEFT", controls_frame.empty_keys_cb, "RIGHT", 10, 0)
 
     -- Create the checkbox for toggling interface binds visibility
@@ -267,7 +271,8 @@ function addon:create_controls()
     -- Create the font string for the "interface_keys" label text and position it
     controls_frame.interface_keys_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.interface_keys_text:SetText("Interface Binds")
-    controls_frame.interface_keys_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.interface_keys_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.interface_keys_text, 1.0)
     controls_frame.interface_keys_text:SetPoint("LEFT", controls_frame.interface_keys_cb, "RIGHT", 10, 0)
 
     -- Create the checkbox for toggling button highlight effect (show_pushed_texture)
@@ -298,7 +303,8 @@ function addon:create_controls()
     -- Create the font string for the "Highlight Buttons" label text and position it
     controls_frame.highlight_buttons_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.highlight_buttons_text:SetText("Highlight Buttons")
-    controls_frame.highlight_buttons_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.highlight_buttons_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.highlight_buttons_text, 1.0)
     controls_frame.highlight_buttons_text:SetPoint("LEFT", controls_frame.highlight_buttons_cb, "RIGHT", 10, 0)
 
     -- Create the checkbox for toggling modifier detection (detect_modifier)
@@ -331,7 +337,8 @@ function addon:create_controls()
     -- Create the font string for the "Detect Modifier" label text and position it
     controls_frame.detect_modifier_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.detect_modifier_text:SetText("Detect Modifier")
-    controls_frame.detect_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.detect_modifier_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.detect_modifier_text, 1.0)
     controls_frame.detect_modifier_text:SetPoint("LEFT", controls_frame.detect_modifier_cb, "RIGHT", 10, 0)
 
     -- Create the checkbox for toggling dynamic modifier display (dynamic_modifier)
@@ -364,7 +371,8 @@ function addon:create_controls()
     -- Create the font string for the "Dynamic Modifier" label text and position it
     controls_frame.dynamic_modifier_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.dynamic_modifier_text:SetText("Dynamic Modifier")
-    controls_frame.dynamic_modifier_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.dynamic_modifier_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.dynamic_modifier_text, 1.0)
     controls_frame.dynamic_modifier_text:SetPoint("LEFT", controls_frame.dynamic_modifier_cb, "RIGHT", 10, 0)
 
     -- Create a alt checkbox
@@ -396,7 +404,8 @@ function addon:create_controls()
     -- Create a font string for the text "Alt" and position it below the checkbutton
     controls_frame.alt_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.alt_text:SetText("Alt")
-    controls_frame.alt_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.alt_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.alt_text, 1.0)
     controls_frame.alt_text:SetPoint("LEFT", controls_frame.alt_cb, "RIGHT", 4, 0)
 
     -- Create a ctrl checkbox
@@ -427,7 +436,8 @@ function addon:create_controls()
     -- Create a font string for the text "Ctrl" and position it below the checkbutton
     controls_frame.ctrl_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.ctrl_text:SetText("Ctrl")
-    controls_frame.ctrl_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.ctrl_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.ctrl_text, 1.0)
     controls_frame.ctrl_text:SetPoint("LEFT", controls_frame.ctrl_cb, "RIGHT", 4, 0)
 
     -- Create a shift checkbox
@@ -458,7 +468,8 @@ function addon:create_controls()
     -- Create a font string for the text "Shift" and position it below the checkbutton
     controls_frame.shift_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     controls_frame.shift_text:SetText("Shift")
-    controls_frame.shift_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.shift_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.shift_text, 1.0)
     controls_frame.shift_text:SetPoint("LEFT", controls_frame.shift_cb, "RIGHT", 4, 0)
 
         -- Set the initial height based on expanded settings
@@ -510,7 +521,8 @@ function addon:create_controls()
         controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
     end
 
-    controls_frame.expander_text:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16)
+    controls_frame.expander_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.expander_text, 1.0)
     controls_frame.expander_text:SetTextColor(1, 1, 1)
 
     controls_frame.expander_text:SetScript("OnMouseDown", toggle_controls_expanded) -- Make expander text clickable to toggle state
@@ -554,7 +566,8 @@ function addon:create_controls()
 
     -- Apply custom font to the tab buttons
     local custom_font = CreateFont("controls_tab_custom_font")
-    custom_font:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 16, "OUTLINE")
+    custom_font:SetFont(addon:GetFont(), addon:GetFontSize(1.0), "OUTLINE")
+    addon:RegisterFontString(custom_font, 1.0, false, "OUTLINE")
 
     -- Create the keyboard tab button
     controls_frame.keyboard_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
@@ -818,14 +831,16 @@ function addon:create_name_input_dialog()
     name_input_frame.title = name_input_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     name_input_frame.title:SetPoint("TOP", name_input_frame, "TOP", 0, -10)
     name_input_frame.title:SetText("Save Layout")
-    name_input_frame.title:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 22)
+    name_input_frame.title:SetFont(addon:GetFont(), addon:GetFontSize(1.375))
+    addon:RegisterFontString(name_input_frame.title, 1.375)
     name_input_frame.title:SetTextColor(1, 1, 1)
 
     -- Instruction text
     name_input_frame.instruction = name_input_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     name_input_frame.instruction:SetPoint("TOP", name_input_frame.title, "BOTTOM", 0, -20)
     name_input_frame.instruction:SetWidth(name_input_frame:GetWidth() - 20)
-    name_input_frame.instruction:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    name_input_frame.instruction:SetFont(addon:GetFont(), addon:GetFontSize(0.875))
+    addon:RegisterFontString(name_input_frame.instruction, 0.875)
     name_input_frame.instruction:SetTextColor(1, 1, 1)
 
     -- Function to dynamically update title and instructions
@@ -971,14 +986,16 @@ function addon:create_edit_layout_dialog()
     -- Title text
     dialog_frame.title = dialog_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     dialog_frame.title:SetPoint("TOP", dialog_frame, "TOP", 0, -10)
-    dialog_frame.title:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 22)
+    dialog_frame.title:SetFont(addon:GetFont(), addon:GetFontSize(1.375))
+    addon:RegisterFontString(dialog_frame.title, 1.375)
     dialog_frame.title:SetTextColor(1, 1, 1)
 
     -- Instruction text
     dialog_frame.instruction = dialog_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     dialog_frame.instruction:SetPoint("TOP", dialog_frame.title, "BOTTOM", 0, -20)
     dialog_frame.instruction:SetWidth(dialog_frame:GetWidth() - 20)
-    dialog_frame.instruction:SetFont("Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF", 14)
+    dialog_frame.instruction:SetFont(addon:GetFont(), addon:GetFontSize(0.875))
+    addon:RegisterFontString(dialog_frame.instruction, 0.875)
     dialog_frame.instruction:SetTextColor(1, 1, 1)
 
     -- Function to update title and instructions dynamically

@@ -110,7 +110,6 @@ end
 
 -- Button styling helper using dropdown textures
 local BUTTON_TEXTURE = "Interface/Buttons/Dropdown"
-local DEFAULT_FONT = "Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF"
 
 local TEX_COORDS = {
     normal_left = { 0.03125, 0.53125, 0.470703, 0.560547 },
@@ -165,8 +164,9 @@ function addon:CreateStyledButton(parent, options)
         button:SetPoint(unpack(options.point))
     end
 
-    local font = options.font or DEFAULT_FONT
-    local fontSize = options.fontSize or 16
+    local fontRatio = options.fontRatio or 1.0
+    local font = options.font or addon:GetFont()
+    local fontSize = options.fontSize or addon:GetFontSize(fontRatio)
     local textOffsetX = options.textOffsetX or 0
     local textOffsetY = options.textOffsetY or 0
     local textLayer = options.textLayer or "OVERLAY"
@@ -178,12 +178,14 @@ function addon:CreateStyledButton(parent, options)
     text:SetText(options.label or "")
     text:SetTextColor(1, 1, 1)
     button._styledText = text
+    addon:RegisterFontString(text, fontRatio)
 
     local highlightText = button:CreateFontString(nil, highlightLayer)
     highlightText:SetFont(font, fontSize)
     highlightText:SetPoint("CENTER", button, "CENTER", textOffsetX, textOffsetY)
     highlightText:SetText(options.label or "")
     button._styledHighlightText = highlightText
+    addon:RegisterFontString(highlightText, fontRatio)
 
     local textureHeight = options.textureHeight or 46
 

@@ -163,6 +163,62 @@ local function InitializeSettingsPanel()
     )
     Settings.CreateCheckbox(category, escSetting, "Enable or disable the addon window closing when pressing ESC")
 
+    -- Font Header + Settings
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Font"))
+
+    -- Font Face Dropdown
+    local function GetFontFace()
+        return keyui_settings.font_face
+    end
+
+    local function SetFontFace(value)
+        keyui_settings.font_face = value
+        addon:RefreshAllFonts()
+    end
+
+    local function GetFontFaceOptions()
+        local container = Settings.CreateControlTextContainer()
+        for _, fontName in ipairs(addon.FONT_OPTIONS_ORDER) do
+            container:Add(fontName, fontName)
+        end
+        return container:GetData()
+    end
+
+    local fontFaceSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_FONT_FACE",
+        Settings.VarType.String,
+        "Font",
+        "Expressway",
+        GetFontFace,
+        SetFontFace
+    )
+    Settings.CreateDropdown(category, fontFaceSetting, GetFontFaceOptions, "Select the font used throughout KeyUI")
+
+    -- Font Base Size Slider
+    local function GetFontSize()
+        return keyui_settings.font_base_size
+    end
+
+    local function SetFontSize(value)
+        keyui_settings.font_base_size = value
+        addon:RefreshAllFonts()
+    end
+
+    local fontSizeSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_FONT_SIZE",
+        Settings.VarType.Number,
+        "Font Size",
+        16,
+        GetFontSize,
+        SetFontSize
+    )
+
+    local fontSizeOptions = Settings.CreateSliderOptions(10, 24, 1)
+    fontSizeOptions:SetLabelFormatter(MinimalSliderWithSteppersMixin.Label.Right)
+    Settings.CreateSlider(category, fontSizeSetting, fontSizeOptions, "Adjust the base font size for all KeyUI text")
+
     -- Profiles Header + Buttons
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Profiles"))
 

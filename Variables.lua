@@ -36,6 +36,8 @@ function addon:InitializeGeneralSettings()
     set_if_nil("listen_to_modifier", true)
     set_if_nil("dynamic_modifier", false)
     set_if_nil("controls_expanded", false)
+    set_if_nil("font_face", "Expressway")
+    set_if_nil("font_base_size", 16)
 end
 
 -- Initialize key binding and layout settings
@@ -93,3 +95,76 @@ addon.tutorial_frame2_created = false
 addon.keyboard_layout_dirty = false
 addon.mouse_layout_dirty = false
 addon.controller_layout_dirty = false
+
+-- Font system
+addon.FONT_OPTIONS = {
+    ["Expressway"] = {
+        regular = "Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Regular.TTF",
+        condensed = "Interface\\AddOns\\KeyUI\\Media\\Fonts\\Expressway Condensed.TTF",
+    },
+    ["System Default"] = {
+        regular = STANDARD_TEXT_FONT,
+        condensed = STANDARD_TEXT_FONT,
+    },
+    ["Friz Quadrata"] = {
+        regular = "Fonts\\FRIZQT__.TTF",
+        condensed = "Fonts\\FRIZQT__.TTF",
+    },
+    ["Arial Narrow"] = {
+        regular = "Fonts\\ARIALN.TTF",
+        condensed = "Fonts\\ARIALN.TTF",
+    },
+    ["Morpheus"] = {
+        regular = "Fonts\\MORPHEUS.TTF",
+        condensed = "Fonts\\MORPHEUS.TTF",
+    },
+    ["Skurri"] = {
+        regular = "Fonts\\SKURRI.TTF",
+        condensed = "Fonts\\SKURRI.TTF",
+    },
+}
+
+addon.FONT_OPTIONS_ORDER = { "Expressway", "System Default", "Friz Quadrata", "Arial Narrow", "Morpheus", "Skurri" }
+
+function addon:GetFont()
+    local entry = self.FONT_OPTIONS[keyui_settings.font_face]
+    return entry and entry.regular or self.FONT_OPTIONS["Expressway"].regular
+end
+
+function addon:GetCondensedFont()
+    local entry = self.FONT_OPTIONS[keyui_settings.font_face]
+    return entry and entry.condensed or self.FONT_OPTIONS["Expressway"].condensed
+end
+
+function addon:GetFontSize(ratio)
+    return math.floor((keyui_settings.font_base_size or 16) * ratio + 0.5)
+end
+
+addon._fontRegistry = {}
+
+function addon:RegisterFontString(fontString, ratio, isCondensed, flags)
+    table.insert(self._fontRegistry, {
+        obj = fontString,
+        ratio = ratio,
+        condensed = isCondensed or false,
+        flags = flags,
+    })
+end
+
+function addon:RefreshAllFonts()
+    for _, entry in ipairs(self._fontRegistry) do
+        local path = entry.condensed and self:GetCondensedFont() or self:GetFont()
+        local size = self:GetFontSize(entry.ratio)
+        entry.obj:SetFont(path, size, entry.flags or "")
+    end
+
+    if self.keyboard_frame and self.keyboard_frame.RefreshLayout then
+        self.keyboard_frame:RefreshLayout()
+    end
+    if self.mouse_frame and self.mouse_frame.RefreshLayout then
+        self.mouse_frame:RefreshLayout()
+    end
+    if self.controller_frame and self.controller_frame.RefreshLayout then
+        self.controller_frame:RefreshLayout()
+    end
+end
