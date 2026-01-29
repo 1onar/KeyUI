@@ -2182,7 +2182,9 @@ local function build_interface_bindings_submenu(parentMenu)
 
     for i = 1, GetNumBindings() do
         local command, category = GetBinding(i)
-        if command and category and not command:find("HEADER_BLANK") and not category:find("HEADER_BLANK") then
+        if command and category
+            and not command:find("HEADER_BLANK") and not category:find("HEADER_BLANK")
+            and not command:find("^PREFACE_") then
             if not categories[category] then
                 categories[category] = {}
                 table.insert(category_order, category)
