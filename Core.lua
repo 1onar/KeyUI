@@ -2176,43 +2176,36 @@ end
 
 -- Helper function: Build interface bindings submenu
 local function build_interface_bindings_submenu(parentMenu)
-    local categories = {
-        "MOVEMENT",
-        "INTERFACE",
-        "ACTIONBAR",
-        "ACTIONBAR2",
-        "ACTIONBAR3",
-        "ACTIONBAR4",
-        "ACTIONBAR5",
-        "ACTIONBAR6",
-        "ACTIONBAR7",
-        "ACTIONBAR8",
-        "CHAT",
-        "TARGETING",
-        "RAID_TARGET",
-        "VEHICLE",
-        "CAMERA",
-        "PING_SYSTEM",
-        "MISC",
-    }
+    -- Dynamically enumerate all keybinding categories and commands from WoW
+    local categories = {}       -- { [categoryKey] = { {command, readableName}, ... } }
+    local category_order = {}   -- preserve WoW's category order
 
-    for _, category in ipairs(categories) do
-        local categoryName = _G["BINDING_HEADER_" .. category] or category
+    for i = 1, GetNumBindings() do
+        local command, category = GetBinding(i)
+        if command and category and not command:find("HEADER_BLANK") and not category:find("HEADER_BLANK") then
+            if not categories[category] then
+                categories[category] = {}
+                table.insert(category_order, category)
+            end
+            local readable = _G["BINDING_NAME_" .. command] or command
+            table.insert(categories[category], { command, readable })
+        end
+    end
+
+    for _, category in ipairs(category_order) do
+        local categoryName = _G[category] or category
         local categoryMenu = parentMenu:CreateButton(categoryName)
 
-        if addon.binding_mapping[category] then
-            local keybindings = addon.binding_mapping[category]
-            for _, keybinding in ipairs(keybindings) do
-                local binding_name = keybinding[1]
-                local binding_readable = _G["BINDING_NAME_" .. binding_name]
+        for _, binding in ipairs(categories[category]) do
+            local binding_name = binding[1]
+            local binding_readable = binding[2]
 
-                categoryMenu:CreateButton(binding_readable or binding_name, function()
-                    local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                    SetBinding(key, binding_name)
-                    SaveBindings(2)
-                    print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
-                end)
-            end
+            categoryMenu:CreateButton(binding_readable, function()
+                local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+                SetBinding(key, binding_name)
+                SaveBindings(2)
+                print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
+            end)
         end
     end
 end
