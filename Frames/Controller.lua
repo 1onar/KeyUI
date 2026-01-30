@@ -648,7 +648,12 @@ function addon:create_controller_buttons()
                 addon:handle_drag_or_size(self, button)
                 addon.keys_controller_edited = true
             else
-                if slot then
+                if GetCursorInfo() then
+                    if slot then
+                        PlaceAction(slot)
+                        ClearCursor()
+                    end
+                elseif slot then
                     PickupAction(slot)
                 end
             end

@@ -505,7 +505,12 @@ function addon:create_mouse_buttons()
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_mouse_edited = true
             else
-                if slot then
+                if GetCursorInfo() then
+                    if slot then
+                        PlaceAction(slot)
+                        ClearCursor()
+                    end
+                elseif slot then
                     PickupAction(slot)
                 end
             end

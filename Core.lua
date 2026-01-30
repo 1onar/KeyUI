@@ -1379,7 +1379,9 @@ function addon:set_key(button)
 
         if specific_bindings[binding] then
             button.icon:SetTexture(specific_bindings[binding])
-            button.icon:SetSize(30, 30)
+            if binding ~= "EXTRAACTIONBUTTON1" then
+                button.icon:SetSize(30, 30)
+            end
             button.icon:Show()
         end
 
@@ -1434,11 +1436,41 @@ function addon:reset_button_state(button)
     button.readable_binding:Hide()
     button.readable_binding:SetText("")
     button.highlight:Hide()
+    if button.assisted_combat_clip then
+        button.assisted_combat_clip:Hide()
+    end
 end
 
 -- Retrieves the binding action
 function addon:get_binding(raw_key)
     return GetBindingAction(self.current_modifier_string .. (raw_key or ""), true) or ""
+end
+
+-- Shows or hides the Assisted Combat (Single-Button Assistant) indicator on a KeyUI button
+function addon:update_assisted_combat_indicator(button, slot)
+    if not slot then return end
+
+    local isAssistedCombat = C_ActionBar.IsAssistedCombatAction(slot)
+
+    if isAssistedCombat then
+        if not button.assisted_combat_clip then
+            -- Clip frame constrains the overlay to the icon area
+            local clip = CreateFrame("Frame", nil, button)
+            clip:SetClipsChildren(true)
+            clip:SetSize(button.icon:GetWidth(), button.icon:GetHeight())
+            clip:SetPoint("CENTER", button, "CENTER", 0, 4)
+            button.assisted_combat_clip = clip
+
+            local overlay = clip:CreateTexture(nil, "OVERLAY")
+            overlay:SetAtlas("UI-HUD-RotationHelper-Inactive")
+            overlay:SetSize(button:GetWidth() * 1.3, button:GetHeight() * 1.3)
+            overlay:SetPoint("CENTER", clip, "CENTER")
+            button.assisted_combat_overlay = overlay
+        end
+        button.assisted_combat_clip:Show()
+    elseif button.assisted_combat_clip then
+        button.assisted_combat_clip:Hide()
+    end
 end
 
 -- Handles processing for ACTIONBUTTON
@@ -1457,6 +1489,9 @@ function addon:process_actionbutton_slot(slot, button)
             button.icon:SetTexture(texture)
             button.icon:Show()
         end
+
+        -- Show Assisted Combat indicator if this slot contains the rotation helper
+        addon:update_assisted_combat_indicator(button, adjusted_slot)
     end
 end
 
@@ -1526,6 +1561,9 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
         button.active_slot = slot
         button.icon:SetTexture(GetActionTexture(slot))
         button.icon:Show()
+
+        -- Show Assisted Combat indicator if this slot contains the rotation helper
+        addon:update_assisted_combat_indicator(button, slot)
     end
 end
 
@@ -1623,6 +1661,7 @@ function addon:process_elvui(binding, button)
                 button.icon:SetTexture(GetActionTexture(actionID))
                 button.icon:Show()
                 button.slot = actionID
+                addon:update_assisted_combat_indicator(button, actionID)
             end
         end
     end
@@ -1636,6 +1675,7 @@ function addon:process_bartender(binding, button)
         button.active_slot = button.slot -- Active if there's an action
         button.icon:SetTexture(GetActionTexture(button.slot))
         button.icon:Show()
+        addon:update_assisted_combat_indicator(button, button.slot)
     end
 end
 
@@ -1651,6 +1691,7 @@ function addon:process_dominos(binding, button)
                 button.icon:SetTexture(actionTexture)  -- Set the action icon
                 button.icon:Show()                     -- Show the icon
             end
+            addon:update_assisted_combat_indicator(button, button.slot)
         end
     end
 end
@@ -2092,6 +2133,43 @@ local function build_spells_submenu(parentMenu)
                     end)
                 end
             end
+        end
+    end
+
+    -- Assisted Combat (Single-Button Assistant) entry at the bottom of the spells menu
+    if C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() then
+        local acSpellID = C_AssistedCombat.GetActionSpell()
+        local acIcon = acSpellID and C_Spell.GetSpellTexture(acSpellID)
+
+        local acButton = parentMenu:CreateButton("Assisted Combat", function()
+            local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
+
+            if addon.current_slot ~= nil then
+                -- Copy the Assisted Combat action from an existing slot to the target slot
+                local acSlots = C_ActionBar.FindAssistedCombatActionButtons()
+                if acSlots and #acSlots > 0 then
+                    PickupAction(acSlots[1])
+                    PlaceAction(addon.current_slot)
+                    ClearCursor()
+                    print("KeyUI: Bound |cffa335eeAssisted Combat|r to |cffff8000" .. key .. "|r")
+                end
+            else
+                print("KeyUI: Assisted Combat can only be bound to action bar slots.")
+            end
+        end)
+
+        if acIcon then
+            acButton:AddInitializer(function(button, description, menu)
+                local iconTexture = button:AttachTexture()
+                iconTexture:SetSize(16, 16)
+                iconTexture:SetPoint("LEFT", button, "LEFT", 4, 0)
+                iconTexture:SetTexture(acIcon)
+
+                if button.fontString then
+                    button.fontString:ClearAllPoints()
+                    button.fontString:SetPoint("LEFT", iconTexture, "RIGHT", 4, 0)
+                end
+            end)
         end
     end
 end
