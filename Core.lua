@@ -11,6 +11,80 @@ local LAYOUT_EXPORT_VERSION = 1
 local keybind_patterns = {}
 
 -- Initialize keybind patterns with addon integrations
+-- Addon integration patterns, registered dynamically when addons are loaded
+local registered_addons = {}
+
+local addon_pattern_registry = {
+    ElvUI = function()
+        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
+            local success, err = pcall(addon.process_elvui, addon, binding, button)
+            if not success then
+                print("KeyUI: ElvUI integration error:", err)
+            end
+        end
+    end,
+
+    Bartender4 = function()
+        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
+            local success, err = pcall(addon.process_bartender, addon, binding, button)
+            if not success then
+                print("KeyUI: Bartender4 integration error:", err)
+            end
+        end
+    end,
+
+    Dominos = function()
+        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_dominos, addon, binding, button)
+            if not success then
+                print("KeyUI: Dominos integration error:", err)
+            end
+        end
+    end,
+
+    OPie = function()
+        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
+            local success, err = pcall(addon.process_opie, addon, button)
+            if not success then
+                print("KeyUI: OPie integration error:", err)
+            end
+        end
+    end,
+
+    BindPad = function()
+        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+
+        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+
+        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
+    end,
+}
+
+-- Registers patterns for a supported addon if it is loaded and not yet registered
+local function register_addon_patterns(addon_name)
+    if registered_addons[addon_name] then return end
+    local register_fn = addon_pattern_registry[addon_name]
+    if register_fn and C_AddOns.IsAddOnLoaded(addon_name) then
+        register_fn()
+        registered_addons[addon_name] = true
+    end
+end
+
 local function initialize_keybind_patterns()
     keybind_patterns = {
         -- ACTIONBUTTON
@@ -50,68 +124,9 @@ local function initialize_keybind_patterns()
         end,
     }
 
-    -- ElvUI integration with error handling
-    if C_AddOns.IsAddOnLoaded("ElvUI") then
-        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
-            local success, err = pcall(addon.process_elvui, addon, binding, button)
-            if not success then
-                print("KeyUI: ElvUI integration error:", err)
-            end
-        end
-    end
-
-    -- Bartender integration with error handling
-    if C_AddOns.IsAddOnLoaded("Bartender4") then
-        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
-            local success, err = pcall(addon.process_bartender, addon, binding, button)
-            if not success then
-                print("KeyUI: Bartender4 integration error:", err)
-            end
-        end
-    end
-
-    -- Dominos integration with error handling
-    if C_AddOns.IsAddOnLoaded("Dominos") then
-        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_dominos, addon, binding, button)
-            if not success then
-                print("KeyUI: Dominos integration error:", err)
-            end
-        end
-    end
-
-    -- OPie integration with error handling
-    if C_AddOns.IsAddOnLoaded("OPie") then
-        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
-            local success, err = pcall(addon.process_opie, addon, button)
-            if not success then
-                print("KeyUI: OPie integration error:", err)
-            end
-        end
-    end
-
-    -- BindPad integration with error handling
-    if C_AddOns.IsAddOnLoaded("BindPad") then
-        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
+    -- Register patterns for any supported addons already loaded
+    for addon_name in pairs(addon_pattern_registry) do
+        register_addon_patterns(addon_name)
     end
 end
 
@@ -1338,6 +1353,24 @@ function addon:button_mouse_over(button)
     end
 end
 
+-- Lookup table for bindings with specific icons (defined once, reused per call)
+local specific_bindings = {
+    EXTRAACTIONBUTTON1 = 4200126,
+    MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
+    MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
+    STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
+    STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_right",
+    TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_left",
+    TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
+}
+
+-- Highlights a modifier button when the corresponding key is held down
+local function highlight_modifier_button(button)
+    button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
+    button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)
+    button.highlight:Show()
+end
+
 -- Determines the texture displayed on the button based on the key binding.
 function addon:set_key(button)
 
@@ -1366,17 +1399,6 @@ function addon:set_key(button)
             end
         end
 
-        -- Check for specific bindings and set the icon
-        local specific_bindings = {
-            EXTRAACTIONBUTTON1 = 4200126,
-            MOVEFORWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_up",
-            MOVEBACKWARD = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_down",
-            STRAFELEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_left",
-            STRAFERIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\arrow_right",
-            TURNLEFT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_left",
-            TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
-        }
-
         if specific_bindings[binding] then
             button.icon:SetTexture(specific_bindings[binding])
             if binding ~= "EXTRAACTIONBUTTON1" then
@@ -1395,13 +1417,6 @@ function addon:set_key(button)
 
         -- Highlight the modifier button if it is pressed
         if keyui_settings.listen_to_modifier == true then
-
-            local function highlight_modifier_button(button)
-                button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
-                button.highlight:SetSize(button:GetWidth() - 10, button:GetHeight() - 10)
-                button.highlight:Show()
-            end
-
             if IsLeftAltKeyDown() and button.raw_key == "LALT" then
                 highlight_modifier_button(button)
             end
@@ -1431,6 +1446,11 @@ end
 function addon:reset_button_state(button)
     button.slot = nil
     button.active_slot = nil
+    button.spellid = nil
+    button.pet_action_index = nil
+    button.binding = nil
+    button.is_active = nil
+    button.is_castable = nil
     button.icon:SetTexture(nil)
     button.icon:Hide()
     button.readable_binding:Hide()
@@ -1438,6 +1458,37 @@ function addon:reset_button_state(button)
     button.highlight:Hide()
     if button.assisted_combat_clip then
         button.assisted_combat_clip:Hide()
+    end
+end
+
+-- Shows the pushed texture on the mapped action bar button when hovering a KeyUI button
+function addon:show_pushed_texture(active_slot)
+    if not keyui_settings.show_pushed_texture then return end
+    if not active_slot then return end
+
+    local mapped_button = addon.button_texture_mapping[tostring(active_slot)]
+    if mapped_button then
+        local normal_texture = mapped_button:GetNormalTexture()
+        if normal_texture and normal_texture:IsVisible() then
+            local pushed_texture = mapped_button:GetPushedTexture()
+            if pushed_texture then
+                pushed_texture:Show()
+                addon.current_pushed_button = pushed_texture
+            end
+        end
+    end
+end
+
+-- Handles drag-drop actions on a KeyUI button (place or pickup action)
+function addon:handle_action_drag(button)
+    local slot = button.slot
+    if GetCursorInfo() then
+        if slot then
+            PlaceAction(slot)
+            ClearCursor()
+        end
+    elseif slot then
+        PickupAction(slot)
     end
 end
 
@@ -1488,6 +1539,12 @@ function addon:process_actionbutton_slot(slot, button)
             button.active_slot = adjusted_slot
             button.icon:SetTexture(texture)
             button.icon:Show()
+
+            -- Store the spell ID if the action contains a spell
+            local spellID = C_ActionBar.GetSpell(adjusted_slot)
+            if spellID then
+                button.spellid = spellID
+            end
         end
 
         -- Show Assisted Combat indicator if this slot contains the rotation helper
@@ -1495,64 +1552,51 @@ function addon:process_actionbutton_slot(slot, button)
     end
 end
 
+-- Number of buttons per action bar page (Blizzard standard)
+local NUM_ACTIONBAR_BUTTONS = 12
+
 -- Adjusts the slot for ACTIONBUTTON bindings based on the class, stance, or action bar page
 function addon:get_action_button_slot(action_slot)
+    -- Stance/form bonus bars (Rogue Stealth, Druid forms, etc.)
     if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
-        if addon.bonusbar_offset == 1 then
-            return action_slot + 72
-        elseif addon.bonusbar_offset == 2 then
-            return action_slot + 84
-        elseif addon.bonusbar_offset == 3 then
-            return action_slot + 96
-        elseif addon.bonusbar_offset == 4 then
-            return action_slot + 108
+        if addon.bonusbar_offset >= 1 and addon.bonusbar_offset <= 4 then
+            return action_slot + (addon.bonusbar_offset + 5) * NUM_ACTIONBAR_BUTTONS
         end
     end
 
+    -- Special bonus bar (e.g. Dragonriding)
     if addon.bonusbar_offset == 5 and addon.current_actionbar_page == 1 then
-        return action_slot + 120
+        return action_slot + 10 * NUM_ACTIONBAR_BUTTONS
     end
 
-    if addon.current_actionbar_page == 2 then
-        return action_slot + 12
-    elseif addon.current_actionbar_page == 3 then
-        return action_slot + 24
-    elseif addon.current_actionbar_page == 4 then
-        return action_slot + 36
-    elseif addon.current_actionbar_page == 5 then
-        return action_slot + 48
-    elseif addon.current_actionbar_page == 6 then
-        return action_slot + 60
+    -- Standard action bar pages 2-6
+    if addon.current_actionbar_page >= 2 and addon.current_actionbar_page <= 6 then
+        return action_slot + (addon.current_actionbar_page - 1) * NUM_ACTIONBAR_BUTTONS
     end
 
-    return action_slot -- Default 1-12
+    return action_slot -- Default page 1, slots 1-12
 end
+
+-- Slot offsets for each multi-action bar index (Blizzard's bar-to-slot mapping)
+local multiactionbar_offsets = {
+    [0] = 0,     -- Main action bar
+    [1] = 60,    -- Bottom left action bar
+    [2] = 48,    -- Bottom right action bar
+    [3] = 24,    -- Right action bar
+    [4] = 36,    -- Right action bar 2
+    [5] = 144,   -- Action bar 5
+    [6] = 156,   -- Action bar 6
+    [7] = 168,   -- Action bar 7
+}
 
 -- Handles processing for MULTIACTIONBAR
 function addon:process_multiactionbar_slot(bar, bar_button, button)
     if not bar or not bar_button then return end
 
-    -- Calculate the slot based on the bar and button
-    local slot
-    if bar == 0 then
-        slot = bar_button
-    elseif bar == 1 then
-        slot = 60 + bar_button
-    elseif bar == 2 then
-        slot = 48 + bar_button
-    elseif bar == 3 then
-        slot = 24 + bar_button
-    elseif bar == 4 then
-        slot = 36 + bar_button
-    elseif bar == 5 then
-        slot = 144 + bar_button
-    elseif bar == 6 then
-        slot = 156 + bar_button
-    elseif bar == 7 then
-        slot = 168 + bar_button
-    else
-        return
-    end
+    local offset = multiactionbar_offsets[bar]
+    if not offset then return end
+
+    local slot = offset + bar_button
 
     button.slot = slot
 
@@ -1561,6 +1605,12 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
         button.active_slot = slot
         button.icon:SetTexture(GetActionTexture(slot))
         button.icon:Show()
+
+        -- Store the spell ID if the action contains a spell
+        local spellID = C_ActionBar.GetSpell(slot)
+        if spellID then
+            button.spellid = spellID
+        end
 
         -- Show Assisted Combat indicator if this slot contains the rotation helper
         addon:update_assisted_combat_indicator(button, slot)
@@ -2334,6 +2384,7 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
 eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
 eventFrame:RegisterEvent("PET_BAR_UPDATE")
+eventFrame:RegisterEvent("ADDON_LOADED")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -2412,6 +2463,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon.bonusbar_offset = GetBonusBarOffset()
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
+        elseif event == "ADDON_LOADED" then
+            -- Dynamically register patterns when a supported addon loads after KeyUI
+            local loaded_addon_name = ...
+            if loaded_addon_name and addon_pattern_registry[loaded_addon_name] then
+                register_addon_patterns(loaded_addon_name)
+            end
         elseif event == "PLAYER_REGEN_ENABLED" then
             addon.in_combat = false
         end

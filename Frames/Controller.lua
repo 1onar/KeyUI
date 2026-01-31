@@ -609,21 +609,7 @@ function addon:create_controller_buttons()
 
         end
 
-        -- Only show the PushedTexture if the setting is enabled
-        if keyui_settings.show_pushed_texture then
-            -- Look up the correct button in TextureMappings using the adjusted slot number
-            local mapped_button = addon.button_texture_mapping[tostring(active_slot)]
-            if mapped_button then
-                local normal_texture = mapped_button:GetNormalTexture()
-                if normal_texture and normal_texture:IsVisible() then
-                    local pushed_texture = mapped_button:GetPushedTexture()
-                    if pushed_texture then
-                        pushed_texture:Show() -- Show the pushed texture
-                        addon.current_pushed_button = pushed_texture -- save the current pushed button to hide when modifier pushed
-                    end
-                end
-            end
-        end
+        addon:show_pushed_texture(active_slot)
     end)
 
     controller_button:SetScript("OnLeave", function()
@@ -640,22 +626,12 @@ function addon:create_controller_buttons()
     end)
 
     controller_button:SetScript("OnMouseDown", function(self, button)
-
-        local slot = self.slot
-
         if button == "LeftButton" then
             if addon.controller_locked == false then
                 addon:handle_drag_or_size(self, button)
                 addon.keys_controller_edited = true
             else
-                if GetCursorInfo() then
-                    if slot then
-                        PlaceAction(slot)
-                        ClearCursor()
-                    end
-                elseif slot then
-                    PickupAction(slot)
-                end
+                addon:handle_action_drag(self)
             end
         else
             if addon.controller_locked == false then
