@@ -163,6 +163,33 @@ local function InitializeSettingsPanel()
     )
     Settings.CreateCheckbox(category, escSetting, "Enable or disable the addon window closing when pressing ESC")
 
+    -- Keypress Highlight Setting
+    local function GetKeypressValue()
+        return keyui_settings.show_keypress_highlight
+    end
+
+    local function SetKeypressValue(value)
+        keyui_settings.show_keypress_highlight = value
+        if addon.open and not addon.in_combat then
+            if value then
+                addon:enable_keypress_input()
+            else
+                addon:disable_keypress_input()
+            end
+        end
+    end
+
+    local keypressHighlightSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_KEYPRESS_HIGHLIGHT",
+        Settings.VarType.Boolean,
+        "Keypress Highlight",
+        Settings.Default.True,
+        GetKeypressValue,
+        SetKeypressValue
+    )
+    Settings.CreateCheckbox(category, keypressHighlightSetting, "Highlight keys on the keyboard visualization when pressed (disabled during combat)")
+
     -- Font Header + Settings
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Font"))
 

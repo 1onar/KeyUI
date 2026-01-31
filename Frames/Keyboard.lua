@@ -482,6 +482,15 @@ function addon:create_keyboard_buttons()
     keyboard_button.highlight:SetTexCoord(0.075, 0.925, 0.075, 0.925)
     keyboard_button.highlight:Hide()
 
+    -- Keypress highlight border (brief glow when key is pressed)
+    keyboard_button.keypress_highlight = CreateFrame("Frame", nil, keyboard_button, "BackdropTemplate")
+    keyboard_button.keypress_highlight:SetPoint("TOPLEFT", keyboard_button, "TOPLEFT", -3, 3)
+    keyboard_button.keypress_highlight:SetPoint("BOTTOMRIGHT", keyboard_button, "BOTTOMRIGHT", 3, -3)
+    keyboard_button.keypress_highlight:SetBackdrop({ edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16 })
+    keyboard_button.keypress_highlight:SetBackdropBorderColor(1, 1, 1, 1)
+    keyboard_button.keypress_highlight:SetFrameLevel(keyboard_button:GetFrameLevel() + 5)
+    keyboard_button.keypress_highlight:Hide()
+
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = keyboard_button -- save the current hovered button to re-trigger tooltip

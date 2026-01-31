@@ -582,6 +582,15 @@ function addon:create_controller_buttons()
     controller_button.highlight:SetTexCoord(0.05, 0.95, 0.05, 0.95)
     controller_button.highlight:Hide()
 
+    -- Keypress highlight border (brief glow when key is pressed)
+    controller_button.keypress_highlight = CreateFrame("Frame", nil, controller_button, "BackdropTemplate")
+    controller_button.keypress_highlight:SetPoint("TOPLEFT", controller_button, "TOPLEFT", -3, 3)
+    controller_button.keypress_highlight:SetPoint("BOTTOMRIGHT", controller_button, "BOTTOMRIGHT", 3, -3)
+    controller_button.keypress_highlight:SetBackdrop({ edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16 })
+    controller_button.keypress_highlight:SetBackdropBorderColor(1, 1, 1, 1)
+    controller_button.keypress_highlight:SetFrameLevel(controller_button:GetFrameLevel() + 5)
+    controller_button.keypress_highlight:Hide()
+
     controller_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = controller_button -- save the current hovered button to re-trigger tooltip
         addon:button_mouse_over(controller_button)

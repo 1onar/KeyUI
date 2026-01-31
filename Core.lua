@@ -742,8 +742,14 @@ local function clear_key_collection(collection)
     if not collection then return end
     for i = #collection, 1, -1 do
         local button = collection[i]
-        if button and button.Hide then
-            button:Hide()
+        if button then
+            if button.keypress_ticker then
+                button.keypress_ticker:Cancel()
+                button.keypress_ticker = nil
+            end
+            if button.Hide then
+                button:Hide()
+            end
         end
         collection[i] = nil
     end
@@ -976,6 +982,11 @@ function addon:load()
         addon:load_spellbook()
         addon:refresh_layouts()
 
+        -- Enable keypress visualization if setting is on and not in combat
+        if keyui_settings.show_keypress_highlight and not addon.in_combat then
+            addon:enable_keypress_input()
+        end
+
         -- Show tutorial if not completed
         if keyui_settings.tutorial_completed ~= true and addon.tutorial_frame1_created ~= true then
             addon:create_tutorial_frame1()
@@ -1039,6 +1050,9 @@ function addon:refresh_layouts()
 
     -- update the textures/texts of the keys bindings.
     addon:refresh_keys()
+
+    -- Rebuild key lookup for keypress visualization
+    addon:build_key_lookup()
 end
 
 -- Update the visibility of keyboard and mouse based on settings, only if addon is open
@@ -1136,6 +1150,8 @@ function addon:hide_all_frames()
     if addon.edit_layout_dialog then
         addon.edit_layout_dialog:Hide()
     end
+
+    addon:disable_keypress_input()
 
     addon.open = false
     addon.is_keyboard_visible = false
@@ -1972,6 +1988,131 @@ function addon:update_modifier_string()
     addon.current_modifier_string = table.concat(modifiers)
 end
 
+-- Keypress visualization: builds a lookup from raw_key to button for all visible devices
+function addon:build_key_lookup()
+    addon.key_lookup = {}
+    if addon.is_keyboard_visible ~= false then
+        for i = 1, #addon.keys_keyboard do
+            local button = addon.keys_keyboard[i]
+            if button.raw_key then
+                addon.key_lookup[button.raw_key] = button
+            end
+        end
+    end
+    if addon.is_mouse_visible ~= false then
+        for i = 1, #addon.keys_mouse do
+            local button = addon.keys_mouse[i]
+            if button.raw_key then
+                addon.key_lookup[button.raw_key] = button
+            end
+        end
+    end
+    if addon.is_controller_visible ~= false then
+        for i = 1, #addon.keys_controller do
+            local button = addon.keys_controller[i]
+            if button.raw_key then
+                addon.key_lookup[button.raw_key] = button
+            end
+        end
+    end
+end
+
+-- Interval in seconds for polling IsKeyDown to detect key release
+local KEYPRESS_POLL_INTERVAL = 0.05
+
+-- Shows a border highlight on a KeyUI button while its key is held down
+local function flash_keypress_highlight(button, key)
+    if not button.keypress_highlight then return end
+    -- Skip modifier keys — they are already highlighted via the modifier system
+    if key == "LSHIFT" or key == "RSHIFT" or key == "LCTRL" or key == "RCTRL" or key == "LALT" or key == "RALT" then return end
+    button.keypress_highlight:Show()
+    -- Cancel any existing ticker for this button
+    if button.keypress_ticker then button.keypress_ticker:Cancel() end
+    -- Poll IsKeyDown to hide highlight when key is released
+    button.keypress_ticker = C_Timer.NewTicker(KEYPRESS_POLL_INTERVAL, function()
+        if not IsKeyDown(key) then
+            button.keypress_highlight:Hide()
+            button.keypress_ticker:Cancel()
+            button.keypress_ticker = nil
+        end
+    end)
+end
+
+-- Hides the keypress highlight on a button
+local function hide_keypress_highlight(button)
+    if not button.keypress_highlight then return end
+    button.keypress_highlight:Hide()
+end
+
+-- Creates and manages the invisible input frame for keypress visualization
+function addon:enable_keypress_input()
+    if addon.keypress_frame then
+        addon.keypress_frame:Show()
+        addon.keypress_frame:EnableKeyboard(true)
+        return
+    end
+
+    local frame = CreateFrame("Frame", "KeyUIKeypressFrame", UIParent)
+    frame:SetSize(1, 1)
+    frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
+    frame:EnableKeyboard(true)
+    frame:SetPropagateKeyboardInput(true)
+
+    frame:SetScript("OnKeyDown", function(_, key)
+        if not addon.key_lookup then return end
+        local button = addon.key_lookup[key]
+        if button then
+            flash_keypress_highlight(button, key)
+        end
+
+        -- Also show the PushedTexture on the mapped action bar button
+        if button and button.active_slot then
+            addon:show_pushed_texture(button.active_slot)
+            -- Hide pushed texture when key is released
+            if addon.pushed_ticker then addon.pushed_ticker:Cancel() end
+            addon.pushed_ticker = C_Timer.NewTicker(KEYPRESS_POLL_INTERVAL, function()
+                if not IsKeyDown(key) then
+                    if addon.current_pushed_button then
+                        addon.current_pushed_button:Hide()
+                        addon.current_pushed_button = nil
+                    end
+                    addon.pushed_ticker:Cancel()
+                    addon.pushed_ticker = nil
+                end
+            end)
+        end
+    end)
+
+    addon.keypress_frame = frame
+end
+
+-- Disables the keypress input frame
+function addon:disable_keypress_input()
+    if addon.keypress_frame then
+        addon.keypress_frame:EnableKeyboard(false)
+        addon.keypress_frame:Hide()
+    end
+    -- Cancel pushed texture ticker
+    if addon.pushed_ticker then
+        addon.pushed_ticker:Cancel()
+        addon.pushed_ticker = nil
+    end
+    if addon.current_pushed_button then
+        addon.current_pushed_button:Hide()
+        addon.current_pushed_button = nil
+    end
+    -- Clear any active highlights and cancel their tickers
+    if addon.key_lookup then
+        for _, button in pairs(addon.key_lookup) do
+            if button.keypress_ticker then
+                button.keypress_ticker:Cancel()
+                button.keypress_ticker = nil
+            end
+            hide_keypress_highlight(button)
+        end
+    end
+end
+
 -- Define modifier keys used in HandleKeyPress and HandleKeyRelease
 local modifier_keys = {
     LALT = { mod = "ALT", control_key = "alt_cb" },
@@ -2403,8 +2544,14 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon:refresh_layouts()
         elseif event == "PLAYER_REGEN_ENABLED" then        --nothing
             addon.in_combat = false
+            -- Re-enable keypress visualization after combat
+            if addon.open and keyui_settings.show_keypress_highlight then
+                addon:enable_keypress_input()
+            end
         elseif event == "PLAYER_REGEN_DISABLED" then       --nothing
             addon.in_combat = true
+            -- Disable keypress visualization in combat (SetPropagateKeyboardInput is protected)
+            addon:disable_keypress_input()
             -- Only close the addon if stay_open_in_combat is false
             if not keyui_settings.stay_open_in_combat and addon.open then
                 addon:hide_all_frames()

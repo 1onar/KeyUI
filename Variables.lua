@@ -38,6 +38,7 @@ function addon:InitializeGeneralSettings()
     set_if_nil("controls_expanded", false)
     set_if_nil("font_face", "Expressway")
     set_if_nil("font_base_size", 16)
+    set_if_nil("show_keypress_highlight", true)
 end
 
 -- Initialize key binding and layout settings
