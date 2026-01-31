@@ -2066,7 +2066,7 @@ function addon:enable_keypress_input()
         end
 
         -- Also show the PushedTexture on the mapped action bar button
-        if button and button.active_slot then
+        if button and button.active_slot and keyui_settings.show_pushed_texture then
             addon:show_pushed_texture(button.active_slot)
             -- Hide pushed texture when key is released
             if addon.pushed_ticker then addon.pushed_ticker:Cancel() end

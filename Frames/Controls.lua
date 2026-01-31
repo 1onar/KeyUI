@@ -33,7 +33,7 @@ function addon:create_controls()
 
     -- Set the initial height based on expanded settings
     if keyui_settings.controls_expanded == true then
-        controls_frame:SetHeight(320)
+        controls_frame:SetHeight(350)
     else
         controls_frame:SetHeight(200)
     end
@@ -84,11 +84,10 @@ function addon:create_controls()
 
     local layout_y = -40
     local size_y = -110
-    local collapsed_y = -170
     local first_cb_y = -160
-    local second_cb_y = -200
-    local third_cb_y = -240
-    local expanded_y = -290
+    local second_cb_y = -195
+    local third_cb_y = -230
+    local fourth_cb_y = -280
 
     -- Create Text "Layout"
     controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -298,14 +297,52 @@ function addon:create_controls()
     end)
 
     -- Set the tooltip for the highlight buttons checkbox
-    SetCheckboxTooltip(controls_frame.highlight_buttons_cb, "Toggle highlight effect on Blizzard action buttons when hovering KeyUI buttons")
+    SetCheckboxTooltip(controls_frame.highlight_buttons_cb, "Highlight action bar buttons when hovering over KeyUI buttons")
 
-    -- Create the font string for the "Highlight Buttons" label text and position it
+    -- Create the font string for the "Hover Highlight" label text and position it
     controls_frame.highlight_buttons_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    controls_frame.highlight_buttons_text:SetText("Highlight Buttons")
+    controls_frame.highlight_buttons_text:SetText("Hover Highlight")
     controls_frame.highlight_buttons_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
     addon:RegisterFontString(controls_frame.highlight_buttons_text, 1.0)
     controls_frame.highlight_buttons_text:SetPoint("LEFT", controls_frame.highlight_buttons_cb, "RIGHT", 10, 0)
+
+    -- Create the checkbox for toggling keypress highlight effect (show_keypress_highlight)
+    controls_frame.keypress_highlight_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.keypress_highlight_cb:SetSize(32, 36)
+    controls_frame.keypress_highlight_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.keypress_highlight_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, third_cb_y)
+
+    -- Set the initial checkbox state based on the current setting for show_keypress_highlight
+    if keyui_settings.show_keypress_highlight then
+        controls_frame.keypress_highlight_cb:SetChecked(true)
+    else
+        controls_frame.keypress_highlight_cb:SetChecked(false)
+    end
+
+    -- Set the OnClick script for the keypress highlight checkbox
+    controls_frame.keypress_highlight_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
+            keyui_settings.show_keypress_highlight = true
+            if addon.open and not addon.in_combat then
+                addon:enable_keypress_input()
+            end
+        else
+            keyui_settings.show_keypress_highlight = false
+            if addon.open then
+                addon:disable_keypress_input()
+            end
+        end
+    end)
+
+    -- Set the tooltip for the keypress highlight checkbox
+    SetCheckboxTooltip(controls_frame.keypress_highlight_cb, "Highlight keys on the keyboard visualization when pressed (disabled during combat)")
+
+    -- Create the font string for the "Keypress Highlight" label text and position it
+    controls_frame.keypress_highlight_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.keypress_highlight_text:SetText("Keypress Highlight")
+    controls_frame.keypress_highlight_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.keypress_highlight_text, 1.0)
+    controls_frame.keypress_highlight_text:SetPoint("LEFT", controls_frame.keypress_highlight_cb, "RIGHT", 10, 0)
 
     -- Create the checkbox for toggling modifier detection (detect_modifier)
     controls_frame.detect_modifier_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
@@ -375,11 +412,11 @@ function addon:create_controls()
     addon:RegisterFontString(controls_frame.dynamic_modifier_text, 1.0)
     controls_frame.dynamic_modifier_text:SetPoint("LEFT", controls_frame.dynamic_modifier_cb, "RIGHT", 10, 0)
 
-    -- Create a alt checkbox
+    -- Create a alt checkbox (centered in fourth row with Ctrl and Shift)
     controls_frame.alt_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.alt_cb:SetSize(32, 36)
     controls_frame.alt_cb:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.alt_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", half_setpoint, third_cb_y)
+    controls_frame.alt_cb:SetPoint("CENTER", controls_frame, "TOP", -130, fourth_cb_y)
 
     -- Set the OnClick script for the checkbutton
     controls_frame.alt_cb:SetScript("OnClick", function(s)
@@ -412,7 +449,7 @@ function addon:create_controls()
     controls_frame.ctrl_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.ctrl_cb:SetSize(32, 36)
     controls_frame.ctrl_cb:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.ctrl_cb:SetPoint("CENTER", controls_frame.alt_cb, "CENTER", 80, 0)
+    controls_frame.ctrl_cb:SetPoint("CENTER", controls_frame.alt_cb, "CENTER", 110, 0)
 
     -- Set the OnClick script for the checkbutton
     controls_frame.ctrl_cb:SetScript("OnClick", function(s)
@@ -444,7 +481,7 @@ function addon:create_controls()
     controls_frame.shift_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.shift_cb:SetSize(32, 36)
     controls_frame.shift_cb:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.shift_cb:SetPoint("CENTER", controls_frame.ctrl_cb, "CENTER", 80, 0)
+    controls_frame.shift_cb:SetPoint("CENTER", controls_frame.ctrl_cb, "CENTER", 110, 0)
 
     -- Set the OnClick script for the checkbutton
     controls_frame.shift_cb:SetScript("OnClick", function(s)
@@ -474,7 +511,7 @@ function addon:create_controls()
 
         -- Set the initial height based on expanded settings
     if keyui_settings.controls_expanded == true then
-        controls_frame:SetHeight(320)
+        controls_frame:SetHeight(350)
     else
         controls_frame:SetHeight(200)
     end
@@ -482,7 +519,7 @@ function addon:create_controls()
     -- Helper function to set visibility of all control checkboxes
     local function set_controls_visibility(visible)
         local controls = {
-            "empty_keys", "interface_keys", "highlight_buttons",
+            "empty_keys", "interface_keys", "highlight_buttons", "keypress_highlight",
             "detect_modifier", "dynamic_modifier",
             "alt", "ctrl", "shift"
         }
@@ -500,14 +537,14 @@ function addon:create_controls()
         -- Update the expander text and controls visibility based on the new state
         if keyui_settings.controls_expanded then
             controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
-            controls_frame:SetHeight(320)
+            controls_frame:SetHeight(350)
             set_controls_visibility(true)
-            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
+            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
         else
             controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
             controls_frame:SetHeight(200)
             set_controls_visibility(false)
-            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
+            controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
         end
     end
 
@@ -538,9 +575,9 @@ function addon:create_controls()
 
     -- Set initial expander position based on controls_expanded
     if keyui_settings.controls_expanded then
-        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, expanded_y)
+        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
     else
-        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "TOP", 0, collapsed_y)
+        controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
     end
 
     -- Create the "Close" button
