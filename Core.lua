@@ -1499,11 +1499,15 @@ end
 function addon:handle_action_drag(button)
     local slot = button.slot
     if GetCursorInfo() then
+        -- Place action from cursor to slot
+        -- PlaceAction automatically swaps if target slot is occupied
         if slot then
             PlaceAction(slot)
-            ClearCursor()
+            -- Do NOT clear cursor - PlaceAction handles the swap
+            -- If target slot was occupied, the displaced action is now on cursor
         end
     elseif slot then
+        -- Pick up action from slot to cursor
         PickupAction(slot)
     end
 end
