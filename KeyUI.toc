@@ -1,7 +1,4 @@
-## Interface: 120000
-## Interface-Cata: 50503
-## Interface-Classic: 20505
-## Interface-Vanilla: 11508
+## Interface: 120000, 50503, 20505, 11508
 ## Author: Blandros
 ## Category: Action Bars
 ## Version: @project-version@
