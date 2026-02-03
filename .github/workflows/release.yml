@@ -1,4 +1,4 @@
-name: Release Retail AddOn
+name: Release AddOn
 
 on:
   push:
