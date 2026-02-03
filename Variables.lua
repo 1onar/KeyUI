@@ -97,6 +97,9 @@ addon.keyboard_layout_dirty = false
 addon.mouse_layout_dirty = false
 addon.controller_layout_dirty = false
 
+-- Spellbook data (loaded on demand via load_spellbook)
+addon.spells = {}
+
 -- Font system
 addon.FONT_OPTIONS = {
     ["Expressway"] = {

@@ -7,6 +7,16 @@ local LDB = LibStub("LibDataBroker-1.1")
 local PROFILE_EXPORT_VERSION = 1
 local LAYOUT_EXPORT_VERSION = 1
 
+-- ============================================================================
+-- API Compatibility Layer
+-- ============================================================================
+local API_COMPAT = {
+    has_modern_spellbook = (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines ~= nil),
+    has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
+    has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
+}
+addon.api_compat = API_COMPAT
+
 -- Global keybind patterns cache (initialized on load)
 local keybind_patterns = {}
 
@@ -880,7 +890,7 @@ local function reset_frame_positions(self)
 
     if self.selection_frame then
         self.selection_frame:ClearAllPoints()
-        self.selection_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 160)
+        self.selection_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end
 end
 
@@ -996,26 +1006,58 @@ end
 
 function addon:load_spellbook()
     addon.spells = {}
-    for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
-        local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
-        local name = skillLineInfo.name
-        local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
 
-        -- Ensure the skill line has a name before proceeding.
-        if name then
-            addon.spells[name] = {}
+    if API_COMPAT.has_modern_spellbook then
+        -- RETAIL: Modern C_SpellBook API
+        for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+            local skillLineInfo = C_SpellBook.GetSpellBookSkillLineInfo(i)
+            local name = skillLineInfo.name
+            local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
 
-            for j = offset + 1, offset + numSlots do
-                local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
-                local spellName = spellBookItemInfo.name
-                local spellID = spellBookItemInfo.spellID
-                local isPassive = spellBookItemInfo.isPassive
+            if name then
+                addon.spells[name] = {}
+                for j = offset + 1, offset + numSlots do
+                    local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
+                    local spellName = spellBookItemInfo.name
+                    local spellID = spellBookItemInfo.spellID
+                    local isPassive = spellBookItemInfo.isPassive
 
-                if spellName and not isPassive then
-                    table.insert(addon.spells[name], { name = spellName, id = spellID })
+                    if spellName and not isPassive then
+                        table.insert(addon.spells[name], { name = spellName, id = spellID })
+                    end
                 end
             end
         end
+    elseif API_COMPAT.has_legacy_spell_api then
+        -- ANNIVERSARY/CLASSIC: Legacy global spell API
+        local BOOKTYPE_SPELL = "spell"
+        local numTabs = GetNumSpellTabs()
+
+        for tabIndex = 1, numTabs do
+            local name, texture, offset, numSlots, _, offSpecID = GetSpellTabInfo(tabIndex)
+
+            -- Anniversary: offSpecID is 0 for normal tabs, not nil
+            if name and (not offSpecID or offSpecID == 0) then  -- Skip off-spec tabs
+                addon.spells[name] = {}
+
+                for slotIndex = offset + 1, offset + numSlots do
+                    local spellType, spellID = GetSpellBookItemInfo(slotIndex, BOOKTYPE_SPELL)
+
+                    -- spellType: "SPELL", "PETACTION", "FUTURESPELL", "FLYOUT"
+                    if spellType == "SPELL" or spellType == "FUTURESPELL" then
+                        local spellName = GetSpellInfo(spellID)
+                        local isPassive = IsPassiveSpell(slotIndex, BOOKTYPE_SPELL)
+
+                        if spellName and not isPassive then
+                            table.insert(addon.spells[name], { name = spellName, id = spellID })
+                        end
+                    end
+                end
+            end
+        end
+    else
+        -- Fallback: No spell API available
+        print("KeyUI: Warning - No compatible spell API found")
     end
 end
 
@@ -1533,7 +1575,9 @@ function addon:update_assisted_combat_indicator(button, slot)
             button.assisted_combat_clip = clip
 
             local overlay = clip:CreateTexture(nil, "OVERLAY")
-            overlay:SetAtlas("UI-HUD-RotationHelper-Inactive")
+            addon:SetTexture(overlay, "UI-HUD-RotationHelper-Inactive",
+                "Interface\\AddOns\\KeyUI\\Media\\Atlas\\CombatAssistantSingleButton",
+                {0.905273, 0.967773, 0.0766602, 0.10791})
             overlay:SetSize(button:GetWidth() * 1.3, button:GetHeight() * 1.3)
             overlay:SetPoint("CENTER", clip, "CENTER")
             button.assisted_combat_overlay = overlay
@@ -2285,6 +2329,12 @@ end
 
 -- Helper function: Build spells submenu
 local function build_spells_submenu(parentMenu)
+    -- Guard: Ensure addon.spells is loaded
+    if not addon.spells or next(addon.spells) == nil then
+        -- Fallback: Load spellbook on-demand if not already loaded
+        addon:load_spellbook()
+    end
+
     for tabName, _ in pairs(addon.spells) do
         local tabButton = parentMenu:CreateButton(tabName)
 
@@ -2292,17 +2342,33 @@ local function build_spells_submenu(parentMenu)
         for _, spell in pairs(addon.spells[tabName]) do
             local spell_name = spell.name
             local spell_id = spell.id
+            local is_known = false
+            local spell_icon = nil
 
-            if spell_id and C_SpellBook.IsSpellKnown(spell_id) then
-                local spell_icon = C_Spell.GetSpellTexture(spell_id)
+            -- Version-aware spell checking
+            if API_COMPAT.has_modern_spellbook then
+                -- RETAIL: Use C_SpellBook API
+                is_known = C_SpellBook.IsSpellKnown(spell_id)
+                spell_icon = C_Spell.GetSpellTexture(spell_id)
+            elseif API_COMPAT.has_legacy_spell_api then
+                -- ANNIVERSARY: Use legacy API
+                is_known = IsSpellKnown(spell_id)
+                spell_icon = GetSpellTexture(spell_id)
+            end
 
+            if spell_id and is_known then
                 local spellButton = tabButton:CreateButton(spell_name, function()
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                     local spell = "Spell " .. spell_name
                     local binding_name = addon.current_clicked_key.readable_binding:GetText()
 
                     if addon.current_slot ~= nil then
-                        C_Spell.PickupSpell(spell_id)
+                        -- Version-aware spell pickup
+                        if API_COMPAT.has_modern_spellbook then
+                            C_Spell.PickupSpell(spell_id)
+                        else
+                            PickupSpell(spell_id)  -- Legacy API
+                        end
                         PlaceAction(addon.current_slot)
                         ClearCursor()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
@@ -2332,7 +2398,8 @@ local function build_spells_submenu(parentMenu)
     end
 
     -- Assisted Combat (Single-Button Assistant) entry at the bottom of the spells menu
-    if C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() then
+    -- Only available in Retail
+    if API_COMPAT.has_modern_spellbook and C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() then
         local acSpellID = C_AssistedCombat.GetActionSpell()
         local acIcon = acSpellID and C_Spell.GetSpellTexture(acSpellID)
 
@@ -2494,7 +2561,7 @@ end
 -- Main context menu generator for MenuUtil
 function addon.context_menu_generator(owner, rootDescription)
     -- Spells submenu
-    local spellsMenu = rootDescription:CreateButton(_G["SPELLS"])
+    local spellsMenu = rootDescription:CreateButton(_G["SPELLS"] or "Spells")
     build_spells_submenu(spellsMenu)
 
     -- Macros submenu
@@ -2614,6 +2681,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon.bonusbar_offset = GetBonusBarOffset()
             -- Update the current action bar page
             addon.current_actionbar_page = GetActionBarPage()
+
+            -- Eager load spellbook data for context menu
+            if not addon.spells or next(addon.spells) == nil then
+                addon:load_spellbook()
+            end
         elseif event == "ADDON_LOADED" then
             -- Dynamically register patterns when a supported addon loads after KeyUI
             local loaded_addon_name = ...

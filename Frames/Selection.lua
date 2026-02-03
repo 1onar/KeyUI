@@ -8,7 +8,7 @@ function addon:create_selection_frame()
     tinsert(UISpecialFrames, "keyui_selection_frame")
 
     -- Position and size of the main frame
-    selection_frame:SetPoint("CENTER", 0, 160)
+    selection_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 
     -- Adjust height and width for 256x512 images and margins
     local border = 5    -- border size
