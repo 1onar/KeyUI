@@ -2407,7 +2407,7 @@ local function build_spells_submenu(parentMenu)
         local acSpellID = C_AssistedCombat.GetActionSpell()
         local acIcon = acSpellID and C_Spell.GetSpellTexture(acSpellID)
 
-        local acButton = parentMenu:CreateButton("Assisted Combat", function()
+        local acButton = parentMenu:CreateButton(_G["ASSISTED_COMBAT_ROTATION"] or "Assisted Combat", function()
             local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
 
             if addon.current_slot ~= nil then
@@ -2417,10 +2417,13 @@ local function build_spells_submenu(parentMenu)
                     PickupAction(acSlots[1])
                     PlaceAction(addon.current_slot)
                     ClearCursor()
-                    print("KeyUI: Bound |cffa335eeAssisted Combat|r to |cffff8000" .. key .. "|r")
+                    local acName = _G["ASSISTED_COMBAT_ROTATION"] or "Assisted Combat"
+                    print("KeyUI: Bound |cffa335ee" .. acName .. "|r to |cffff8000" .. key .. "|r")
                 end
             else
-                print("KeyUI: Assisted Combat can only be bound to action bar slots.")
+                local acName = _G["ASSISTED_COMBAT_ROTATION"] or "Assisted Combat"
+                print("KeyUI: " .. acName .. " can only be bound to action bar slots.")
+                print("KeyUI: Right-click on an action bar button (ACTIONBUTTON1-12 etc.), not on unbound keys.")
             end
         end)
 
