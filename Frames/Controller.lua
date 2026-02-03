@@ -1,5 +1,8 @@
 local name, addon = ...
 
+-- Use centralized version detection from VersionCompat.lua
+local USE_ATLAS = addon.VERSION.USE_ATLAS
+
 -- Save the position and scale of the controller
 function addon:save_controller_position()
     local x, y = addon.controller_frame:GetCenter()
@@ -64,6 +67,9 @@ function addon:create_controller_frame()
 
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)
+        -- Check if button has texture properties (only in Retail or custom buttons)
+        if not button.LeftActive then return end
+
         if showInactive then
             button.LeftActive:Hide()
             button.MiddleActive:Hide()
@@ -93,7 +99,11 @@ function addon:create_controller_frame()
     local controller_level = addon.controller_frame:GetFrameLevel()
 
     -- Create the close tab button
-    controller_frame.close_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        controller_frame.close_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    else
+        controller_frame.close_button = addon:CreateTopTabButton(controller_frame)
+    end
     controller_frame.close_button:SetPoint("BOTTOMRIGHT", controller_frame, "TOPRIGHT", -8, 0)
     controller_frame.close_button:SetFrameLevel(controller_level - 1)
 
@@ -137,7 +147,11 @@ function addon:create_controller_frame()
     end)
 
     -- Create the settings tab button
-    controller_frame.controls_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        controller_frame.controls_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    else
+        controller_frame.controls_button = addon:CreateTopTabButton(controller_frame)
+    end
     controller_frame.controls_button:SetPoint("BOTTOMRIGHT", controller_frame.close_button, "BOTTOMLEFT", -4, 0)
     controller_frame.controls_button:SetFrameLevel(controller_level - 1)
 
@@ -212,7 +226,11 @@ function addon:create_controller_frame()
     end)
 
     -- Create the options tab button
-    controller_frame.options_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        controller_frame.options_button = CreateFrame("Button", nil, controller_frame, "PanelTopTabButtonTemplate")
+    else
+        controller_frame.options_button = addon:CreateTopTabButton(controller_frame)
+    end
     controller_frame.options_button:SetPoint("BOTTOMRIGHT", controller_frame.controls_button, "BOTTOMLEFT", -4, 0)
     controller_frame.options_button:SetFrameLevel(controller_level - 1)
 
@@ -540,7 +558,9 @@ function addon:create_controller_buttons()
 
     -- Add Border Texture
     local border = controller_button:CreateTexture(nil, "OVERLAY")
-    border:SetAtlas("UI-HUD-ActionBar-IconFrame")
+    addon:SetTexture(border, "UI-HUD-ActionBar-IconFrame",
+        "Interface\\AddOns\\KeyUI\\Media\\Atlas\\CombatAssistantSingleButton",
+        {0.707031, 0.886719, 0.248047, 0.291992})
     border:SetAllPoints()
     controller_button.border = border
 

@@ -1,5 +1,8 @@
 local name, addon = ...
 
+-- Use centralized version detection from VersionCompat.lua
+local USE_ATLAS = addon.VERSION.USE_ATLAS
+
 -- Function to save the keyboard's position and scale
 function addon:save_keyboard_position()
     local x, y = addon.keyboard_frame:GetCenter()
@@ -64,6 +67,9 @@ function addon:create_keyboard_frame()
 
     -- Helper function to toggle visibility of tab button textures
     local function toggle_button_textures(button, showInactive)
+        -- Check if button has texture properties (only in Retail or custom buttons)
+        if not button.LeftActive then return end
+
         if showInactive then
             button.LeftActive:Hide()
             button.MiddleActive:Hide()
@@ -93,7 +99,11 @@ function addon:create_keyboard_frame()
     local keyboard_level = addon.keyboard_frame:GetFrameLevel()
 
     -- Create the close tab button
-    keyboard_frame.close_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        keyboard_frame.close_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    else
+        keyboard_frame.close_button = addon:CreateTopTabButton(keyboard_frame)
+    end
     keyboard_frame.close_button:SetPoint("BOTTOMRIGHT", keyboard_frame, "TOPRIGHT", -8, 0)
     keyboard_frame.close_button:SetFrameLevel(keyboard_level - 1)
 
@@ -131,7 +141,11 @@ function addon:create_keyboard_frame()
     end)
 
     -- Create the settings tab button
-    keyboard_frame.controls_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        keyboard_frame.controls_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    else
+        keyboard_frame.controls_button = addon:CreateTopTabButton(keyboard_frame)
+    end
     keyboard_frame.controls_button:SetPoint("BOTTOMRIGHT", keyboard_frame.close_button, "BOTTOMLEFT", -4, 0)
     keyboard_frame.controls_button:SetFrameLevel(keyboard_level - 1)
 
@@ -201,7 +215,11 @@ function addon:create_keyboard_frame()
     end)
 
     -- Create the options tab button
-    keyboard_frame.options_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    if USE_ATLAS then
+        keyboard_frame.options_button = CreateFrame("Button", nil, keyboard_frame, "PanelTopTabButtonTemplate")
+    else
+        keyboard_frame.options_button = addon:CreateTopTabButton(keyboard_frame)
+    end
     keyboard_frame.options_button:SetPoint("BOTTOMRIGHT", keyboard_frame.controls_button, "BOTTOMLEFT", -4, 0)
     keyboard_frame.options_button:SetFrameLevel(keyboard_level - 1)
 

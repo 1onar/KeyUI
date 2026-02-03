@@ -1,5 +1,8 @@
 local name, addon = ...
 
+-- Use centralized version detection from VersionCompat.lua
+local USE_ATLAS = addon.VERSION.USE_ATLAS
+
 -- Save the position and scale of the mouse holder
 function addon:save_mouse_position()
     local x, y = addon.mouse_image:GetCenter()
@@ -49,8 +52,7 @@ function addon:create_mouse_image()
     mouse_image.Texture:SetSize(390, 390)
 
     -- Create close button
-    mouse_image.close_button = CreateFrame("Button", nil, mouse_image, "UIPanelCloseButton")
-    mouse_image.close_button:SetSize(22, 22)
+    mouse_image.close_button = addon:CreateCloseButton(mouse_image)
     mouse_image.close_button:SetPoint("TOPRIGHT", mouse_image, "TOPRIGHT", 0, 0)
     mouse_image.close_button:SetScript("OnClick", function(s)
         addon:discard_mouse_changes()
@@ -98,7 +100,11 @@ function addon:create_mouse_image()
     local mouse_level = addon.mouse_image:GetFrameLevel()
 
     -- Create the settings tab button
-    mouse_image.controls_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    if USE_ATLAS then
+        mouse_image.controls_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    else
+        mouse_image.controls_button = addon:CreateTabButton(mouse_image)
+    end
     mouse_image.controls_button:SetPoint("TOPLEFT", mouse_image, "BOTTOM", -12, 0)
     mouse_image.controls_button:SetFrameLevel(mouse_level - 1)
     mouse_image.controls_button:SetScale(0.8)
@@ -174,7 +180,11 @@ function addon:create_mouse_image()
     end)
 
     -- Create the options tab button
-    mouse_image.options_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    if USE_ATLAS then
+        mouse_image.options_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
+    else
+        mouse_image.options_button = addon:CreateTabButton(mouse_image)
+    end
     mouse_image.options_button:SetPoint("BOTTOMRIGHT", mouse_image.controls_button, "BOTTOMLEFT", -4, 0)
     mouse_image.options_button:SetFrameLevel(mouse_level - 1)
     mouse_image.options_button:SetScale(0.8)
@@ -401,7 +411,9 @@ function addon:create_mouse_buttons()
 
     -- Add Border Texture
     local border = mouse_button:CreateTexture(nil, "OVERLAY")
-    border:SetAtlas("UI-HUD-ActionBar-IconFrame")
+    addon:SetTexture(border, "UI-HUD-ActionBar-IconFrame",
+        "Interface\\AddOns\\KeyUI\\Media\\Atlas\\CombatAssistantSingleButton",
+        {0.707031, 0.886719, 0.248047, 0.291992})
     border:SetAllPoints()
     mouse_button.border = border
 

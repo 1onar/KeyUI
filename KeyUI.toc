@@ -1,4 +1,7 @@
 ## Interface: 120000
+## Interface-Cata: 50503
+## Interface-Classic: 20505
+## Interface-Vanilla: 11508
 ## Author: Blandros
 ## Category: Action Bars
 ## Version: @project-version@
@@ -15,6 +18,7 @@
 embeds.xml
 
 Variables.lua
+VersionCompat.lua
 Mappings.lua
 UIHelpers.lua
 Layouts\Keyboard.lua

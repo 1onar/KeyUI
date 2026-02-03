@@ -1,5 +1,8 @@
 local name, addon = ...
 
+-- Use centralized version detection from VersionCompat.lua
+local USE_ATLAS = addon.VERSION.USE_ATLAS
+
 local function SetUtilityButtonTooltip(button, text, optionalDescription)
     button.tooltipHeading = text
     button.tooltipBody = optionalDescription
@@ -181,7 +184,9 @@ function addon:create_controls()
 
     -- Set the texture for the 'Back' button using the Atlas
     local back_texture = back_button:CreateTexture(nil, "BACKGROUND")
-    back_texture:SetAtlas("Minimal_SliderBar_Button_Left")  -- Use the Atlas for the back button
+    addon:SetTexture(back_texture, "Minimal_SliderBar_Button_Left",
+        "Interface\\AddOns\\KeyUI\\Media\\Atlas\\MinimalSliderBar",
+        {0.03125, 0.375, 0.320312, 0.46875})
     back_texture:SetAllPoints(back_button)
 
     -- Action for back button click
@@ -197,7 +202,9 @@ function addon:create_controls()
 
     -- Set the texture for the 'Forward' button using the Atlas
     local forward_texture = forward_button:CreateTexture(nil, "BACKGROUND")
-    forward_texture:SetAtlas("Minimal_SliderBar_Button_Right")  -- Use the Atlas for the forward button
+    addon:SetTexture(forward_texture, "Minimal_SliderBar_Button_Right",
+        "Interface\\AddOns\\KeyUI\\Media\\Atlas\\MinimalSliderBar",
+        {0.03125, 0.3125, 0.632812, 0.773438})
     forward_texture:SetAllPoints(forward_button)
 
     -- Action for forward button click
@@ -581,8 +588,7 @@ function addon:create_controls()
     end
 
     -- Create the "Close" button
-    controls_frame.close_button = CreateFrame("Button", nil, controls_frame, "UIPanelCloseButton")
-    controls_frame.close_button:SetSize(22, 22)
+    controls_frame.close_button = addon:CreateCloseButton(controls_frame)
     controls_frame.close_button:SetPoint("TOPRIGHT", 0, 0)
     controls_frame.close_button:SetScript("OnClick", function(s)
         addon:discard_keyboard_changes()
@@ -607,15 +613,27 @@ function addon:create_controls()
     addon:RegisterFontString(custom_font, 1.0, false, "OUTLINE")
 
     -- Create the keyboard tab button
-    controls_frame.keyboard_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    if USE_ATLAS then
+        controls_frame.keyboard_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    else
+        controls_frame.keyboard_button = addon:CreateTabButton(controls_frame)
+    end
     controls_frame.keyboard_button:SetPoint("TOPLEFT", controls_frame, "BOTTOMLEFT", 8, 0)
 
     -- Create the mouse tab button
-    controls_frame.mouse_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    if USE_ATLAS then
+        controls_frame.mouse_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    else
+        controls_frame.mouse_button = addon:CreateTabButton(controls_frame)
+    end
     controls_frame.mouse_button:SetPoint("BOTTOMLEFT", controls_frame.keyboard_button, "BOTTOMRIGHT", 8, 0)
 
     -- Create the controller tab button
-    controls_frame.controller_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    if USE_ATLAS then
+        controls_frame.controller_button = CreateFrame("Button", nil, controls_frame, "PanelTabButtonTemplate")
+    else
+        controls_frame.controller_button = addon:CreateTabButton(controls_frame)
+    end
     controls_frame.controller_button:SetPoint("BOTTOMLEFT", controls_frame.mouse_button, "BOTTOMRIGHT", 8, 0)
 
     -- Show active textures for the current tab

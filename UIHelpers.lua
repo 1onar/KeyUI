@@ -1,39 +1,48 @@
 local name, addon = ...
 
+-- Use centralized version detection from VersionCompat.lua
+local USE_ATLAS = addon.VERSION.USE_ATLAS
+
+-- Texture paths with Anniversary fallback
+local GLOW_TEXTURE = USE_ATLAS and "Interface/TutorialFrame/UIFrameTutorialGlow"
+    or "Interface\\AddOns\\KeyUI\\Media\\Atlas\\uiframetutorialglow"
+local GLOW_TEXTURE_VERTICAL = USE_ATLAS and "Interface/TutorialFrame/UIFrameTutorialGlowVertical"
+    or "Interface\\AddOns\\KeyUI\\Media\\Atlas\\uiframetutorialglowvertical"
+
 -- Handles visual effects like manual glow borders for frames
 -- Replaces the removed GlowBorderTemplate (thanks, Blizzard)
 function addon:create_glow_border(frame)
     -- top left corner
     local topLeft = frame:CreateTexture(nil, "BORDER")
-    topLeft:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    topLeft:SetTexture(GLOW_TEXTURE)
     topLeft:SetSize(16, 16)
     topLeft:SetTexCoord(0.03125, 0.53125, 0.570312, 0.695312)
     topLeft:SetPoint("TOPLEFT", frame, "TOPLEFT", -8, 8)
 
     -- top right corner
     local topRight = frame:CreateTexture(nil, "BORDER")
-    topRight:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    topRight:SetTexture(GLOW_TEXTURE)
     topRight:SetSize(16, 16)
     topRight:SetTexCoord(0.03125, 0.53125, 0.710938, 0.835938)
     topRight:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 7, 8)
 
     -- bottom left corner
     local bottomLeft = frame:CreateTexture(nil, "BORDER")
-    bottomLeft:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    bottomLeft:SetTexture(GLOW_TEXTURE)
     bottomLeft:SetSize(16, 16)
     bottomLeft:SetTexCoord(0.03125, 0.53125, 0.289062, 0.414062)
     bottomLeft:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", -8, -8)
 
     -- bottom right corner
     local bottomRight = frame:CreateTexture(nil, "BORDER")
-    bottomRight:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    bottomRight:SetTexture(GLOW_TEXTURE)
     bottomRight:SetSize(16, 16)
     bottomRight:SetTexCoord(0.03125, 0.53125, 0.429688, 0.554688)
     bottomRight:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 8, -8)
 
     -- top edge
     local top = frame:CreateTexture(nil, "BORDER")
-    top:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    top:SetTexture(GLOW_TEXTURE)
     top:SetSize(16, 16)
     top:SetPoint("TOPLEFT", topLeft, "TOPRIGHT")
     top:SetPoint("BOTTOMRIGHT", topRight, "BOTTOMLEFT")
@@ -41,7 +50,7 @@ function addon:create_glow_border(frame)
 
     -- bottom edge
     local bottom = frame:CreateTexture(nil, "BORDER")
-    bottom:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlow")
+    bottom:SetTexture(GLOW_TEXTURE)
     bottom:SetSize(16, 16)
     bottom:SetPoint("TOPLEFT", bottomLeft, "TOPRIGHT")
     bottom:SetPoint("BOTTOMRIGHT", bottomRight, "BOTTOMLEFT")
@@ -49,14 +58,14 @@ function addon:create_glow_border(frame)
 
     -- left edge
     local left = frame:CreateTexture(nil, "BORDER")
-    left:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlowVertical")
+    left:SetTexture(GLOW_TEXTURE_VERTICAL)
     left:SetPoint("TOPLEFT", topLeft, "BOTTOMLEFT")
     left:SetPoint("BOTTOMRIGHT", bottomLeft, "TOPRIGHT")
     left:SetTexCoord(0.015625, 0.265625, 0, 1)
 
     -- right edge
     local right = frame:CreateTexture(nil, "BORDER")
-    right:SetTexture("Interface/TutorialFrame/UIFrameTutorialGlowVertical")
+    right:SetTexture(GLOW_TEXTURE_VERTICAL)
     right:SetPoint("TOPLEFT", topRight, "BOTTOMLEFT", 1, 0)
     right:SetPoint("BOTTOMRIGHT", bottomRight, "TOPRIGHT", 1, 0)
     right:SetTexCoord(0.296875, 0.546875, 0, 1)
@@ -108,8 +117,21 @@ function addon:CreateGlowFrame(parent, options)
     return frame
 end
 
+-- Helper to set texture with Atlas fallback
+function addon:SetTexture(textureObject, atlasName, filePath, texCoords)
+    if USE_ATLAS then
+        textureObject:SetAtlas(atlasName)
+    else
+        textureObject:SetTexture(filePath)
+        if texCoords then
+            textureObject:SetTexCoord(unpack(texCoords))
+        end
+    end
+end
+
 -- Button styling helper using dropdown textures
-local BUTTON_TEXTURE = "Interface/Buttons/Dropdown"
+local BUTTON_TEXTURE = USE_ATLAS and "Interface/Buttons/Dropdown"
+    or "Interface\\AddOns\\KeyUI\\Media\\Atlas\\dropdown"
 
 local TEX_COORDS = {
     normal_left = { 0.03125, 0.53125, 0.470703, 0.560547 },
@@ -229,6 +251,243 @@ function addon:CreateStyledButton(parent, options)
     if type(options.onClick) == "function" then
         button:SetScript("OnClick", options.onClick)
     end
+
+    return button
+end
+
+-- Creates tab buttons with Anniversary compatibility
+-- Matches Blizzard's PanelTabButtonTemplate structure
+function addon:CreateTabButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(115, 32)
+
+    -- Inactive state: Left piece (matches uiframe-tab-left)
+    local left = button:CreateTexture(nil, "BACKGROUND")
+    left:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    left:SetSize(35, 36)
+    left:SetPoint("TOPLEFT", button, "TOPLEFT", -3, 0)
+    left:SetTexCoord(0.015625, 0.5625, 0.816406, 0.957031)
+    button.Left = left
+
+    -- Inactive state: Right piece (matches uiframe-tab-right)
+    local right = button:CreateTexture(nil, "BACKGROUND")
+    right:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    right:SetSize(37, 36)
+    right:SetPoint("TOPRIGHT", button, "TOPRIGHT", 7, 0)
+    right:SetTexCoord(0.015625, 0.59375, 0.667969, 0.808594)
+    button.Right = right
+
+    -- Inactive state: Middle piece (matches _uiframe-tab-center)
+    local middle = button:CreateTexture(nil, "BACKGROUND")
+    middle:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middle:SetHeight(36)
+    middle:SetPoint("TOPLEFT", left, "TOPRIGHT")
+    middle:SetPoint("TOPRIGHT", right, "TOPLEFT")
+    middle:SetTexCoord(0, 0.015625, 0.175781, 0.316406)
+    button.Middle = middle
+
+    -- Active state: Left piece (matches uiframe-activetab-left)
+    local leftActive = button:CreateTexture(nil, "BACKGROUND")
+    leftActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    leftActive:SetSize(35, 42)
+    leftActive:SetPoint("TOPLEFT", button, "TOPLEFT", -1, 0)
+    leftActive:SetTexCoord(0.015625, 0.5625, 0.496094, 0.660156)
+    leftActive:Hide()
+    button.LeftActive = leftActive
+
+    -- Active state: Right piece (matches uiframe-activetab-right)
+    local rightActive = button:CreateTexture(nil, "BACKGROUND")
+    rightActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    rightActive:SetSize(37, 42)
+    rightActive:SetPoint("TOPRIGHT", button, "TOPRIGHT", 8, 0)
+    rightActive:SetTexCoord(0.015625, 0.59375, 0.324219, 0.488281)
+    rightActive:Hide()
+    button.RightActive = rightActive
+
+    -- Active state: Middle piece (matches _uiframe-activetab-center)
+    local middleActive = button:CreateTexture(nil, "BACKGROUND")
+    middleActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middleActive:SetHeight(42)
+    middleActive:SetPoint("TOPLEFT", leftActive, "TOPRIGHT")
+    middleActive:SetPoint("TOPRIGHT", rightActive, "TOPLEFT")
+    middleActive:SetTexCoord(0, 0.015625, 0.00390625, 0.167969)
+    middleActive:Hide()
+    button.MiddleActive = middleActive
+
+    -- Highlight textures (hover state)
+    local leftHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    leftHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    leftHighlight:SetSize(35, 36)
+    leftHighlight:SetPoint("TOPLEFT", left, "TOPLEFT")
+    leftHighlight:SetTexCoord(0.015625, 0.5625, 0.816406, 0.957031)
+    leftHighlight:SetBlendMode("ADD")
+    leftHighlight:SetAlpha(0.4)
+    button.LeftHighlight = leftHighlight
+
+    local rightHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    rightHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    rightHighlight:SetSize(37, 36)
+    rightHighlight:SetPoint("TOPRIGHT", right, "TOPRIGHT")
+    rightHighlight:SetTexCoord(0.015625, 0.59375, 0.667969, 0.808594)
+    rightHighlight:SetBlendMode("ADD")
+    rightHighlight:SetAlpha(0.4)
+    button.RightHighlight = rightHighlight
+
+    local middleHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    middleHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middleHighlight:SetHeight(36)
+    middleHighlight:SetPoint("TOPLEFT", middle, "TOPLEFT")
+    middleHighlight:SetPoint("TOPRIGHT", middle, "TOPRIGHT")
+    middleHighlight:SetTexCoord(0, 0.015625, 0.175781, 0.316406)
+    middleHighlight:SetBlendMode("ADD")
+    middleHighlight:SetAlpha(0.4)
+    button.MiddleHighlight = middleHighlight
+
+    -- Text
+    button:SetNormalFontObject("GameFontNormalSmall")
+    button:SetHighlightFontObject("GameFontHighlightSmall")
+    button:SetDisabledFontObject("GameFontDisableSmall")
+
+    return button
+end
+
+-- Creates top tab buttons (for keyboard/controller frames) with Anniversary compatibility
+-- Matches Blizzard's PanelTopTabButtonMixin behavior:
+-- - Uses BOTTOMLEFT/BOTTOMRIGHT anchors (not TOPLEFT!)
+-- - Vertically flipped texture coords (vMax, vMin instead of vMin, vMax)
+-- - 75% height of normal tabs
+function addon:CreateTopTabButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(115, 32)
+
+    local TOP_TAB_HEIGHT_PERCENT = 0.75
+
+    -- Inactive state: Left piece
+    local left = button:CreateTexture(nil, "BACKGROUND")
+    left:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    left:SetSize(35, 36 * TOP_TAB_HEIGHT_PERCENT)
+    left:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", -3, 0)
+    left:SetTexCoord(0.015625, 0.5625, 0.957031, 0.816406)  -- V-flipped from CreateTabButton
+    button.Left = left
+
+    -- Inactive state: Right piece
+    local right = button:CreateTexture(nil, "BACKGROUND")
+    right:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    right:SetSize(37, 36 * TOP_TAB_HEIGHT_PERCENT)
+    right:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 7, 0)
+    right:SetTexCoord(0.015625, 0.59375, 0.808594, 0.667969)  -- V-flipped from CreateTabButton
+    button.Right = right
+
+    -- Inactive state: Middle piece
+    local middle = button:CreateTexture(nil, "BACKGROUND")
+    middle:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middle:SetHeight(36 * TOP_TAB_HEIGHT_PERCENT)
+    middle:SetPoint("BOTTOMLEFT", left, "BOTTOMRIGHT")
+    middle:SetPoint("BOTTOMRIGHT", right, "BOTTOMLEFT")
+    middle:SetTexCoord(0, 0.015625, 0.316406, 0.175781)  -- V-flipped from CreateTabButton
+    button.Middle = middle
+
+    -- Active state: Left piece
+    local leftActive = button:CreateTexture(nil, "BACKGROUND")
+    leftActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    leftActive:SetSize(35, 42 * TOP_TAB_HEIGHT_PERCENT)
+    leftActive:SetPoint("BOTTOMLEFT", button, "BOTTOMLEFT", -1, 0)
+    leftActive:SetTexCoord(0.015625, 0.5625, 0.660156, 0.496094)  -- V-flipped from CreateTabButton
+    leftActive:Hide()
+    button.LeftActive = leftActive
+
+    -- Active state: Right piece
+    local rightActive = button:CreateTexture(nil, "BACKGROUND")
+    rightActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    rightActive:SetSize(37, 42 * TOP_TAB_HEIGHT_PERCENT)
+    rightActive:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 8, 0)
+    rightActive:SetTexCoord(0.015625, 0.59375, 0.488281, 0.324219)  -- V-flipped from CreateTabButton
+    rightActive:Hide()
+    button.RightActive = rightActive
+
+    -- Active state: Middle piece
+    local middleActive = button:CreateTexture(nil, "BACKGROUND")
+    middleActive:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middleActive:SetHeight(42 * TOP_TAB_HEIGHT_PERCENT)
+    middleActive:SetPoint("BOTTOMLEFT", leftActive, "BOTTOMRIGHT")
+    middleActive:SetPoint("BOTTOMRIGHT", rightActive, "BOTTOMLEFT")
+    middleActive:SetTexCoord(0, 0.015625, 0.167969, 0.00390625)  -- V-flipped from CreateTabButton
+    middleActive:Hide()
+    button.MiddleActive = middleActive
+
+    -- Highlight textures
+    local leftHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    leftHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    leftHighlight:SetSize(35, 36 * TOP_TAB_HEIGHT_PERCENT)
+    leftHighlight:SetPoint("BOTTOMLEFT", left, "BOTTOMLEFT")
+    leftHighlight:SetTexCoord(0.015625, 0.5625, 0.957031, 0.816406)  -- V-flipped from CreateTabButton
+    leftHighlight:SetBlendMode("ADD")
+    leftHighlight:SetAlpha(0.4)
+    button.LeftHighlight = leftHighlight
+
+    local rightHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    rightHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    rightHighlight:SetSize(37, 36 * TOP_TAB_HEIGHT_PERCENT)
+    rightHighlight:SetPoint("BOTTOMRIGHT", right, "BOTTOMRIGHT")
+    rightHighlight:SetTexCoord(0.015625, 0.59375, 0.808594, 0.667969)  -- V-flipped from CreateTabButton
+    rightHighlight:SetBlendMode("ADD")
+    rightHighlight:SetAlpha(0.4)
+    button.RightHighlight = rightHighlight
+
+    local middleHighlight = button:CreateTexture(nil, "HIGHLIGHT")
+    middleHighlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\UIFrameTabs")
+    middleHighlight:SetHeight(36 * TOP_TAB_HEIGHT_PERCENT)
+    middleHighlight:SetPoint("BOTTOMLEFT", middle, "BOTTOMLEFT")
+    middleHighlight:SetPoint("BOTTOMRIGHT", middle, "BOTTOMRIGHT")
+    middleHighlight:SetTexCoord(0, 0.015625, 0.316406, 0.175781)  -- V-flipped from CreateTabButton
+    middleHighlight:SetBlendMode("ADD")
+    middleHighlight:SetAlpha(0.4)
+    button.MiddleHighlight = middleHighlight
+
+    -- Text
+    button:SetNormalFontObject("GameFontNormalSmall")
+    button:SetHighlightFontObject("GameFontHighlightSmall")
+    button:SetDisabledFontObject("GameFontDisableSmall")
+
+    return button
+end
+
+-- Creates close buttons using Retail textures for sharpness
+function addon:CreateCloseButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(24, 24)  -- Retail standard size
+
+    -- Use Retail redbutton2x texture (36x38) for sharp appearance
+    -- These coordinates are from Retail AtlasInfo.lua
+
+    -- Normal state
+    local normal = button:CreateTexture(nil, "ARTWORK")
+    normal:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    normal:SetTexCoord(0.152344, 0.292969, 0.0078125, 0.304688)
+    normal:SetAllPoints()
+    button:SetNormalTexture(normal)
+
+    -- Pushed state
+    local pushed = button:CreateTexture(nil, "ARTWORK")
+    pushed:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    pushed:SetTexCoord(0.152344, 0.292969, 0.632812, 0.929688)
+    pushed:SetAllPoints()
+    button:SetPushedTexture(pushed)
+
+    -- Disabled state
+    local disabled = button:CreateTexture(nil, "ARTWORK")
+    disabled:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    disabled:SetTexCoord(0.152344, 0.292969, 0.320312, 0.617188)
+    disabled:SetAllPoints()
+    button:SetDisabledTexture(disabled)
+
+    -- Highlight state
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    highlight:SetTexCoord(0.449219, 0.589844, 0.0078125, 0.304688)
+    highlight:SetBlendMode("ADD")
+    highlight:SetAllPoints()
+    button:SetHighlightTexture(highlight)
 
     return button
 end
