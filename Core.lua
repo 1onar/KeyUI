@@ -792,6 +792,7 @@ local function hide_resettable_frames(self)
     self.current_clicked_key = nil
     self.current_hovered_button = nil
     self.current_pushed_button = nil
+    self.controls_frame = nil
 end
 
 local function reset_saved_variables()
@@ -2328,7 +2329,6 @@ function addon:handle_drag_or_size(self, button)
     end
 
     if button == "LeftButton" and IsShiftKeyDown() then
-        self.keys_mouse = nil
         self:Hide()
     elseif button == "LeftButton" then
         self:StartMoving()
@@ -2615,6 +2615,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
 eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
 eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+eventFrame:RegisterEvent("SPELLS_CHANGED")
 eventFrame:RegisterEvent("UPDATE_BINDINGS")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -2638,6 +2639,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             addon:refresh_keys()
         elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then --refresh_layouts
             addon:refresh_layouts()
+        elseif event == "SPELLS_CHANGED" then              --spellbook cache
+            addon:load_spellbook()  -- Refresh spell cache (spec switch, talents, level up, etc.)
         elseif event == "UPDATE_BINDINGS" then             --refresh_layouts
             addon:refresh_layouts()
         elseif event == "PLAYER_REGEN_ENABLED" then        --nothing
