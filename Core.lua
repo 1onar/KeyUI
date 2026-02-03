@@ -2342,21 +2342,24 @@ local function build_spells_submenu(parentMenu)
         for _, spell in pairs(addon.spells[tabName]) do
             local spell_name = spell.name
             local spell_id = spell.id
-            local is_known = false
-            local spell_icon = nil
 
-            -- Version-aware spell checking
-            if API_COMPAT.has_modern_spellbook then
-                -- RETAIL: Use C_SpellBook API
-                is_known = C_SpellBook.IsSpellKnown(spell_id)
-                spell_icon = C_Spell.GetSpellTexture(spell_id)
-            elseif API_COMPAT.has_legacy_spell_api then
-                -- ANNIVERSARY: Use legacy API
-                is_known = IsSpellKnown(spell_id)
-                spell_icon = GetSpellTexture(spell_id)
-            end
+            -- IMPORTANT: Check spell_id exists BEFORE calling any APIs
+            if spell_id then
+                local is_known = false
+                local spell_icon = nil
 
-            if spell_id and is_known then
+                -- Version-aware spell checking
+                if API_COMPAT.has_modern_spellbook then
+                    -- RETAIL: Use C_SpellBook API
+                    is_known = C_SpellBook.IsSpellKnown(spell_id)
+                    spell_icon = C_Spell.GetSpellTexture(spell_id)
+                elseif API_COMPAT.has_legacy_spell_api then
+                    -- ANNIVERSARY: Use legacy API
+                    is_known = IsSpellKnown(spell_id)
+                    spell_icon = GetSpellTexture(spell_id)
+                end
+
+            if is_known then
                 local spellButton = tabButton:CreateButton(spell_name, function()
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                     local spell = "Spell " .. spell_name
@@ -2394,6 +2397,7 @@ local function build_spells_submenu(parentMenu)
                     end)
                 end
             end
+            end  -- Close the new 'if spell_id then' block
         end
     end
 
