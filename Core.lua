@@ -14,6 +14,7 @@ local API_COMPAT = {
     has_modern_spellbook = (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines ~= nil),
     has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
     has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
+    has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
 }
 addon.api_compat = API_COMPAT
 
@@ -1563,6 +1564,11 @@ end
 function addon:update_assisted_combat_indicator(button, slot)
     if not slot then return end
 
+    -- Assisted Combat only exists in Retail & Anniversary
+    if not C_ActionBar or not C_ActionBar.IsAssistedCombatAction then
+        return
+    end
+
     local isAssistedCombat = C_ActionBar.IsAssistedCombatAction(slot)
 
     if isAssistedCombat then
@@ -1588,6 +1594,20 @@ function addon:update_assisted_combat_indicator(button, slot)
     end
 end
 
+-- Get spell ID from action slot (version-compatible)
+-- Retail & Anniversary have C_ActionBar.GetSpell, Cata Classic & Classic Era don't
+local function GetSpellFromActionSlot(slot)
+    if API_COMPAT.has_actionbar_getspell then
+        return C_ActionBar.GetSpell(slot)
+    else
+        local actionType, actionID = GetActionInfo(slot)
+        if actionType == "spell" then
+            return actionID
+        end
+    end
+    return nil
+end
+
 -- Handles processing for ACTIONBUTTON
 function addon:process_actionbutton_slot(slot, button)
     if not slot then return end
@@ -1605,7 +1625,7 @@ function addon:process_actionbutton_slot(slot, button)
             button.icon:Show()
 
             -- Store the spell ID if the action contains a spell
-            local spellID = C_ActionBar.GetSpell(adjusted_slot)
+            local spellID = GetSpellFromActionSlot(adjusted_slot)
             if spellID then
                 button.spellid = spellID
             end
@@ -1671,7 +1691,7 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
         button.icon:Show()
 
         -- Store the spell ID if the action contains a spell
-        local spellID = C_ActionBar.GetSpell(slot)
+        local spellID = GetSpellFromActionSlot(slot)
         if spellID then
             button.spellid = spellID
         end

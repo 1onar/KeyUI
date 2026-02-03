@@ -537,18 +537,26 @@ function addon:create_controls()
         end
     end
 
+    -- Fallback text for Classic versions that don't have these global strings
+    -- Inline texture format: |Tpath:height:width:xoffset:yoffset:texWidth:texHeight:left:right:top:bottom|t
+    -- EditModeUI.blp is 32x256, arrows are at pixel coords calculated from AtlasInfo
+    local ARROW_UP = "|TInterface\\AddOns\\KeyUI\\Media\\Atlas\\editmodeui:11:16:0:3:32:256:1:17:158:169|t"
+    local ARROW_DOWN = "|TInterface\\AddOns\\KeyUI\\Media\\Atlas\\editmodeui:11:16:0:-7:32:256:1:17:145:156|t"
+    local COLLAPSE_TEXT = HUD_EDIT_MODE_COLLAPSE_OPTIONS or ("Collapse options " .. ARROW_UP)
+    local EXPAND_TEXT = HUD_EDIT_MODE_EXPAND_OPTIONS or ("Expand options " .. ARROW_DOWN)
+
     -- Function to toggle the controls_expanded value
     local function toggle_controls_expanded()
         keyui_settings.controls_expanded = not keyui_settings.controls_expanded
 
         -- Update the expander text and controls visibility based on the new state
         if keyui_settings.controls_expanded then
-            controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
+            controls_frame.expander_text:SetText(COLLAPSE_TEXT)
             controls_frame:SetHeight(350)
             set_controls_visibility(true)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
         else
-            controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
+            controls_frame.expander_text:SetText(EXPAND_TEXT)
             controls_frame:SetHeight(200)
             set_controls_visibility(false)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
@@ -560,9 +568,9 @@ function addon:create_controls()
 
     -- Set the text based on controls_expanded value
     if keyui_settings.controls_expanded then
-        controls_frame.expander_text:SetText(HUD_EDIT_MODE_COLLAPSE_OPTIONS)
+        controls_frame.expander_text:SetText(COLLAPSE_TEXT)
     else
-        controls_frame.expander_text:SetText(HUD_EDIT_MODE_EXPAND_OPTIONS)
+        controls_frame.expander_text:SetText(EXPAND_TEXT)
     end
 
     controls_frame.expander_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
