@@ -1,7 +1,6 @@
 local name, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
-local USE_ATLAS = addon.VERSION.USE_ATLAS
 
 -- Save the position and scale of the mouse holder
 function addon:save_mouse_position()
@@ -39,9 +38,17 @@ function addon:create_mouse_image()
         mouse_image:SetScale(1)
     end
 
-    -- Enable dragging and movement
-    mouse_image:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    mouse_image:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    -- Enable dragging and movement (respects position lock)
+    mouse_image:SetScript("OnMouseDown", function(self)
+        if not keyui_settings.position_locked then
+            self:StartMoving()
+        end
+    end)
+    mouse_image:SetScript("OnMouseUp", function(self)
+        if not keyui_settings.position_locked then
+            self:StopMovingOrSizing()
+        end
+    end)
     mouse_image:SetMovable(true)
     mouse_image:SetClampedToScreen(true)
 
@@ -52,7 +59,7 @@ function addon:create_mouse_image()
     mouse_image.Texture:SetSize(390, 390)
 
     -- Create close button
-    mouse_image.close_button = addon:CreateCloseButton(mouse_image)
+    mouse_image.close_button = addon:CreateExitButton(mouse_image)
     mouse_image.close_button:SetPoint("TOPRIGHT", mouse_image, "TOPRIGHT", 0, 0)
     mouse_image.close_button:SetScript("OnClick", function(s)
         addon:discard_mouse_changes()
@@ -69,160 +76,6 @@ function addon:create_mouse_image()
         height = mouse_image:GetHeight(),
     })
 
-    -- Helper function to toggle visibility of tab button textures
-    local function toggle_button_textures(button, showInactive)
-        if showInactive then
-            button.LeftActive:Hide()
-            button.MiddleActive:Hide()
-            button.RightActive:Hide()
-            button.Left:Show()
-            button.Middle:Show()
-            button.Right:Show()
-        else
-            button.LeftActive:Show()
-            button.MiddleActive:Show()
-            button.RightActive:Show()
-            button.Left:Hide()
-            button.Middle:Hide()
-            button.Right:Hide()
-            button.LeftHighlight:Hide()
-            button.MiddleHighlight:Hide()
-            button.RightHighlight:Hide()
-        end
-    end
-
-    -- Apply custom font to the tab buttons
-    local custom_font = CreateFont("mouse_tab_custom_font")
-    custom_font:SetFont(addon:GetFont(), addon:GetFontSize(0.75), "OUTLINE")
-    addon:RegisterFontString(custom_font, 0.75, false, "OUTLINE")
-
-    -- Get mouse Frame Level
-    local mouse_level = addon.mouse_image:GetFrameLevel()
-
-    -- Create the settings tab button
-    if USE_ATLAS then
-        mouse_image.controls_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
-    else
-        mouse_image.controls_button = addon:CreateTabButton(mouse_image)
-    end
-    mouse_image.controls_button:SetPoint("TOPLEFT", mouse_image, "BOTTOM", -12, 0)
-    mouse_image.controls_button:SetFrameLevel(mouse_level - 1)
-    mouse_image.controls_button:SetScale(0.8)
-
-    -- Set button text
-    mouse_image.controls_button:SetText("Controls")
-
-    -- Apply custom font to the controls button
-    mouse_image.controls_button:SetNormalFontObject(custom_font)
-    mouse_image.controls_button:SetHighlightFontObject(custom_font)
-    mouse_image.controls_button:SetDisabledFontObject(custom_font)
-
-    local text = mouse_image.controls_button:GetFontString()
-    text:ClearAllPoints()
-    text:SetPoint("CENTER", mouse_image.controls_button, "CENTER", 0, 0)
-    text:SetTextColor(1, 1, 1) -- Set text color to white
-
-    -- Set OnClick behavior for controls button
-    mouse_image.controls_button:SetScript("OnClick", function()
-        addon.active_control_tab = "mouse"
-        addon:update_tab_textures()
-
-        -- Check if the controls frame exists
-        if addon.controls_frame then
-            -- If the controls frame is visible, hide it
-            if addon.controls_frame:IsVisible() then
-                addon.controls_frame:Hide()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:fade_controls_button_highlight(mouse_image)
-            else
-                -- Otherwise, show the controls frame
-                addon.controls_frame:Show()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:show_controls_button_highlight(mouse_image)
-            end
-        else
-            -- If the controls frame doesn't exist, create and show it
-            addon:get_controls_frame()
-
-            -- Change the style of other tab buttons, excluding the current button's frame
-            addon:show_controls_button_highlight(mouse_image)
-        end
-
-        addon:update_tab_visibility()
-    end)
-
-    -- Ensure the controls button always appears inactive
-    toggle_button_textures(mouse_image.controls_button, true)
-
-    -- Set initial transparency (out of focus) for controls button
-    mouse_image.controls_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the controls button
-    mouse_image.controls_button:SetScript("OnEnter", function()
-        mouse_image.controls_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(mouse_image.controls_button, false) -- Show active textures
-    end)
-
-    mouse_image.controls_button:SetScript("OnLeave", function()
-        if addon.controls_frame and addon.controls_frame:IsVisible() then
-            return
-        else
-            mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            toggle_button_textures(mouse_image.controls_button, true) -- Show inactive textures
-        end
-    end)
-
-    mouse_image.controls_button:SetScript("OnHide", function()
-        mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(mouse_image.controls_button, true) -- Show inactive textures
-    end)
-
-    -- Create the options tab button
-    if USE_ATLAS then
-        mouse_image.options_button = CreateFrame("Button", nil, mouse_image, "PanelTabButtonTemplate")
-    else
-        mouse_image.options_button = addon:CreateTabButton(mouse_image)
-    end
-    mouse_image.options_button:SetPoint("BOTTOMRIGHT", mouse_image.controls_button, "BOTTOMLEFT", -4, 0)
-    mouse_image.options_button:SetFrameLevel(mouse_level - 1)
-    mouse_image.options_button:SetScale(0.8)
-
-    -- Set button text
-    mouse_image.options_button:SetText("Options")
-
-    -- Apply custom font to the options button
-    mouse_image.options_button:SetNormalFontObject(custom_font)
-    mouse_image.options_button:SetHighlightFontObject(custom_font)
-    mouse_image.options_button:SetDisabledFontObject(custom_font)
-
-    local text = mouse_image.options_button:GetFontString()
-    text:ClearAllPoints()
-    text:SetPoint("CENTER", mouse_image.options_button, "CENTER", 0, 0)
-    text:SetTextColor(1, 1, 1) -- Set text color to white
-
-    -- Set OnClick behavior for options button
-    mouse_image.options_button:SetScript("OnClick", function()
-        addon:OpenSettings()
-    end)
-
-    -- Ensure the options button always appears inactive
-    toggle_button_textures(mouse_image.options_button, true)
-
-    -- Set initial transparency (out of focus) for options button
-    mouse_image.options_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the options button
-    mouse_image.options_button:SetScript("OnEnter", function()
-        mouse_image.options_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(mouse_image.options_button, false) -- Show active textures
-    end)
-
-    mouse_image.options_button:SetScript("OnLeave", function()
-        mouse_image.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(mouse_image.options_button, true) -- Show inactive textures
-    end)
 
     mouse_image:SetScript("OnHide", function()
         if addon.mouse_locked == false or addon.keys_mouse_edited == true then
@@ -231,7 +84,111 @@ function addon:create_mouse_image()
         addon.mouse_layout_dirty = true
     end)
 
-    mouse_image:SetScript("OnShow", function()
+    -- Create arrow-down button for toggle menu (left of close button)
+    mouse_image.menu_button = addon:CreateArrowDownButton(mouse_image)
+    mouse_image.menu_button:SetPoint("TOPRIGHT", mouse_image.close_button, "TOPLEFT", -2, 0)
+
+    -- Store the bg_setting on the frame for UpdateAllToggleVisuals compatibility
+    mouse_image._bg_setting = "show_mouse_graphic"
+
+    -- Open native WoW context menu with toggle checkboxes on arrow button click
+    mouse_image.menu_button:SetScript("OnClick", function(self)
+        MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
+            local bg = rootDescription:CreateCheckbox("Background",
+                function() return keyui_settings.show_mouse_graphic end,
+                function()
+                    keyui_settings.show_mouse_graphic = not keyui_settings.show_mouse_graphic
+                    addon:ApplyFrameBackgrounds()
+                    addon:UpdateAllToggleVisuals()
+                end)
+            bg:SetTooltip(function(tooltip)
+                GameTooltip_SetTitle(tooltip, "Background")
+                GameTooltip_AddNormalLine(tooltip, "Show or hide the mouse graphic")
+            end)
+
+            local esc = rootDescription:CreateCheckbox("ESC",
+                function() return keyui_settings.close_on_esc end,
+                function()
+                    keyui_settings.close_on_esc = not keyui_settings.close_on_esc
+                    addon:ApplyEscClose()
+                    addon:UpdateAllToggleVisuals()
+                end)
+            esc:SetTooltip(function(tooltip)
+                GameTooltip_SetTitle(tooltip, "ESC")
+                GameTooltip_AddNormalLine(tooltip, "Close windows with the ESC key")
+            end)
+
+            local combat = rootDescription:CreateCheckbox("Combat",
+                function() return keyui_settings.stay_open_in_combat end,
+                function()
+                    keyui_settings.stay_open_in_combat = not keyui_settings.stay_open_in_combat
+                    addon:UpdateAllToggleVisuals()
+                end)
+            combat:SetTooltip(function(tooltip)
+                GameTooltip_SetTitle(tooltip, "Combat")
+                GameTooltip_AddNormalLine(tooltip, "Stay open during combat")
+            end)
+
+            local lock = rootDescription:CreateCheckbox("Lock",
+                function() return keyui_settings.position_locked end,
+                function()
+                    keyui_settings.position_locked = not keyui_settings.position_locked
+                    if not keyui_settings.position_locked then
+                        keyui_settings.click_through = false
+                        addon:ApplyClickThrough()
+                    end
+                    addon:UpdateAllToggleVisuals()
+                end)
+            lock:SetTooltip(function(tooltip)
+                GameTooltip_SetTitle(tooltip, "Lock")
+                GameTooltip_AddNormalLine(tooltip, "Lock frame positions to prevent accidental movement")
+            end)
+
+            local ghost = rootDescription:CreateCheckbox("Ghost",
+                function() return keyui_settings.click_through end,
+                function()
+                    if not keyui_settings.position_locked then return end
+                    keyui_settings.click_through = not keyui_settings.click_through
+                    addon:ApplyClickThrough()
+                    addon:UpdateAllToggleVisuals()
+                end)
+            ghost:SetTooltip(function(tooltip)
+                GameTooltip_SetTitle(tooltip, "Ghost")
+                GameTooltip_AddNormalLine(tooltip, "Make visualization frames click-through (requires Lock)")
+            end)
+
+            rootDescription:CreateDivider()
+
+            rootDescription:CreateButton("Controls", function()
+                addon.active_control_tab = "mouse"
+                addon:update_tab_textures()
+
+                if addon.controls_frame then
+                    if addon.controls_frame:IsVisible() then
+                        addon.controls_frame:Hide()
+                        addon:fade_controls_button_highlight(mouse_image)
+                    else
+                        addon.controls_frame:Show()
+                        addon:show_controls_button_highlight(mouse_image)
+                    end
+                else
+                    addon:get_controls_frame()
+                    addon:show_controls_button_highlight(mouse_image)
+                end
+
+                addon:update_tab_visibility()
+            end)
+
+            rootDescription:CreateButton("Options", function()
+                addon:OpenSettings()
+            end)
+        end)
+    end)
+
+    -- Fade all tab buttons when mouse is not over the frame
+    addon:SetupButtonFade(mouse_image)
+
+    mouse_image:HookScript("OnShow", function()
         if addon.mouse_layout_dirty == true then
             addon:generate_mouse_key_frames()
             addon.mouse_layout_dirty = false
@@ -387,6 +344,8 @@ function addon:generate_mouse_key_frames()
             end
         end
     end
+
+    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main mouse image frame.

@@ -907,14 +907,9 @@ function addon:ResetAddonSettings()
     if Settings and Settings.SetValue then
         -- Update all registered settings to trigger UI refresh
         Settings.SetValue("KEYUI_MINIMAP_BUTTON", not keyui_settings.minimap.hide)
-        Settings.SetValue("KEYUI_STAY_OPEN_COMBAT", keyui_settings.stay_open_in_combat)
         Settings.SetValue("KEYUI_SHOW_KEYBOARD", keyui_settings.show_keyboard)
         Settings.SetValue("KEYUI_SHOW_MOUSE", keyui_settings.show_mouse)
         Settings.SetValue("KEYUI_SHOW_CONTROLLER", keyui_settings.show_controller)
-        Settings.SetValue("KEYUI_KEYBOARD_BACKGROUND", keyui_settings.show_keyboard_background)
-        Settings.SetValue("KEYUI_MOUSE_GRAPHIC", keyui_settings.show_mouse_graphic)
-        Settings.SetValue("KEYUI_CONTROLLER_BACKGROUND", keyui_settings.show_controller_background)
-        Settings.SetValue("KEYUI_ENABLE_ESC", keyui_settings.close_on_esc)
         Settings.SetValue("KEYUI_FONT_FACE", keyui_settings.font_face)
         Settings.SetValue("KEYUI_FONT_SIZE", keyui_settings.font_base_size)
     end
@@ -1114,33 +1109,12 @@ function addon:show_frames()
     if keyui_settings.show_keyboard == true then
         addon.is_keyboard_visible = true
         keyboard_frame:Show()
-
-        if keyui_settings.show_keyboard_background ~= true then
-            -- Remove the background and border if graphics are disabled
-            keyboard_frame:SetBackdrop(nil)
-        else
-            -- Restore the background and border if graphics are enabled
-            keyboard_frame:SetBackdrop({
-                bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-                edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
-                tile = true,
-                tileSize = 8,
-                edgeSize = 14,
-                insets = { left = 2, right = 2, top = 2, bottom = 2 }
-            })
-            keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
-        end
     end
 
     if keyui_settings.show_mouse == true then
         addon.is_mouse_visible = true
         mouse_image:Show()
         mouse_frame:Show()
-        if keyui_settings.show_mouse_graphic ~= true then
-            mouse_image.Texture:Hide()
-        else
-            mouse_image.Texture:Show()
-        end
     end
 
     if keyui_settings.show_controller == true then
@@ -1149,22 +1123,453 @@ function addon:show_frames()
         if controller_image then
             controller_image:Show()
         end
-        if keyui_settings.show_controller_background ~= true then
-            -- Remove the background and border if graphics are disabled
-            controller_frame:SetBackdrop(nil)
+    end
+
+    -- Apply visual and interaction settings
+    addon:ApplyFrameBackgrounds()
+    addon:ApplyClickThrough()
+end
+
+-- Apply click-through state to visualization frames and their child key buttons
+function addon:ApplyClickThrough()
+    local clickThrough = keyui_settings.click_through and keyui_settings.position_locked
+    local enableMouse = not clickThrough
+
+    -- Apply to keyboard frame and its key buttons
+    if addon.keyboard_frame then
+        addon.keyboard_frame:EnableMouse(enableMouse)
+    end
+    for _, button in ipairs(addon.keys_keyboard) do
+        button:EnableMouse(enableMouse)
+    end
+
+    -- Apply to mouse image (main container) and its key buttons
+    if addon.mouse_image then
+        addon.mouse_image:EnableMouse(enableMouse)
+    end
+    for _, button in ipairs(addon.keys_mouse) do
+        button:EnableMouse(enableMouse)
+    end
+
+    -- Apply to controller frame and its key buttons
+    if addon.controller_frame then
+        addon.controller_frame:EnableMouse(enableMouse)
+    end
+    for _, button in ipairs(addon.keys_controller) do
+        button:EnableMouse(enableMouse)
+    end
+
+    -- Note: controls_frame is NOT affected - users must be able to interact with it
+end
+
+-- Apply frame background/graphic settings to each visualization frame
+function addon:ApplyFrameBackgrounds()
+    local backdropInfo = {
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
+        tile = true,
+        tileSize = 8,
+        edgeSize = 14,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 }
+    }
+
+    if addon.keyboard_frame then
+        if keyui_settings.show_keyboard_background then
+            addon.keyboard_frame:SetBackdrop(backdropInfo)
+            addon.keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
         else
-            -- Restore the background and border if graphics are enabled
-            controller_frame:SetBackdrop({
-                bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-                edgeFile = "Interface\\AddOns\\KeyUI\\Media\\Edge\\frame_edge",
-                tile = true,
-                tileSize = 8,
-                edgeSize = 14,
-                insets = { left = 2, right = 2, top = 2, bottom = 2 }
-            })
-            controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+            addon.keyboard_frame:SetBackdrop(nil)
         end
     end
+
+    if addon.mouse_image and addon.mouse_image.Texture then
+        if keyui_settings.show_mouse_graphic then
+            addon.mouse_image.Texture:Show()
+        else
+            addon.mouse_image.Texture:Hide()
+        end
+    end
+
+    if addon.controller_frame then
+        if keyui_settings.show_controller_background then
+            addon.controller_frame:SetBackdrop(backdropInfo)
+            addon.controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
+        else
+            addon.controller_frame:SetBackdrop(nil)
+        end
+    end
+end
+
+-- Apply ESC close behavior to all named frames
+function addon:ApplyEscClose()
+    local function set_esc_close_enabled(frame, enabled)
+        if not frame then return end
+        local frame_name = frame:GetName()
+        if not frame_name then return end
+
+        for i = #UISpecialFrames, 1, -1 do
+            if UISpecialFrames[i] == frame_name then
+                table.remove(UISpecialFrames, i)
+            end
+        end
+
+        if enabled then
+            tinsert(UISpecialFrames, frame_name)
+        end
+    end
+
+    local enabled = keyui_settings.close_on_esc
+    set_esc_close_enabled(addon.keyboard_frame, enabled)
+    set_esc_close_enabled(addon.controls_frame, enabled)
+    set_esc_close_enabled(addon.mouse_image, enabled)
+    set_esc_close_enabled(addon.mouse_frame, enabled)
+    set_esc_close_enabled(addon.mouse_control_frame, enabled)
+end
+
+-- Update the visual state of all toggle buttons across frames
+function addon:UpdateAllToggleVisuals()
+    local function update_visual(button, enabled, frame)
+        if not button then return end
+        if not button.LeftActive then return end
+        if enabled then
+            button.LeftActive:Show()
+            button.MiddleActive:Show()
+            button.RightActive:Show()
+            button.Left:Hide()
+            button.Middle:Hide()
+            button.Right:Hide()
+            button.LeftHighlight:Hide()
+            button.MiddleHighlight:Hide()
+            button.RightHighlight:Hide()
+            -- Only change alpha if buttons are not in faded state
+            if not (frame and frame._buttons_faded) then
+                button:SetAlpha(1)
+            end
+        else
+            button.LeftActive:Hide()
+            button.MiddleActive:Hide()
+            button.RightActive:Hide()
+            button.Left:Show()
+            button.Middle:Show()
+            button.Right:Show()
+            if not (frame and frame._buttons_faded) then
+                button:SetAlpha(0.5)
+            end
+        end
+    end
+
+    local frames = { addon.keyboard_frame, addon.mouse_image, addon.controller_frame }
+    for _, frame in ipairs(frames) do
+        if frame then
+            update_visual(frame.background_button, frame._bg_setting and keyui_settings[frame._bg_setting], frame)
+            update_visual(frame.esc_button, keyui_settings.close_on_esc, frame)
+            update_visual(frame.combat_button, keyui_settings.stay_open_in_combat, frame)
+            update_visual(frame.lock_button, keyui_settings.position_locked, frame)
+            update_visual(frame.ghost_button, keyui_settings.click_through, frame)
+        end
+    end
+end
+
+-- Setup frame-level button fade: all tab buttons nearly disappear when mouse is not over the frame
+function addon:SetupButtonFade(frame)
+    local FADE_ALPHA = 0.15
+    local button_names = {
+        "close_button", "controls_button", "options_button",
+        "menu_button",
+        "background_button", "esc_button", "combat_button",
+        "lock_button", "ghost_button"
+    }
+
+    frame._buttons_faded = true
+
+    local function is_any_hovered()
+        if frame:IsMouseOver() then return true end
+        for _, name in ipairs(button_names) do
+            local btn = frame[name]
+            if btn and btn:IsVisible() and btn:IsMouseOver() then return true end
+        end
+        return false
+    end
+
+    local function get_resting_alpha(name)
+        if name == "menu_button" then return 1 end
+        if name == "close_button" and frame == addon.mouse_image then return 1 end
+        if name == "background_button" and frame._bg_setting and keyui_settings[frame._bg_setting] then return 1 end
+        if name == "esc_button" and keyui_settings.close_on_esc then return 1 end
+        if name == "combat_button" and keyui_settings.stay_open_in_combat then return 1 end
+        if name == "lock_button" and keyui_settings.position_locked then return 1 end
+        if name == "ghost_button" and keyui_settings.click_through then return 1 end
+        if name == "controls_button" and addon.controls_frame and addon.controls_frame:IsVisible() then return 1 end
+        return 0.5
+    end
+
+    local function fade_in()
+        frame._buttons_faded = false
+        for _, name in ipairs(button_names) do
+            local btn = frame[name]
+            if btn then
+                if btn:IsMouseOver() then
+                    btn:SetAlpha(1)
+                else
+                    btn:SetAlpha(get_resting_alpha(name))
+                end
+            end
+        end
+    end
+
+    local function fade_out()
+        frame._buttons_faded = true
+        for _, name in ipairs(button_names) do
+            local btn = frame[name]
+            if btn then
+                btn:SetAlpha(FADE_ALPHA)
+            end
+        end
+    end
+
+    local function schedule_fade()
+        C_Timer.After(0.1, function()
+            if not is_any_hovered() then
+                fade_out()
+            end
+        end)
+    end
+
+    -- Set initial faded state and reset on every show
+    fade_out()
+
+    if frame:GetScript("OnShow") then
+        frame:HookScript("OnShow", function()
+            fade_out()
+        end)
+    else
+        frame:SetScript("OnShow", function()
+            fade_out()
+        end)
+    end
+
+    -- Hook button OnEnter/OnLeave for immediate fade_in when hovering a tab button
+    for _, name in ipairs(button_names) do
+        local btn = frame[name]
+        if btn then
+            local function on_enter(self)
+                if frame._buttons_faded then
+                    fade_in()
+                else
+                    self:SetAlpha(1)
+                end
+            end
+            local function on_leave(self)
+                if not frame._buttons_faded then
+                    self:SetAlpha(get_resting_alpha(name))
+                end
+                schedule_fade()
+            end
+            if btn:GetScript("OnEnter") then
+                btn:HookScript("OnEnter", on_enter)
+            else
+                btn:SetScript("OnEnter", on_enter)
+            end
+            if btn:GetScript("OnLeave") then
+                btn:HookScript("OnLeave", on_leave)
+            else
+                btn:SetScript("OnLeave", on_leave)
+            end
+        end
+    end
+
+    -- Use OnUpdate polling to detect frame hover (OnEnter/OnLeave on the frame
+    -- is unreliable because child key buttons intercept mouse events)
+    local elapsed_acc = 0
+    local function on_update(self, elapsed)
+        elapsed_acc = elapsed_acc + elapsed
+        if elapsed_acc < 0.1 then return end
+        elapsed_acc = 0
+
+        local hovered = is_any_hovered()
+        if hovered and frame._buttons_faded then
+            fade_in()
+        elseif not hovered and not frame._buttons_faded then
+            fade_out()
+        end
+    end
+
+    if frame:GetScript("OnUpdate") then
+        frame:HookScript("OnUpdate", on_update)
+    else
+        frame:SetScript("OnUpdate", on_update)
+    end
+end
+
+-- Create all left-side toggle buttons on a visualization frame
+-- use_bottom_tabs: if true, creates PanelTabButtonTemplate (bottom tabs) instead of PanelTopTabButtonTemplate (top tabs)
+-- bg_setting: the keyui_settings key for this frame's background toggle (e.g. "show_keyboard_background")
+function addon:CreateLockToggleButtons(frame, frame_level, custom_font, use_bottom_tabs, bg_setting)
+    local USE_ATLAS = addon.VERSION.USE_ATLAS
+
+    -- Store the bg_setting on the frame for use by SetupButtonFade/UpdateAllToggleVisuals
+    frame._bg_setting = bg_setting
+
+    local function toggle_textures(button, showInactive)
+        if not button.LeftActive then return end
+        if showInactive then
+            button.LeftActive:Hide()
+            button.MiddleActive:Hide()
+            button.RightActive:Hide()
+            button.Left:Show()
+            button.Middle:Show()
+            button.Right:Show()
+        else
+            button.LeftActive:Show()
+            button.MiddleActive:Show()
+            button.RightActive:Show()
+            button.Left:Hide()
+            button.Middle:Hide()
+            button.Right:Hide()
+            button.LeftHighlight:Hide()
+            button.MiddleHighlight:Hide()
+            button.RightHighlight:Hide()
+        end
+    end
+
+    -- Text anchor depends on tab style
+    local text_anchor = use_bottom_tabs and "CENTER" or "BOTTOM"
+    local text_offset_y = use_bottom_tabs and 0 or 4
+
+    -- Helper: create a single toggle button and set up common properties
+    local function create_toggle_button(field_name, label, tooltip_title, tooltip_desc, is_active_fn, on_click_fn, prev_button)
+        local button
+        if use_bottom_tabs then
+            if USE_ATLAS then
+                button = CreateFrame("Button", nil, frame, "PanelTabButtonTemplate")
+            else
+                button = addon:CreateTabButton(frame)
+            end
+        else
+            if USE_ATLAS then
+                button = CreateFrame("Button", nil, frame, "PanelTopTabButtonTemplate")
+            else
+                button = addon:CreateTopTabButton(frame)
+            end
+        end
+
+        -- Positioning: first button anchors to frame, subsequent chain from previous
+        if prev_button then
+            button:SetPoint("BOTTOMLEFT", prev_button, "BOTTOMRIGHT", 4, 0)
+        elseif not use_bottom_tabs then
+            button:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 8, 0)
+        end
+
+        button:SetFrameLevel(frame_level - 1)
+        button:SetText(label)
+        button:SetNormalFontObject(custom_font)
+        button:SetHighlightFontObject(custom_font)
+        button:SetDisabledFontObject(custom_font)
+
+        local fontString = button:GetFontString()
+        fontString:ClearAllPoints()
+        fontString:SetPoint(text_anchor, button, text_anchor, 0, text_offset_y)
+        fontString:SetTextColor(1, 1, 1)
+
+        -- Initial inactive state
+        toggle_textures(button, true)
+        button:SetAlpha(0.5)
+
+        button:SetScript("OnEnter", function(self)
+            self:SetAlpha(1)
+            toggle_textures(self, false)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip_SetTitle(GameTooltip, tooltip_title)
+            GameTooltip_AddNormalLine(GameTooltip, tooltip_desc, true)
+            GameTooltip:Show()
+        end)
+
+        button:SetScript("OnLeave", function(self)
+            GameTooltip:Hide()
+            if is_active_fn() then
+                return
+            end
+            self:SetAlpha(0.5)
+            toggle_textures(self, true)
+        end)
+
+        button:SetScript("OnClick", on_click_fn)
+
+        frame[field_name] = button
+        return button
+    end
+
+    -- 1. Background button (frame-specific setting)
+    local bg_btn = create_toggle_button(
+        "background_button", "Background",
+        "Background", "Show or hide the frame background",
+        function() return keyui_settings[bg_setting] end,
+        function()
+            keyui_settings[bg_setting] = not keyui_settings[bg_setting]
+            addon:ApplyFrameBackgrounds()
+            addon:UpdateAllToggleVisuals()
+        end,
+        nil -- first button, anchored to frame
+    )
+
+    -- 2. ESC button (global setting)
+    local esc_btn = create_toggle_button(
+        "esc_button", "ESC",
+        "ESC", "Close windows with the ESC key",
+        function() return keyui_settings.close_on_esc end,
+        function()
+            keyui_settings.close_on_esc = not keyui_settings.close_on_esc
+            addon:ApplyEscClose()
+            addon:UpdateAllToggleVisuals()
+        end,
+        bg_btn
+    )
+
+    -- 3. Combat button (global setting)
+    local combat_btn = create_toggle_button(
+        "combat_button", "Combat",
+        "Combat", "Stay open during combat",
+        function() return keyui_settings.stay_open_in_combat end,
+        function()
+            keyui_settings.stay_open_in_combat = not keyui_settings.stay_open_in_combat
+            addon:UpdateAllToggleVisuals()
+        end,
+        esc_btn
+    )
+
+    -- 4. Lock button (global setting)
+    local lock_btn = create_toggle_button(
+        "lock_button", "Lock",
+        "Lock", "Lock frame positions to prevent accidental movement",
+        function() return keyui_settings.position_locked end,
+        function()
+            keyui_settings.position_locked = not keyui_settings.position_locked
+            -- Disable ghost mode when unlocking
+            if not keyui_settings.position_locked then
+                keyui_settings.click_through = false
+                addon:ApplyClickThrough()
+            end
+            addon:UpdateAllToggleVisuals()
+        end,
+        combat_btn
+    )
+
+    -- 5. Ghost button (global setting, requires Lock)
+    create_toggle_button(
+        "ghost_button", "Ghost",
+        "Ghost", "Make visualization frames click-through (requires Lock)",
+        function() return keyui_settings.click_through end,
+        function()
+            if not keyui_settings.position_locked then return end
+            keyui_settings.click_through = not keyui_settings.click_through
+            addon:ApplyClickThrough()
+            addon:UpdateAllToggleVisuals()
+        end,
+        lock_btn
+    )
+
+    -- Set initial visuals
+    addon:UpdateAllToggleVisuals()
 end
 
 -- Hides all UI elements when the addon is closed

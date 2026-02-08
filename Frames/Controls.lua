@@ -44,8 +44,16 @@ function addon:create_controls()
     controls_frame:SetWidth(500)
     controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
 
-    controls_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    controls_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    controls_frame:SetScript("OnMouseDown", function(self)
+        if not keyui_settings.position_locked then
+            self:StartMoving()
+        end
+    end)
+    controls_frame:SetScript("OnMouseUp", function(self)
+        if not keyui_settings.position_locked then
+            self:StopMovingOrSizing()
+        end
+    end)
     controls_frame:SetMovable(true)
     controls_frame:SetClampedToScreen(true)
 
@@ -763,37 +771,19 @@ function addon:create_controls()
     end)
 
     addon.controls_frame:SetScript("OnHide", function()
-
-        if addon.keyboard_frame and addon.keyboard_frame.controls_button then
-            addon.keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.keyboard_frame.controls_button.LeftActive:Hide()
-            addon.keyboard_frame.controls_button.MiddleActive:Hide()
-            addon.keyboard_frame.controls_button.RightActive:Hide()
-            addon.keyboard_frame.controls_button.Left:Show()
-            addon.keyboard_frame.controls_button.Middle:Show()
-            addon.keyboard_frame.controls_button.Right:Show()
+        local frames = { addon.keyboard_frame, addon.mouse_image, addon.controller_frame }
+        for _, frame in ipairs(frames) do
+            if frame and frame.controls_button then
+                local alpha = (frame._buttons_faded) and 0.15 or 0.5
+                frame.controls_button:SetAlpha(alpha)
+                frame.controls_button.LeftActive:Hide()
+                frame.controls_button.MiddleActive:Hide()
+                frame.controls_button.RightActive:Hide()
+                frame.controls_button.Left:Show()
+                frame.controls_button.Middle:Show()
+                frame.controls_button.Right:Show()
+            end
         end
-
-        if addon.mouse_image and addon.mouse_image.controls_button then
-            addon.mouse_image.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.mouse_image.controls_button.LeftActive:Hide()
-            addon.mouse_image.controls_button.MiddleActive:Hide()
-            addon.mouse_image.controls_button.RightActive:Hide()
-            addon.mouse_image.controls_button.Left:Show()
-            addon.mouse_image.controls_button.Middle:Show()
-            addon.mouse_image.controls_button.Right:Show()
-        end
-
-        if addon.controller_frame and addon.controller_frame.controls_button then
-            addon.controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            addon.controller_frame.controls_button.LeftActive:Hide()
-            addon.controller_frame.controls_button.MiddleActive:Hide()
-            addon.controller_frame.controls_button.RightActive:Hide()
-            addon.controller_frame.controls_button.Left:Show()
-            addon.controller_frame.controls_button.Middle:Show()
-            addon.controller_frame.controls_button.Right:Show()
-        end
-
     end)
 
     -- Create the "Edit Layout" button
@@ -1181,7 +1171,9 @@ function addon:show_controls_button_highlight(excluded_frame)
 
     for _, frame in ipairs(frames) do
         if frame and frame.controls_button and frame ~= excluded_frame then
-            frame.controls_button:SetAlpha(1)
+            if not frame._buttons_faded then
+                frame.controls_button:SetAlpha(1)
+            end
             frame.controls_button.LeftActive:Show()
             frame.controls_button.MiddleActive:Show()
             frame.controls_button.RightActive:Show()
@@ -1198,7 +1190,8 @@ function addon:fade_controls_button_highlight(excluded_frame)
 
     for _, frame in ipairs(frames) do
         if frame and frame.controls_button and frame ~= excluded_frame then
-            frame.controls_button:SetAlpha(0.5)
+            local alpha = frame._buttons_faded and 0.15 or 0.5
+            frame.controls_button:SetAlpha(alpha)
             frame.controls_button.LeftActive:Hide()
             frame.controls_button.MiddleActive:Hide()
             frame.controls_button.RightActive:Hide()

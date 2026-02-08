@@ -452,38 +452,37 @@ function addon:CreateTopTabButton(parent)
     return button
 end
 
--- Creates close buttons using Retail textures for sharpness
+-- Creates close buttons using redbutton2x atlas (used by Controls frame)
 function addon:CreateCloseButton(parent)
     local button = CreateFrame("Button", nil, parent)
-    button:SetSize(24, 24)  -- Retail standard size
+    button:SetSize(24, 24)
 
-    -- Use Retail redbutton2x texture (36x38) for sharp appearance
-    -- These coordinates are from Retail AtlasInfo.lua
+    local texture_path = "Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x"
 
     -- Normal state
     local normal = button:CreateTexture(nil, "ARTWORK")
-    normal:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    normal:SetTexture(texture_path)
     normal:SetTexCoord(0.152344, 0.292969, 0.0078125, 0.304688)
     normal:SetAllPoints()
     button:SetNormalTexture(normal)
 
     -- Pushed state
     local pushed = button:CreateTexture(nil, "ARTWORK")
-    pushed:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    pushed:SetTexture(texture_path)
     pushed:SetTexCoord(0.152344, 0.292969, 0.632812, 0.929688)
     pushed:SetAllPoints()
     button:SetPushedTexture(pushed)
 
     -- Disabled state
     local disabled = button:CreateTexture(nil, "ARTWORK")
-    disabled:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    disabled:SetTexture(texture_path)
     disabled:SetTexCoord(0.152344, 0.292969, 0.320312, 0.617188)
     disabled:SetAllPoints()
     button:SetDisabledTexture(disabled)
 
     -- Highlight state
     local highlight = button:CreateTexture(nil, "HIGHLIGHT")
-    highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Atlas\\redbutton2x")
+    highlight:SetTexture(texture_path)
     highlight:SetTexCoord(0.449219, 0.589844, 0.0078125, 0.304688)
     highlight:SetBlendMode("ADD")
     highlight:SetAllPoints()
@@ -491,3 +490,81 @@ function addon:CreateCloseButton(parent)
 
     return button
 end
+
+-- Creates exit button using 128redbutton atlas (matches ArrowDownButton style)
+function addon:CreateExitButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(24, 24)
+
+    local texture_path = "Interface\\AddOns\\KeyUI\\Media\\Atlas\\128redbutton"
+
+    -- Normal state
+    local normal = button:CreateTexture(nil, "ARTWORK")
+    normal:SetTexture(texture_path)
+    normal:SetTexCoord(0.509766, 0.759766, 0.508301, 0.570801)
+    normal:SetAllPoints()
+    button:SetNormalTexture(normal)
+
+    -- Pushed state
+    local pushed = button:CreateTexture(nil, "ARTWORK")
+    pushed:SetTexture(texture_path)
+    pushed:SetTexCoord(0.509766, 0.759766, 0.571777, 0.634277)
+    pushed:SetAllPoints()
+    button:SetPushedTexture(pushed)
+
+    -- Disabled state
+    local disabled = button:CreateTexture(nil, "ARTWORK")
+    disabled:SetTexture(texture_path)
+    disabled:SetTexCoord(0.00195312, 0.251953, 0.571777, 0.634277)
+    disabled:SetAllPoints()
+    button:SetDisabledTexture(disabled)
+
+    -- Highlight state
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetTexture(texture_path)
+    highlight:SetTexCoord(0.255859, 0.505859, 0.571777, 0.634277)
+    highlight:SetBlendMode("ADD")
+    highlight:SetAllPoints()
+    button:SetHighlightTexture(highlight)
+
+    return button
+end
+
+function addon:CreateArrowDownButton(parent)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(24, 24)
+
+    local texture_path = "Interface\\AddOns\\KeyUI\\Media\\Atlas\\128redbutton"
+
+    -- Normal state
+    local normal = button:CreateTexture(nil, "ARTWORK")
+    normal:SetTexture(texture_path)
+    normal:SetTexCoord(0.576172, 0.826172, 0.254395, 0.316895)
+    normal:SetAllPoints()
+    button:SetNormalTexture(normal)
+
+    -- Pushed state
+    local pushed = button:CreateTexture(nil, "ARTWORK")
+    pushed:SetTexture(texture_path)
+    pushed:SetTexCoord(0.00195312, 0.251953, 0.444824, 0.507324)
+    pushed:SetAllPoints()
+    button:SetPushedTexture(pushed)
+
+    -- Disabled state
+    local disabled = button:CreateTexture(nil, "ARTWORK")
+    disabled:SetTexture(texture_path)
+    disabled:SetTexCoord(0.576172, 0.826172, 0.317871, 0.380371)
+    disabled:SetAllPoints()
+    button:SetDisabledTexture(disabled)
+
+    -- Highlight state
+    local highlight = button:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetTexture(texture_path)
+    highlight:SetTexCoord(0.576172, 0.826172, 0.381348, 0.443848)
+    highlight:SetBlendMode("ADD")
+    highlight:SetAllPoints()
+    button:SetHighlightTexture(highlight)
+
+    return button
+end
+

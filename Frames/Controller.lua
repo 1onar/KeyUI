@@ -52,9 +52,17 @@ function addon:create_controller_frame()
         controller_frame:SetScale(1)
     end
 
-    -- Enable dragging and movement
-    controller_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    controller_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    -- Enable dragging and movement (respects position lock)
+    controller_frame:SetScript("OnMouseDown", function(self)
+        if not keyui_settings.position_locked then
+            self:StartMoving()
+        end
+    end)
+    controller_frame:SetScript("OnMouseUp", function(self)
+        if not keyui_settings.position_locked then
+            self:StopMovingOrSizing()
+        end
+    end)
     controller_frame:SetMovable(true)
     controller_frame:SetClampedToScreen(true)
 
@@ -129,21 +137,14 @@ function addon:create_controller_frame()
         controller_frame:Hide()
     end)
 
-    -- Ensure the close button always appears inactive
     toggle_button_textures(controller_frame.close_button, true)
 
-    -- Set initial transparency for close button (out of focus)
-    controller_frame.close_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the close button
     controller_frame.close_button:SetScript("OnEnter", function()
-        controller_frame.close_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(controller_frame.close_button, false) -- Show active textures
+        toggle_button_textures(controller_frame.close_button, false)
     end)
 
     controller_frame.close_button:SetScript("OnLeave", function()
-        controller_frame.close_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(controller_frame.close_button, true) -- Show inactive textures
+        toggle_button_textures(controller_frame.close_button, true)
     end)
 
     -- Create the settings tab button
@@ -199,30 +200,17 @@ function addon:create_controller_frame()
         addon:update_tab_visibility()
     end)
 
-    -- Ensure the controls button always appears inactive
     toggle_button_textures(controller_frame.controls_button, true)
 
-    -- Set initial transparency (out of focus) for controls button
-    controller_frame.controls_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the controls button
     controller_frame.controls_button:SetScript("OnEnter", function()
-        controller_frame.controls_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(controller_frame.controls_button, false) -- Show active textures
+        toggle_button_textures(controller_frame.controls_button, false)
     end)
 
     controller_frame.controls_button:SetScript("OnLeave", function()
         if addon.controls_frame and addon.controls_frame:IsVisible() then
             return
-        else
-            controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            toggle_button_textures(controller_frame.controls_button, true) -- Show inactive textures
         end
-    end)
-
-    controller_frame.controls_button:SetScript("OnHide", function()
-        controller_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(controller_frame.controls_button, true) -- Show inactive textures
+        toggle_button_textures(controller_frame.controls_button, true)
     end)
 
     -- Create the options tab button
@@ -252,21 +240,14 @@ function addon:create_controller_frame()
         addon:OpenSettings()
     end)
 
-    -- Ensure the options button always appears inactive
     toggle_button_textures(controller_frame.options_button, true)
 
-    -- Set initial transparency (out of focus) for options button
-    controller_frame.options_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the options button
     controller_frame.options_button:SetScript("OnEnter", function()
-        controller_frame.options_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(controller_frame.options_button, false) -- Show active textures
+        toggle_button_textures(controller_frame.options_button, false)
     end)
 
     controller_frame.options_button:SetScript("OnLeave", function()
-        controller_frame.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(controller_frame.options_button, true) -- Show inactive textures
+        toggle_button_textures(controller_frame.options_button, true)
     end)
 
     controller_frame:SetScript("OnHide", function()
@@ -276,7 +257,13 @@ function addon:create_controller_frame()
         addon.controller_layout_dirty = true
     end)
 
-    controller_frame:SetScript("OnShow", function()
+    -- Create all left-side toggle buttons (top-left)
+    addon:CreateLockToggleButtons(controller_frame, controller_level, custom_font, false, "show_controller_background")
+
+    -- Fade all tab buttons when mouse is not over the frame
+    addon:SetupButtonFade(controller_frame)
+
+    controller_frame:HookScript("OnShow", function()
         if addon.controller_layout_dirty == true then
             addon:generate_controller_key_frames()
             addon.controller_layout_dirty = false
@@ -540,6 +527,8 @@ function addon:generate_controller_key_frames()
             end
         end
     end
+
+    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main controller image frame.

@@ -123,6 +123,7 @@ These files are **extracted from Retail** and bundled for Classic compatibility:
 | `combatassistantsinglebutton.blp` | 8.1MB | Action bar button styling |
 | `newplayerexperienceparts.blp` | 2.1MB | Tutorial pointer arrows |
 | `dropdown.blp` | 66KB | Button dropdown styling |
+| `128redbutton.blp` | 4.1MB | Exit, arrow, and menu button states |
 | `redbutton2x.blp` | 130KB | Close button states |
 | `uiframetabs.blp` | 66KB | Tab button textures |
 | `uiframetutorialglow.blp` | 5.2KB | Glow border effects |
@@ -175,6 +176,8 @@ KeyUI provides custom fallback implementations for Classic:
 - `addon:CreateTabButton(parent)` - Standard horizontal tabs
 - `addon:CreateTopTabButton(parent)` - Vertical/top-anchored tabs (75% height, flipped TexCoords)
 - `addon:CreateCloseButton(parent)` - Close button with 4 states
+- `addon:CreateExitButton(parent)` - Exit button using 128redbutton atlas
+- `addon:CreateArrowDownButton(parent)` - Arrow-down menu button using 128redbutton atlas
 - `addon:create_glow_border(frame)` - Tutorial glow border effect
 - `addon:CreateStyledButton(parent, options)` - Styled dropdown-style buttons
 

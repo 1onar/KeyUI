@@ -52,9 +52,17 @@ function addon:create_keyboard_frame()
         keyboard_frame:SetScale(1)
     end
 
-    -- Enable dragging and movement
-    keyboard_frame:SetScript("OnMouseDown", function(self) self:StartMoving() end)
-    keyboard_frame:SetScript("OnMouseUp", function(self) self:StopMovingOrSizing() end)
+    -- Enable dragging and movement (respects position lock)
+    keyboard_frame:SetScript("OnMouseDown", function(self)
+        if not keyui_settings.position_locked then
+            self:StartMoving()
+        end
+    end)
+    keyboard_frame:SetScript("OnMouseUp", function(self)
+        if not keyui_settings.position_locked then
+            self:StopMovingOrSizing()
+        end
+    end)
     keyboard_frame:SetMovable(true)
     keyboard_frame:SetClampedToScreen(true)
 
@@ -128,16 +136,12 @@ function addon:create_keyboard_frame()
 
     toggle_button_textures(keyboard_frame.close_button, true)
 
-    keyboard_frame.close_button:SetAlpha(0.5)
-
     keyboard_frame.close_button:SetScript("OnEnter", function()
-        keyboard_frame.close_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(keyboard_frame.close_button, false) -- Show active textures
+        toggle_button_textures(keyboard_frame.close_button, false)
     end)
 
     keyboard_frame.close_button:SetScript("OnLeave", function()
-        keyboard_frame.close_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(keyboard_frame.close_button, true) -- Show inactive textures
+        toggle_button_textures(keyboard_frame.close_button, true)
     end)
 
     -- Create the settings tab button
@@ -193,25 +197,15 @@ function addon:create_keyboard_frame()
 
     toggle_button_textures(keyboard_frame.controls_button, true)
 
-    keyboard_frame.controls_button:SetAlpha(0.5)
-
     keyboard_frame.controls_button:SetScript("OnEnter", function()
-        keyboard_frame.controls_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(keyboard_frame.controls_button, false) -- Show active textures
+        toggle_button_textures(keyboard_frame.controls_button, false)
     end)
 
     keyboard_frame.controls_button:SetScript("OnLeave", function()
         if addon.controls_frame and addon.controls_frame:IsVisible() then
             return
-        else
-            keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-            toggle_button_textures(keyboard_frame.controls_button, true) -- Show inactive textures
         end
-    end)
-
-    keyboard_frame.controls_button:SetScript("OnHide", function()
-        keyboard_frame.controls_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(keyboard_frame.controls_button, true) -- Show inactive textures
+        toggle_button_textures(keyboard_frame.controls_button, true)
     end)
 
     -- Create the options tab button
@@ -241,21 +235,14 @@ function addon:create_keyboard_frame()
         addon:OpenSettings()
     end)
 
-    -- Ensure the options button always appears inactive
     toggle_button_textures(keyboard_frame.options_button, true)
 
-    -- Set initial transparency (out of focus) for options button
-    keyboard_frame.options_button:SetAlpha(0.5)
-
-    -- Set behavior when mouse enters and leaves the options button
     keyboard_frame.options_button:SetScript("OnEnter", function()
-        keyboard_frame.options_button:SetAlpha(1) -- Make the button fully visible on hover
-        toggle_button_textures(keyboard_frame.options_button, false) -- Show active textures
+        toggle_button_textures(keyboard_frame.options_button, false)
     end)
 
     keyboard_frame.options_button:SetScript("OnLeave", function()
-        keyboard_frame.options_button:SetAlpha(0.5) -- Fade out when the mouse leaves
-        toggle_button_textures(keyboard_frame.options_button, true) -- Show inactive textures
+        toggle_button_textures(keyboard_frame.options_button, true)
     end)
 
     keyboard_frame:SetScript("OnHide", function()
@@ -265,7 +252,13 @@ function addon:create_keyboard_frame()
         addon.keyboard_layout_dirty = true
     end)
 
-    keyboard_frame:SetScript("OnShow", function()
+    -- Create all left-side toggle buttons (top-left)
+    addon:CreateLockToggleButtons(keyboard_frame, keyboard_level, custom_font, false, "show_keyboard_background")
+
+    -- Fade all tab buttons when mouse is not over the frame
+    addon:SetupButtonFade(keyboard_frame)
+
+    keyboard_frame:HookScript("OnShow", function()
         if addon.keyboard_layout_dirty == true then
             addon:generate_keyboard_key_frames()
             addon.keyboard_layout_dirty = false
@@ -500,6 +493,8 @@ function addon:generate_keyboard_key_frames()
             addon.keyboard_frame.edit_frame:SetSize(addon.keyboard_frame:GetWidth(), addon.keyboard_frame:GetHeight())
         end
     end
+
+    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main keyboard frame.

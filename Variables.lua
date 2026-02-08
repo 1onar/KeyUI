@@ -39,6 +39,8 @@ function addon:InitializeGeneralSettings()
     set_if_nil("font_face", "Expressway")
     set_if_nil("font_base_size", 16)
     set_if_nil("show_keypress_highlight", true)
+    set_if_nil("position_locked", false)
+    set_if_nil("click_through", false)
 end
 
 -- Initialize key binding and layout settings
