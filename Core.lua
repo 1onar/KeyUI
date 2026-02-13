@@ -24,7 +24,8 @@ do
 
     function addon.compat.is_addon_loaded(addon_name)
         if C_AddOns and C_AddOns.IsAddOnLoaded then
-            return C_AddOns.IsAddOnLoaded(addon_name)
+            local _, loaded = C_AddOns.IsAddOnLoaded(addon_name)
+            return loaded == true
         end
         if IsAddOnLoaded then
             return IsAddOnLoaded(addon_name)
@@ -78,6 +79,13 @@ local addon_pattern_registry = {
     end,
 
     Bartender4 = function()
+        keybind_patterns["^CLICK BT4StanceButton(%d+):LeftButton$"] = function(binding, button)
+            local success, err = pcall(addon.process_addon_stance, addon, binding, button)
+            if not success then
+                print("KeyUI: Bartender4 stance integration error:", err)
+            end
+        end
+
         keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
             local success, err = pcall(addon.process_bartender, addon, binding, button)
             if not success then
@@ -2105,7 +2113,7 @@ local NUM_ACTIONBAR_BUTTONS = 12
 -- Adjusts the slot for ACTIONBUTTON bindings based on the class, stance, or action bar page
 function addon:get_action_button_slot(action_slot)
     -- Stance/form bonus bars (Rogue Stealth, Druid forms, etc.)
-    if (addon.class_name == "ROGUE" or addon.class_name == "DRUID") and addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
+    if addon.bonusbar_offset ~= 0 and addon.current_actionbar_page == 1 then
         if addon.bonusbar_offset >= 1 and addon.bonusbar_offset <= 4 then
             return action_slot + (addon.bonusbar_offset + 5) * NUM_ACTIONBAR_BUTTONS
         end
@@ -2215,9 +2223,37 @@ function addon:process_shapeshift_slot(slot, button)
     if icon then
         button.icon:SetTexture(icon)         -- Set the icon texture
         button.icon:Show()                   -- Show the icon
+        button.slot = nil
+        button.active_slot = nil
+        button.pet_action_index = nil
         button.spellid = spellID             -- Store the spell ID
         button.is_active = is_active         -- Track whether the form is active
         button.is_castable = is_castable     -- Track whether the form is castable
+    end
+end
+
+-- Handles processing for addon stance bindings that mirror SHAPESHIFTBUTTON actions
+function addon:process_addon_stance(binding, button)
+    if type(binding) ~= "string" then
+        return
+    end
+
+    local stance_index = binding:match("^CLICK BT4StanceButton(%d+):LeftButton$")
+    stance_index = tonumber(stance_index)
+    if not stance_index then
+        return
+    end
+
+    local icon, is_active, is_castable, spellID = GetShapeshiftFormInfo(stance_index)
+    if icon then
+        button.icon:SetTexture(icon)
+        button.icon:Show()
+        button.slot = nil
+        button.active_slot = nil
+        button.pet_action_index = nil
+        button.spellid = spellID
+        button.is_active = is_active
+        button.is_castable = is_castable
     end
 end
 
@@ -2281,6 +2317,10 @@ end
 
 function addon:resolve_addon_slot(binding)
     if type(binding) ~= "string" then
+        return nil
+    end
+
+    if binding:match("^CLICK BT4StanceButton(%d+):LeftButton$") then
         return nil
     end
 
@@ -2524,6 +2564,9 @@ function addon:create_action_labels(binding, button)
         if binding:match("^CLICK BT4Button(%d+):Keybind$") then
             local button_index = binding:match("^CLICK BT4Button(%d+):Keybind$")
             binding_name = "Bartender Action Button " .. button_index
+        elseif binding:match("^CLICK BT4StanceButton(%d+):LeftButton$") then
+            local stance_index = binding:match("^CLICK BT4StanceButton(%d+):LeftButton$")
+            binding_name = "Bartender Stance Button " .. stance_index
         end
     end
 
@@ -3254,6 +3297,9 @@ local shared_events = {
     "ACTIONBAR_SLOT_CHANGED",
     "ACTIONBAR_UPDATE_STATE",
     "UPDATE_SHAPESHIFT_FORM",
+    "UPDATE_SHAPESHIFT_FORMS",
+    "UPDATE_SHAPESHIFT_USABLE",
+    "UPDATE_SHAPESHIFT_COOLDOWN",
     "PET_BAR_UPDATE",
     "PET_BAR_UPDATE_COOLDOWN",
     "PET_BAR_UPDATE_USABLE",
@@ -3375,7 +3421,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         else
             return
         end
-    elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
+    elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_SHAPESHIFT_FORMS" or event == "UPDATE_SHAPESHIFT_USABLE" or event == "UPDATE_SHAPESHIFT_COOLDOWN" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
         mark_pending("keys")
     else
         return
@@ -3599,22 +3645,3 @@ StaticPopupDialogs["KEYUI_LAYOUT_COPY"] = {
         end
     end,
 }
-
-
---------------------------------------------------------------------------------------------------------------------
-
--- button.binding           -- Stores the binding name (e.g., MOVEFORWARD, ACTIONBUTTON1, OPENCHAT, ...)
--- Can be translated to a readable format via _G["BINDING_NAME_" ...]
-
--- button.readable_binding  -- Displays the readable binding text in the center of the button when toggled on
-
--- button.raw_key           -- Stores the raw key name (e.g., A, B, C, ESCAPE, PRINTSCREEN, ...)
--- Can be made readable via _G["KEY_" ...]
-
--- button.short_key         -- Displays the abbreviated key name with short modifiers in the top-right of the button
-
--- button.slot              -- Stores the action slot ID associated with the binding, regardless of action presence
-
--- button.active_slot       -- Holds the action slot ID only if the slot contains an active action, otherwise nil
-
--- button.icon              -- Stores the icon texture ID for the action slot
