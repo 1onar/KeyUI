@@ -1894,6 +1894,19 @@ local specific_bindings = {
     TURNRIGHT = "Interface\\AddOns\\KeyUI\\Media\\Icons\\circle_right",
 }
 
+local function matches_opie_binding(binding)
+    if type(binding) ~= "string" or binding == "" then
+        return false
+    end
+
+    if binding:match("^CLICK ORL_RProxy") then
+        return true
+    end
+
+    local binding_name = _G["BINDING_NAME_" .. binding]
+    return type(binding_name) == "string" and binding_name:lower():find("opie", 1, true) ~= nil
+end
+
 -- Highlights a modifier button when the corresponding key is held down
 local function highlight_modifier_button(button)
     button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
@@ -1922,11 +1935,17 @@ function addon:set_key(button)
 
     -- Loop through the keybind patterns and process the binding if the binding is not empty
     if binding ~= "" then
+        local matched = false
         for pattern, handler in pairs(keybind_patterns) do
             if binding:find(pattern) then
                 handler(binding, button)
+                matched = true
                 break -- Exit loop once a match is found
             end
+        end
+
+        if not matched and matches_opie_binding(binding) then
+            addon:process_opie(button)
         end
 
         if specific_bindings[binding] then
