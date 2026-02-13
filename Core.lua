@@ -2563,10 +2563,10 @@ function addon:create_action_labels(binding, button)
     if loaded_integrations.Bartender4 then
         if binding:match("^CLICK BT4Button(%d+):Keybind$") then
             local button_index = binding:match("^CLICK BT4Button(%d+):Keybind$")
-            binding_name = "Bartender Action Button " .. button_index
+            binding_name = _G["BINDING_NAME_" .. binding] or ("Bartender Action Button " .. button_index)
         elseif binding:match("^CLICK BT4StanceButton(%d+):LeftButton$") then
             local stance_index = binding:match("^CLICK BT4StanceButton(%d+):LeftButton$")
-            binding_name = "Bartender Stance Button " .. stance_index
+            binding_name = _G["BINDING_NAME_" .. binding] or ("Bartender Stance Button " .. stance_index)
         end
     end
 
