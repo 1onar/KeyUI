@@ -2550,12 +2550,17 @@ function addon:create_action_labels(binding, button)
 
     -- Check if ElvUI is loaded and handle its bindings
     if loaded_integrations.ElvUI then
+        local function resolve_elvui_binding_name(bar_index, button_index)
+            local elv_binding = ("ELVUIBAR%sBUTTON%s"):format(bar_index, button_index)
+            return _G["BINDING_NAME_" .. elv_binding] or ("ElvUI ActionBar " .. bar_index .. " Button " .. button_index)
+        end
+
         if binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$") then
             local bar_index, button_index = binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$")
-            binding_name = "ElvUI ActionBar " .. bar_index .. " Button " .. button_index
+            binding_name = resolve_elvui_binding_name(bar_index, button_index)
         elseif binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$") then
             local bar_index, button_index = binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$")
-            binding_name = "ElvUI ActionBar " .. bar_index .. " Button " .. button_index
+            binding_name = resolve_elvui_binding_name(bar_index, button_index)
         end
     end
 
