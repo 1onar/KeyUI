@@ -17,6 +17,40 @@ local API_COMPAT = {
     has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
 }
 addon.api_compat = API_COMPAT
+addon.compat = addon.compat or {}
+
+do
+    local compat_build = (addon.VERSION and addon.VERSION.build) or select(4, GetBuildInfo()) or 0
+
+    function addon.compat.is_addon_loaded(addon_name)
+        if C_AddOns and C_AddOns.IsAddOnLoaded then
+            return C_AddOns.IsAddOnLoaded(addon_name)
+        end
+        if IsAddOnLoaded then
+            return IsAddOnLoaded(addon_name)
+        end
+        return false
+    end
+
+    function addon.compat.has_event(event_name)
+        if event_name == "BINDINGS_LOADED" then
+            -- BINDINGS_LOADED exists in Anniversary (2.5.x) and Retail (10+/11+/12+)
+            return (compat_build >= 20500 and compat_build < 30000) or compat_build >= 100000
+        end
+        return true
+    end
+
+    function addon.compat.register_event(frame, event_name)
+        if not frame or not event_name then
+            return false
+        end
+        if addon.compat.has_event(event_name) then
+            frame:RegisterEvent(event_name)
+            return true
+        end
+        return false
+    end
+end
 
 -- Global keybind patterns cache (initialized on load)
 local keybind_patterns = {}
@@ -24,10 +58,18 @@ local keybind_patterns = {}
 -- Initialize keybind patterns with addon integrations
 -- Addon integration patterns, registered dynamically when addons are loaded
 local registered_addons = {}
+addon.loaded_integrations = addon.loaded_integrations or {}
 
 local addon_pattern_registry = {
     ElvUI = function()
         keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
+            local success, err = pcall(addon.process_elvui, addon, binding, button)
+            if not success then
+                print("KeyUI: ElvUI integration error:", err)
+            end
+        end
+
+        keybind_patterns["^ELVUIBAR(%d+)BUTTON(%d+)$"] = function(binding, button)
             local success, err = pcall(addon.process_elvui, addon, binding, button)
             if not success then
                 print("KeyUI: ElvUI integration error:", err)
@@ -45,7 +87,7 @@ local addon_pattern_registry = {
     end,
 
     Dominos = function()
-        keybind_patterns["^DominosActionButton(%d+)$"] = function(binding, button)
+        keybind_patterns["^CLICK DominosActionButton(%d+):HOTKEY$"] = function(binding, button)
             local success, err = pcall(addon.process_dominos, addon, binding, button)
             if not success then
                 print("KeyUI: Dominos integration error:", err)
@@ -54,7 +96,7 @@ local addon_pattern_registry = {
     end,
 
     OPie = function()
-        keybind_patterns["CLICK ORL_RProxy"] = function(binding, button)
+        keybind_patterns["^CLICK ORL_RProxy.*$"] = function(binding, button)
             local success, err = pcall(addon.process_opie, addon, button)
             if not success then
                 print("KeyUI: OPie integration error:", err)
@@ -83,16 +125,31 @@ local addon_pattern_registry = {
                 print("KeyUI: BindPad integration error:", err)
             end
         end
+
+        keybind_patterns["^CLICK BindPadKey:MACRO (.+)$"] = function(binding, button)
+            local success, err = pcall(addon.process_bindpad, addon, binding, button)
+            if not success then
+                print("KeyUI: BindPad integration error:", err)
+            end
+        end
     end,
 }
+
+local function refresh_loaded_integrations()
+    addon.loaded_integrations = addon.loaded_integrations or {}
+    for addon_name in pairs(addon_pattern_registry) do
+        addon.loaded_integrations[addon_name] = addon.compat.is_addon_loaded(addon_name)
+    end
+end
 
 -- Registers patterns for a supported addon if it is loaded and not yet registered
 local function register_addon_patterns(addon_name)
     if registered_addons[addon_name] then return end
     local register_fn = addon_pattern_registry[addon_name]
-    if register_fn and C_AddOns.IsAddOnLoaded(addon_name) then
+    if register_fn and addon.compat.is_addon_loaded(addon_name) then
         register_fn()
         registered_addons[addon_name] = true
+        addon.loaded_integrations[addon_name] = true
     end
 end
 
@@ -2190,49 +2247,129 @@ function addon:process_macro(macro_name, button)
     end
 end
 
+local function parse_click_binding(binding)
+    if type(binding) ~= "string" then
+        return nil, nil
+    end
+
+    local frame_name, click_button = binding:match("^CLICK ([^:]+):(.+)$")
+    return frame_name, click_button
+end
+
+local function get_action_slot_from_frame(frame)
+    if not frame then
+        return nil
+    end
+
+    if frame._state_type == "action" and frame._state_action then
+        return tonumber(frame._state_action)
+    end
+
+    if frame.GetAttribute then
+        local action = frame:GetAttribute("action")
+        if action then
+            return tonumber(action)
+        end
+    end
+
+    if frame.action then
+        return tonumber(frame.action)
+    end
+
+    return nil
+end
+
+function addon:resolve_addon_slot(binding)
+    if type(binding) ~= "string" then
+        return nil
+    end
+
+    local frame_name = nil
+    local click_frame_name = parse_click_binding(binding)
+    if click_frame_name then
+        frame_name = click_frame_name
+    else
+        local elv_bar, elv_button = binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$")
+        if elv_bar and elv_button then
+            frame_name = ("ElvUI_Bar%sButton%s"):format(elv_bar, elv_button)
+        end
+    end
+
+    if frame_name then
+        local frame = _G[frame_name]
+        local slot = get_action_slot_from_frame(frame)
+        if slot then
+            return slot
+        end
+    end
+
+    local bt4_slot = binding:match("^CLICK BT4Button(%d+):Keybind$")
+    if bt4_slot then
+        return tonumber(bt4_slot)
+    end
+
+    local dominos_slot = binding:match("^CLICK DominosActionButton(%d+):HOTKEY$")
+    if dominos_slot then
+        return tonumber(dominos_slot)
+    end
+
+    return nil
+end
+
 -- Handles processing for ElvUI action bar buttons
 function addon:process_elvui(binding, button)
-    local barIndex, buttonIndex = binding:match("CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton")
-    if barIndex and buttonIndex then
-        local elvUIButton = _G["ElvUI_Bar" .. barIndex .. "Button" .. buttonIndex]
-        if elvUIButton then
-            local actionID = elvUIButton._state_action
-            if elvUIButton._state_type == "action" and actionID then
-                button.icon:SetTexture(GetActionTexture(actionID))
+    local slot = addon:resolve_addon_slot(binding)
+    if slot then
+        button.slot = slot
+
+        if HasAction(slot) then
+            local texture = GetActionTexture(slot)
+            if texture then
+                button.active_slot = slot
+                button.icon:SetTexture(texture)
                 button.icon:Show()
-                button.slot = actionID
-                addon:update_assisted_combat_indicator(button, actionID)
             end
         end
+
+        addon:update_assisted_combat_indicator(button, slot)
     end
 end
 
 -- Handles processing for Bartender 4 button bindings
 function addon:process_bartender(binding, button)
-    local bt4_slot = binding:match("CLICK BT4Button(%d+):Keybind")
-    button.slot = tonumber(bt4_slot)  -- Set the slot for BT4Button
-    if HasAction(button.slot) then
-        button.active_slot = button.slot -- Active if there's an action
-        button.icon:SetTexture(GetActionTexture(button.slot))
-        button.icon:Show()
-        addon:update_assisted_combat_indicator(button, button.slot)
+    local slot = addon:resolve_addon_slot(binding)
+    if slot then
+        button.slot = slot
+
+        if HasAction(slot) then
+            local texture = GetActionTexture(slot)
+            if texture then
+                button.active_slot = slot
+                button.icon:SetTexture(texture)
+                button.icon:Show()
+            end
+        end
+
+        addon:update_assisted_combat_indicator(button, slot)
     end
 end
 
 -- Handles processing for Dominos action button bindings
 function addon:process_dominos(binding, button)
-    local dominos_slot = tonumber(binding:match("DominosActionButton(%d+)"))
-    if dominos_slot then
-        button.slot = dominos_slot  -- Set the slot for DominosActionButton
-        if HasAction(button.slot) then
-            button.active_slot = button.slot  -- Mark as active if an action exists for the slot
-            local actionTexture = GetActionTexture(button.slot)
-            if actionTexture then
-                button.icon:SetTexture(actionTexture)  -- Set the action icon
-                button.icon:Show()                     -- Show the icon
+    local slot = addon:resolve_addon_slot(binding)
+    if slot then
+        button.slot = slot
+
+        if HasAction(slot) then
+            local texture = GetActionTexture(slot)
+            if texture then
+                button.active_slot = slot
+                button.icon:SetTexture(texture)
+                button.icon:Show()
             end
-            addon:update_assisted_combat_indicator(button, button.slot)
         end
+
+        addon:update_assisted_combat_indicator(button, slot)
     end
 end
 
@@ -2369,25 +2506,37 @@ function addon:create_action_labels(binding, button)
     button.readable_binding:SetWidth(button:GetWidth() - 4)
 
     local binding_name
+    local loaded_integrations = addon.loaded_integrations or {}
 
     -- Check if ElvUI is loaded and handle its bindings
-    if C_AddOns.IsAddOnLoaded("ElvUI") then
+    if loaded_integrations.ElvUI then
         if binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$") then
             local bar_index, button_index = binding:match("^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$")
+            binding_name = "ElvUI ActionBar " .. bar_index .. " Button " .. button_index
+        elseif binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$") then
+            local bar_index, button_index = binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$")
             binding_name = "ElvUI ActionBar " .. bar_index .. " Button " .. button_index
         end
     end
 
+    -- Check if Bartender4 is loaded and handle its bindings
+    if loaded_integrations.Bartender4 then
+        if binding:match("^CLICK BT4Button(%d+):Keybind$") then
+            local button_index = binding:match("^CLICK BT4Button(%d+):Keybind$")
+            binding_name = "Bartender Action Button " .. button_index
+        end
+    end
+
     -- Check if Dominos is loaded and handle its bindings
-    if C_AddOns.IsAddOnLoaded("Dominos") then
-        if binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$") then
-            local button_index = binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$")
+    if loaded_integrations.Dominos then
+        if binding:match("^CLICK DominosActionButton(%d+):HOTKEY$") then
+            local button_index = binding:match("^CLICK DominosActionButton(%d+):HOTKEY$")
             binding_name = "Dominos Action Button " .. button_index
         end
     end
 
     -- Check if BindPad is loaded and handle its bindings
-    if C_AddOns.IsAddOnLoaded("BindPad") then
+    if loaded_integrations.BindPad then
         if binding:match("^CLICK BindPadMacro:([^:]+)$") then
             local macro_name = binding:match("^CLICK BindPadMacro:([^:]+)$")
             binding_name = "BindPad Macro: " .. macro_name
@@ -2399,6 +2548,9 @@ function addon:create_action_labels(binding, button)
         elseif binding:match("^CLICK BindPadKey:ITEM (.+)$") then
             local item_name = binding:match("^CLICK BindPadKey:ITEM (.+)$")
             binding_name = "BindPad Item: " .. item_name
+        elseif binding:match("^CLICK BindPadKey:MACRO (.+)$") then
+            local macro_name = binding:match("^CLICK BindPadKey:MACRO (.+)$")
+            binding_name = "BindPad Macro Key: " .. macro_name
         end
     end
 
@@ -2789,15 +2941,17 @@ local function build_spells_submenu(parentMenu)
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                     local spell = "Spell " .. spell_name
                     local binding_name = addon.current_clicked_key.readable_binding:GetText()
+                    local actionbutton = addon.current_clicked_key.binding
+                    local targetSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
 
-                    if addon.current_slot ~= nil then
+                    if targetSlot ~= nil then
                         -- Version-aware spell pickup
                         if API_COMPAT.has_modern_spellbook then
                             C_Spell.PickupSpell(spell_id)
                         else
                             PickupSpell(spell_id)  -- Legacy API
                         end
-                        PlaceAction(addon.current_slot)
+                        PlaceAction(targetSlot)
                         ClearCursor()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
@@ -2828,7 +2982,7 @@ local function build_spells_submenu(parentMenu)
 
     -- Assisted Combat (Single-Button Assistant) entry at the bottom of the spells menu
     -- Only available in Retail
-    if API_COMPAT.has_modern_spellbook and C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() then
+    if API_COMPAT.has_modern_spellbook and C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() and C_ActionBar and C_ActionBar.FindAssistedCombatActionButtons then
         local acSpellID = C_AssistedCombat.GetActionSpell()
         local acIcon = acSpellID and C_Spell.GetSpellTexture(acSpellID)
 
@@ -2877,7 +3031,7 @@ local function build_macros_submenu(parentMenu)
         if title then
             local macroButton = generalMacroMenu:CreateButton(title, function()
                 local actionbutton = addon.current_clicked_key.binding
-                local actionSlot = addon.action_slot_mapping[actionbutton]
+                local actionSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
                 local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                 local command = "Macro " .. title
                 local binding_name = addon.current_clicked_key.readable_binding:GetText()
@@ -2918,7 +3072,7 @@ local function build_macros_submenu(parentMenu)
         if title then
             local macroButton = playerMacroMenu:CreateButton(title, function()
                 local actionbutton = addon.current_clicked_key.binding
-                local actionSlot = addon.action_slot_mapping[actionbutton]
+                local actionSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
                 local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                 local command = "Macro " .. title
                 local binding_name = addon.current_clicked_key.readable_binding:GetText()
@@ -3017,120 +3171,217 @@ end
 
 -- Event frame to handle all relevant events
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-eventFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-eventFrame:RegisterEvent("SPELLS_CHANGED")
-eventFrame:RegisterEvent("UPDATE_BINDINGS")
-eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
-eventFrame:RegisterEvent("PLAYER_LOGOUT")
-eventFrame:RegisterEvent("PLAYER_LOGIN")
-eventFrame:RegisterEvent("MODIFIER_STATE_CHANGED")
-eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-eventFrame:RegisterEvent("PET_BAR_UPDATE")
-eventFrame:RegisterEvent("ADDON_LOADED")
+local function reset_pending_updates()
+    addon.pending = {
+        bindings = false,
+        layout = false,
+        keys = false,
+        spellbook = false,
+        tooltip = false,
+        slot_changes = {},
+    }
+end
+
+reset_pending_updates()
+addon.flush_scheduled = false
+
+local function mark_pending(flag)
+    addon.pending[flag] = true
+end
+
+local function mark_slot_changed(slot)
+    if type(slot) == "number" then
+        addon.pending.slot_changes[slot] = true
+    end
+    mark_pending("keys")
+end
+
+local flush_pending_updates
+local function schedule_flush()
+    if addon.flush_scheduled then
+        return
+    end
+
+    addon.flush_scheduled = true
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0, flush_pending_updates)
+    else
+        flush_pending_updates()
+    end
+end
+
+flush_pending_updates = function()
+    addon.flush_scheduled = false
+
+    local pending = addon.pending
+    local should_refresh_layouts = pending.layout or pending.bindings
+    local should_refresh_keys = pending.keys
+    local should_refresh_tooltip = pending.tooltip
+    local should_reload_spellbook = pending.spellbook
+
+    reset_pending_updates()
+
+    -- Avoid expensive spellbook rebuilds while closed unless we do not have any cache yet.
+    if should_reload_spellbook and (addon.open or not addon.spells or next(addon.spells) == nil) then
+        addon:load_spellbook()
+    end
+
+    if not addon.open then
+        return
+    end
+
+    if should_refresh_layouts then
+        addon:refresh_layouts()
+    elseif should_refresh_keys then
+        -- NOTE: slot_changes are intentionally not applied as selective partial updates yet.
+        -- Third-party action bar paging/state can make slot-to-button mapping ambiguous.
+        -- Use full refresh for correctness until integration-safe selective refresh exists.
+        addon:refresh_keys()
+    end
+
+    if should_refresh_tooltip and addon.current_hovered_button then
+        addon:button_mouse_over(addon.current_hovered_button)
+    end
+end
+
+local shared_events = {
+    "UPDATE_BONUS_ACTIONBAR",
+    "ACTIONBAR_PAGE_CHANGED",
+    "ACTIVE_TALENT_GROUP_CHANGED",
+    "SPELLS_CHANGED",
+    "UPDATE_BINDINGS",
+    "MODIFIER_STATE_CHANGED",
+    "ACTIONBAR_SLOT_CHANGED",
+    "ACTIONBAR_UPDATE_STATE",
+    "UPDATE_SHAPESHIFT_FORM",
+    "PET_BAR_UPDATE",
+    "PET_BAR_UPDATE_COOLDOWN",
+    "PET_BAR_UPDATE_USABLE",
+    "UNIT_PET",
+    "UPDATE_VEHICLE_ACTIONBAR",
+    "ADDON_LOADED",
+    "PLAYER_REGEN_ENABLED",
+    "PLAYER_REGEN_DISABLED",
+    "PLAYER_LOGOUT",
+    "PLAYER_LOGIN",
+}
+
+for _, event_name in ipairs(shared_events) do
+    addon.compat.register_event(eventFrame, event_name)
+end
+addon.compat.register_event(eventFrame, "BINDINGS_LOADED")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if addon.open then
-        if event == "UPDATE_BONUS_ACTIONBAR" then --refresh_keys only
-            -- Check the BonusBarOffset
-            addon.bonusbar_offset = GetBonusBarOffset()
-            addon:refresh_keys()
-        elseif event == "ACTIONBAR_PAGE_CHANGED" then --refresh_keys only
-            -- Update the current action bar page
-            addon.current_actionbar_page = GetActionBarPage()
-            addon:refresh_keys()
-        elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then --refresh_layouts
-            addon:refresh_layouts()
-        elseif event == "SPELLS_CHANGED" then              --spellbook cache
-            addon:load_spellbook()  -- Refresh spell cache (spec switch, talents, level up, etc.)
-        elseif event == "UPDATE_BINDINGS" then             --refresh_layouts
-            addon:refresh_layouts()
-        elseif event == "PLAYER_REGEN_ENABLED" then        --nothing
-            addon.in_combat = false
-            -- Re-enable keypress visualization after combat
-            if addon.open and keyui_settings.show_keypress_highlight then
-                addon:enable_keypress_input()
-            end
-        elseif event == "PLAYER_REGEN_DISABLED" then       --nothing
-            addon.in_combat = true
-            -- Disable keypress visualization in combat (SetPropagateKeyboardInput is protected)
-            addon:disable_keypress_input()
-            -- Only close the addon if stay_open_in_combat is false
-            if not keyui_settings.stay_open_in_combat and addon.open then
-                addon:hide_all_frames()
-            end
-        elseif event == "PLAYER_LOGOUT" then --nothing
-            -- Save Keyboard and Mouse Position when logging out
-            addon:save_keyboard_position()
-            addon:save_mouse_position()
-            addon:save_controller_position()
-        elseif event == "MODIFIER_STATE_CHANGED" then --refreshkeys only
-            -- Handle the modifier state change
-            local key, state = ...                    -- Get key and state from the event
+    if event == "PLAYER_LOGIN" then
+        refresh_loaded_integrations()
+        initialize_keybind_patterns()
 
-            -- changed modifier states interferer when binding new keys and editing
-            if addon.keyboard_locked ~= false and addon.mouse_locked ~= false and addon.controller_locked ~= false then -- true
-                -- check if modifier are enabled
-                if keyui_settings.listen_to_modifier == true then
-                    -- check if the modifier checkboxes are empty
-                    if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
-                        if state == 1 then
-                            -- Key press event
-                            handle_key_press(key)
-                        else
-                            -- Key release event
-                            handle_key_release(key)
-                        end
+        addon.class_name = UnitClassBase("player")
+        addon.bonusbar_offset = GetBonusBarOffset()
+        addon.current_actionbar_page = GetActionBarPage()
 
-                        -- If a button is hovered, refresh tooltip to update modifier state
-                        if addon.current_hovered_button then
-                            addon:button_mouse_over(addon.current_hovered_button)
-                        end
+        if not addon.spells or next(addon.spells) == nil then
+            addon:load_spellbook()
+        end
+        return
+    end
 
-                        if addon.current_pushed_button then
-                            addon.current_pushed_button:Hide()
-                        end
+    if event == "ADDON_LOADED" then
+        local loaded_addon_name = ...
+        if loaded_addon_name and addon_pattern_registry[loaded_addon_name] then
+            addon.loaded_integrations[loaded_addon_name] = true
+            register_addon_patterns(loaded_addon_name)
+            mark_pending("layout")
+            schedule_flush()
+        end
+        return
+    end
+
+    if event == "PLAYER_REGEN_ENABLED" then
+        addon.in_combat = false
+        if addon.open and keyui_settings.show_keypress_highlight then
+            addon:enable_keypress_input()
+        end
+        return
+    end
+
+    if event == "PLAYER_REGEN_DISABLED" then
+        addon.in_combat = true
+        addon:disable_keypress_input()
+        if addon.open and not keyui_settings.stay_open_in_combat then
+            addon:hide_all_frames()
+        end
+        return
+    end
+
+    if event == "PLAYER_LOGOUT" then
+        addon:save_keyboard_position()
+        addon:save_mouse_position()
+        addon:save_controller_position()
+        return
+    end
+
+    if event == "MODIFIER_STATE_CHANGED" then
+        local key, state = ...
+
+        if addon.keyboard_locked ~= false and addon.mouse_locked ~= false and addon.controller_locked ~= false then
+            if keyui_settings.listen_to_modifier == true then
+                if addon.alt_checkbox == false and addon.ctrl_checkbox == false and addon.shift_checkbox == false then
+                    if state == 1 then
+                        handle_key_press(key)
+                    else
+                        handle_key_release(key)
+                    end
+
+                    if addon.current_hovered_button then
+                        mark_pending("tooltip")
+                        schedule_flush()
+                    end
+
+                    if addon.current_pushed_button then
+                        addon.current_pushed_button:Hide()
                     end
                 end
             end
-        else
-            addon:refresh_keys()
         end
-    else
-        if event == "UPDATE_BONUS_ACTIONBAR" then
-            -- Check the BonusBarOffset
-            addon.bonusbar_offset = GetBonusBarOffset()
-        elseif event == "ACTIONBAR_PAGE_CHANGED" then
-            -- Update the current action bar page
-            addon.current_actionbar_page = GetActionBarPage()
-        elseif event == "PLAYER_LOGIN" then
-            -- Initialize keybind patterns cache (with addon integrations)
-            initialize_keybind_patterns()
-
-            -- Check which class
-            addon.class_name = UnitClassBase("player")
-            -- Check the BonusBarOffset
-            addon.bonusbar_offset = GetBonusBarOffset()
-            -- Update the current action bar page
-            addon.current_actionbar_page = GetActionBarPage()
-
-            -- Eager load spellbook data for context menu
-            if not addon.spells or next(addon.spells) == nil then
-                addon:load_spellbook()
-            end
-        elseif event == "ADDON_LOADED" then
-            -- Dynamically register patterns when a supported addon loads after KeyUI
-            local loaded_addon_name = ...
-            if loaded_addon_name and addon_pattern_registry[loaded_addon_name] then
-                register_addon_patterns(loaded_addon_name)
-            end
-        elseif event == "PLAYER_REGEN_ENABLED" then
-            addon.in_combat = false
-        end
+        return
     end
+
+    if event == "UPDATE_BONUS_ACTIONBAR" then
+        addon.bonusbar_offset = GetBonusBarOffset()
+        mark_pending("keys")
+    elseif event == "ACTIONBAR_PAGE_CHANGED" then
+        addon.current_actionbar_page = GetActionBarPage()
+        mark_pending("keys")
+    elseif event == "ACTIONBAR_SLOT_CHANGED" then
+        mark_slot_changed(...)
+    elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
+        mark_pending("bindings")
+    elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
+        mark_pending("layout")
+        if addon.open or not addon.spells or next(addon.spells) == nil then
+            mark_pending("spellbook")
+        end
+    elseif event == "SPELLS_CHANGED" then
+        if addon.open or not addon.spells or next(addon.spells) == nil then
+            mark_pending("spellbook")
+        end
+        mark_pending("keys")
+    elseif event == "UNIT_PET" then
+        local unit = ...
+        if unit == "player" then
+            mark_pending("keys")
+        else
+            return
+        end
+    elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
+        mark_pending("keys")
+    else
+        return
+    end
+
+    schedule_flush()
 end)
 
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
