@@ -79,6 +79,7 @@ addon.controller_system = nil
 
 addon.open = false
 addon.in_combat = false
+addon.retail_action_block_warned_this_combat = false
 
 addon.bonusbar_offset = {}
 addon.current_actionbar_page = {}
@@ -98,6 +99,10 @@ addon.tutorial_frame2_created = false
 addon.keyboard_layout_dirty = false
 addon.mouse_layout_dirty = false
 addon.controller_layout_dirty = false
+addon.deferred_ui_updates = addon.deferred_ui_updates or {
+    refresh_layouts = false,
+    apply_click_through = false,
+}
 
 -- Spellbook data (loaded on demand via load_spellbook)
 addon.spells = {}

@@ -351,8 +351,8 @@ end
 -- Create a new button to the main mouse image frame.
 function addon:create_mouse_buttons()
 
-    -- Create a frame that acts as a button with a tooltip border.
-    local mouse_button = CreateFrame("BUTTON", nil, addon.mouse_image, "SecureActionButtonTemplate")
+    -- Use a non-secure button to avoid combat lockdown on mouse interaction updates.
+    local mouse_button = CreateFrame("Button", nil, addon.mouse_image)
 
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)

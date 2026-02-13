@@ -534,8 +534,8 @@ end
 -- Create a new button to the main controller image frame.
 function addon:create_controller_buttons()
 
-    -- Create a frame that acts as a button with a tooltip border.
-    local controller_button = CreateFrame("BUTTON", nil, addon.controller_frame, "SecureActionButtonTemplate")
+    -- Use a non-secure button to avoid combat lockdown on interaction state changes.
+    local controller_button = CreateFrame("Button", nil, addon.controller_frame)
 
     -- Add Background Texture
     local background = controller_button:CreateTexture(nil, "BACKGROUND")

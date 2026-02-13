@@ -909,6 +909,12 @@ local function reset_runtime_flags(self)
     self.shift_checkbox = false
     self.active_control_tab = ""
 
+    self.deferred_ui_updates = {
+        refresh_layouts = false,
+        apply_click_through = false,
+    }
+    self.retail_action_block_warned_this_combat = false
+
     self.tutorial_frame1_created = false
     self.tutorial_frame2_created = false
 end
@@ -1130,6 +1136,63 @@ function addon:load_spellbook()
     end
 end
 
+local function is_in_combat_lockdown()
+    if InCombatLockdown then
+        return InCombatLockdown()
+    end
+    return addon.in_combat == true
+end
+
+function addon:IsRetailActionMutationBlocked()
+    return addon.VERSION and addon.VERSION.isRetail and is_in_combat_lockdown()
+end
+
+function addon:WarnRetailActionMutationBlockedOnce()
+    if not (addon.VERSION and addon.VERSION.isRetail) then
+        return
+    end
+    if addon.retail_action_block_warned_this_combat then
+        return
+    end
+    addon.retail_action_block_warned_this_combat = true
+    print("KeyUI: Action changes are blocked during combat on Retail.")
+end
+
+function addon:MarkDeferredUiUpdate(flag)
+    if not flag then
+        return
+    end
+    if not self.deferred_ui_updates then
+        self.deferred_ui_updates = {}
+    end
+    self.deferred_ui_updates[flag] = true
+end
+
+function addon:FlushDeferredUiUpdates()
+    if is_in_combat_lockdown() then
+        return
+    end
+
+    local deferred = self.deferred_ui_updates
+    if not deferred then
+        return
+    end
+
+    local should_refresh_layouts = deferred.refresh_layouts == true
+    local should_apply_click_through = deferred.apply_click_through == true
+
+    deferred.refresh_layouts = false
+    deferred.apply_click_through = false
+
+    if should_refresh_layouts then
+        self:refresh_layouts()
+    end
+
+    if should_apply_click_through and not should_refresh_layouts then
+        self:ApplyClickThrough()
+    end
+end
+
 -- Triggers the functions to update the keyboard and mouse layouts on the current configuration.
 function addon:refresh_layouts()
     --print("refresh_layouts function called")  -- print statement for debbuging
@@ -1141,6 +1204,11 @@ function addon:refresh_layouts()
 
     -- stop if keyboard and mouse are not visible
     if addon.is_keyboard_visible == false and addon.is_mouse_visible == false and addon.is_controller_visible == false then
+        return
+    end
+
+    if is_in_combat_lockdown() then
+        addon:MarkDeferredUiUpdate("refresh_layouts")
         return
     end
 
@@ -1204,6 +1272,11 @@ end
 
 -- Apply click-through state to visualization frames and their child key buttons
 function addon:ApplyClickThrough()
+    if is_in_combat_lockdown() then
+        addon:MarkDeferredUiUpdate("apply_click_through")
+        return
+    end
+
     local clickThrough = keyui_settings.click_through and keyui_settings.position_locked
     local enableMouse = not clickThrough
 
@@ -2060,6 +2133,11 @@ end
 
 -- Handles drag-drop actions on a KeyUI button (place or pickup action)
 function addon:handle_action_drag(button)
+    if addon:IsRetailActionMutationBlocked() then
+        addon:WarnRetailActionMutationBlockedOnce()
+        return
+    end
+
     local target_slot = button and tonumber(button.slot)
     if not target_slot or target_slot <= 0 then
         return
@@ -3350,6 +3428,11 @@ local function build_spells_submenu(parentMenu)
                     local targetSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
 
                     if targetSlot ~= nil then
+                        if addon:IsRetailActionMutationBlocked() then
+                            addon:WarnRetailActionMutationBlockedOnce()
+                            return
+                        end
+
                         -- Version-aware spell pickup
                         if API_COMPAT.has_modern_spellbook then
                             C_Spell.PickupSpell(spell_id)
@@ -3395,6 +3478,11 @@ local function build_spells_submenu(parentMenu)
             local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
 
             if addon.current_slot ~= nil then
+                if addon:IsRetailActionMutationBlocked() then
+                    addon:WarnRetailActionMutationBlockedOnce()
+                    return
+                end
+
                 -- Copy the Assisted Combat action from an existing slot to the target slot
                 local acSlots = C_ActionBar.FindAssistedCombatActionButtons()
                 if acSlots and #acSlots > 0 then
@@ -3442,6 +3530,11 @@ local function build_macros_submenu(parentMenu)
                 local binding_name = addon.current_clicked_key.readable_binding:GetText()
 
                 if actionSlot then
+                    if addon:IsRetailActionMutationBlocked() then
+                        addon:WarnRetailActionMutationBlockedOnce()
+                        return
+                    end
+
                     PickupMacro(title)
                     PlaceAction(actionSlot)
                     ClearCursor()
@@ -3483,6 +3576,11 @@ local function build_macros_submenu(parentMenu)
                 local binding_name = addon.current_clicked_key.readable_binding:GetText()
 
                 if actionSlot then
+                    if addon:IsRetailActionMutationBlocked() then
+                        addon:WarnRetailActionMutationBlockedOnce()
+                        return
+                    end
+
                     PickupMacro(title)
                     PlaceAction(actionSlot)
                     ClearCursor()
@@ -3708,6 +3806,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
+        addon.retail_action_block_warned_this_combat = false
+        addon:FlushDeferredUiUpdates()
         if addon.open and keyui_settings.show_keypress_highlight then
             addon:enable_keypress_input()
         end
@@ -3716,6 +3816,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
     if event == "PLAYER_REGEN_DISABLED" then
         addon.in_combat = true
+        addon.retail_action_block_warned_this_combat = false
         addon:disable_keypress_input()
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
