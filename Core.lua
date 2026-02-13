@@ -101,6 +101,13 @@ local addon_pattern_registry = {
                 print("KeyUI: Dominos integration error:", err)
             end
         end
+
+        keybind_patterns["^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$"] = function(binding, button)
+            local success, err = pcall(addon.process_dominos, addon, binding, button)
+            if not success then
+                print("KeyUI: Dominos integration error:", err)
+            end
+        end
     end,
 
     OPie = function()
@@ -1944,8 +1951,31 @@ function addon:set_key(button)
             end
         end
 
+        if not matched then
+            local click_frame_name, click_button = binding:match("^CLICK ([^:]+):(.+)$")
+            if click_frame_name and (click_button == "HOTKEY" or click_button == "LeftButton") then
+                local slot = addon:resolve_addon_slot(binding)
+                if slot then
+                    button.slot = slot
+
+                    if HasAction(slot) then
+                        local texture = GetActionTexture(slot)
+                        if texture then
+                            button.active_slot = slot
+                            button.icon:SetTexture(texture)
+                            button.icon:Show()
+                        end
+                    end
+
+                    addon:update_assisted_combat_indicator(button, slot)
+                    matched = true
+                end
+            end
+        end
+
         if not matched and matches_opie_binding(binding) then
             addon:process_opie(button)
+            matched = true
         end
 
         if specific_bindings[binding] then
@@ -2030,19 +2060,38 @@ end
 
 -- Handles drag-drop actions on a KeyUI button (place or pickup action)
 function addon:handle_action_drag(button)
-    local slot = button.slot
-    if GetCursorInfo() then
-        -- Place action from cursor to slot
-        -- PlaceAction automatically swaps if target slot is occupied
-        if slot then
-            PlaceAction(slot)
-            -- Do NOT clear cursor - PlaceAction handles the swap
-            -- If target slot was occupied, the displaced action is now on cursor
-        end
-    elseif slot then
-        -- Pick up action from slot to cursor
-        PickupAction(slot)
+    local target_slot = button and tonumber(button.slot)
+    if not target_slot or target_slot <= 0 then
+        return
     end
+
+    local cursor_kind, cursor_data = GetCursorInfo()
+    local source_slot = nil
+    if cursor_kind == "action" then
+        source_slot = tonumber(cursor_data)
+        if not source_slot or source_slot <= 0 then
+            source_slot = nil
+        end
+    end
+
+    local affected_slots = {
+        [target_slot] = true,
+    }
+    if source_slot and source_slot ~= target_slot then
+        affected_slots[source_slot] = true
+    end
+
+    if cursor_kind then
+        if C_ActionBar and C_ActionBar.PutActionInSlot then
+            C_ActionBar.PutActionInSlot(target_slot)
+        else
+            PlaceAction(target_slot)
+        end
+    else
+        PickupAction(target_slot)
+    end
+
+    addon:sync_dragged_action_slots(button, affected_slots)
 end
 
 -- Retrieves the binding action
@@ -2102,8 +2151,21 @@ end
 function addon:process_actionbutton_slot(slot, button)
     if not slot then return end
 
+    local resolved_slot = nil
+    local loaded_integrations = addon.loaded_integrations or {}
+
+    -- Dominos can remap ACTIONBUTTON1-12 through secure frame state/paging.
+    -- Prefer the live Dominos frame action slot when available.
+    if loaded_integrations.Dominos and slot >= 1 and slot <= 12 then
+        local dominos_frame_name = ("DominosActionButton%d"):format(slot)
+        if _G[dominos_frame_name] then
+            local dominos_binding = ("CLICK %s:HOTKEY"):format(dominos_frame_name)
+            resolved_slot = addon:resolve_addon_slot(dominos_binding)
+        end
+    end
+
     -- Adjust the slot based on bonus bar offset and action bar page
-    local adjusted_slot = addon:get_action_button_slot(slot)
+    local adjusted_slot = resolved_slot or addon:get_action_button_slot(slot)
     button.slot = adjusted_slot
 
     -- Check if the slot has an action assigned
@@ -2311,27 +2373,225 @@ local function parse_click_binding(binding)
     return frame_name, click_button
 end
 
-local function get_action_slot_from_frame(frame)
-    if not frame then
+local function normalize_action_slot(value)
+    local slot = tonumber(value)
+    if slot and slot > 0 then
+        return slot
+    end
+    return nil
+end
+
+local function collect_click_binding_frames(binding)
+    local frame_name = parse_click_binding(binding)
+    if not frame_name then
         return nil
     end
 
-    if frame._state_type == "action" and frame._state_action then
-        return tonumber(frame._state_action)
-    end
+    local frames = {}
+    local seen = {}
 
-    if frame.GetAttribute then
-        local action = frame:GetAttribute("action")
-        if action then
-            return tonumber(action)
+    local function add_frame(frame)
+        if frame and not seen[frame] then
+            seen[frame] = true
+            table.insert(frames, frame)
         end
     end
 
-    if frame.action then
-        return tonumber(frame.action)
+    local frame = _G[frame_name]
+    add_frame(frame)
+
+    if frame and frame.GetParent then
+        add_frame(frame:GetParent())
+    end
+
+    local base_frame_name = frame_name:match("^(.-)Hotkey$")
+    if base_frame_name and base_frame_name ~= "" then
+        local base_frame = _G[base_frame_name]
+        add_frame(base_frame)
+
+        if base_frame and base_frame.GetParent then
+            add_frame(base_frame:GetParent())
+        end
+    end
+
+    return frames
+end
+
+local function sorted_slot_list(slot_set)
+    local slots = {}
+
+    if type(slot_set) ~= "table" then
+        return slots
+    end
+
+    for slot in pairs(slot_set) do
+        local normalized = normalize_action_slot(slot)
+        if normalized then
+            table.insert(slots, normalized)
+        end
+    end
+
+    table.sort(slots)
+    return slots
+end
+
+local function try_frame_refresh(frame, method_name)
+    if not frame then
+        return
+    end
+
+    local method = frame[method_name]
+    if type(method) == "function" then
+        pcall(method, frame)
+    end
+end
+
+local function get_action_slot_from_frame(frame)
+    local current = frame
+    local depth = 0
+
+    while current and depth < 8 do
+        if current.GetAttribute then
+            local action = current:GetAttribute("action")
+            local slot = normalize_action_slot(action)
+            if slot then
+                return slot
+            end
+        end
+
+        local frame_action_slot = normalize_action_slot(current.action)
+        if frame_action_slot then
+            return frame_action_slot
+        end
+
+        if current._state_type == "action" then
+            local state_action_slot = normalize_action_slot(current._state_action)
+            if state_action_slot then
+                return state_action_slot
+            end
+        end
+
+        if not current.GetParent then
+            break
+        end
+
+        local parent = current:GetParent()
+        if not parent or parent == current then
+            break
+        end
+
+        current = parent
+        depth = depth + 1
     end
 
     return nil
+end
+
+function addon:refresh_binding_frames_for_slot(binding, slot)
+    local normalized_slot = normalize_action_slot(slot)
+    if not normalized_slot then
+        return
+    end
+
+    local frames = collect_click_binding_frames(binding)
+    if not frames then
+        return
+    end
+
+    for _, frame in ipairs(frames) do
+        local frame_slot = get_action_slot_from_frame(frame)
+        if frame_slot == normalized_slot then
+            try_frame_refresh(frame, "UpdateIcon")
+            try_frame_refresh(frame, "UpdateShown")
+        end
+    end
+end
+
+function addon:refresh_dominos_slot(slot)
+    local normalized_slot = normalize_action_slot(slot)
+    if not normalized_slot then
+        return
+    end
+
+    local dominos = _G.Dominos
+    local action_buttons = dominos and dominos.ActionButtons
+    if not action_buttons or type(action_buttons.ForActionSlot) ~= "function" then
+        return
+    end
+
+    pcall(action_buttons.ForActionSlot, action_buttons, normalized_slot, "UpdateShown")
+    pcall(action_buttons.ForActionSlot, action_buttons, normalized_slot, "UpdateIcon")
+end
+
+function addon:sync_dragged_action_slots(button, slot_set)
+    local binding = button and button.binding
+
+    for _, slot in ipairs(sorted_slot_list(slot_set)) do
+        if binding and binding ~= "" then
+            addon:refresh_binding_frames_for_slot(binding, slot)
+        end
+        addon:refresh_dominos_slot(slot)
+    end
+end
+
+-- Last-resort CLICK fallback when no live frame attributes are available.
+-- Offsets intentionally reuse `multiactionbar_offsets` to stay in sync with the
+-- primary MULTIACTIONBAR resolver and avoid drift in slot arithmetic.
+local function resolve_multibar_click_slot(binding)
+    if type(binding) ~= "string" then
+        return nil, nil
+    end
+
+    local multibar_right = binding:match("^CLICK MultiBarRightActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBarRightActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBarRightActionButton(%d+):LeftButton$")
+    if multibar_right then
+        return multiactionbar_offsets[3] + tonumber(multibar_right), "multibar_right_click_fallback"
+    end
+
+    local multibar_left = binding:match("^CLICK MultiBarLeftActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBarLeftActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBarLeftActionButton(%d+):LeftButton$")
+    if multibar_left then
+        return multiactionbar_offsets[4] + tonumber(multibar_left), "multibar_left_click_fallback"
+    end
+
+    local multibar_bottom_right = binding:match("^CLICK MultiBarBottomRightActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBarBottomRightActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBarBottomRightActionButton(%d+):LeftButton$")
+    if multibar_bottom_right then
+        return multiactionbar_offsets[2] + tonumber(multibar_bottom_right), "multibar_bottom_right_click_fallback"
+    end
+
+    local multibar_bottom_left = binding:match("^CLICK MultiBarBottomLeftActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBarBottomLeftActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBarBottomLeftActionButton(%d+):LeftButton$")
+    if multibar_bottom_left then
+        return multiactionbar_offsets[1] + tonumber(multibar_bottom_left), "multibar_bottom_left_click_fallback"
+    end
+
+    local multibar5 = binding:match("^CLICK MultiBar5ActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBar5ActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBar5ActionButton(%d+):LeftButton$")
+    if multibar5 then
+        return multiactionbar_offsets[5] + tonumber(multibar5), "multibar5_click_fallback"
+    end
+
+    local multibar6 = binding:match("^CLICK MultiBar6ActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBar6ActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBar6ActionButton(%d+):LeftButton$")
+    if multibar6 then
+        return multiactionbar_offsets[6] + tonumber(multibar6), "multibar6_click_fallback"
+    end
+
+    local multibar7 = binding:match("^CLICK MultiBar7ActionButton(%d+)Hotkey:HOTKEY$")
+        or binding:match("^CLICK MultiBar7ActionButton(%d+):HOTKEY$")
+        or binding:match("^CLICK MultiBar7ActionButton(%d+):LeftButton$")
+    if multibar7 then
+        return multiactionbar_offsets[7] + tonumber(multibar7), "multibar7_click_fallback"
+    end
+
+    return nil, nil
 end
 
 function addon:resolve_addon_slot(binding)
@@ -2339,6 +2599,11 @@ function addon:resolve_addon_slot(binding)
         return nil
     end
 
+    -- Resolver priority (high -> low):
+    -- 1) Live frame attributes (`frame_attr_chain`) from CLICK target/parents
+    -- 2) HOTKEY child -> base frame fallback (`base_frame_hotkey_trim`)
+    -- 3) Addon-specific numeric fallbacks (BT4/Dominos direct patterns)
+    -- 4) Generic MultiBar CLICK fallback offsets as a last resort
     if binding:match("^CLICK BT4StanceButton(%d+):LeftButton$") then
         return nil
     end
@@ -2360,6 +2625,15 @@ function addon:resolve_addon_slot(binding)
         if slot then
             return slot
         end
+
+        local base_frame_name = frame_name:match("^(.-)Hotkey$")
+        if base_frame_name and base_frame_name ~= "" then
+            local base_frame = _G[base_frame_name]
+            slot = get_action_slot_from_frame(base_frame)
+            if slot then
+                return slot
+            end
+        end
     end
 
     local bt4_slot = binding:match("^CLICK BT4Button(%d+):Keybind$")
@@ -2370,6 +2644,16 @@ function addon:resolve_addon_slot(binding)
     local dominos_slot = binding:match("^CLICK DominosActionButton(%d+):HOTKEY$")
     if dominos_slot then
         return tonumber(dominos_slot)
+    end
+
+    local dominos_hotkey_slot = binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$")
+    if dominos_hotkey_slot then
+        return tonumber(dominos_hotkey_slot)
+    end
+
+    local multibar_slot = resolve_multibar_click_slot(binding)
+    if multibar_slot then
+        return multibar_slot
     end
 
     return nil
@@ -2559,16 +2843,67 @@ function addon:update_button_key_text(button)
     end
 end
 
+local function get_dominos_button_index_from_frame(frame_name, parent)
+    local dominos_button_index = frame_name and (
+        frame_name:match("^DominosActionButton(%d+)Hotkey$")
+        or frame_name:match("^DominosActionButton(%d+)$")
+    ) or nil
+
+    if not dominos_button_index and parent and parent.GetName then
+        local parent_name = parent:GetName()
+        if type(parent_name) == "string" then
+            dominos_button_index = parent_name:match("^DominosActionButton(%d+)Hotkey$")
+                or parent_name:match("^DominosActionButton(%d+)$")
+        end
+    end
+
+    return dominos_button_index
+end
+
+local function resolve_click_binding_label(binding)
+    local frame_name = parse_click_binding(binding)
+    if not frame_name then
+        return nil
+    end
+
+    local frame = _G[frame_name]
+    local parent = frame and frame.GetParent and frame:GetParent() or nil
+
+    -- Dominos bar 1 can expose commandName=ACTIONBUTTONN; prefer Dominos label
+    -- for Dominos frames to avoid regressing to the generic Blizzard wording.
+    local dominos_button_index = get_dominos_button_index_from_frame(frame_name, parent)
+    if dominos_button_index then
+        return "Dominos Action Button " .. dominos_button_index
+    end
+
+    local command_name = nil
+    if frame and frame.GetAttribute then
+        command_name = frame:GetAttribute("commandName")
+    end
+    if (not command_name or command_name == "") and parent and parent.GetAttribute then
+        command_name = parent:GetAttribute("commandName")
+    end
+
+    if command_name and command_name ~= "" then
+        local readable = _G["BINDING_NAME_" .. command_name]
+        if type(readable) == "string" and readable ~= "" then
+            return readable
+        end
+    end
+
+    return nil
+end
+
 -- Sets and displays the interface action label
 function addon:create_action_labels(binding, button)
     -- Adjust the width of the readable_binding based on button width
     button.readable_binding:SetWidth(button:GetWidth() - 4)
 
-    local binding_name
+    local binding_name = resolve_click_binding_label(binding)
     local loaded_integrations = addon.loaded_integrations or {}
 
     -- Check if ElvUI is loaded and handle its bindings
-    if loaded_integrations.ElvUI then
+    if loaded_integrations.ElvUI and not binding_name then
         local function resolve_elvui_binding_name(bar_index, button_index)
             local elv_binding = ("ELVUIBAR%sBUTTON%s"):format(bar_index, button_index)
             return _G["BINDING_NAME_" .. elv_binding] or ("ElvUI ActionBar " .. bar_index .. " Button " .. button_index)
@@ -2584,7 +2919,7 @@ function addon:create_action_labels(binding, button)
     end
 
     -- Check if Bartender4 is loaded and handle its bindings
-    if loaded_integrations.Bartender4 then
+    if loaded_integrations.Bartender4 and not binding_name then
         if binding:match("^CLICK BT4Button(%d+):Keybind$") then
             local button_index = binding:match("^CLICK BT4Button(%d+):Keybind$")
             binding_name = _G["BINDING_NAME_" .. binding] or ("Bartender Action Button " .. button_index)
@@ -2595,15 +2930,18 @@ function addon:create_action_labels(binding, button)
     end
 
     -- Check if Dominos is loaded and handle its bindings
-    if loaded_integrations.Dominos then
+    if loaded_integrations.Dominos and not binding_name then
         if binding:match("^CLICK DominosActionButton(%d+):HOTKEY$") then
             local button_index = binding:match("^CLICK DominosActionButton(%d+):HOTKEY$")
+            binding_name = "Dominos Action Button " .. button_index
+        elseif binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$") then
+            local button_index = binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$")
             binding_name = "Dominos Action Button " .. button_index
         end
     end
 
     -- Check if BindPad is loaded and handle its bindings
-    if loaded_integrations.BindPad then
+    if loaded_integrations.BindPad and not binding_name then
         if binding:match("^CLICK BindPadMacro:([^:]+)$") then
             local macro_name = binding:match("^CLICK BindPadMacro:([^:]+)$")
             binding_name = "BindPad Macro: " .. macro_name

@@ -217,6 +217,27 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] All frames render correctly
 - [ ] No Atlas-dependent code executes
 
+### Addon Integration Regression Tests
+
+#### Dominos (11.2.x)
+- [ ] Binding format `CLICK DominosActionButtonN:HOTKEY` resolves to a valid slot
+- [ ] Binding format `CLICK DominosActionButtonNHotkey:HOTKEY` resolves to the same slot
+- [ ] Binding format `CLICK MultiBarRightActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBarLeftActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBarBottomRightActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBarBottomLeftActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBar5ActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBar6ActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `CLICK MultiBar7ActionButtonNHotkey:HOTKEY` resolves to the expected slot
+- [ ] Binding format `ACTIONBUTTONN` resolves to the live Dominos action slot for bar 1-12
+- [ ] KeyUI shows the action icon for both Dominos binding formats
+- [ ] Label regression: Dominos bar 1 (`DominosActionButton1-12`) shows `Dominos Action Button N` (not generic `Action Button N`)
+- [ ] Drag & drop from KeyUI onto Dominos-bound keys works for both formats
+- [ ] Repro test: pick up an action from a Dominos key and place it onto an empty Dominos key, icon appears on the real Dominos button immediately
+- [ ] Repro test: pick up icon from a Dominos key and drop it back on the same key, icon remains visible and slot remains stable
+- [ ] Fallback regression: when a CLICK binding cannot resolve via live frame attributes, fallback slot equals the frame-attribute slot for the same button
+- [ ] Fallback regression: `frame_attr_chain` and numeric/MultiBar fallback produce the same final slot for equivalent Dominos bindings
+
 ### In-Game Test Commands
 
 ```lua
