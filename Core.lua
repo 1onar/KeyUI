@@ -15,9 +15,18 @@ local API_COMPAT = {
     has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
     has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
     has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
+    has_class_talents = (C_ClassTalents and C_ClassTalents.GetActiveConfigID ~= nil),
+    has_traits_config = (C_Traits and C_Traits.GetConfigInfo ~= nil),
 }
 addon.api_compat = API_COMPAT
 addon.compat = addon.compat or {}
+
+local SPEC_PROFILES_VERSION = 1
+local SPEC_ACTION_RESTORE_SAFE_AUTO = "safe_auto"
+local SPEC_ACTION_RESTORE_BINDINGS_ONLY = "bindings_only"
+local SPEC_ACTION_RESTORE_FORCE = "force"
+local SPEC_SNAPSHOT_CAPTURE_DEBOUNCE = 0.20
+local SPEC_SWITCH_DEBOUNCE = 0.25
 
 do
     local compat_build = (addon.VERSION and addon.VERSION.build) or select(4, GetBuildInfo()) or 0
@@ -914,6 +923,12 @@ local function reset_runtime_flags(self)
         apply_click_through = false,
     }
     self.retail_action_block_warned_this_combat = false
+    self.spec_snapshot_apply_in_progress = false
+    self.spec_capture_pending = false
+    self.spec_capture_timer_active = false
+    self.spec_pending_apply_key = nil
+    self.spec_last_switch_key = nil
+    self.spec_last_switch_at = 0
 
     self.tutorial_frame1_created = false
     self.tutorial_frame2_created = false
@@ -988,6 +1003,8 @@ function addon:ResetAddonSettings()
         Settings.SetValue("KEYUI_SHOW_KEYBOARD", keyui_settings.show_keyboard)
         Settings.SetValue("KEYUI_SHOW_MOUSE", keyui_settings.show_mouse)
         Settings.SetValue("KEYUI_SHOW_CONTROLLER", keyui_settings.show_controller)
+        Settings.SetValue("KEYUI_SPEC_AUTO_SWAP", keyui_settings.spec_auto_swap)
+        Settings.SetValue("KEYUI_SPEC_ACTION_RESTORE_MODE", keyui_settings.spec_action_restore_mode)
         Settings.SetValue("KEYUI_FONT_FACE", keyui_settings.font_face)
         Settings.SetValue("KEYUI_FONT_SIZE", keyui_settings.font_base_size)
     end
@@ -1156,6 +1173,594 @@ function addon:WarnRetailActionMutationBlockedOnce()
     end
     addon.retail_action_block_warned_this_combat = true
     print("KeyUI: Action changes are blocked during combat on Retail.")
+end
+
+function addon:AnnounceSpecAutoSwapOptIn()
+    if keyui_settings.spec_feature_explained == true then
+        return
+    end
+
+    keyui_settings.spec_feature_explained = true
+    print("KeyUI: Spec profile auto-restore enabled. KeyUI now stores per-spec snapshots. This is optional and can be disabled in settings.")
+end
+
+local function normalize_snapshot_slot(value)
+    local slot = tonumber(value)
+    if slot and slot > 0 and slot % 1 == 0 then
+        return slot
+    end
+    return nil
+end
+
+local GetSpellFromActionSlot
+
+local function get_current_binding_set_id()
+    if GetCurrentBindingSet then
+        local active_set = tonumber(GetCurrentBindingSet())
+        if active_set and active_set > 0 then
+            return active_set
+        end
+    end
+    return 2
+end
+
+local function collect_current_bindings_by_key()
+    local bindings = {}
+    local seen_commands = {}
+    local num_bindings = GetNumBindings and tonumber(GetNumBindings()) or 0
+
+    for i = 1, num_bindings do
+        local command = GetBinding(i)
+        if type(command) == "string" and command ~= "" and not seen_commands[command] then
+            seen_commands[command] = true
+            local keys = { GetBindingKey(command) }
+            for _, key in ipairs(keys) do
+                if type(key) == "string" and key ~= "" then
+                    bindings[key] = command
+                end
+            end
+        end
+    end
+
+    return bindings
+end
+
+local function sanitize_binding_snapshot(bindings)
+    if type(bindings) ~= "table" then
+        return {}
+    end
+
+    local sanitized = {}
+    for key, command in pairs(bindings) do
+        if type(key) == "string" and key ~= "" and type(command) == "string" and command ~= "" then
+            sanitized[key] = command
+        end
+    end
+    return sanitized
+end
+
+local function resolve_action_slot_from_binding_command(command)
+    if type(command) ~= "string" or command == "" then
+        return nil
+    end
+
+    if addon.action_slot_mapping and addon.action_slot_mapping[command] then
+        return normalize_snapshot_slot(addon.action_slot_mapping[command])
+    end
+
+    local action_button = command:match("^ACTIONBUTTON(%d+)$")
+    if action_button then
+        return addon:get_action_button_slot(tonumber(action_button))
+    end
+
+    if command:match("^CLICK ") then
+        return addon:resolve_addon_slot(command)
+    end
+
+    return nil
+end
+
+local function collect_slots_from_key_collection(collection, slot_set)
+    if type(collection) ~= "table" then
+        return
+    end
+
+    for _, button in pairs(collection) do
+        local slot = normalize_snapshot_slot(button and button.slot)
+        if slot then
+            slot_set[slot] = true
+        end
+    end
+end
+
+local function collect_relevant_snapshot_slots(bindings)
+    local slot_set = {}
+
+    for _, command in pairs(bindings) do
+        local slot = resolve_action_slot_from_binding_command(command)
+        if slot then
+            slot_set[slot] = true
+        end
+    end
+
+    collect_slots_from_key_collection(addon.keys_keyboard, slot_set)
+    collect_slots_from_key_collection(addon.keys_mouse, slot_set)
+    collect_slots_from_key_collection(addon.keys_controller, slot_set)
+
+    return slot_set
+end
+
+local function build_slot_payload(slot)
+    if not slot then
+        return nil
+    end
+
+    if not HasAction(slot) then
+        return { type = "empty" }
+    end
+
+    local action_type, action_id = GetActionInfo(slot)
+    if action_type == "spell" then
+        local spell_id = GetSpellFromActionSlot(slot)
+        spell_id = tonumber(spell_id) or tonumber(action_id)
+        if spell_id then
+            return {
+                type = "spell",
+                spellID = spell_id,
+            }
+        end
+    elseif action_type == "macro" then
+        local macro_name = nil
+        if type(action_id) == "number" then
+            macro_name = GetMacroInfo(action_id)
+        elseif type(action_id) == "string" then
+            macro_name = action_id
+        end
+        if type(macro_name) == "string" and macro_name ~= "" then
+            return {
+                type = "macro",
+                macroName = macro_name,
+            }
+        end
+    elseif action_type == "item" then
+        local item_id = tonumber(action_id)
+        if item_id then
+            return {
+                type = "item",
+                itemID = item_id,
+            }
+        end
+    end
+
+    return nil
+end
+
+local function capture_slot_snapshot(bindings)
+    local snapshots = {}
+    local slot_set = collect_relevant_snapshot_slots(bindings)
+
+    for slot in pairs(slot_set) do
+        local payload = build_slot_payload(slot)
+        if payload then
+            snapshots[slot] = payload
+        end
+    end
+
+    return snapshots
+end
+
+local function apply_binding_snapshot(snapshot_bindings)
+    local desired = sanitize_binding_snapshot(snapshot_bindings)
+    local current = collect_current_bindings_by_key()
+    local changed = false
+
+    for key, command in pairs(current) do
+        if desired[key] ~= command then
+            SetBinding(key)
+            changed = true
+        end
+    end
+
+    for key, command in pairs(desired) do
+        if current[key] ~= command then
+            SetBinding(key, command)
+            changed = true
+        end
+    end
+
+    if changed then
+        SaveBindings(get_current_binding_set_id())
+    end
+end
+
+local function clear_action_slot(slot)
+    PickupAction(slot)
+    ClearCursor()
+end
+
+local function place_spell_on_slot(slot, spell_id)
+    if not spell_id then
+        return false
+    end
+
+    if API_COMPAT.has_modern_spellbook and C_Spell and C_Spell.PickupSpell then
+        C_Spell.PickupSpell(spell_id)
+    elseif PickupSpell then
+        PickupSpell(spell_id)
+    else
+        return false
+    end
+
+    if not GetCursorInfo() then
+        ClearCursor()
+        return false
+    end
+
+    PlaceAction(slot)
+    ClearCursor()
+    return true
+end
+
+local function place_macro_on_slot(slot, macro_name)
+    if type(macro_name) ~= "string" or macro_name == "" then
+        return false
+    end
+
+    PickupMacro(macro_name)
+    if not GetCursorInfo() then
+        ClearCursor()
+        return false
+    end
+
+    PlaceAction(slot)
+    ClearCursor()
+    return true
+end
+
+local function place_item_on_slot(slot, item_id)
+    if type(item_id) ~= "number" then
+        return false
+    end
+
+    if C_Item and C_Item.PickupItemByID then
+        C_Item.PickupItemByID(item_id)
+    else
+        PickupItem(item_id)
+    end
+
+    if not GetCursorInfo() then
+        ClearCursor()
+        return false
+    end
+
+    PlaceAction(slot)
+    ClearCursor()
+    return true
+end
+
+local function apply_slot_payload(slot, payload)
+    if type(payload) ~= "table" then
+        return false
+    end
+
+    local payload_type = payload.type
+    if payload_type ~= "spell" and payload_type ~= "macro" and payload_type ~= "item" and payload_type ~= "empty" then
+        return false
+    end
+
+    clear_action_slot(slot)
+
+    if payload_type == "empty" then
+        return true
+    elseif payload_type == "spell" then
+        return place_spell_on_slot(slot, tonumber(payload.spellID))
+    elseif payload_type == "macro" then
+        return place_macro_on_slot(slot, payload.macroName)
+    elseif payload_type == "item" then
+        return place_item_on_slot(slot, tonumber(payload.itemID))
+    end
+
+    return false
+end
+
+function addon:GetCurrentActionRestorePolicy()
+    local mode = keyui_settings and keyui_settings.spec_action_restore_mode
+    if mode == SPEC_ACTION_RESTORE_BINDINGS_ONLY or mode == SPEC_ACTION_RESTORE_FORCE then
+        return mode
+    end
+    return SPEC_ACTION_RESTORE_SAFE_AUTO
+end
+
+function addon:IsSafeToRestoreActionbarsForCurrentClientSpec()
+    if not (addon.VERSION and addon.VERSION.isRetail) then
+        return true
+    end
+
+    if not API_COMPAT.has_class_talents or not API_COMPAT.has_traits_config then
+        return false
+    end
+
+    local ok_config_id, active_config_id = pcall(C_ClassTalents.GetActiveConfigID)
+    if not ok_config_id or not active_config_id then
+        return false
+    end
+
+    local ok_config_info, config_info = pcall(C_Traits.GetConfigInfo, active_config_id)
+    if not ok_config_info or type(config_info) ~= "table" then
+        return false
+    end
+
+    if config_info.usesSharedActionBars == false then
+        return false
+    end
+    if config_info.usesSharedActionBars == true then
+        return true
+    end
+
+    return false
+end
+
+function addon:GetCharacterProfileKey()
+    local character_name = UnitName("player") or "Unknown"
+    local realm_name = (GetRealmName and GetRealmName()) or "Unknown"
+    if realm_name == "" then
+        realm_name = "Unknown"
+    end
+    return ("%s - %s"):format(character_name, realm_name)
+end
+
+function addon:GetSpecKeyForGroup(active_group)
+    local group = tonumber(active_group)
+    if group and group > 0 then
+        return ("group:%d"):format(group)
+    end
+    return nil
+end
+
+function addon:GetActiveSpecKey()
+    if GetSpecialization and GetSpecializationInfo then
+        local spec_index = GetSpecialization()
+        if spec_index then
+            local spec_id = select(1, GetSpecializationInfo(spec_index))
+            spec_id = tonumber(spec_id)
+            if spec_id and spec_id > 0 then
+                return ("spec:%d"):format(spec_id)
+            end
+        end
+    end
+
+    if GetActiveTalentGroup then
+        local group_key = self:GetSpecKeyForGroup(GetActiveTalentGroup())
+        if group_key then
+            return group_key
+        end
+    end
+
+    return "nospec"
+end
+
+function addon:GetSpecCharacterStore(character_key)
+    keyui_settings.spec_profiles_version = SPEC_PROFILES_VERSION
+    keyui_settings.spec_profiles = keyui_settings.spec_profiles or {}
+    keyui_settings.spec_profiles.by_character = keyui_settings.spec_profiles.by_character or {}
+
+    local key = character_key or self:GetCharacterProfileKey()
+    local by_character = keyui_settings.spec_profiles.by_character
+    by_character[key] = by_character[key] or {}
+
+    local store = by_character[key]
+    store.specs = store.specs or {}
+    if type(store.specs) ~= "table" then
+        store.specs = {}
+    end
+    if type(store.last_spec_key) ~= "string" then
+        store.last_spec_key = nil
+    end
+
+    return store
+end
+
+function addon:CaptureSpecSnapshot(spec_key)
+    spec_key = spec_key or self:GetActiveSpecKey()
+    if not spec_key then
+        return false, "No active spec key"
+    end
+
+    if is_in_combat_lockdown() then
+        self.spec_capture_pending = true
+        return false, "In combat"
+    end
+
+    local bindings = collect_current_bindings_by_key()
+    local snapshot = {
+        bindings = bindings,
+        slots = capture_slot_snapshot(bindings),
+        ts = time(),
+    }
+
+    local store = self:GetSpecCharacterStore()
+    store.specs[spec_key] = snapshot
+    store.last_spec_key = spec_key
+    return true
+end
+
+function addon:ApplySpecSnapshot(spec_key)
+    if not spec_key then
+        return false, "No target spec key"
+    end
+
+    local store = self:GetSpecCharacterStore()
+    local snapshot = store.specs and store.specs[spec_key]
+    if type(snapshot) ~= "table" then
+        return false, "Snapshot not found"
+    end
+
+    if is_in_combat_lockdown() then
+        self.spec_pending_apply_key = spec_key
+        return false, "Deferred in combat"
+    end
+
+    self.spec_snapshot_apply_in_progress = true
+    local ok, err = pcall(function()
+        apply_binding_snapshot(snapshot.bindings)
+
+        local should_restore_actions = false
+        local policy = self:GetCurrentActionRestorePolicy()
+        if policy == SPEC_ACTION_RESTORE_FORCE then
+            should_restore_actions = true
+        elseif policy == SPEC_ACTION_RESTORE_SAFE_AUTO then
+            should_restore_actions = self:IsSafeToRestoreActionbarsForCurrentClientSpec()
+        end
+
+        if should_restore_actions and type(snapshot.slots) == "table" then
+            local ordered_slots = {}
+            for slot, payload in pairs(snapshot.slots) do
+                local normalized_slot = normalize_snapshot_slot(slot)
+                if normalized_slot and type(payload) == "table" then
+                    table.insert(ordered_slots, {
+                        slot = normalized_slot,
+                        payload = payload,
+                    })
+                end
+            end
+            table.sort(ordered_slots, function(a, b)
+                return a.slot < b.slot
+            end)
+
+            for _, slot_entry in ipairs(ordered_slots) do
+                apply_slot_payload(slot_entry.slot, slot_entry.payload)
+            end
+        end
+    end)
+    self.spec_snapshot_apply_in_progress = false
+
+    if not ok then
+        return false, err
+    end
+
+    store.last_spec_key = spec_key
+
+    if addon.open then
+        addon:refresh_keys()
+    end
+
+    return true
+end
+
+function addon:QueueSpecSnapshotApply(spec_key)
+    if not keyui_settings.spec_auto_swap then
+        return
+    end
+    self.spec_pending_apply_key = spec_key or self:GetActiveSpecKey()
+end
+
+function addon:QueueSpecSnapshotCapture(delay_seconds)
+    if not keyui_settings.spec_auto_swap or self.spec_snapshot_apply_in_progress then
+        return
+    end
+
+    self.spec_capture_pending = true
+    if self.spec_capture_timer_active then
+        return
+    end
+
+    local function run_capture()
+        self.spec_capture_timer_active = false
+        if not self.spec_capture_pending or self.spec_snapshot_apply_in_progress then
+            return
+        end
+        if is_in_combat_lockdown() then
+            return
+        end
+
+        self.spec_capture_pending = false
+        self:CaptureSpecSnapshot(self:GetActiveSpecKey())
+    end
+
+    if is_in_combat_lockdown() then
+        return
+    end
+
+    local delay = tonumber(delay_seconds)
+    if not delay or delay < 0 then
+        delay = SPEC_SNAPSHOT_CAPTURE_DEBOUNCE
+    end
+
+    self.spec_capture_timer_active = true
+    if C_Timer and C_Timer.After and delay > 0 then
+        C_Timer.After(delay, run_capture)
+    else
+        run_capture()
+    end
+end
+
+function addon:FlushDeferredSpecUpdates()
+    if not keyui_settings.spec_auto_swap or is_in_combat_lockdown() then
+        return
+    end
+
+    if self.spec_pending_apply_key then
+        local pending_key = self.spec_pending_apply_key
+        self.spec_pending_apply_key = nil
+        local applied, reason = self:ApplySpecSnapshot(pending_key)
+        if not applied then
+            if reason == "Snapshot not found" then
+                self:CaptureSpecSnapshot(pending_key)
+                return
+            end
+            self.spec_pending_apply_key = pending_key
+            return
+        end
+    end
+
+    if self.spec_capture_pending and not self.spec_capture_timer_active then
+        self:QueueSpecSnapshotCapture(0)
+    end
+end
+
+function addon:HandleSpecChangedEvent(unit)
+    if not keyui_settings.spec_auto_swap then
+        return
+    end
+    if unit and unit ~= "player" then
+        return
+    end
+
+    local spec_key = self:GetActiveSpecKey()
+    local now = (GetTime and GetTime()) or 0
+    if self.spec_last_switch_key == spec_key and (now - (self.spec_last_switch_at or 0)) < SPEC_SWITCH_DEBOUNCE then
+        return
+    end
+    self.spec_last_switch_key = spec_key
+    self.spec_last_switch_at = now
+
+    if is_in_combat_lockdown() then
+        self:QueueSpecSnapshotApply(spec_key)
+        return
+    end
+
+    local store = self:GetSpecCharacterStore()
+    if type(store.specs[spec_key]) ~= "table" then
+        self:CaptureSpecSnapshot(spec_key)
+    else
+        self:ApplySpecSnapshot(spec_key)
+    end
+end
+
+function addon:InitializeSpecAutoSwapState()
+    if not keyui_settings.spec_auto_swap then
+        return
+    end
+
+    local spec_key = self:GetActiveSpecKey()
+    local store = self:GetSpecCharacterStore()
+    store.last_spec_key = spec_key
+
+    if type(store.specs[spec_key]) ~= "table" then
+        self:QueueSpecSnapshotCapture(0)
+    else
+        self:QueueSpecSnapshotCapture()
+    end
 end
 
 function addon:MarkDeferredUiUpdate(flag)
@@ -2170,6 +2775,7 @@ function addon:handle_action_drag(button)
     end
 
     addon:sync_dragged_action_slots(button, affected_slots)
+    addon:QueueSpecSnapshotCapture()
 end
 
 -- Retrieves the binding action
@@ -2213,7 +2819,7 @@ end
 
 -- Get spell ID from action slot (version-compatible)
 -- Retail & Anniversary have C_ActionBar.GetSpell, Cata Classic & Classic Era don't
-local function GetSpellFromActionSlot(slot)
+GetSpellFromActionSlot = function(slot)
     if API_COMPAT.has_actionbar_getspell then
         return C_ActionBar.GetSpell(slot)
     else
@@ -3441,10 +4047,12 @@ local function build_spells_submenu(parentMenu)
                         end
                         PlaceAction(targetSlot)
                         ClearCursor()
+                        addon:QueueSpecSnapshotCapture()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
                         SetBinding(key, spell)
                         SaveBindings(2)
+                        addon:QueueSpecSnapshotCapture()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
                     end
                 end)
@@ -3489,6 +4097,7 @@ local function build_spells_submenu(parentMenu)
                     PickupAction(acSlots[1])
                     PlaceAction(addon.current_slot)
                     ClearCursor()
+                    addon:QueueSpecSnapshotCapture()
                     local acName = _G["ASSISTED_COMBAT_ROTATION"] or "Assisted Combat"
                     print("KeyUI: Bound |cffa335ee" .. acName .. "|r to |cffff8000" .. key .. "|r")
                 end
@@ -3538,10 +4147,12 @@ local function build_macros_submenu(parentMenu)
                     PickupMacro(title)
                     PlaceAction(actionSlot)
                     ClearCursor()
+                    addon:QueueSpecSnapshotCapture()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
                     SetBinding(key, command)
                     SaveBindings(2)
+                    addon:QueueSpecSnapshotCapture()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -3584,10 +4195,12 @@ local function build_macros_submenu(parentMenu)
                     PickupMacro(title)
                     PlaceAction(actionSlot)
                     ClearCursor()
+                    addon:QueueSpecSnapshotCapture()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
                     SetBinding(key, command)
                     SaveBindings(2)
+                    addon:QueueSpecSnapshotCapture()
                     print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -3641,6 +4254,7 @@ local function build_interface_bindings_submenu(parentMenu)
                 local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                 SetBinding(key, binding_name)
                 SaveBindings(2)
+                addon:QueueSpecSnapshotCapture()
                 print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
             end)
         end
@@ -3666,6 +4280,7 @@ function addon.context_menu_generator(owner, rootDescription)
         if addon.current_clicked_key.raw_key ~= "" then
             SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or ""))
             SaveBindings(2)
+            addon:QueueSpecSnapshotCapture()
             local keyText = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
             print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
         end
@@ -3751,6 +4366,7 @@ local shared_events = {
     "UPDATE_BONUS_ACTIONBAR",
     "ACTIONBAR_PAGE_CHANGED",
     "ACTIVE_TALENT_GROUP_CHANGED",
+    "PLAYER_SPECIALIZATION_CHANGED",
     "SPELLS_CHANGED",
     "UPDATE_BINDINGS",
     "MODIFIER_STATE_CHANGED",
@@ -3790,6 +4406,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if not addon.spells or next(addon.spells) == nil then
             addon:load_spellbook()
         end
+        addon:InitializeSpecAutoSwapState()
         return
     end
 
@@ -3807,6 +4424,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
+        addon:FlushDeferredSpecUpdates()
         addon:FlushDeferredUiUpdates()
         if addon.open and keyui_settings.show_keypress_highlight then
             addon:enable_keypress_input()
@@ -3865,13 +4483,26 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_pending("keys")
     elseif event == "ACTIONBAR_SLOT_CHANGED" then
         mark_slot_changed(...)
+        addon:QueueSpecSnapshotCapture()
     elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
         mark_pending("bindings")
+        addon:QueueSpecSnapshotCapture()
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         mark_pending("layout")
         if addon.open or not addon.spells or next(addon.spells) == nil then
             mark_pending("spellbook")
         end
+        addon:HandleSpecChangedEvent("player")
+    elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
+        local unit = ...
+        if unit ~= "player" then
+            return
+        end
+        mark_pending("layout")
+        if addon.open or not addon.spells or next(addon.spells) == nil then
+            mark_pending("spellbook")
+        end
+        addon:HandleSpecChangedEvent(unit)
     elseif event == "SPELLS_CHANGED" then
         if addon.open or not addon.spells or next(addon.spells) == nil then
             mark_pending("spellbook")

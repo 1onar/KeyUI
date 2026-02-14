@@ -68,6 +68,9 @@ local API_COMPAT = {
     has_modern_spellbook = (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines ~= nil),
     has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
     has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
+    has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
+    has_class_talents = (C_ClassTalents and C_ClassTalents.GetActiveConfigID ~= nil),
+    has_traits_config = (C_Traits and C_Traits.GetConfigInfo ~= nil),
 }
 ```
 
@@ -80,6 +83,51 @@ local API_COMPAT = {
 | **Spell Pickup** | `C_Spell.PickupSpell(spellID)` | `PickupSpell(spellID)` | `API_COMPAT.has_modern_spellbook` |
 | **Assisted Combat** | `C_AssistedCombat.GetActionSpell()` | N/A | `API_COMPAT.has_assisted_combat` |
 | **Addon Check** | `C_AddOns.IsAddOnLoaded(name)` | `IsAddOnLoaded(name)` | Both versions |
+
+### Spec Auto-Swap Behavior (Bindings + Action Slots)
+
+Feature default:
+
+- `Spec Auto-Swap` is **OFF by default**.
+- Users must opt in before KeyUI auto-restores per-spec snapshots.
+
+KeyUI stores snapshots per character and per spec key:
+
+- `characterKey = "<Name> - <Realm>"`
+- `specKey` order: `spec:<specID>` -> `group:<activeGroup>` -> `nospec`
+
+Restore policy setting:
+
+- `Safe/Auto` (recommended): always restores bindings, restores action slots only when safe for current client/spec.
+- `Bindings Only`: restores bindings only.
+- `Force Action Restore`: restores bindings and action slots.
+
+Retail (`12.x`) `Safe/Auto` rules:
+
+- If `C_ClassTalents.GetActiveConfigID()` and `C_Traits.GetConfigInfo()` resolve and `usesSharedActionBars == false`, KeyUI skips action-slot restore.
+- If APIs are unavailable or return uncertain data, KeyUI skips action-slot restore (fail-safe).
+- If `usesSharedActionBars == true`, KeyUI restores action slots.
+
+Classic clients (`5.5.3`, `2.5.5`, `1.15.8`) `Safe/Auto`:
+
+- KeyUI restores action slots (bindings always restore).
+
+### When This Feature Is Actually Useful
+
+- Retail (`12.x`): often complementary, because Blizzard already handles some spec/loadout action-bar behavior.
+- Retail (`12.x`): most useful for spec-specific keybindings and edge cases where players want explicit KeyUI restore behavior.
+- Classic clients (`5.5.3`, `2.5.5`, `1.15.8`): usually more useful because native spec/loadout separation is more limited.
+
+### Spec Auto-Swap Matrix
+
+| Client | Bindings | `Safe/Auto` Action Slots | `Bindings Only` Action Slots | `Force` Action Slots |
+|--------|----------|--------------------------|------------------------------|----------------------|
+| Retail 12.x | ✅ | Conditional (`usesSharedActionBars`) | ❌ | ✅ |
+| Cata 5.5.3 | ✅ | ✅ | ❌ | ✅ |
+| Anniversary 2.5.5 | ✅ | ✅ | ❌ | ✅ |
+| Era 1.15.8 | ✅ | ✅ | ❌ | ✅ |
+
+UX note: matrix behavior applies only after users opt in (`Spec Auto-Swap` enabled).
 
 ### Example: Spellbook Loading
 

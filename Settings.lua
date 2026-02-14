@@ -69,6 +69,83 @@ local function InitializeSettingsPanel()
     )
     Settings.CreateCheckbox(category, showControllerSetting, "Show or hide the controller frame")
 
+    -- Specialization Profiles Header + Settings
+    layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Spec Profiles (Optional)"))
+
+    local function GetSpecAutoSwapValue()
+        return keyui_settings.spec_auto_swap == true
+    end
+
+    local function SetSpecAutoSwapValue(value)
+        local enabled = value == true
+        local was_enabled = keyui_settings.spec_auto_swap == true
+        keyui_settings.spec_auto_swap = enabled
+
+        if enabled and not was_enabled then
+            if addon.AnnounceSpecAutoSwapOptIn then
+                addon:AnnounceSpecAutoSwapOptIn()
+            end
+            if addon.InitializeSpecAutoSwapState then
+                addon:InitializeSpecAutoSwapState()
+            end
+        end
+    end
+
+    local specAutoSwapSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_SPEC_AUTO_SWAP",
+        Settings.VarType.Boolean,
+        "Use different setups per spec",
+        false,
+        GetSpecAutoSwapValue,
+        SetSpecAutoSwapValue
+    )
+    Settings.CreateCheckbox(
+        category,
+        specAutoSwapSetting,
+        "When enabled, KeyUI remembers your setup per specialization and restores it when you switch spec."
+    )
+
+    local function GetSpecActionRestoreMode()
+        local mode = keyui_settings.spec_action_restore_mode
+        if mode == "bindings_only" or mode == "force" then
+            return mode
+        end
+        return "safe_auto"
+    end
+
+    local function SetSpecActionRestoreMode(value)
+        if value == "bindings_only" or value == "force" or value == "safe_auto" then
+            keyui_settings.spec_action_restore_mode = value
+        else
+            keyui_settings.spec_action_restore_mode = "safe_auto"
+        end
+    end
+
+    local function GetSpecActionRestoreOptions()
+        local container = Settings.CreateControlTextContainer()
+        container:Add("safe_auto", "Keybindings + Action Bars (Safe, recommended)")
+        container:Add("bindings_only", "Keybindings only")
+        container:Add("force", "Keybindings + Action Bars (Force)")
+        return container:GetData()
+    end
+
+    local specActionRestoreSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_SPEC_ACTION_RESTORE_MODE",
+        Settings.VarType.String,
+        "What should be restored on spec switch?",
+        "safe_auto",
+        GetSpecActionRestoreMode,
+        SetSpecActionRestoreMode
+    )
+    Settings.CreateDropdown(
+        category,
+        specActionRestoreSetting,
+        GetSpecActionRestoreOptions,
+        "Only used if 'Use different setups per spec' is enabled. Safe mode avoids overriding Blizzard's own spec/loadout action bars on Retail."
+    )
+
     -- Font Header + Settings
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Font"))
 

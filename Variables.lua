@@ -9,6 +9,107 @@ local function set_if_nil(setting, default)
     end
 end
 
+local VALID_SPEC_ACTION_RESTORE_MODE = {
+    safe_auto = true,
+    bindings_only = true,
+    force = true,
+}
+
+local function sanitize_slot_payload(payload)
+    if type(payload) ~= "table" then
+        return nil
+    end
+
+    local payload_type = payload.type
+    if payload_type == "spell" and type(payload.spellID) == "number" then
+        return {
+            type = "spell",
+            spellID = payload.spellID,
+        }
+    end
+
+    if payload_type == "macro" and type(payload.macroName) == "string" and payload.macroName ~= "" then
+        return {
+            type = "macro",
+            macroName = payload.macroName,
+        }
+    end
+
+    if payload_type == "item" and type(payload.itemID) == "number" then
+        return {
+            type = "item",
+            itemID = payload.itemID,
+        }
+    end
+
+    if payload_type == "empty" then
+        return {
+            type = "empty",
+        }
+    end
+
+    return nil
+end
+
+local function sanitize_spec_profiles()
+    if type(keyui_settings.spec_profiles) ~= "table" then
+        keyui_settings.spec_profiles = {}
+    end
+
+    local profiles = keyui_settings.spec_profiles
+    if type(profiles.by_character) ~= "table" then
+        profiles.by_character = {}
+    end
+
+    for character_key, store in pairs(profiles.by_character) do
+        if type(character_key) ~= "string" or type(store) ~= "table" then
+            profiles.by_character[character_key] = nil
+        else
+            if type(store.last_spec_key) ~= "string" then
+                store.last_spec_key = nil
+            end
+            if type(store.specs) ~= "table" then
+                store.specs = {}
+            end
+
+            for spec_key, snapshot in pairs(store.specs) do
+                if type(spec_key) ~= "string" or type(snapshot) ~= "table" then
+                    store.specs[spec_key] = nil
+                else
+                    if type(snapshot.bindings) ~= "table" then
+                        snapshot.bindings = {}
+                    end
+                    for binding_key, command in pairs(snapshot.bindings) do
+                        if type(binding_key) ~= "string" or type(command) ~= "string" or binding_key == "" or command == "" then
+                            snapshot.bindings[binding_key] = nil
+                        end
+                    end
+
+                    if type(snapshot.slots) ~= "table" then
+                        snapshot.slots = {}
+                    end
+                    for slot, payload in pairs(snapshot.slots) do
+                        local normalized_slot = tonumber(slot)
+                        local sanitized_payload = sanitize_slot_payload(payload)
+                        if not normalized_slot or normalized_slot <= 0 or normalized_slot % 1 ~= 0 or not sanitized_payload then
+                            snapshot.slots[slot] = nil
+                        elseif normalized_slot ~= slot then
+                            snapshot.slots[slot] = nil
+                            snapshot.slots[normalized_slot] = sanitized_payload
+                        else
+                            snapshot.slots[slot] = sanitized_payload
+                        end
+                    end
+
+                    if type(snapshot.ts) ~= "number" then
+                        snapshot.ts = time()
+                    end
+                end
+            end
+        end
+    end
+end
+
 -- Initialize general settings with default values if they are nil
 function addon:InitializeGeneralSettings()
     -- Migrate old setting to new name
@@ -41,6 +142,25 @@ function addon:InitializeGeneralSettings()
     set_if_nil("show_keypress_highlight", true)
     set_if_nil("position_locked", false)
     set_if_nil("click_through", false)
+    set_if_nil("spec_auto_swap", false)
+    set_if_nil("spec_action_restore_mode", "safe_auto")
+    set_if_nil("spec_profiles_version", 1)
+    set_if_nil("spec_profiles", { by_character = {} })
+    set_if_nil("spec_feature_explained", false)
+
+    if not VALID_SPEC_ACTION_RESTORE_MODE[keyui_settings.spec_action_restore_mode] then
+        keyui_settings.spec_action_restore_mode = "safe_auto"
+    end
+    if type(keyui_settings.spec_auto_swap) ~= "boolean" then
+        keyui_settings.spec_auto_swap = false
+    end
+    if type(keyui_settings.spec_feature_explained) ~= "boolean" then
+        keyui_settings.spec_feature_explained = false
+    end
+    if type(keyui_settings.spec_profiles_version) ~= "number" then
+        keyui_settings.spec_profiles_version = 1
+    end
+    sanitize_spec_profiles()
 end
 
 -- Initialize key binding and layout settings
@@ -103,6 +223,12 @@ addon.deferred_ui_updates = addon.deferred_ui_updates or {
     refresh_layouts = false,
     apply_click_through = false,
 }
+addon.spec_snapshot_apply_in_progress = false
+addon.spec_capture_pending = false
+addon.spec_capture_timer_active = false
+addon.spec_pending_apply_key = nil
+addon.spec_last_switch_key = nil
+addon.spec_last_switch_at = 0
 
 -- Spellbook data (loaded on demand via load_spellbook)
 addon.spells = {}
