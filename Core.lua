@@ -6,6 +6,16 @@ local LDB = LibStub("LibDataBroker-1.1")
 
 local PROFILE_EXPORT_VERSION = 1
 local LAYOUT_EXPORT_VERSION = 1
+local UI_CONSTANTS = addon.UI_CONSTANTS or {
+    controls_height_collapsed = 200,
+    controls_height_expanded = 350,
+}
+addon.UI_CONSTANTS = UI_CONSTANTS
+addon.key_button_pools = addon.key_button_pools or {
+    keyboard = {},
+    mouse = {},
+    controller = {},
+}
 
 -- ============================================================================
 -- API Compatibility Layer
@@ -62,92 +72,27 @@ local registered_addons = {}
 addon.loaded_integrations = addon.loaded_integrations or {}
 
 local addon_pattern_registry = {
-    ElvUI = function()
-        keybind_patterns["^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$"] = function(binding, button)
-            local success, err = pcall(addon.process_elvui, addon, binding, button)
-            if not success then
-                print("KeyUI: ElvUI integration error:", err)
-            end
-        end
-
-        keybind_patterns["^ELVUIBAR(%d+)BUTTON(%d+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_elvui, addon, binding, button)
-            if not success then
-                print("KeyUI: ElvUI integration error:", err)
-            end
-        end
-    end,
-
-    Bartender4 = function()
-        keybind_patterns["^CLICK BT4StanceButton(%d+):LeftButton$"] = function(binding, button)
-            local success, err = pcall(addon.process_addon_stance, addon, binding, button)
-            if not success then
-                print("KeyUI: Bartender4 stance integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BT4Button(%d+):Keybind$"] = function(binding, button)
-            local success, err = pcall(addon.process_bartender, addon, binding, button)
-            if not success then
-                print("KeyUI: Bartender4 integration error:", err)
-            end
-        end
-    end,
-
-    Dominos = function()
-        keybind_patterns["^CLICK DominosActionButton(%d+):HOTKEY$"] = function(binding, button)
-            local success, err = pcall(addon.process_dominos, addon, binding, button)
-            if not success then
-                print("KeyUI: Dominos integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$"] = function(binding, button)
-            local success, err = pcall(addon.process_dominos, addon, binding, button)
-            if not success then
-                print("KeyUI: Dominos integration error:", err)
-            end
-        end
-    end,
-
-    OPie = function()
-        keybind_patterns["^CLICK ORL_RProxy.*$"] = function(binding, button)
-            local success, err = pcall(addon.process_opie, addon, button)
-            if not success then
-                print("KeyUI: OPie integration error:", err)
-            end
-        end
-    end,
-
-    BindPad = function()
-        keybind_patterns["^CLICK BindPadMacro:(.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BindPadKey:SPELL (.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BindPadKey:ITEM (.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-
-        keybind_patterns["^CLICK BindPadKey:MACRO (.+)$"] = function(binding, button)
-            local success, err = pcall(addon.process_bindpad, addon, binding, button)
-            if not success then
-                print("KeyUI: BindPad integration error:", err)
-            end
-        end
-    end,
+    ElvUI = {
+        { pattern = "^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$", handler = "process_elvui", error_prefix = "KeyUI: ElvUI integration error:" },
+        { pattern = "^ELVUIBAR(%d+)BUTTON(%d+)$", handler = "process_elvui", error_prefix = "KeyUI: ElvUI integration error:" },
+    },
+    Bartender4 = {
+        { pattern = "^CLICK BT4StanceButton(%d+):LeftButton$", handler = "process_addon_stance", error_prefix = "KeyUI: Bartender4 stance integration error:" },
+        { pattern = "^CLICK BT4Button(%d+):Keybind$", handler = "process_bartender", error_prefix = "KeyUI: Bartender4 integration error:" },
+    },
+    Dominos = {
+        { pattern = "^CLICK DominosActionButton(%d+):HOTKEY$", handler = "process_dominos", error_prefix = "KeyUI: Dominos integration error:" },
+        { pattern = "^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$", handler = "process_dominos", error_prefix = "KeyUI: Dominos integration error:" },
+    },
+    OPie = {
+        { pattern = "^CLICK ORL_RProxy.*$", handler = "process_opie", pass_binding = false, error_prefix = "KeyUI: OPie integration error:" },
+    },
+    BindPad = {
+        { pattern = "^CLICK BindPadMacro:(.+)$", handler = "process_bindpad", error_prefix = "KeyUI: BindPad integration error:" },
+        { pattern = "^CLICK BindPadKey:SPELL (.+)$", handler = "process_bindpad", error_prefix = "KeyUI: BindPad integration error:" },
+        { pattern = "^CLICK BindPadKey:ITEM (.+)$", handler = "process_bindpad", error_prefix = "KeyUI: BindPad integration error:" },
+        { pattern = "^CLICK BindPadKey:MACRO (.+)$", handler = "process_bindpad", error_prefix = "KeyUI: BindPad integration error:" },
+    },
 }
 
 local function refresh_loaded_integrations()
@@ -160,9 +105,27 @@ end
 -- Registers patterns for a supported addon if it is loaded and not yet registered
 local function register_addon_patterns(addon_name)
     if registered_addons[addon_name] then return end
-    local register_fn = addon_pattern_registry[addon_name]
-    if register_fn and addon.compat.is_addon_loaded(addon_name) then
-        register_fn()
+    local specs = addon_pattern_registry[addon_name]
+    if specs and addon.compat.is_addon_loaded(addon_name) then
+        for _, spec in ipairs(specs) do
+            keybind_patterns[spec.pattern] = function(binding, button)
+                local method = addon[spec.handler]
+                if type(method) ~= "function" then
+                    return
+                end
+
+                local success, err
+                if spec.pass_binding == false then
+                    success, err = pcall(method, addon, button)
+                else
+                    success, err = pcall(method, addon, binding, button)
+                end
+
+                if not success then
+                    print(spec.error_prefix or "KeyUI: Integration error:", err)
+                end
+            end
+        end
         registered_addons[addon_name] = true
         addon.loaded_integrations[addon_name] = true
     end
@@ -227,6 +190,109 @@ local function sanitize_layout_name(name)
     return (name:gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
+function addon:IsPerformanceDebugEnabled()
+    return type(keyui_settings) == "table" and keyui_settings.performance_debug == true
+end
+
+function addon:DebugLog(prefix, message)
+    if not self:IsPerformanceDebugEnabled() then
+        return
+    end
+    if type(message) ~= "string" then
+        message = tostring(message)
+    end
+    print(("KeyUI[%s]: %s"):format(prefix or "debug", message))
+end
+
+function addon:AcquireKeyButton(device, index)
+    local pools = self.key_button_pools
+    if type(pools) ~= "table" then
+        return nil
+    end
+
+    local pool = pools[device]
+    if type(pool) ~= "table" then
+        return nil
+    end
+
+    local button = pool[index]
+    if button then
+        return button
+    end
+
+    local create_method = self["create_" .. device .. "_buttons"]
+    if type(create_method) ~= "function" then
+        return nil
+    end
+
+    button = create_method(self)
+    pool[index] = button
+
+    if self:IsPerformanceDebugEnabled() then
+        local stats = self.perf_stats
+        if not stats then
+            self:ResetPerformanceStats()
+            stats = self.perf_stats
+        end
+        local created = stats.pool_created or {}
+        local peak = stats.pool_peak or {}
+        created[device] = (created[device] or 0) + 1
+        local current_size = #pool
+        if current_size > (peak[device] or 0) then
+            peak[device] = current_size
+        end
+        stats.pool_created = created
+        stats.pool_peak = peak
+    end
+
+    return button
+end
+
+function addon:ReleaseUnusedKeyButtons(device, active_count, active_collection)
+    local pool = self.key_button_pools and self.key_button_pools[device]
+    if type(pool) ~= "table" then
+        return
+    end
+
+    active_count = active_count or 0
+
+    for index = active_count + 1, #pool do
+        local button = pool[index]
+        if button then
+            if button.keypress_ticker then
+                button.keypress_ticker:Cancel()
+                button.keypress_ticker = nil
+            end
+            if button.keypress_highlight then
+                button.keypress_highlight:Hide()
+            end
+            button:EnableKeyboard(false)
+            button:EnableMouseWheel(false)
+            button:Hide()
+        end
+    end
+
+    if type(active_collection) == "table" then
+        for index = 1, active_count do
+            active_collection[index] = pool[index]
+        end
+        for index = active_count + 1, #active_collection do
+            active_collection[index] = nil
+        end
+    end
+
+    if self:IsPerformanceDebugEnabled() then
+        local stats = self.perf_stats
+        if not stats then
+            self:ResetPerformanceStats()
+            stats = self.perf_stats
+        end
+        local active = stats.pool_last_active or {}
+        active[device] = active_count
+        stats.pool_last_active = active
+    end
+end
+
 -- Helper function to open settings panel (Midnight compatibility)
 function addon:OpenSettings()
     if self.settingsCategory and self.settingsCategory.GetID then
@@ -274,6 +340,185 @@ local miniButton = LDB:NewDataObject("KeyUI", {
         tooltip:AddLine("|cffffffffRight-Click|r |cFF00FF00to open options|r")
     end,
 })
+
+local function get_perf_timestamp()
+    if debugprofilestop then
+        return debugprofilestop()
+    end
+    return nil
+end
+
+function addon:ResetPerformanceStats()
+    self.perf_stats = {
+        refresh_layouts_calls = 0,
+        refresh_layouts_total_ms = 0,
+        refresh_keys_calls = 0,
+        refresh_keys_total_ms = 0,
+        events = {},
+        pool_created = {
+            keyboard = 0,
+            mouse = 0,
+            controller = 0,
+        },
+        pool_peak = {
+            keyboard = 0,
+            mouse = 0,
+            controller = 0,
+        },
+        pool_last_active = {
+            keyboard = 0,
+            mouse = 0,
+            controller = 0,
+        },
+    }
+end
+
+function addon:RecordPerformanceSample(sample_key, elapsed_ms)
+    if not self:IsPerformanceDebugEnabled() then
+        return
+    end
+    if type(elapsed_ms) ~= "number" or elapsed_ms < 0 then
+        return
+    end
+
+    local stats = self.perf_stats
+    if not stats then
+        self:ResetPerformanceStats()
+        stats = self.perf_stats
+    end
+
+    if sample_key == "refresh_layouts" then
+        stats.refresh_layouts_calls = stats.refresh_layouts_calls + 1
+        stats.refresh_layouts_total_ms = stats.refresh_layouts_total_ms + elapsed_ms
+    elseif sample_key == "refresh_keys" then
+        stats.refresh_keys_calls = stats.refresh_keys_calls + 1
+        stats.refresh_keys_total_ms = stats.refresh_keys_total_ms + elapsed_ms
+    end
+end
+
+function addon:RecordPerformanceEvent(event_name)
+    if not self:IsPerformanceDebugEnabled() then
+        return
+    end
+    if type(event_name) ~= "string" then
+        return
+    end
+
+    local stats = self.perf_stats
+    if not stats then
+        self:ResetPerformanceStats()
+        stats = self.perf_stats
+    end
+
+    stats.events[event_name] = (stats.events[event_name] or 0) + 1
+end
+
+function addon:UpdatePerformanceOverlayText()
+    local frame = self.performance_overlay
+    if not frame or not frame.text then
+        return
+    end
+
+    local stats = self.perf_stats or {}
+    local layout_calls = stats.refresh_layouts_calls or 0
+    local key_calls = stats.refresh_keys_calls or 0
+    local layout_avg = layout_calls > 0 and ((stats.refresh_layouts_total_ms or 0) / layout_calls) or 0
+    local key_avg = key_calls > 0 and ((stats.refresh_keys_total_ms or 0) / key_calls) or 0
+
+    local top_event_name = "-"
+    local top_event_count = 0
+    for event_name, count in pairs(stats.events or {}) do
+        if count > top_event_count then
+            top_event_name = event_name
+            top_event_count = count
+        end
+    end
+
+    local pools = self.key_button_pools or {}
+    local keyboard_pool_size = type(pools.keyboard) == "table" and #pools.keyboard or 0
+    local mouse_pool_size = type(pools.mouse) == "table" and #pools.mouse or 0
+    local controller_pool_size = type(pools.controller) == "table" and #pools.controller or 0
+
+    local pool_created = stats.pool_created or {}
+    local pool_peak = stats.pool_peak or {}
+    local pool_last_active = stats.pool_last_active or {}
+
+    frame.text:SetText((
+        "KeyUI Performance\n" ..
+        "refresh_layouts: %d (avg %.2f ms)\n" ..
+        "refresh_keys: %d (avg %.2f ms)\n" ..
+        "top event: %s (%d)\n" ..
+        "pool size k/m/c: %d/%d/%d\n" ..
+        "pool created k/m/c: %d/%d/%d\n" ..
+        "pool active k/m/c: %d/%d/%d\n" ..
+        "pool peak k/m/c: %d/%d/%d"
+    ):format(
+        layout_calls, layout_avg, key_calls, key_avg, top_event_name, top_event_count,
+        keyboard_pool_size, mouse_pool_size, controller_pool_size,
+        pool_created.keyboard or 0, pool_created.mouse or 0, pool_created.controller or 0,
+        pool_last_active.keyboard or 0, pool_last_active.mouse or 0, pool_last_active.controller or 0,
+        pool_peak.keyboard or 0, pool_peak.mouse or 0, pool_peak.controller or 0
+    ))
+end
+
+function addon:EnsurePerformanceOverlay()
+    if self.performance_overlay then
+        return self.performance_overlay
+    end
+
+    local existing_frame = _G["KeyUIPerformanceOverlay"]
+    if existing_frame then
+        self.performance_overlay = existing_frame
+        return existing_frame
+    end
+
+    local frame = CreateFrame("Frame", "KeyUIPerformanceOverlay", UIParent, "BackdropTemplate")
+    frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 16, -16)
+    frame:SetSize(340, 145)
+    frame:SetFrameStrata("TOOLTIP")
+    frame:SetBackdrop({
+        bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+        edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+        edgeSize = 12,
+        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+    })
+    frame:SetBackdropColor(0, 0, 0, 0.75)
+
+    local text = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    text:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -8)
+    text:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 8)
+    text:SetJustifyH("LEFT")
+    text:SetJustifyV("TOP")
+
+    frame.text = text
+    frame:Hide()
+    self.performance_overlay = frame
+
+    return frame
+end
+
+function addon:UpdatePerformanceOverlayVisibility()
+    local enabled = self:IsPerformanceDebugEnabled() and self.open
+
+    if enabled then
+        local frame = self:EnsurePerformanceOverlay()
+        frame:Show()
+        if not self.performance_overlay_ticker and C_Timer and C_Timer.NewTicker then
+            self.performance_overlay_ticker = C_Timer.NewTicker(1, function()
+                addon:UpdatePerformanceOverlayText()
+            end)
+        end
+        self:UpdatePerformanceOverlayText()
+    else
+        if self.performance_overlay then
+            self.performance_overlay:Hide()
+        end
+        if self.performance_overlay_ticker then
+            self.performance_overlay_ticker:Cancel()
+            self.performance_overlay_ticker = nil
+        end
+    end
+end
 
 local function deep_copy(value, copies)
     if type(value) ~= "table" then
@@ -392,6 +637,7 @@ end
 function addon:BuildProfileSnapshot()
     return {
         version = PROFILE_EXPORT_VERSION,
+        schemaVersion = addon.SETTINGS_SCHEMA_VERSION or 1,
         settings = deep_copy(keyui_settings),
     }
 end
@@ -426,6 +672,13 @@ function addon:ApplyProfileSnapshot(snapshot)
         return false, "Profile missing settings data"
     end
 
+    if self.ValidateProfileSnapshot then
+        local valid, validation_error = self:ValidateProfileSnapshot(snapshot)
+        if not valid then
+            return false, validation_error or "Profile validation failed"
+        end
+    end
+
     local sanitized = deep_copy(snapshot.settings)
 
     wipe(keyui_settings)
@@ -434,6 +687,7 @@ function addon:ApplyProfileSnapshot(snapshot)
     end
 
     self:InitializeSettings()
+    keyui_settings.schema_version = addon.SETTINGS_SCHEMA_VERSION or keyui_settings.schema_version
 
     self.keyboard_layout_dirty = true
     self.mouse_layout_dirty = true
@@ -687,6 +941,13 @@ function addon:SerializeLayoutPayload(layout_type, layout_name, layout_data)
         return nil, "Layout data is invalid."
     end
 
+    if self.ValidateLayoutData then
+        local valid, validation_error = self:ValidateLayoutData(layout_type, layout_data)
+        if not valid then
+            return nil, validation_error or "Layout validation failed."
+        end
+    end
+
     local payload = {
         version = LAYOUT_EXPORT_VERSION,
         layoutType = layout_type,
@@ -721,6 +982,13 @@ function addon:DeserializeLayoutPayload(serialized)
 
     if type(payload.layout) ~= "table" then
         return false, "Layout data missing."
+    end
+
+    if self.ValidateLayoutPayload then
+        local valid, validation_error = self:ValidateLayoutPayload(payload)
+        if not valid then
+            return false, validation_error or "Layout validation failed."
+        end
     end
 
     return true, payload
@@ -833,8 +1101,32 @@ local function clear_key_collection(collection)
             if button.Hide then
                 button:Hide()
             end
+            button:EnableKeyboard(false)
+            button:EnableMouseWheel(false)
         end
         collection[i] = nil
+    end
+end
+
+local function clear_key_button_pool(pool)
+    if type(pool) ~= "table" then
+        return
+    end
+    for i = #pool, 1, -1 do
+        local button = pool[i]
+        if button then
+            if button.keypress_ticker then
+                button.keypress_ticker:Cancel()
+                button.keypress_ticker = nil
+            end
+            if button.keypress_highlight then
+                button.keypress_highlight:Hide()
+            end
+            button:EnableKeyboard(false)
+            button:EnableMouseWheel(false)
+            button:Hide()
+        end
+        pool[i] = nil
     end
 end
 
@@ -853,6 +1145,12 @@ local function hide_resettable_frames(self)
     hide_widget(self.keyboard_selector)
     hide_widget(self.mouse_selector)
     hide_widget(self.controller_selector)
+    hide_widget(self.performance_overlay)
+
+    if self.performance_overlay_ticker then
+        self.performance_overlay_ticker:Cancel()
+        self.performance_overlay_ticker = nil
+    end
 
     self.dropdown = nil
     self.keyboard_selector = nil
@@ -881,10 +1179,19 @@ local function reset_runtime_flags(self)
     clear_key_collection(self.keys_keyboard)
     clear_key_collection(self.keys_mouse)
     clear_key_collection(self.keys_controller)
+    clear_key_button_pool(self.key_button_pools and self.key_button_pools.keyboard)
+    clear_key_button_pool(self.key_button_pools and self.key_button_pools.mouse)
+    clear_key_button_pool(self.key_button_pools and self.key_button_pools.controller)
 
     self.keys_keyboard = {}
     self.keys_mouse = {}
     self.keys_controller = {}
+    self.key_button_pools = {
+        keyboard = {},
+        mouse = {},
+        controller = {},
+    }
+    self.key_lookup = {}
 
     self.keyboard_locked = true
     self.mouse_locked = true
@@ -917,6 +1224,8 @@ local function reset_runtime_flags(self)
 
     self.tutorial_frame1_created = false
     self.tutorial_frame2_created = false
+    self.unresolved_click_bindings = {}
+    self:ResetPerformanceStats()
 end
 
 local function reset_frame_positions(self)
@@ -964,7 +1273,9 @@ local function reset_frame_positions(self)
     if self.controls_frame then
         self.controls_frame:ClearAllPoints()
         self.controls_frame:SetPoint("TOP", UIParent, "TOP", 0, -50)
-        local expanded_height = keyui_settings.controls_expanded and 320 or 200
+        local expanded_height = keyui_settings.controls_expanded
+            and UI_CONSTANTS.controls_height_expanded
+            or UI_CONSTANTS.controls_height_collapsed
         self.controls_frame:SetHeight(expanded_height)
     end
 
@@ -1028,6 +1339,7 @@ function addon:load()
         end
 
         addon.open = true -- Mark the addon as open
+        addon:UpdatePerformanceOverlayVisibility()
         addon:show_frames()
 
         if keyui_settings.show_keyboard == true then
@@ -1195,20 +1507,31 @@ end
 
 -- Triggers the functions to update the keyboard and mouse layouts on the current configuration.
 function addon:refresh_layouts()
-    --print("refresh_layouts function called")  -- print statement for debbuging
+    local perf_start = get_perf_timestamp()
+    local function finish()
+        if perf_start then
+            local perf_end = get_perf_timestamp()
+            if perf_end then
+                addon:RecordPerformanceSample("refresh_layouts", perf_end - perf_start)
+            end
+        end
+    end
 
     -- stop if the addon is not open
     if addon.open == false then
+        finish()
         return
     end
 
     -- stop if keyboard and mouse are not visible
     if addon.is_keyboard_visible == false and addon.is_mouse_visible == false and addon.is_controller_visible == false then
+        finish()
         return
     end
 
     if is_in_combat_lockdown() then
         addon:MarkDeferredUiUpdate("refresh_layouts")
+        finish()
         return
     end
 
@@ -1232,6 +1555,7 @@ function addon:refresh_layouts()
 
     -- Rebuild key lookup for keypress visualization
     addon:build_key_lookup()
+    finish()
 end
 
 -- Update the visibility of keyboard and mouse based on settings, only if addon is open
@@ -1368,7 +1692,7 @@ function addon:ApplyEscClose()
     set_esc_close_enabled(addon.controls_frame, enabled)
     set_esc_close_enabled(addon.mouse_image, enabled)
     set_esc_close_enabled(addon.mouse_frame, enabled)
-    set_esc_close_enabled(addon.mouse_control_frame, enabled)
+    set_esc_close_enabled(addon.controller_frame, enabled)
 end
 
 -- Update the visual state of all toggle buttons across frames
@@ -1751,11 +2075,13 @@ function addon:hide_all_frames()
     addon.is_keyboard_visible = false
     addon.is_mouse_visible = false
     addon.is_controller_visible = false
+    addon:UpdatePerformanceOverlayVisibility()
 end
 
 local function on_frame_hide(self)
     if (addon.is_keyboard_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_visible == false or keyui_settings.show_mouse == false) and (addon.is_controller_visible == false or keyui_settings.show_controller == false) then
         addon.open = false
+        addon:UpdatePerformanceOverlayVisibility()
 
         -- Discard Keyboard Editor Changes when closing
         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
@@ -2466,6 +2792,54 @@ local function normalize_action_slot(value)
     return nil
 end
 
+function addon:refresh_keys_for_slots(slot_changes)
+    if type(slot_changes) ~= "table" then
+        return false
+    end
+
+    local normalized_slots = {}
+    for slot in pairs(slot_changes) do
+        local normalized = normalize_action_slot(slot)
+        if normalized then
+            normalized_slots[normalized] = true
+        end
+    end
+
+    if not next(normalized_slots) then
+        return false
+    end
+
+    local refreshed = false
+    local function refresh_collection(collection)
+        if type(collection) ~= "table" then
+            return
+        end
+
+        for i = 1, #collection do
+            local button = collection[i]
+            if button then
+                local slot = normalize_action_slot(button.active_slot) or normalize_action_slot(button.slot)
+                if slot and normalized_slots[slot] then
+                    addon:set_key(button)
+                    refreshed = true
+                end
+            end
+        end
+    end
+
+    if addon.is_keyboard_visible ~= false then
+        refresh_collection(addon.keys_keyboard)
+    end
+    if addon.is_mouse_visible ~= false then
+        refresh_collection(addon.keys_mouse)
+    end
+    if addon.is_controller_visible ~= false then
+        refresh_collection(addon.keys_controller)
+    end
+
+    return refreshed
+end
+
 local function collect_click_binding_frames(binding)
     local frame_name = parse_click_binding(binding)
     if not frame_name then
@@ -2679,8 +3053,107 @@ local function resolve_multibar_click_slot(binding)
     return nil, nil
 end
 
+local MAX_UNRESOLVED_CLICK_BINDINGS = 200
+
+local function unresolved_count(bindings)
+    local count = 0
+    if type(bindings) ~= "table" then
+        return count
+    end
+    for _ in pairs(bindings) do
+        count = count + 1
+    end
+    return count
+end
+
+function addon:TrackUnresolvedClickBinding(binding, reason)
+    if type(binding) ~= "string" or binding == "" then
+        return
+    end
+
+    if type(self.unresolved_click_bindings) ~= "table" then
+        self.unresolved_click_bindings = {}
+    end
+
+    local unresolved = self.unresolved_click_bindings
+    local existing = unresolved[binding]
+    if existing then
+        existing.count = (existing.count or 0) + 1
+        existing.reason = reason or existing.reason or "unknown"
+        return
+    end
+
+    if unresolved_count(unresolved) >= MAX_UNRESOLVED_CLICK_BINDINGS then
+        return
+    end
+
+    unresolved[binding] = {
+        count = 1,
+        reason = reason or "unknown",
+    }
+end
+
+function addon:PrintUnresolvedClickBindings(limit)
+    local unresolved = self.unresolved_click_bindings
+    if type(unresolved) ~= "table" or not next(unresolved) then
+        print("KeyUI: No unresolved CLICK bindings recorded.")
+        return
+    end
+
+    local entries = {}
+    for binding, info in pairs(unresolved) do
+        table.insert(entries, {
+            binding = binding,
+            count = (type(info) == "table" and info.count) or 1,
+            reason = (type(info) == "table" and info.reason) or "unknown",
+        })
+    end
+
+    table.sort(entries, function(a, b)
+        if a.count == b.count then
+            return a.binding < b.binding
+        end
+        return a.count > b.count
+    end)
+
+    local max_items = tonumber(limit) or 15
+    if max_items < 1 then
+        max_items = 1
+    end
+    if max_items > MAX_UNRESOLVED_CLICK_BINDINGS then
+        max_items = MAX_UNRESOLVED_CLICK_BINDINGS
+    end
+
+    print(("KeyUI: Unresolved CLICK bindings (%d tracked, showing up to %d):"):format(#entries, max_items))
+    for i = 1, math.min(max_items, #entries) do
+        local entry = entries[i]
+        print(("  %dx [%s] %s"):format(entry.count, entry.reason, entry.binding))
+    end
+end
+
+local function clear_resolved_click_binding(binding)
+    if type(addon.unresolved_click_bindings) == "table" and type(binding) == "string" then
+        addon.unresolved_click_bindings[binding] = nil
+    end
+end
+
 function addon:resolve_addon_slot(binding)
     if type(binding) ~= "string" then
+        return nil
+    end
+
+    local unresolved_reason = "no_resolver_match"
+    local is_click_binding = binding:match("^CLICK ") ~= nil
+    local is_elvui_binding = binding:match("^ELVUIBAR(%d+)BUTTON(%d+)$") ~= nil
+
+    local function resolve_slot(slot, reason)
+        if slot then
+            clear_resolved_click_binding(binding)
+            return slot
+        end
+        if reason then
+            unresolved_reason = reason
+        end
         return nil
     end
 
@@ -2707,38 +3180,40 @@ function addon:resolve_addon_slot(binding)
     if frame_name then
         local frame = _G[frame_name]
         local slot = get_action_slot_from_frame(frame)
-        if slot then
-            return slot
-        end
+        local resolved = resolve_slot(slot, "frame_attr_chain")
+        if resolved then return resolved end
 
         local base_frame_name = frame_name:match("^(.-)Hotkey$")
         if base_frame_name and base_frame_name ~= "" then
             local base_frame = _G[base_frame_name]
             slot = get_action_slot_from_frame(base_frame)
-            if slot then
-                return slot
-            end
+            resolved = resolve_slot(slot, "base_frame_hotkey_trim")
+            if resolved then return resolved end
         end
     end
 
     local bt4_slot = binding:match("^CLICK BT4Button(%d+):Keybind$")
     if bt4_slot then
-        return tonumber(bt4_slot)
+        return resolve_slot(tonumber(bt4_slot), "bartender_numeric_fallback")
     end
 
     local dominos_slot = binding:match("^CLICK DominosActionButton(%d+):HOTKEY$")
     if dominos_slot then
-        return tonumber(dominos_slot)
+        return resolve_slot(tonumber(dominos_slot), "dominos_numeric_fallback")
     end
 
     local dominos_hotkey_slot = binding:match("^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$")
     if dominos_hotkey_slot then
-        return tonumber(dominos_hotkey_slot)
+        return resolve_slot(tonumber(dominos_hotkey_slot), "dominos_hotkey_numeric_fallback")
     end
 
-    local multibar_slot = resolve_multibar_click_slot(binding)
+    local multibar_slot, multibar_reason = resolve_multibar_click_slot(binding)
     if multibar_slot then
-        return multibar_slot
+        return resolve_slot(multibar_slot, multibar_reason)
+    end
+
+    if is_click_binding or is_elvui_binding then
+        addon:TrackUnresolvedClickBinding(binding, unresolved_reason)
     end
 
     return nil
@@ -3071,7 +3546,7 @@ end
 
 -- Updates the textures/texts of the keys bindings.
 function addon:refresh_keys()
-    --print("refresh_keys function called")  -- print statement for debbuging
+    local perf_start = get_perf_timestamp()
 
     -- if the keyboard is visible we create the keys
     if addon.is_keyboard_visible ~= false then -- true
@@ -3094,6 +3569,84 @@ function addon:refresh_keys()
             addon:set_key(addon.keys_controller[k])
         end
     end
+
+    if perf_start then
+        local perf_end = get_perf_timestamp()
+        if perf_end then
+            addon:RecordPerformanceSample("refresh_keys", perf_end - perf_start)
+        end
+    end
+end
+
+local function refresh_modifier_layer_for_collection(collection)
+    if type(collection) ~= "table" then
+        return 0
+    end
+
+    local changed_count = 0
+    for i = 1, #collection do
+        local button = collection[i]
+        if button then
+            local old_binding = button.binding or ""
+            local new_binding = addon:get_binding(button.raw_key) or ""
+
+            if old_binding ~= new_binding then
+                addon:set_key(button)
+                changed_count = changed_count + 1
+            else
+                button.binding = new_binding
+
+                if new_binding == "" then
+                    button.highlight:Hide()
+                    button.readable_binding:Hide()
+                    button.readable_binding:SetText("")
+
+                    if keyui_settings.show_empty_binds then
+                        addon:update_empty_binds(button)
+                    end
+
+                    if keyui_settings.listen_to_modifier == true then
+                        if IsLeftAltKeyDown() and button.raw_key == "LALT" then
+                            highlight_modifier_button(button)
+                        end
+                        if IsRightAltKeyDown() and button.raw_key == "RALT" then
+                            highlight_modifier_button(button)
+                        end
+                        if IsLeftControlKeyDown() and button.raw_key == "LCTRL" then
+                            highlight_modifier_button(button)
+                        end
+                        if IsRightControlKeyDown() and button.raw_key == "RCTRL" then
+                            highlight_modifier_button(button)
+                        end
+                        if IsLeftShiftKeyDown() and button.raw_key == "LSHIFT" then
+                            highlight_modifier_button(button)
+                        end
+                        if IsRightShiftKeyDown() and button.raw_key == "RSHIFT" then
+                            highlight_modifier_button(button)
+                        end
+                    end
+                end
+
+                addon:update_button_key_text(button)
+            end
+        end
+    end
+
+    return changed_count
+end
+
+function addon:refresh_modifier_layers()
+    local changed_count = 0
+    if addon.is_keyboard_visible ~= false then
+        changed_count = changed_count + refresh_modifier_layer_for_collection(addon.keys_keyboard)
+    end
+    if addon.is_mouse_visible ~= false then
+        changed_count = changed_count + refresh_modifier_layer_for_collection(addon.keys_mouse)
+    end
+    if addon.is_controller_visible ~= false then
+        changed_count = changed_count + refresh_modifier_layer_for_collection(addon.keys_controller)
+    end
+    return changed_count
 end
 
 function addon:update_modifier_string()
@@ -3104,31 +3657,83 @@ function addon:update_modifier_string()
     addon.current_modifier_string = table.concat(modifiers)
 end
 
--- Keypress visualization: builds a lookup from raw_key to button for all visible devices
+local function add_button_to_lookup(lookup, button)
+    if not lookup or not button or not button.raw_key then
+        return
+    end
+
+    local existing = lookup[button.raw_key]
+    if not existing then
+        lookup[button.raw_key] = button
+        return
+    end
+
+    if existing.raw_key then
+        lookup[button.raw_key] = { existing, button }
+        return
+    end
+
+    table.insert(existing, button)
+end
+
+local function for_each_lookup_button(entry, callback)
+    if not entry or type(callback) ~= "function" then
+        return
+    end
+
+    if entry.raw_key then
+        callback(entry)
+        return
+    end
+
+    for i = 1, #entry do
+        local button = entry[i]
+        if button then
+            callback(button)
+        end
+    end
+end
+
+local function pick_primary_lookup_button(entry)
+    if not entry then
+        return nil
+    end
+    if entry.raw_key then
+        return entry
+    end
+    for i = 1, #entry do
+        local button = entry[i]
+        if button and button.active_slot then
+            return button
+        end
+    end
+    for i = 1, #entry do
+        if entry[i] then
+            return entry[i]
+        end
+    end
+    return nil
+end
+
+-- Keypress visualization: builds a lookup from raw_key to one-or-many buttons for all visible devices
 function addon:build_key_lookup()
     addon.key_lookup = {}
     if addon.is_keyboard_visible ~= false then
         for i = 1, #addon.keys_keyboard do
             local button = addon.keys_keyboard[i]
-            if button.raw_key then
-                addon.key_lookup[button.raw_key] = button
-            end
+            add_button_to_lookup(addon.key_lookup, button)
         end
     end
     if addon.is_mouse_visible ~= false then
         for i = 1, #addon.keys_mouse do
             local button = addon.keys_mouse[i]
-            if button.raw_key then
-                addon.key_lookup[button.raw_key] = button
-            end
+            add_button_to_lookup(addon.key_lookup, button)
         end
     end
     if addon.is_controller_visible ~= false then
         for i = 1, #addon.keys_controller do
             local button = addon.keys_controller[i]
-            if button.raw_key then
-                addon.key_lookup[button.raw_key] = button
-            end
+            add_button_to_lookup(addon.key_lookup, button)
         end
     end
 end
@@ -3176,14 +3781,15 @@ function addon:enable_keypress_input()
 
     frame:SetScript("OnKeyDown", function(_, key)
         if not addon.key_lookup then return end
-        local button = addon.key_lookup[key]
-        if button then
+        local lookup_entry = addon.key_lookup[key]
+        local primary_button = pick_primary_lookup_button(lookup_entry)
+        for_each_lookup_button(lookup_entry, function(button)
             flash_keypress_highlight(button, key)
-        end
+        end)
 
         -- Also show the PushedTexture on the mapped action bar button
-        if button and button.active_slot and keyui_settings.show_pushed_texture then
-            addon:show_pushed_texture(button.active_slot)
+        if primary_button and primary_button.active_slot and keyui_settings.show_pushed_texture then
+            addon:show_pushed_texture(primary_button.active_slot)
             -- Hide pushed texture when key is released
             if addon.pushed_ticker then addon.pushed_ticker:Cancel() end
             addon.pushed_ticker = C_Timer.NewTicker(KEYPRESS_POLL_INTERVAL, function()
@@ -3219,12 +3825,14 @@ function addon:disable_keypress_input()
     end
     -- Clear any active highlights and cancel their tickers
     if addon.key_lookup then
-        for _, button in pairs(addon.key_lookup) do
-            if button.keypress_ticker then
-                button.keypress_ticker:Cancel()
-                button.keypress_ticker = nil
-            end
-            hide_keypress_highlight(button)
+        for _, entry in pairs(addon.key_lookup) do
+            for_each_lookup_button(entry, function(button)
+                if button.keypress_ticker then
+                    button.keypress_ticker:Cancel()
+                    button.keypress_ticker = nil
+                end
+                hide_keypress_highlight(button)
+            end)
         end
     end
 end
@@ -3238,6 +3846,18 @@ local modifier_keys = {
     LSHIFT = { mod = "SHIFT", control_key = "shift_cb" },
     RSHIFT = { mod = "SHIFT", control_key = "shift_cb" },
 }
+
+local function refresh_after_modifier_change()
+    if keyui_settings.dynamic_modifier then
+        addon:refresh_keys()
+        return
+    end
+
+    local changed_count = addon:refresh_modifier_layers()
+    if changed_count > 0 and addon.current_hovered_button then
+        addon:button_mouse_over(addon.current_hovered_button)
+    end
+end
 
 -- Function to handle key press events
 local function handle_key_press(key)
@@ -3255,7 +3875,7 @@ local function handle_key_press(key)
 
     -- Refresh modifiers and keys
     addon:update_modifier_string()
-    addon:refresh_keys()
+    refresh_after_modifier_change()
 end
 
 -- Function to handle key release events
@@ -3274,7 +3894,7 @@ local function handle_key_release(key)
 
     -- Refresh modifiers and keys
     addon:update_modifier_string()
-    addon:refresh_keys()
+    refresh_after_modifier_change()
 end
 
 -- Shared KeyDown function for all buttons (keyboard + mouse)
@@ -3320,8 +3940,6 @@ end
 function addon:handle_gamepad_down(frame, key)
     -- Check if any modifier is held down
     local modifier = ""
-
-    print(frame)
 
     -- Check for ALT modifier
     if IsAltKeyDown() then
@@ -3706,6 +4324,11 @@ local function mark_slot_changed(slot)
     mark_pending("keys")
 end
 
+local function has_ambiguous_slot_mappings()
+    local loaded = addon.loaded_integrations or {}
+    return loaded.Dominos or loaded.Bartender4 or loaded.ElvUI
+end
+
 local flush_pending_updates
 local function schedule_flush()
     if addon.flush_scheduled then
@@ -3728,6 +4351,7 @@ flush_pending_updates = function()
     local should_refresh_keys = pending.keys
     local should_refresh_tooltip = pending.tooltip
     local should_reload_spellbook = pending.spellbook
+    local pending_slot_changes = pending.slot_changes
 
     reset_pending_updates()
 
@@ -3743,10 +4367,13 @@ flush_pending_updates = function()
     if should_refresh_layouts then
         addon:refresh_layouts()
     elseif should_refresh_keys then
-        -- NOTE: slot_changes are intentionally not applied as selective partial updates yet.
-        -- Third-party action bar paging/state can make slot-to-button mapping ambiguous.
-        -- Use full refresh for correctness until integration-safe selective refresh exists.
-        addon:refresh_keys()
+        local did_partial_refresh = false
+        if pending_slot_changes and next(pending_slot_changes) and not has_ambiguous_slot_mappings() then
+            did_partial_refresh = addon:refresh_keys_for_slots(pending_slot_changes)
+        end
+        if not did_partial_refresh then
+            addon:refresh_keys()
+        end
     end
 
     if should_refresh_tooltip and addon.current_hovered_button then
@@ -3786,6 +4413,8 @@ addon.compat.register_event(eventFrame, "BINDINGS_LOADED")
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
+    addon:RecordPerformanceEvent(event)
+
     if event == "PLAYER_LOGIN" then
         refresh_loaded_integrations()
         initialize_keybind_patterns()
@@ -3903,7 +4532,72 @@ end)
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
-SlashCmdList["KeyUI"] = function() addon:load() end
+local function print_keyui_command_help()
+    print("KeyUI: /keyui")
+    print("KeyUI: /keyui help")
+    print("KeyUI: /keyui perf [on|off|reset]")
+    print("KeyUI: /keyui diag [limit]")
+    print("KeyUI: /keyui diagreset")
+end
+
+SlashCmdList["KeyUI"] = function(msg)
+    local trimmed = type(msg) == "string" and msg:match("^%s*(.-)%s*$") or ""
+    if trimmed == "" then
+        addon:load()
+        return
+    end
+
+    local command, argument = trimmed:match("^(%S+)%s*(.-)%s*$")
+    command = command and command:lower() or ""
+    argument = argument or ""
+
+    if command == "help" then
+        print_keyui_command_help()
+        return
+    end
+
+    if command == "open" or command == "toggle" then
+        addon:load()
+        return
+    end
+
+    if command == "perf" then
+        local mode = argument:lower()
+        if mode == "on" then
+            keyui_settings.performance_debug = true
+            addon:ResetPerformanceStats()
+            addon:UpdatePerformanceOverlayVisibility()
+            print("KeyUI: performance_debug enabled.")
+        elseif mode == "off" then
+            keyui_settings.performance_debug = false
+            addon:UpdatePerformanceOverlayVisibility()
+            print("KeyUI: performance_debug disabled.")
+        elseif mode == "reset" then
+            addon:ResetPerformanceStats()
+            addon:UpdatePerformanceOverlayText()
+            print("KeyUI: performance stats reset.")
+        else
+            keyui_settings.performance_debug = not keyui_settings.performance_debug
+            addon:UpdatePerformanceOverlayVisibility()
+            print(("KeyUI: performance_debug %s."):format(keyui_settings.performance_debug and "enabled" or "disabled"))
+        end
+        return
+    end
+
+    if command == "diag" then
+        addon:PrintUnresolvedClickBindings(tonumber(argument) or 15)
+        return
+    end
+
+    if command == "diagreset" then
+        addon.unresolved_click_bindings = {}
+        print("KeyUI: unresolved CLICK binding diagnostics cleared.")
+        return
+    end
+
+    print(("KeyUI: Unknown command '%s'."):format(command))
+    print_keyui_command_help()
+end
 
 StaticPopupDialogs["KEYUI_EXPORT_PROFILE"] = {
     text = "Copy the profile string below to share your KeyUI configuration.",

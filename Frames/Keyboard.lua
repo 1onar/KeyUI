@@ -421,12 +421,7 @@ local modifier_keys = {
 
 -- Updates the keyboard layout by creating, positioning, and resizing key frames based on the current configuration
 function addon:generate_keyboard_key_frames()
-    -- Clear existing key array to avoid leftover data from previous layouts
-    for i = 1, #addon.keys_keyboard do
-        addon.keys_keyboard[i]:Hide()
-        addon.keys_keyboard[i] = nil
-    end
-    addon.keys_keyboard = {}
+    local active_count = 0
 
     if keyui_settings.layout_current_keyboard and addon.open and addon.keyboard_frame then
         -- Set temporary small size before calculating the dynamic size
@@ -449,8 +444,15 @@ function addon:generate_keyboard_key_frames()
             -- Loop through each key in the layout and position it within the frame
             for _, layout_data in pairs(keyui_settings.layout_current_keyboard) do
                 for i = 1, #layout_data do
-                    local button = addon.keys_keyboard[i] or addon:create_keyboard_buttons()
                     local button_data = layout_data[i]
+                    active_count = active_count + 1
+
+                    local button = addon:AcquireKeyButton("keyboard", active_count)
+                    if not button then
+                        active_count = active_count - 1
+                        break
+                    end
+
                     local key_label, offset_x, offset_y, key_width, key_height, icon_width, icon_height =
                         button_data[1], button_data[2], button_data[3], button_data[4], button_data[5], button_data[6], button_data[7]
 
@@ -472,10 +474,8 @@ function addon:generate_keyboard_key_frames()
                         button.original_icon_size = { width = 50, height = 50 }
                     end
 
-                    if not addon.keys_keyboard[i] then
-                        addon.keys_keyboard[i] = button
-                    end
-
+                    addon.keys_keyboard[active_count] = button
+                    button:ClearAllPoints()
                     button:SetPoint("TOPLEFT", addon.keyboard_frame, "TOPLEFT", offset_x, offset_y)
                     button.raw_key = key_label
                     button.is_modifier = modifier_keys[button.raw_key] or false
@@ -505,6 +505,7 @@ function addon:generate_keyboard_key_frames()
         end
     end
 
+    addon:ReleaseUnusedKeyButtons("keyboard", active_count, addon.keys_keyboard)
     addon:ApplyClickThrough()
 end
 
@@ -652,12 +653,6 @@ function addon:create_keyboard_buttons()
             MenuUtil.CreateContextMenu(self, addon.context_menu_generator)
         end
     end)
-
-    -- Store the created button in the keyboard_buttons table
-    if not self.keyboard_buttons then
-        self.keyboard_buttons = {}  -- Initialize the table if it doesn't exist
-    end
-    table.insert(self.keyboard_buttons, keyboard_button)  -- Add the new button to the table
 
     return keyboard_button
 end

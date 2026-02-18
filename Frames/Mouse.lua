@@ -307,12 +307,7 @@ local modifier_keys = {
 }
 
 function addon:generate_mouse_key_frames()
-    -- Clear existing Keys to avoid leftover data from previous layouts
-    for i = 1, #addon.keys_mouse do
-        addon.keys_mouse[i]:Hide()
-        addon.keys_mouse[i] = nil
-    end
-    addon.keys_mouse = {}
+    local active_count = 0
 
     if addon.open == true and addon.mouse_frame then
         -- Check if the layout is empty
@@ -328,8 +323,14 @@ function addon:generate_mouse_key_frames()
         if layout_not_empty then
             for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
                 for i = 1, #layoutData do
-                    local button = addon.keys_mouse[i] or addon:create_mouse_buttons()
                     local button_data = layoutData[i]
+                    active_count = active_count + 1
+
+                    local button = addon:AcquireKeyButton("mouse", active_count)
+                    if not button then
+                        active_count = active_count - 1
+                        break
+                    end
 
                     button:SetWidth(button_data[4] or 50)
                     button:SetHeight(button_data[5] or 50)
@@ -343,10 +344,8 @@ function addon:generate_mouse_key_frames()
                         button.original_icon_size = { width = icon_width, height = icon_height }
                     end
 
-                    if not addon.keys_mouse[i] then
-                        addon.keys_mouse[i] = button
-                    end
-
+                    addon.keys_mouse[active_count] = button
+                    button:ClearAllPoints()
                     button:SetPoint("TOPRIGHT", addon.mouse_frame, "TOPRIGHT", button_data[2], button_data[3])
                     button.raw_key = button_data[1]
                     button.is_modifier = modifier_keys[button.raw_key] or false
@@ -356,6 +355,7 @@ function addon:generate_mouse_key_frames()
         end
     end
 
+    addon:ReleaseUnusedKeyButtons("mouse", active_count, addon.keys_mouse)
     addon:ApplyClickThrough()
 end
 
@@ -500,12 +500,6 @@ function addon:create_mouse_buttons()
             MenuUtil.CreateContextMenu(self, addon.context_menu_generator)
         end
     end)
-
-    -- Store the created button in the keyboard_buttons table
-    if not self.mouse_buttons then
-        self.mouse_buttons = {}  -- Initialize the table if it doesn't exist
-    end
-    table.insert(self.mouse_buttons, mouse_button)  -- Add the new button to the table
 
     return mouse_button
 end

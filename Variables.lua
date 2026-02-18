@@ -2,6 +2,11 @@ local name, addon = ...
 
 -- Initialize SavedVariables for KeyUI settings
 keyui_settings = keyui_settings or {}
+addon.SETTINGS_SCHEMA_VERSION = addon.SETTINGS_SCHEMA_VERSION or 1
+addon.UI_CONSTANTS = addon.UI_CONSTANTS or {
+    controls_height_collapsed = 200,
+    controls_height_expanded = 350,
+}
 
 local function set_if_nil(setting, default)
     if keyui_settings[setting] == nil then
@@ -41,6 +46,20 @@ function addon:InitializeGeneralSettings()
     set_if_nil("show_keypress_highlight", true)
     set_if_nil("position_locked", false)
     set_if_nil("click_through", false)
+    set_if_nil("performance_debug", false)
+    set_if_nil("schema_version", addon.SETTINGS_SCHEMA_VERSION)
+
+    if self.NormalizeSettingTypes then
+        local ok, err = self:NormalizeSettingTypes(keyui_settings)
+        if not ok and err == "Settings schema is newer than this addon version." then
+            -- Keep addon usable after downgrades by re-normalizing to current schema defaults.
+            keyui_settings.schema_version = addon.SETTINGS_SCHEMA_VERSION
+            ok, err = self:NormalizeSettingTypes(keyui_settings)
+        end
+        if not ok and type(err) == "string" then
+            print("KeyUI: Settings normalization warning - " .. err)
+        end
+    end
 end
 
 -- Initialize key binding and layout settings

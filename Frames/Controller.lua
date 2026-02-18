@@ -473,12 +473,7 @@ local modifier_keys = {
 
 -- This function updates the controller layout by creating, positioning, and resizing button frames based on the current configuration.
 function addon:generate_controller_key_frames()
-    -- Clear existing keys to avoid leftover data from previous layouts
-    for i = 1, #addon.keys_controller do
-        addon.keys_controller[i]:Hide()
-        addon.keys_controller[i] = nil
-    end
-    addon.keys_controller = {}
+    local active_count = 0
 
     if addon.open == true and addon.controller_frame then
         -- Check if the layout is empty
@@ -494,8 +489,14 @@ function addon:generate_controller_key_frames()
         if layout_not_empty then
             for _, layoutData in pairs(keyui_settings.layout_current_controller) do
                 for i = 1, #layoutData do
-                    local button = addon.keys_controller[i] or addon:create_controller_buttons()
                     local button_data = layoutData[i]
+                    active_count = active_count + 1
+
+                    local button = addon:AcquireKeyButton("controller", active_count)
+                    if not button then
+                        active_count = active_count - 1
+                        break
+                    end
 
                     button:SetWidth(button_data[4] or 50)
                     button:SetHeight(button_data[5] or 50)
@@ -509,16 +510,15 @@ function addon:generate_controller_key_frames()
                         button.original_icon_size = { width = icon_width, height = icon_height }
                     end
 
-                    if not addon.keys_controller[i] then
-                        addon.keys_controller[i] = button
-                    end
-
+                    addon.keys_controller[active_count] = button
+                    button:ClearAllPoints()
                     -- Set the button position relative to the controller frame
                     button:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", button_data[2], button_data[3])
                     button.raw_key = button_data[1]
                     button.is_modifier = modifier_keys[button.raw_key] or false
 
                     -- Determine the position of the short_key text based on the X-coordinate in button_data[2]
+                    button.short_key:ClearAllPoints()
                     if button_data[2] < -200 then
                         -- If the X-coordinate is negative, position the short_key to the left of the button
                         button.short_key:SetPoint("LEFT", button, "RIGHT", 10, 0)
@@ -530,6 +530,8 @@ function addon:generate_controller_key_frames()
                             button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
                         elseif button_data[3] > 100 then
                             button.short_key:SetPoint("TOP", button, "BOTTOM", 0, -10)
+                        else
+                            button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
                         end
                     end
 
@@ -539,6 +541,7 @@ function addon:generate_controller_key_frames()
         end
     end
 
+    addon:ReleaseUnusedKeyButtons("controller", active_count, addon.keys_controller)
     addon:ApplyClickThrough()
 end
 
@@ -681,12 +684,6 @@ function addon:create_controller_buttons()
             MenuUtil.CreateContextMenu(self, addon.context_menu_generator)
         end
     end)
-
-    -- Store the created button in the keyboard_buttons table
-    if not self.controller_buttons then
-        self.controller_buttons = {}  -- Initialize the table if it doesn't exist
-    end
-    table.insert(self.controller_buttons, controller_button)  -- Add the new button to the table
 
     return controller_button
 end

@@ -9,6 +9,15 @@ KeyUI uses an **All-in-One approach** with runtime version detection to support 
 - **Anniversary Edition** (2.5.5) - Build 20505
 - **Classic Era** (1.15.8) - Build 11508
 
+### Local API Snapshot Builds Used for Compatibility Validation
+
+The repository includes Blizzard API dumps used as source-of-truth during compatibility audits:
+
+- `API/12.0.1.65617` (Retail)
+- `API/5.5.3.64857` (Cata Classic)
+- `API/2.5.5.65534` (Anniversary)
+- `API/1.15.8.64907` (Classic Era)
+
 ## Version Detection System
 
 ### VersionCompat.lua
@@ -68,6 +77,7 @@ local API_COMPAT = {
     has_modern_spellbook = (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines ~= nil),
     has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
     has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
+    has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
 }
 ```
 
@@ -78,8 +88,24 @@ local API_COMPAT = {
 | **Spellbook** | `C_SpellBook.GetNumSpellBookSkillLines()` | `GetNumSpellTabs()` | `API_COMPAT.has_modern_spellbook` |
 | **Spell Info** | `C_SpellBook.GetSpellBookItemInfo(i, bank)` | `GetSpellBookItemInfo(i, "spell")` | `API_COMPAT.has_legacy_spell_api` |
 | **Spell Pickup** | `C_Spell.PickupSpell(spellID)` | `PickupSpell(spellID)` | `API_COMPAT.has_modern_spellbook` |
-| **Assisted Combat** | `C_AssistedCombat.GetActionSpell()` | N/A | `API_COMPAT.has_assisted_combat` |
+| **Actionbar GetSpell** | `C_ActionBar.GetSpell(slot)` | N/A | `API_COMPAT.has_actionbar_getspell` |
+| **Assisted Combat Action** | `C_ActionBar.IsAssistedCombatAction(slot)` | N/A | Runtime guard (`C_ActionBar` availability) |
+| **PutActionInSlot** | `C_ActionBar.PutActionInSlot(slot)` | N/A | Runtime guard (`C_ActionBar.PutActionInSlot`) |
 | **Addon Check** | `C_AddOns.IsAddOnLoaded(name)` | `IsAddOnLoaded(name)` | Both versions |
+
+### Feature Audit from Local API Dumps
+
+Validated from the local `/API` snapshots:
+
+- `BINDINGS_LOADED` exists in `2.5.5.65534` and `12.0.1.65617`, not in `1.15.8.64907`/`5.5.3.64857`.
+- `C_ActionBar.PutActionInSlot` exists only in `12.0.1.65617`.
+- `C_ActionBar.GetSpell` and `C_ActionBar.IsAssistedCombatAction` exist in `2.5.5.65534` and `12.0.1.65617`.
+
+Developer note:
+
+- Re-run API checks from the repository root before changing compatibility guards:
+  - `rg -n "BINDINGS_LOADED" API/*/Blizzard_APIDocumentationGenerated/KeyBindingsDocumentation.lua`
+  - `rg -n "Name = \"(PutActionInSlot|IsAssistedCombatAction|GetSpell)\"" API/*/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua`
 
 ### Example: Spellbook Loading
 
@@ -185,7 +211,7 @@ KeyUI provides custom fallback implementations for Classic:
 
 Before releasing, test on **all 4 WoW versions**:
 
-### Retail (Build 120000)
+### Retail (Build 120000, API dump 65617)
 - [ ] Addon loads without Lua errors
 - [ ] Atlas textures load correctly (no custom BLP files used)
 - [ ] `C_SpellBook` API functions correctly
@@ -194,7 +220,7 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Tutorial arrows use `Tutorial_Pointer*` templates
 - [ ] Settings panel appears in Interface options
 
-### Anniversary (Build 20505)
+### Anniversary (Build 20505, API dump 65534)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures from `Media/Atlas/` load correctly
 - [ ] Legacy spell API (`GetSpellTabInfo`, `GetSpellBookItemInfo`) works
@@ -203,14 +229,14 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Custom tutorial arrows with manual textures work
 - [ ] All frames render with correct textures
 
-### Cata Classic (Build 50503)
+### Cata Classic (Build 50503, API dump 64857)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
 - [ ] Keybind visualization works
 - [ ] All UI elements render correctly
 
-### Classic Era (Build 11508)
+### Classic Era (Build 11508, API dump 64907)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
@@ -295,13 +321,10 @@ end
 
 ### Multi-Version TOC
 
-The `KeyUI.toc` file supports multiple WoW versions via multi-Interface lines:
+The `KeyUI.toc` file supports multiple WoW versions via a single multi-value interface entry:
 
 ```
-## Interface: 120000
-## Interface-Cata: 50503
-## Interface-Classic: 20505
-## Interface-Vanilla: 11508
+## Interface: 120000, 50503, 20505, 11508
 ```
 
 This allows a **single addon package** to work on all WoW versions automatically.
@@ -368,5 +391,5 @@ Users downloading from CurseForge/Wago will automatically receive the correct ve
 ---
 
 **Maintained by:** KeyUI Development Team
-**Last Updated:** 2026-02-03
+**Last Updated:** 2026-02-18
 **Supported Versions:** Retail 12.0.0+, Cata 5.5.3, Anniversary 2.5.5, Classic Era 1.15.8

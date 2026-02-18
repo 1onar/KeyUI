@@ -2,6 +2,8 @@ local name, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
 local USE_ATLAS = addon.VERSION.USE_ATLAS
+local CONTROL_HEIGHT_COLLAPSED = (addon.UI_CONSTANTS and addon.UI_CONSTANTS.controls_height_collapsed) or 200
+local CONTROL_HEIGHT_EXPANDED = (addon.UI_CONSTANTS and addon.UI_CONSTANTS.controls_height_expanded) or 350
 
 local function SetUtilityButtonTooltip(button, text, optionalDescription)
     button.tooltipHeading = text
@@ -42,9 +44,9 @@ function addon:create_controls()
 
     -- Set the initial height based on expanded settings
     if keyui_settings.controls_expanded == true then
-        controls_frame:SetHeight(350)
+        controls_frame:SetHeight(CONTROL_HEIGHT_EXPANDED)
     else
-        controls_frame:SetHeight(200)
+        controls_frame:SetHeight(CONTROL_HEIGHT_COLLAPSED)
     end
 
     controls_frame:SetWidth(500)
@@ -530,11 +532,11 @@ function addon:create_controls()
     addon:RegisterFontString(controls_frame.shift_text, 1.0)
     controls_frame.shift_text:SetPoint("LEFT", controls_frame.shift_cb, "RIGHT", 4, 0)
 
-        -- Set the initial height based on expanded settings
+    -- Set the initial height based on expanded settings
     if keyui_settings.controls_expanded == true then
-        controls_frame:SetHeight(350)
+        controls_frame:SetHeight(CONTROL_HEIGHT_EXPANDED)
     else
-        controls_frame:SetHeight(200)
+        controls_frame:SetHeight(CONTROL_HEIGHT_COLLAPSED)
     end
 
     -- Helper function to set visibility of all control checkboxes
@@ -566,12 +568,12 @@ function addon:create_controls()
         -- Update the expander text and controls visibility based on the new state
         if keyui_settings.controls_expanded then
             controls_frame.expander_text:SetText(COLLAPSE_TEXT)
-            controls_frame:SetHeight(350)
+            controls_frame:SetHeight(CONTROL_HEIGHT_EXPANDED)
             set_controls_visibility(true)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
         else
             controls_frame.expander_text:SetText(EXPAND_TEXT)
-            controls_frame:SetHeight(200)
+            controls_frame:SetHeight(CONTROL_HEIGHT_COLLAPSED)
             set_controls_visibility(false)
             controls_frame.expander_text:SetPoint("CENTER", controls_frame, "BOTTOM", 0, 30)
         end
@@ -1008,10 +1010,6 @@ function addon:create_name_input_dialog()
         end
     end)
 
-    name_input_frame:SetScript("OnHide", function()
-        name_input_frame:Hide()
-    end)
-
     addon.name_input_dialog = name_input_frame
 end
 
@@ -1141,11 +1139,6 @@ function addon:create_edit_layout_dialog()
             addon.controls_frame:Show()
             addon:show_controls_button_highlight()
         end
-    end)
-
-
-    dialog_frame:SetScript("OnHide", function()
-        dialog_frame:Hide()
     end)
 
     addon.edit_layout_dialog = dialog_frame

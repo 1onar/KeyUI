@@ -15,6 +15,7 @@
 embeds.xml
 
 Variables.lua
+Validation.lua
 VersionCompat.lua
 Mappings.lua
 UIHelpers.lua
