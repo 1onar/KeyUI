@@ -4,7 +4,16 @@ local name, addon = ...
 
 -- Save the position and scale of the mouse holder
 function addon:save_mouse_position()
+    if not addon.mouse_image then
+        return
+    end
+
     local x, y = addon.mouse_image:GetCenter()
+    if not x or not y then
+        return
+    end
+
+    keyui_settings.mouse_position = keyui_settings.mouse_position or {}
     keyui_settings.mouse_position.x = x
     keyui_settings.mouse_position.y = y
     keyui_settings.mouse_position.scale = addon.mouse_image:GetScale()
@@ -24,15 +33,17 @@ function addon:create_mouse_image()
     mouse_image:Hide()
 
     -- Load the saved position if it exists
-    if keyui_settings.mouse_position.x and keyui_settings.mouse_position.y then
+    local mouse_position = keyui_settings.mouse_position or {}
+    keyui_settings.mouse_position = mouse_position
+    if mouse_position.x and mouse_position.y then
         mouse_image:SetPoint(
             "CENTER",
             UIParent,
             "BOTTOMLEFT",
-            keyui_settings.mouse_position.x,
-            keyui_settings.mouse_position.y
+            mouse_position.x,
+            mouse_position.y
         )
-        mouse_image:SetScale(keyui_settings.mouse_position.scale)
+        mouse_image:SetScale(mouse_position.scale or 1)
     else
         mouse_image:SetPoint("CENTER", UIParent, "CENTER", 450, 0)
         mouse_image:SetScale(1)

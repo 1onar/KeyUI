@@ -5,7 +5,16 @@ local USE_ATLAS = addon.VERSION.USE_ATLAS
 
 -- Save the position and scale of the controller
 function addon:save_controller_position()
+    if not addon.controller_frame then
+        return
+    end
+
     local x, y = addon.controller_frame:GetCenter()
+    if not x or not y then
+        return
+    end
+
+    keyui_settings.controller_position = keyui_settings.controller_position or {}
     keyui_settings.controller_position.x = x
     keyui_settings.controller_position.y = y
     keyui_settings.controller_position.scale = addon.controller_frame:GetScale()
@@ -38,15 +47,17 @@ function addon:create_controller_frame()
     controller_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
     -- Load the saved position if it exists
-    if keyui_settings.controller_position.x and keyui_settings.controller_position.y then
+    local controller_position = keyui_settings.controller_position or {}
+    keyui_settings.controller_position = controller_position
+    if controller_position.x and controller_position.y then
         controller_frame:SetPoint(
             "CENTER",
             UIParent,
             "BOTTOMLEFT",
-            keyui_settings.controller_position.x,
-            keyui_settings.controller_position.y
+            controller_position.x,
+            controller_position.y
         )
-        controller_frame:SetScale(keyui_settings.controller_position.scale)
+        controller_frame:SetScale(controller_position.scale or 1)
     else
         controller_frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         controller_frame:SetScale(1)

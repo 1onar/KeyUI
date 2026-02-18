@@ -5,7 +5,16 @@ local USE_ATLAS = addon.VERSION.USE_ATLAS
 
 -- Function to save the keyboard's position and scale
 function addon:save_keyboard_position()
+    if not addon.keyboard_frame then
+        return
+    end
+
     local x, y = addon.keyboard_frame:GetCenter()
+    if not x or not y then
+        return
+    end
+
+    keyui_settings.keyboard_position = keyui_settings.keyboard_position or {}
     keyui_settings.keyboard_position.x = x
     keyui_settings.keyboard_position.y = y
     keyui_settings.keyboard_position.scale = addon.keyboard_frame:GetScale()
@@ -38,15 +47,17 @@ function addon:create_keyboard_frame()
     keyboard_frame:SetBackdropColor(0.08, 0.08, 0.08, 1)
 
     -- Load the saved position if it exists
-    if keyui_settings.keyboard_position.x and keyui_settings.keyboard_position.y then
+    local keyboard_position = keyui_settings.keyboard_position or {}
+    keyui_settings.keyboard_position = keyboard_position
+    if keyboard_position.x and keyboard_position.y then
         keyboard_frame:SetPoint(
             "CENTER",
             UIParent,
             "BOTTOMLEFT",
-            keyui_settings.keyboard_position.x,
-            keyui_settings.keyboard_position.y
+            keyboard_position.x,
+            keyboard_position.y
         )
-        keyboard_frame:SetScale(keyui_settings.keyboard_position.scale)
+        keyboard_frame:SetScale(keyboard_position.scale or 1)
     else
         keyboard_frame:SetPoint("CENTER", UIParent, "CENTER", -300, 0)
         keyboard_frame:SetScale(1)

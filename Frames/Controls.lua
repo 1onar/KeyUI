@@ -25,6 +25,12 @@ local function SetUtilityButtonClick(button, handler)
     button:SetScript("OnClick", handler)
 end
 
+local function has_tab_textures(button)
+    return button
+        and button.LeftActive and button.MiddleActive and button.RightActive
+        and button.Left and button.Middle and button.Right
+end
+
 function addon:create_controls()
     local controls_frame = CreateFrame("Frame", "keyui_keyboard_control_frame", UIParent, "BackdropTemplate")
     addon.controls_frame = controls_frame
@@ -141,11 +147,11 @@ function addon:create_controls()
     local function update_slider_value()
         local scale_value = 1.0  -- Default scale value
 
-        if addon.active_control_tab == "keyboard" then
+        if addon.active_control_tab == "keyboard" and addon.keyboard_frame then
             scale_value = addon.keyboard_frame:GetScale()
-        elseif addon.active_control_tab == "mouse" then
+        elseif addon.active_control_tab == "mouse" and addon.mouse_image then
             scale_value = addon.mouse_image:GetScale()
-        elseif addon.active_control_tab == "controller" then
+        elseif addon.active_control_tab == "controller" and addon.controller_frame then
             scale_value = addon.controller_frame:GetScale()
         end
 
@@ -170,11 +176,11 @@ function addon:create_controls()
         local rounded_value = math.floor(value / stepSize + 0.5) * stepSize
 
         -- Check the active control tab and apply the scale change to the appropriate frame
-        if addon.active_control_tab == "keyboard" then
+        if addon.active_control_tab == "keyboard" and addon.keyboard_frame then
             addon.keyboard_frame:SetScale(rounded_value)
-        elseif addon.active_control_tab == "mouse" then
+        elseif addon.active_control_tab == "mouse" and addon.mouse_image then
             addon.mouse_image:SetScale(rounded_value)
-        elseif addon.active_control_tab == "controller" then
+        elseif addon.active_control_tab == "controller" and addon.controller_frame then
             addon.controller_frame:SetScale(rounded_value)
         end
 
@@ -776,12 +782,14 @@ function addon:create_controls()
             if frame and frame.controls_button then
                 local alpha = (frame._buttons_faded) and 0.15 or 0.5
                 frame.controls_button:SetAlpha(alpha)
-                frame.controls_button.LeftActive:Hide()
-                frame.controls_button.MiddleActive:Hide()
-                frame.controls_button.RightActive:Hide()
-                frame.controls_button.Left:Show()
-                frame.controls_button.Middle:Show()
-                frame.controls_button.Right:Show()
+                if has_tab_textures(frame.controls_button) then
+                    frame.controls_button.LeftActive:Hide()
+                    frame.controls_button.MiddleActive:Hide()
+                    frame.controls_button.RightActive:Hide()
+                    frame.controls_button.Left:Show()
+                    frame.controls_button.Middle:Show()
+                    frame.controls_button.Right:Show()
+                end
             end
         end
     end)
@@ -808,21 +816,21 @@ function addon:create_controls()
         if addon.active_control_tab == "keyboard" then
             addon.keyboard_locked = false
 
-            if addon.keyboard_frame.edit_frame then
+            if addon.keyboard_frame and addon.keyboard_frame.edit_frame then
                 addon.keyboard_frame.edit_frame:Show()
             end
 
         elseif addon.active_control_tab == "mouse" then
             addon.mouse_locked = false
 
-            if addon.mouse_image.edit_frame then
+            if addon.mouse_image and addon.mouse_image.edit_frame then
                 addon.mouse_image.edit_frame:Show()
             end
 
         elseif addon.active_control_tab == "controller" then
             addon.controller_locked = false
 
-            if addon.controller_frame.edit_frame then
+            if addon.controller_frame and addon.controller_frame.edit_frame then
                 addon.controller_frame.edit_frame:Show()
             end
         end
@@ -979,21 +987,21 @@ function addon:create_name_input_dialog()
         if addon.active_control_tab == "keyboard" then
             addon.keyboard_locked = false
 
-            if addon.keyboard_frame.edit_frame then
+            if addon.keyboard_frame and addon.keyboard_frame.edit_frame then
                 addon.keyboard_frame.edit_frame:Show()
             end
 
         elseif addon.active_control_tab == "mouse" then
             addon.mouse_locked = false
 
-            if addon.mouse_image.edit_frame then
+            if addon.mouse_image and addon.mouse_image.edit_frame then
                 addon.mouse_image.edit_frame:Show()
             end
 
         elseif addon.active_control_tab == "controller" then
             addon.controller_locked = false
 
-            if addon.controller_frame.edit_frame then
+            if addon.controller_frame and addon.controller_frame.edit_frame then
                 addon.controller_frame.edit_frame:Show()
             end
 
@@ -1145,6 +1153,10 @@ end
 
 -- Helper function to toggle visibility of tab button textures
 function addon:toggle_control_tab_button(button, showInactive)
+    if not has_tab_textures(button) then
+        return
+    end
+
     if showInactive then
         button.LeftActive:Hide()
         button.MiddleActive:Hide()
@@ -1159,9 +1171,15 @@ function addon:toggle_control_tab_button(button, showInactive)
         button.Left:Hide()
         button.Middle:Hide()
         button.Right:Hide()
-        button.LeftHighlight:Hide()
-        button.MiddleHighlight:Hide()
-        button.RightHighlight:Hide()
+        if button.LeftHighlight then
+            button.LeftHighlight:Hide()
+        end
+        if button.MiddleHighlight then
+            button.MiddleHighlight:Hide()
+        end
+        if button.RightHighlight then
+            button.RightHighlight:Hide()
+        end
     end
 end
 
@@ -1174,12 +1192,14 @@ function addon:show_controls_button_highlight(excluded_frame)
             if not frame._buttons_faded then
                 frame.controls_button:SetAlpha(1)
             end
-            frame.controls_button.LeftActive:Show()
-            frame.controls_button.MiddleActive:Show()
-            frame.controls_button.RightActive:Show()
-            frame.controls_button.Left:Hide()
-            frame.controls_button.Middle:Hide()
-            frame.controls_button.Right:Hide()
+            if has_tab_textures(frame.controls_button) then
+                frame.controls_button.LeftActive:Show()
+                frame.controls_button.MiddleActive:Show()
+                frame.controls_button.RightActive:Show()
+                frame.controls_button.Left:Hide()
+                frame.controls_button.Middle:Hide()
+                frame.controls_button.Right:Hide()
+            end
         end
     end
 end
@@ -1192,12 +1212,14 @@ function addon:fade_controls_button_highlight(excluded_frame)
         if frame and frame.controls_button and frame ~= excluded_frame then
             local alpha = frame._buttons_faded and 0.15 or 0.5
             frame.controls_button:SetAlpha(alpha)
-            frame.controls_button.LeftActive:Hide()
-            frame.controls_button.MiddleActive:Hide()
-            frame.controls_button.RightActive:Hide()
-            frame.controls_button.Left:Show()
-            frame.controls_button.Middle:Show()
-            frame.controls_button.Right:Show()
+            if has_tab_textures(frame.controls_button) then
+                frame.controls_button.LeftActive:Hide()
+                frame.controls_button.MiddleActive:Hide()
+                frame.controls_button.RightActive:Hide()
+                frame.controls_button.Left:Show()
+                frame.controls_button.Middle:Show()
+                frame.controls_button.Right:Show()
+            end
         end
     end
 end

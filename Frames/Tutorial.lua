@@ -6,16 +6,24 @@ function addon:create_tutorial_frame1()
     local frame
     local frame1_setpoint
 
+    local keyboard_controls_button = addon.keyboard_frame and addon.keyboard_frame.controls_button
+    local mouse_controls_button = addon.mouse_image and addon.mouse_image.controls_button
+    local controller_controls_button = addon.controller_frame and addon.controller_frame.controls_button
+
     -- Get the correct reference button based on the active control tab
-    if addon.keyboard_frame and addon.keyboard_frame.controls_button:IsVisible() then
+    if keyboard_controls_button and keyboard_controls_button:IsVisible() then
         frame = addon.keyboard_frame
-        frame1_setpoint = addon.keyboard_frame.controls_button
-    elseif addon.mouse_image and addon.mouse_image.controls_button:IsVisible() then
+        frame1_setpoint = keyboard_controls_button
+    elseif mouse_controls_button and mouse_controls_button:IsVisible() then
         frame = addon.mouse_image
-        frame1_setpoint = addon.mouse_image.controls_button
-    elseif addon.controller_frame and addon.controller_frame.controls_button:IsVisible() then
+        frame1_setpoint = mouse_controls_button
+    elseif controller_controls_button and controller_controls_button:IsVisible() then
         frame = addon.controller_frame
-        frame1_setpoint = addon.controller_frame.controls_button
+        frame1_setpoint = controller_controls_button
+    end
+
+    if not frame or not frame1_setpoint then
+        return
     end
 
     -- Create the main glowing frame
@@ -106,6 +114,10 @@ function addon:create_tutorial_frame1()
                     frame2_setpoint = addon.mouse_selector
                 elseif addon.controller_selector and addon.controller_selector:IsVisible() then
                     frame2_setpoint = addon.controller_selector
+                end
+
+                if not frame2_setpoint then
+                    return
                 end
 
                 -- Create the main glowing frame

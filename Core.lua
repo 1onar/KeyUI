@@ -1893,6 +1893,13 @@ end
 
 -- This function is called when the Mouse cursor hovers over a key binding button. It displays a tooltip description of the spell or ability.
 function addon:button_mouse_over(button)
+    if not addon.keyui_tooltip_frame then
+        addon:create_tooltip()
+    end
+    if not addon.keyui_tooltip_frame then
+        return
+    end
+
     local raw_key = button.raw_key or ""
     local readable_key = (addon.short_keys and addon.short_keys[raw_key]) or _G["KEY_" .. raw_key] or raw_key
     local short_key = button.short_key:GetText()
