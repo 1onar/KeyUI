@@ -95,16 +95,16 @@ function addon:create_mouse_image()
         addon.mouse_layout_dirty = true
     end)
 
-    -- Create arrow-down button for toggle menu (left of close button)
-    mouse_image.menu_button = addon:CreateArrowDownButton(mouse_image)
+    -- Create arrow-up button for toggle menu (left of close button)
+    mouse_image.menu_button = addon:CreateArrowUpButton(mouse_image)
     mouse_image.menu_button:SetPoint("TOPRIGHT", mouse_image.close_button, "TOPLEFT", -2, 0)
 
     -- Store the bg_setting on the frame for UpdateAllToggleVisuals compatibility
     mouse_image._bg_setting = "show_mouse_graphic"
 
-    -- Open native WoW context menu with toggle checkboxes on arrow button click
+    -- Open context menu above the button
     mouse_image.menu_button:SetScript("OnClick", function(self)
-        MenuUtil.CreateContextMenu(self, function(owner, rootDescription)
+        local menu = MenuUtil.CreateContextMenu(self, function(_, rootDescription)
             local bg = rootDescription:CreateCheckbox("Background",
                 function() return keyui_settings.show_mouse_graphic end,
                 function()
@@ -194,6 +194,12 @@ function addon:create_mouse_image()
                 addon:OpenSettings()
             end)
         end)
+
+        -- Reposition menu above the button (CreateContextMenu anchors to cursor by default)
+        if menu then
+            menu:ClearAllPoints()
+            menu:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 0)
+        end
     end)
 
     -- Fade all tab buttons when mouse is not over the frame

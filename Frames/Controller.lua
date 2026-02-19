@@ -268,8 +268,8 @@ function addon:create_controller_frame()
         addon.controller_layout_dirty = true
     end)
 
-    -- Create all left-side toggle buttons (top-left)
-    addon:CreateLockToggleButtons(controller_frame, controller_level, custom_font, false, "show_controller_background")
+    -- Create toggle menu button (top-left)
+    addon:CreateToggleMenuButton(controller_frame, "show_controller_background")
 
     -- Fade all tab buttons when mouse is not over the frame
     addon:SetupButtonFade(controller_frame)

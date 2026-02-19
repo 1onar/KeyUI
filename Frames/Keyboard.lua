@@ -263,8 +263,8 @@ function addon:create_keyboard_frame()
         addon.keyboard_layout_dirty = true
     end)
 
-    -- Create all left-side toggle buttons (top-left)
-    addon:CreateLockToggleButtons(keyboard_frame, keyboard_level, custom_font, false, "show_keyboard_background")
+    -- Create toggle menu button (top-left)
+    addon:CreateToggleMenuButton(keyboard_frame, "show_keyboard_background")
 
     -- Fade all tab buttons when mouse is not over the frame
     addon:SetupButtonFade(keyboard_frame)
