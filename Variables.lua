@@ -5,7 +5,7 @@ keyui_settings = keyui_settings or {}
 addon.SETTINGS_SCHEMA_VERSION = addon.SETTINGS_SCHEMA_VERSION or 1
 addon.UI_CONSTANTS = addon.UI_CONSTANTS or {
     controls_height_collapsed = 200,
-    controls_height_expanded = 350,
+    controls_height_expanded = 400,
 }
 
 local function set_if_nil(setting, default)
@@ -44,6 +44,7 @@ function addon:InitializeGeneralSettings()
     set_if_nil("font_face", "Expressway")
     set_if_nil("font_base_size", 16)
     set_if_nil("show_keypress_highlight", true)
+    set_if_nil("show_actionbar_mode", true)
     set_if_nil("position_locked", false)
     set_if_nil("click_through", false)
     set_if_nil("performance_debug", false)

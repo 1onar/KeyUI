@@ -3,7 +3,7 @@ local name, addon = ...
 -- Use centralized version detection from VersionCompat.lua
 local USE_ATLAS = addon.VERSION.USE_ATLAS
 local CONTROL_HEIGHT_COLLAPSED = (addon.UI_CONSTANTS and addon.UI_CONSTANTS.controls_height_collapsed) or 200
-local CONTROL_HEIGHT_EXPANDED = (addon.UI_CONSTANTS and addon.UI_CONSTANTS.controls_height_expanded) or 350
+local CONTROL_HEIGHT_EXPANDED = (addon.UI_CONSTANTS and addon.UI_CONSTANTS.controls_height_expanded) or 400
 
 local function SetUtilityButtonTooltip(button, text, optionalDescription)
     button.tooltipHeading = text
@@ -101,12 +101,13 @@ function addon:create_controls()
     local second_setpoint = controls_frame:GetWidth() * (1 / 4.5)
     local half_setpoint = controls_frame:GetWidth() * (1 / 2)
 
-    local layout_y = -40
-    local size_y = -110
-    local first_cb_y = -160
+    local layout_y    = -40
+    local size_y      = -110
+    local first_cb_y  = -160
     local second_cb_y = -195
-    local third_cb_y = -230
-    local fourth_cb_y = -280
+    local third_cb_y  = -230
+    local fourth_cb_y = -265  -- Action Bar Mode
+    local fifth_cb_y  = -315  -- Modifier row (Alt/Ctrl/Shift)
 
     -- Create Text "Layout"
     controls_frame.layout_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -435,11 +436,40 @@ function addon:create_controls()
     addon:RegisterFontString(controls_frame.dynamic_modifier_text, 1.0)
     controls_frame.dynamic_modifier_text:SetPoint("LEFT", controls_frame.dynamic_modifier_cb, "RIGHT", 10, 0)
 
-    -- Create a alt checkbox (centered in fourth row with Ctrl and Shift)
+    -- Action Bar Mode – single toggle for all live action bar overlays
+    controls_frame.actionbar_mode_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
+    controls_frame.actionbar_mode_cb:SetSize(32, 36)
+    controls_frame.actionbar_mode_cb:SetHitRectInsets(0, 0, 0, -10)
+    controls_frame.actionbar_mode_cb:SetPoint("LEFT", controls_frame, "TOPLEFT", first_setpoint_cb, fourth_cb_y)
+    controls_frame.actionbar_mode_cb:SetChecked(keyui_settings.show_actionbar_mode ~= false)
+    controls_frame.actionbar_mode_cb:SetScript("OnClick", function(s)
+        if s:GetChecked() then
+            keyui_settings.show_actionbar_mode = true
+            addon:refresh_cooldowns()
+            addon:refresh_usable()
+            addon:refresh_counts()
+        else
+            keyui_settings.show_actionbar_mode = false
+            addon:clear_all_cooldowns()
+            addon:clear_all_usable()
+            addon:clear_all_counts()
+            addon:clear_all_range()
+        end
+    end)
+    SetCheckboxTooltip(controls_frame.actionbar_mode_cb,
+        "Mirror live action bar state on icons: cooldowns, usable state, stack counts, and range")
+
+    controls_frame.actionbar_mode_text = controls_frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    controls_frame.actionbar_mode_text:SetText("Action Bar Mode")
+    controls_frame.actionbar_mode_text:SetFont(addon:GetFont(), addon:GetFontSize(1.0))
+    addon:RegisterFontString(controls_frame.actionbar_mode_text, 1.0)
+    controls_frame.actionbar_mode_text:SetPoint("LEFT", controls_frame.actionbar_mode_cb, "RIGHT", 10, 0)
+
+    -- Create a alt checkbox (centered in fifth row with Ctrl and Shift)
     controls_frame.alt_cb = CreateFrame("CheckButton", nil, controls_frame, "UICheckButtonArtTemplate")
     controls_frame.alt_cb:SetSize(32, 36)
     controls_frame.alt_cb:SetHitRectInsets(0, 0, 0, -10)
-    controls_frame.alt_cb:SetPoint("CENTER", controls_frame, "TOP", -130, fourth_cb_y)
+    controls_frame.alt_cb:SetPoint("CENTER", controls_frame, "TOP", -130, fifth_cb_y)
 
     -- Set the OnClick script for the checkbutton
     controls_frame.alt_cb:SetScript("OnClick", function(s)
@@ -544,6 +574,7 @@ function addon:create_controls()
         local controls = {
             "empty_keys", "interface_keys", "highlight_buttons", "keypress_highlight",
             "detect_modifier", "dynamic_modifier",
+            "actionbar_mode",
             "alt", "ctrl", "shift"
         }
 

@@ -567,6 +567,11 @@ function addon:create_keyboard_buttons()
     keyboard_button.icon:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)
     keyboard_button.icon:SetTexCoord(0.075, 0.925, 0.075, 0.925)
 
+    -- Cooldown overlay
+    keyboard_button.cooldown = addon.CreateCooldownFrame(keyboard_button, 50)
+    -- Stack / charge count
+    keyboard_button.count_text = addon.CreateCountText(keyboard_button)
+
     -- Highlight texture for the button.
     keyboard_button.highlight = keyboard_button:CreateTexture(nil, "ARTWORK")
     keyboard_button.highlight:SetPoint("CENTER", keyboard_button, "CENTER", 0, 4)

@@ -414,6 +414,11 @@ function addon:create_mouse_buttons()
     mouse_button.icon:SetPoint("CENTER", mouse_button, "CENTER", 0, 0)
     mouse_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 
+    -- Cooldown overlay
+    mouse_button.cooldown = addon.CreateCooldownFrame(mouse_button, 44)
+    -- Stack / charge count
+    mouse_button.count_text = addon.CreateCountText(mouse_button)
+
     -- Highlight texture for the button.
     mouse_button.highlight = mouse_button:CreateTexture(nil, "ARTWORK")
     mouse_button.highlight:SetSize(44, 44)

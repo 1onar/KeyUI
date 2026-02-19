@@ -8,7 +8,7 @@ local PROFILE_EXPORT_VERSION = 1
 local LAYOUT_EXPORT_VERSION = 1
 local UI_CONSTANTS = addon.UI_CONSTANTS or {
     controls_height_collapsed = 200,
-    controls_height_expanded = 350,
+    controls_height_expanded = 400,
 }
 addon.UI_CONSTANTS = UI_CONSTANTS
 addon.key_button_pools = addon.key_button_pools or {
@@ -25,6 +25,12 @@ local API_COMPAT = {
     has_legacy_spell_api = (_G.GetSpellBookItemInfo ~= nil and _G.GetNumSpellTabs ~= nil),
     has_assisted_combat = (C_AssistedCombat and C_AssistedCombat.IsAvailable ~= nil),
     has_actionbar_getspell = (C_ActionBar and C_ActionBar.GetSpell ~= nil),
+    has_modern_action_cooldown = (C_ActionBar and C_ActionBar.GetActionCooldown ~= nil),
+    has_modern_spell_cooldown  = (C_Spell and C_Spell.GetSpellCooldown ~= nil),
+    has_modern_action_usable   = (C_ActionBar and C_ActionBar.IsUsableAction ~= nil),
+    has_modern_action_in_range = (C_ActionBar and C_ActionBar.IsActionInRange ~= nil),
+    has_modern_display_count   = (C_ActionBar and C_ActionBar.GetActionDisplayCount ~= nil),
+    has_modern_action_charges  = (C_ActionBar and C_ActionBar.GetActionCharges ~= nil),
 }
 addon.api_compat = API_COMPAT
 addon.compat = addon.compat or {}
@@ -2425,6 +2431,11 @@ function addon:set_key(button)
 
     -- Update key text at the end
     addon:update_button_key_text(button)
+
+    -- Update overlays after binding is resolved
+    addon:UpdateButtonCooldown(button)
+    addon:UpdateButtonUsable(button)
+    addon:UpdateButtonCount(button)
 end
 
 -- Resets the button's state
@@ -2438,12 +2449,281 @@ function addon:reset_button_state(button)
     button.is_castable = nil
     button.icon:SetTexture(nil)
     button.icon:Hide()
+    button.icon:SetVertexColor(1, 1, 1)
     button.readable_binding:Hide()
     button.readable_binding:SetText("")
     button.highlight:Hide()
     if button.assisted_combat_clip then
         button.assisted_combat_clip:Hide()
     end
+    if button.count_text then button.count_text:SetText("") end
+    if button.short_key then button.short_key:SetTextColor(1, 1, 1) end
+end
+
+-- ============================================================================
+-- Cooldown Overlay System
+-- ============================================================================
+
+-- Reads cooldown data for a button based on its resolved binding type.
+-- Priority: active_slot > spellid > pet_action_index
+-- Returns: start, duration, modRate  (nil, nil, nil if no cooldown source)
+function addon:GetButtonCooldownData(button)
+    if button.active_slot then
+        local slot = button.active_slot
+        local start, duration, modRate
+
+        if API_COMPAT.has_modern_action_cooldown then
+            local info = C_ActionBar.GetActionCooldown(slot)
+            if info then
+                start, duration, modRate = info.startTime, info.duration, info.modRate
+            end
+        else
+            local _
+            start, duration, _, modRate = GetActionCooldown(slot)
+        end
+
+        -- In Retail combat, values may be "secret" (WoW security restriction).
+        -- pcall the comparison; on failure, pass through – SetCooldown accepts secret values.
+        local ok, has_main = pcall(function()
+            return start and start > 0 and duration and duration > 0
+        end)
+        if not ok then
+            return start, duration, modRate  -- secret values: pass through directly
+        end
+        if has_main then
+            return start, duration, modRate
+        end
+
+        -- No main cooldown – check charge recovery (covers charge-based spells).
+        if API_COMPAT.has_modern_action_charges then
+            local ci = C_ActionBar.GetActionCharges(slot)
+            if ci and ci.maxCharges > 1 and ci.currentCharges < ci.maxCharges
+                    and ci.cooldownStartTime and ci.cooldownStartTime > 0 then
+                return ci.cooldownStartTime, ci.cooldownDuration, ci.chargeModRate or 1.0
+            end
+        else
+            local charges, maxCharges, cs, cd, cr = GetActionCharges(slot)
+            if maxCharges and maxCharges > 1 and charges and charges < maxCharges
+                    and cs and cs > 0 then
+                return cs, cd, cr or 1.0
+            end
+        end
+
+        return start, duration, modRate  -- 0, 0, x → no cooldown
+    end
+
+    if button.spellid then
+        if API_COMPAT.has_modern_spell_cooldown then
+            local info = C_Spell.GetSpellCooldown(button.spellid)
+            if info then
+                return info.startTime, info.duration, info.modRate
+            end
+        else
+            local start, duration = GetSpellCooldown(button.spellid)
+            return start, duration, 1.0
+        end
+    end
+
+    if button.pet_action_index then
+        local start, duration = GetPetActionCooldown(button.pet_action_index)
+        return start, duration, 1.0
+    end
+
+    return nil, nil, nil
+end
+
+-- Clears the cooldown overlay on a single button.
+-- Creates and configures a cooldown overlay frame for a button icon.
+-- CooldownFrameTemplate is required to initialize the C++ swipe renderer.
+function addon.CreateCooldownFrame(button, size)
+    local cd = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
+    cd:ClearAllPoints() -- override template's setAllPoints="true"
+    cd:SetFrameLevel(button:GetFrameLevel() + 1)
+    cd:SetSize(size, size)
+    cd:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
+    cd:SetDrawBling(false)
+    cd:SetDrawEdge(true)
+    cd:SetDrawSwipe(true)
+    cd:SetSwipeColor(0, 0, 0, 0.8)
+    return cd
+end
+
+-- Creates a stack/charge count FontString anchored to the bottom-right of the icon.
+function addon.CreateCountText(button)
+    local ct = button:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    ct:SetPoint("BOTTOMRIGHT", button.icon, "BOTTOMRIGHT", -2, 2)
+    ct:SetText("")
+    return ct
+end
+
+function addon:ClearButtonCooldown(button)
+    if button.cooldown then
+        button.cooldown:Clear()
+    end
+end
+
+-- Updates the cooldown overlay on a single button based on current game state.
+function addon:UpdateButtonCooldown(button)
+    if not button.cooldown then return end
+
+    if not keyui_settings.show_actionbar_mode then
+        button.cooldown:Clear()
+        return
+    end
+
+    if not button.icon:IsShown() then
+        button.cooldown:Clear()
+        return
+    end
+
+    local start, duration, modRate = addon:GetButtonCooldownData(button)
+    if not start then
+        button.cooldown:Clear()
+        return
+    end
+    -- In Retail combat, GetActionCooldown may return "secret values" that cannot be compared
+    -- to literals with ==. pcall catches the error; when secret, SetCooldown accepts them directly.
+    local ok, no_cooldown = pcall(function() return start == 0 or duration == 0 end)
+    if ok and no_cooldown then
+        button.cooldown:Clear()
+        return
+    end
+
+    button.cooldown:SetCooldown(start, duration, modRate or 1.0)
+end
+
+-- Refreshes cooldown overlays on all visible buttons.
+function addon:refresh_cooldowns()
+    if not keyui_settings.show_actionbar_mode then
+        addon:clear_all_cooldowns()
+        return
+    end
+    for _, button in ipairs(addon.keys_keyboard) do
+        addon:UpdateButtonCooldown(button)
+    end
+    for _, button in ipairs(addon.keys_mouse) do
+        addon:UpdateButtonCooldown(button)
+    end
+    for _, button in ipairs(addon.keys_controller) do
+        addon:UpdateButtonCooldown(button)
+    end
+end
+
+-- Clears all cooldown overlays on all buttons.
+function addon:clear_all_cooldowns()
+    for _, button in ipairs(addon.keys_keyboard) do
+        addon:ClearButtonCooldown(button)
+    end
+    for _, button in ipairs(addon.keys_mouse) do
+        addon:ClearButtonCooldown(button)
+    end
+    for _, button in ipairs(addon.keys_controller) do
+        addon:ClearButtonCooldown(button)
+    end
+end
+
+-- ── Usable State ─────────────────────────────────────────────────────────────
+
+function addon:GetButtonUsableColors(button)
+    if not button.active_slot then return 1, 1, 1 end
+    local isUsable, notEnoughMana
+    if API_COMPAT.has_modern_action_usable then
+        isUsable, notEnoughMana = C_ActionBar.IsUsableAction(button.active_slot)
+    else
+        isUsable, notEnoughMana = IsUsableAction(button.active_slot)
+    end
+    if isUsable then return 1.0, 1.0, 1.0
+    elseif notEnoughMana then return 0.5, 0.5, 1.0
+    else return 0.4, 0.4, 0.4 end
+end
+
+function addon:UpdateButtonUsable(button)
+    if not button.icon:IsShown() or not keyui_settings.show_actionbar_mode then
+        button.icon:SetVertexColor(1, 1, 1); return
+    end
+    button.icon:SetVertexColor(addon:GetButtonUsableColors(button))
+end
+
+function addon:refresh_usable()
+    for _, b in ipairs(addon.keys_keyboard)    do addon:UpdateButtonUsable(b) end
+    for _, b in ipairs(addon.keys_mouse)       do addon:UpdateButtonUsable(b) end
+    for _, b in ipairs(addon.keys_controller)  do addon:UpdateButtonUsable(b) end
+end
+
+function addon:clear_all_usable()
+    for _, b in ipairs(addon.keys_keyboard)    do b.icon:SetVertexColor(1, 1, 1) end
+    for _, b in ipairs(addon.keys_mouse)       do b.icon:SetVertexColor(1, 1, 1) end
+    for _, b in ipairs(addon.keys_controller)  do b.icon:SetVertexColor(1, 1, 1) end
+end
+
+-- ── Stack / Charge Counter ────────────────────────────────────────────────────
+
+function addon:GetButtonCountText(button)
+    if not button.active_slot then return "" end
+    local slot = button.active_slot
+    if API_COMPAT.has_modern_display_count then
+        return C_ActionBar.GetActionDisplayCount(slot) or ""
+    end
+    if IsConsumableAction(slot) or IsStackableAction(slot) then
+        local count = GetActionCount(slot)
+        if count > 9999 then return "*" end
+        return count > 0 and tostring(count) or ""
+    end
+    local charges, maxCharges = GetActionCharges(slot)
+    if maxCharges and maxCharges > 1 then return tostring(charges) end
+    return ""
+end
+
+function addon:UpdateButtonCount(button)
+    if not button.count_text then return end
+    if not keyui_settings.show_actionbar_mode or not button.icon:IsShown() then
+        button.count_text:SetText(""); return
+    end
+    button.count_text:SetText(addon:GetButtonCountText(button))
+end
+
+function addon:refresh_counts()
+    for _, b in ipairs(addon.keys_keyboard)    do addon:UpdateButtonCount(b) end
+    for _, b in ipairs(addon.keys_mouse)       do addon:UpdateButtonCount(b) end
+    for _, b in ipairs(addon.keys_controller)  do addon:UpdateButtonCount(b) end
+end
+
+function addon:clear_all_counts()
+    for _, b in ipairs(addon.keys_keyboard)    do if b.count_text then b.count_text:SetText("") end end
+    for _, b in ipairs(addon.keys_mouse)       do if b.count_text then b.count_text:SetText("") end end
+    for _, b in ipairs(addon.keys_controller)  do if b.count_text then b.count_text:SetText("") end end
+end
+
+-- ── Range Indicator ───────────────────────────────────────────────────────────
+
+function addon:UpdateButtonRange(button)
+    if not button.short_key then return end
+    if not keyui_settings.show_actionbar_mode or not button.active_slot then
+        button.short_key:SetTextColor(1, 1, 1); return
+    end
+    local inRange
+    if API_COMPAT.has_modern_action_in_range then
+        inRange = C_ActionBar.IsActionInRange(button.active_slot)
+    else
+        inRange = IsActionInRange(button.active_slot)
+    end
+    if inRange == false then
+        button.short_key:SetTextColor(1, 0.2, 0.2)
+    else
+        button.short_key:SetTextColor(1, 1, 1)
+    end
+end
+
+function addon:refresh_range()
+    for _, b in ipairs(addon.keys_keyboard)    do addon:UpdateButtonRange(b) end
+    for _, b in ipairs(addon.keys_mouse)       do addon:UpdateButtonRange(b) end
+    for _, b in ipairs(addon.keys_controller)  do addon:UpdateButtonRange(b) end
+end
+
+function addon:clear_all_range()
+    for _, b in ipairs(addon.keys_keyboard)    do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
+    for _, b in ipairs(addon.keys_mouse)       do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
+    for _, b in ipairs(addon.keys_controller)  do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
 end
 
 -- Shows the pushed texture on the mapped action bar button when hovering a KeyUI button
@@ -2752,6 +3032,12 @@ end
 -- Handles processing for Spell bindings
 function addon:process_spell(spell_name, button)
     if not spell_name then return end
+
+    -- Retrieve and store the spell ID for cooldown tracking
+    local spellID = C_Spell.GetSpellIDForSpellIdentifier(spell_name)
+    if spellID then
+        button.spellid = spellID
+    end
 
     -- Retrieve the spell's icon
     local spell_icon = C_Spell.GetSpellTexture(spell_name)
@@ -4306,6 +4592,9 @@ local function reset_pending_updates()
         keys = false,
         spellbook = false,
         tooltip = false,
+        cooldowns = false,
+        usable = false,
+        counts = false,
         slot_changes = {},
     }
 end
@@ -4351,6 +4640,9 @@ flush_pending_updates = function()
     local should_refresh_keys = pending.keys
     local should_refresh_tooltip = pending.tooltip
     local should_reload_spellbook = pending.spellbook
+    local should_refresh_cooldowns = pending.cooldowns
+    local should_refresh_usable = pending.usable
+    local should_refresh_counts = pending.counts
     local pending_slot_changes = pending.slot_changes
 
     reset_pending_updates()
@@ -4376,9 +4668,34 @@ flush_pending_updates = function()
         end
     end
 
+    if should_refresh_cooldowns then
+        addon:refresh_cooldowns()
+    end
+
+    if should_refresh_usable then
+        addon:refresh_usable()
+    end
+
+    if should_refresh_counts then
+        addon:refresh_counts()
+    end
+
     if should_refresh_tooltip and addon.current_hovered_button then
         addon:button_mouse_over(addon.current_hovered_button)
     end
+end
+
+-- Range indicator polling (0.1 s throttle, mirrors Blizzard Classic approach)
+do
+    local t = 0
+    local f = CreateFrame("Frame")
+    f:SetScript("OnUpdate", function(_, elapsed)
+        t = t + elapsed
+        if t >= 0.1 then
+            t = 0
+            addon:refresh_range()
+        end
+    end)
 end
 
 local shared_events = {
@@ -4394,6 +4711,9 @@ local shared_events = {
     "UPDATE_SHAPESHIFT_FORMS",
     "UPDATE_SHAPESHIFT_USABLE",
     "UPDATE_SHAPESHIFT_COOLDOWN",
+    "ACTIONBAR_UPDATE_USABLE",
+    "SPELL_UPDATE_COOLDOWN",
+    "SPELL_UPDATE_CHARGES",
     "PET_BAR_UPDATE",
     "PET_BAR_UPDATE_COOLDOWN",
     "PET_BAR_UPDATE_USABLE",
@@ -4520,8 +4840,16 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         else
             return
         end
+    elseif event == "SPELL_UPDATE_COOLDOWN" then
+        mark_pending("cooldowns")
+    elseif event == "SPELL_UPDATE_CHARGES" then
+        mark_pending("cooldowns")
+        mark_pending("counts")
+    elseif event == "ACTIONBAR_UPDATE_USABLE" then
+        mark_pending("usable")
     elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_SHAPESHIFT_FORMS" or event == "UPDATE_SHAPESHIFT_USABLE" or event == "UPDATE_SHAPESHIFT_COOLDOWN" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
         mark_pending("keys")
+        mark_pending("usable")
     else
         return
     end

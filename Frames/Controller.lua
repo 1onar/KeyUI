@@ -598,6 +598,11 @@ function addon:create_controller_buttons()
     controller_button.icon:SetPoint("CENTER", controller_button, "CENTER", 0, 0)
     controller_button.icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
 
+    -- Cooldown overlay
+    controller_button.cooldown = addon.CreateCooldownFrame(controller_button, 44)
+    -- Stack / charge count
+    controller_button.count_text = addon.CreateCountText(controller_button)
+
     -- Highlight texture for the button.
     controller_button.highlight = controller_button:CreateTexture(nil, "ARTWORK")
     controller_button.highlight:SetSize(44, 44)
