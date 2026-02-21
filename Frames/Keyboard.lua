@@ -508,11 +508,18 @@ function addon:generate_keyboard_key_frames()
 end
 
 -- Create a new button to the main keyboard frame.
-function addon:create_keyboard_buttons()
+function addon:create_keyboard_buttons(index)
 
-    -- Create a frame that acts as a button with a tooltip border.
-    local keyboard_button = CreateFrame("Frame", nil, addon.keyboard_frame, "BackdropTemplate")
+    -- Secure action button: allows combat clicks and drag/drop on action slots.
+    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Retail only).
+    local name = "KeyUIButton_keyboard_" .. (index or 0)
+    local templates = addon.VERSION.isRetail
+        and "SecureActionButtonTemplate, ActionButtonSpellFXTemplate, BackdropTemplate"
+        or  "SecureActionButtonTemplate, BackdropTemplate"
+    local keyboard_button = CreateFrame("CheckButton", name, addon.keyboard_frame, templates)
 
+    keyboard_button:RegisterForClicks("AnyUp", "AnyDown")
+    keyboard_button:RegisterForDrag("LeftButton", "RightButton")
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:EnableGamePadButton(true)
@@ -569,6 +576,20 @@ function addon:create_keyboard_buttons()
     keyboard_button.cooldown = addon.CreateCooldownFrame(keyboard_button, 50)
     -- Stack / charge count
     keyboard_button.count_text = addon.CreateCountText(keyboard_button)
+    -- Charge recharge cooldown (separate ring, no swipe)
+    keyboard_button.charge_cooldown = addon.CreateChargeCooldownFrame(keyboard_button)
+    -- Loss-of-Control cooldown (red swipe for stun/fear/etc.)
+    keyboard_button.loc_cooldown = addon.CreateLoCCooldownFrame(keyboard_button)
+    -- Auto-attack / auto-shot flash overlay
+    keyboard_button.flash_texture = addon.CreateFlashTexture(keyboard_button)
+    -- Equipped item border (green border when item is equipped)
+    keyboard_button.equipped_border = addon.CreateEquippedBorder(keyboard_button)
+    -- Pet auto-cast rotating dots overlay
+    -- Cata Classic and Classic Era use AutoCastShineTemplate; Retail and Anniversary use AutoCastOverlayTemplate
+    local autocastTpl = (addon.VERSION.isCata or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
+    keyboard_button.autocast_overlay = CreateFrame("Frame", nil, keyboard_button, autocastTpl)
+    keyboard_button.autocast_overlay:SetAllPoints(keyboard_button.icon)
+    keyboard_button.autocast_overlay:Hide()
 
     -- Highlight texture for the button.
     keyboard_button.highlight = keyboard_button:CreateTexture(nil, "ARTWORK")
@@ -627,14 +648,26 @@ function addon:create_keyboard_buttons()
         end
     end)
 
+    -- Drag start: pick up action from slot (locked mode only, outside combat).
+    keyboard_button:SetScript("OnDragStart", function(self, mousebutton)
+        if addon.keyboard_locked ~= false and mousebutton == "LeftButton" then
+            addon:handle_action_drag(self)
+        end
+    end)
+
+    -- Receive drag: place action into slot (locked mode only, outside combat).
+    keyboard_button:SetScript("OnReceiveDrag", function(self)
+        if addon.keyboard_locked ~= false then
+            addon:handle_action_drag(self)
+        end
+    end)
+
     -- Define behavior for mouse down actions (left-click).
     keyboard_button:SetScript("OnMouseDown", function(self, mousebutton)
         if mousebutton == "LeftButton" then
             if addon.keyboard_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_keyboard_edited = true
-            else
-                addon:handle_action_drag(self)
             end
         else
             if addon.keyboard_locked == false then

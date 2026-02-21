@@ -546,10 +546,15 @@ function addon:generate_controller_key_frames()
 end
 
 -- Create a new button to the main controller image frame.
-function addon:create_controller_buttons()
+function addon:create_controller_buttons(index)
 
-    -- Use a non-secure button to avoid combat lockdown on interaction state changes.
-    local controller_button = CreateFrame("Button", nil, addon.controller_frame)
+    -- Secure action button: allows combat clicks and drag/drop on action slots.
+    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Retail only).
+    local name = "KeyUIButton_controller_" .. (index or 0)
+    local templates = addon.VERSION.isRetail
+        and "SecureActionButtonTemplate, ActionButtonSpellFXTemplate"
+        or  "SecureActionButtonTemplate"
+    local controller_button = CreateFrame("CheckButton", name, addon.controller_frame, templates)
 
     -- Add Background Texture
     local background = controller_button:CreateTexture(nil, "BACKGROUND")
@@ -602,6 +607,20 @@ function addon:create_controller_buttons()
     controller_button.cooldown = addon.CreateCooldownFrame(controller_button, 44)
     -- Stack / charge count
     controller_button.count_text = addon.CreateCountText(controller_button)
+    -- Charge recharge cooldown (separate ring, no swipe)
+    controller_button.charge_cooldown = addon.CreateChargeCooldownFrame(controller_button)
+    -- Loss-of-Control cooldown (red swipe for stun/fear/etc.)
+    controller_button.loc_cooldown = addon.CreateLoCCooldownFrame(controller_button)
+    -- Auto-attack / auto-shot flash overlay
+    controller_button.flash_texture = addon.CreateFlashTexture(controller_button)
+    -- Equipped item border (green border when item is equipped)
+    controller_button.equipped_border = addon.CreateEquippedBorder(controller_button)
+    -- Pet auto-cast rotating dots overlay
+    -- Cata Classic and Classic Era use AutoCastShineTemplate; Retail and Anniversary use AutoCastOverlayTemplate
+    local autocastTpl = (addon.VERSION.isCata or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
+    controller_button.autocast_overlay = CreateFrame("Frame", nil, controller_button, autocastTpl)
+    controller_button.autocast_overlay:SetAllPoints(controller_button.icon)
+    controller_button.autocast_overlay:Hide()
 
     -- Highlight texture for the button.
     controller_button.highlight = controller_button:CreateTexture(nil, "ARTWORK")
@@ -662,13 +681,25 @@ function addon:create_controller_buttons()
         end
     end)
 
+    -- Drag start: pick up action from slot (locked mode only, outside combat).
+    controller_button:SetScript("OnDragStart", function(self, mousebutton)
+        if addon.controller_locked ~= false and mousebutton == "LeftButton" then
+            addon:handle_action_drag(self)
+        end
+    end)
+
+    -- Receive drag: place action into slot (locked mode only, outside combat).
+    controller_button:SetScript("OnReceiveDrag", function(self)
+        if addon.controller_locked ~= false then
+            addon:handle_action_drag(self)
+        end
+    end)
+
     controller_button:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             if addon.controller_locked == false then
                 addon:handle_drag_or_size(self, button)
                 addon.keys_controller_edited = true
-            else
-                addon:handle_action_drag(self)
             end
         else
             if addon.controller_locked == false then

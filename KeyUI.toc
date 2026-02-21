@@ -22,6 +22,7 @@ UIHelpers.lua
 Layouts\Keyboard.lua
 Layouts\Mouse.lua
 Layouts\Controller.lua
+Frames\ActionButton.lua
 Frames\Selection.lua
 Frames\Keyboard.lua
 Frames\Mouse.lua

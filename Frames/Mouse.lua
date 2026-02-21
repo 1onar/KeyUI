@@ -364,11 +364,18 @@ function addon:generate_mouse_key_frames()
 end
 
 -- Create a new button to the main mouse image frame.
-function addon:create_mouse_buttons()
+function addon:create_mouse_buttons(index)
 
-    -- Use a non-secure button to avoid combat lockdown on mouse interaction updates.
-    local mouse_button = CreateFrame("Button", nil, addon.mouse_image)
+    -- Secure action button: allows combat clicks and drag/drop on action slots.
+    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Retail only).
+    local name = "KeyUIButton_mouse_" .. (index or 0)
+    local templates = addon.VERSION.isRetail
+        and "SecureActionButtonTemplate, ActionButtonSpellFXTemplate"
+        or  "SecureActionButtonTemplate"
+    local mouse_button = CreateFrame("CheckButton", name, addon.mouse_image, templates)
 
+    mouse_button:RegisterForClicks("AnyUp", "AnyDown")
+    mouse_button:RegisterForDrag("LeftButton", "RightButton")
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
     mouse_button:EnableGamePadButton(true)
@@ -422,6 +429,20 @@ function addon:create_mouse_buttons()
     mouse_button.cooldown = addon.CreateCooldownFrame(mouse_button, 44)
     -- Stack / charge count
     mouse_button.count_text = addon.CreateCountText(mouse_button)
+    -- Charge recharge cooldown (separate ring, no swipe)
+    mouse_button.charge_cooldown = addon.CreateChargeCooldownFrame(mouse_button)
+    -- Loss-of-Control cooldown (red swipe for stun/fear/etc.)
+    mouse_button.loc_cooldown = addon.CreateLoCCooldownFrame(mouse_button)
+    -- Auto-attack / auto-shot flash overlay
+    mouse_button.flash_texture = addon.CreateFlashTexture(mouse_button)
+    -- Equipped item border (green border when item is equipped)
+    mouse_button.equipped_border = addon.CreateEquippedBorder(mouse_button)
+    -- Pet auto-cast rotating dots overlay
+    -- Cata Classic and Classic Era use AutoCastShineTemplate; Retail and Anniversary use AutoCastOverlayTemplate
+    local autocastTpl = (addon.VERSION.isCata or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
+    mouse_button.autocast_overlay = CreateFrame("Frame", nil, mouse_button, autocastTpl)
+    mouse_button.autocast_overlay:SetAllPoints(mouse_button.icon)
+    mouse_button.autocast_overlay:Hide()
 
     -- Highlight texture for the button.
     mouse_button.highlight = mouse_button:CreateTexture(nil, "ARTWORK")
@@ -482,13 +503,25 @@ function addon:create_mouse_buttons()
         end
     end)
 
+    -- Drag start: pick up action from slot (locked mode only, outside combat).
+    mouse_button:SetScript("OnDragStart", function(self, mousebutton)
+        if addon.mouse_locked ~= false and mousebutton == "LeftButton" then
+            addon:handle_action_drag(self)
+        end
+    end)
+
+    -- Receive drag: place action into slot (locked mode only, outside combat).
+    mouse_button:SetScript("OnReceiveDrag", function(self)
+        if addon.mouse_locked ~= false then
+            addon:handle_action_drag(self)
+        end
+    end)
+
     mouse_button:SetScript("OnMouseDown", function(self, mousebutton)
         if mousebutton == "LeftButton" then
             if addon.mouse_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_mouse_edited = true
-            else
-                addon:handle_action_drag(self)
             end
         else
             if addon.mouse_locked == false then

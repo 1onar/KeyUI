@@ -258,7 +258,7 @@ function addon:AcquireKeyButton(device, index)
         return nil
     end
 
-    button = create_method(self)
+    button = create_method(self, index)
     pool[index] = button
 
     if self:IsPerformanceDebugEnabled() then
@@ -2524,7 +2524,7 @@ function addon:set_key(button)
                     if HasAction(slot) then
                         local texture = GetActionTexture(slot)
                         if texture then
-                            button.active_slot = slot
+                            addon:SetButtonActionSlot(button, slot)
                             button.icon:SetTexture(texture)
                             button.icon:Show()
                         end
@@ -2592,7 +2592,7 @@ end
 -- Resets the button's state
 function addon:reset_button_state(button)
     button.slot = nil
-    button.active_slot = nil
+    addon:SetButtonActionSlot(button, nil)
     button.spellid = nil
     button.pet_action_index = nil
     button.binding = nil
@@ -3014,7 +3014,7 @@ function addon:process_actionbutton_slot(slot, button)
     if HasAction(adjusted_slot) then
         local texture = GetActionTexture(adjusted_slot)
         if texture then
-            button.active_slot = adjusted_slot
+            addon:SetButtonActionSlot(button, adjusted_slot)
             button.icon:SetTexture(texture)
             button.icon:Show()
 
@@ -3080,7 +3080,7 @@ function addon:process_multiactionbar_slot(bar, bar_button, button)
 
     -- Check if the slot has an action assigned
     if slot and HasAction(slot) then
-        button.active_slot = slot
+        addon:SetButtonActionSlot(button, slot)
         button.icon:SetTexture(GetActionTexture(slot))
         button.icon:Show()
 
@@ -3147,7 +3147,7 @@ function addon:process_shapeshift_slot(slot, button)
         button.icon:SetTexture(icon)         -- Set the icon texture
         button.icon:Show()                   -- Show the icon
         button.slot = nil
-        button.active_slot = nil
+        addon:SetButtonActionSlot(button, nil)
         button.pet_action_index = nil
         button.spellid = spellID             -- Store the spell ID
         button.is_active = is_active         -- Track whether the form is active
@@ -3172,7 +3172,7 @@ function addon:process_addon_stance(binding, button)
         button.icon:SetTexture(icon)
         button.icon:Show()
         button.slot = nil
-        button.active_slot = nil
+        addon:SetButtonActionSlot(button, nil)
         button.pet_action_index = nil
         button.spellid = spellID
         button.is_active = is_active
@@ -3665,7 +3665,7 @@ function addon:process_elvui(binding, button)
         if HasAction(slot) then
             local texture = GetActionTexture(slot)
             if texture then
-                button.active_slot = slot
+                addon:SetButtonActionSlot(button, slot)
                 button.icon:SetTexture(texture)
                 button.icon:Show()
             end
@@ -3684,7 +3684,7 @@ function addon:process_bartender(binding, button)
         if HasAction(slot) then
             local texture = GetActionTexture(slot)
             if texture then
-                button.active_slot = slot
+                addon:SetButtonActionSlot(button, slot)
                 button.icon:SetTexture(texture)
                 button.icon:Show()
             end
@@ -3703,7 +3703,7 @@ function addon:process_dominos(binding, button)
         if HasAction(slot) then
             local texture = GetActionTexture(slot)
             if texture then
-                button.active_slot = slot
+                addon:SetButtonActionSlot(button, slot)
                 button.icon:SetTexture(texture)
                 button.icon:Show()
             end
@@ -4749,6 +4749,9 @@ local function reset_pending_updates()
         cooldowns = false,
         usable = false,
         counts = false,
+        flash = false,
+        equipped = false,
+        petautocast = false,
         slot_changes = {},
     }
 end
@@ -4797,6 +4800,9 @@ flush_pending_updates = function()
     local should_refresh_cooldowns = pending.cooldowns
     local should_refresh_usable = pending.usable
     local should_refresh_counts = pending.counts
+    local should_refresh_flash = pending.flash
+    local should_refresh_equipped = pending.equipped
+    local should_refresh_petautocast = pending.petautocast
     local pending_slot_changes = pending.slot_changes
 
     reset_pending_updates()
@@ -4832,6 +4838,23 @@ flush_pending_updates = function()
 
     if should_refresh_counts then
         addon:refresh_counts()
+    end
+
+    if should_refresh_cooldowns then
+        addon:refresh_charge_cooldowns()
+        addon:refresh_loc_cooldowns()
+    end
+
+    if should_refresh_flash then
+        addon:refresh_flash()
+    end
+
+    if should_refresh_equipped then
+        addon:refresh_equipped()
+    end
+
+    if should_refresh_petautocast then
+        addon:refresh_pet_autocast()
     end
 
     if should_refresh_tooltip and addon.current_hovered_button then
@@ -4881,6 +4904,20 @@ local shared_events = {
     "PLAYER_REGEN_DISABLED",
     "PLAYER_LOGOUT",
     "PLAYER_LOGIN",
+    -- New: auto-attack flash
+    "PLAYER_ENTER_COMBAT",
+    "PLAYER_LEAVE_COMBAT",
+    "START_AUTOREPEAT_SPELL",
+    "STOP_AUTOREPEAT_SPELL",
+    -- New: equipped border
+    "UNIT_INVENTORY_CHANGED",
+    "UPDATE_INVENTORY_ALERTS",
+    -- New: loss-of-control cooldown
+    "LOSS_OF_CONTROL_ADDED",
+    "LOSS_OF_CONTROL_UPDATE",
+    -- New: proc glow
+    "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW",
+    "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE",
 }
 
 for _, event_name in ipairs(shared_events) do
@@ -5007,6 +5044,26 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_SHAPESHIFT_FORMS" or event == "UPDATE_SHAPESHIFT_USABLE" or event == "UPDATE_SHAPESHIFT_COOLDOWN" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
         mark_pending("keys")
         mark_pending("usable")
+        if event == "PET_BAR_UPDATE" then mark_pending("petautocast") end
+    elseif event == "PLAYER_ENTER_COMBAT" or event == "PLAYER_LEAVE_COMBAT"
+        or event == "START_AUTOREPEAT_SPELL" or event == "STOP_AUTOREPEAT_SPELL" then
+        mark_pending("flash")
+    elseif event == "UNIT_INVENTORY_CHANGED" or event == "UPDATE_INVENTORY_ALERTS" then
+        mark_pending("equipped")
+    elseif event == "LOSS_OF_CONTROL_ADDED" or event == "LOSS_OF_CONTROL_UPDATE" then
+        mark_pending("cooldowns")
+    elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
+        local spellID = ...
+        if addon.open and spellID then
+            addon:HandleProcGlowShow(spellID)
+        end
+        return
+    elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
+        local spellID = ...
+        if spellID then
+            addon:HandleProcGlowHide(spellID)
+        end
+        return
     else
         return
     end

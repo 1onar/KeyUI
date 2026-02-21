@@ -16,3 +16,5 @@ externals:
         url: https://github.com/tekkub/libdatabroker-1-1
     Libs/LibDBIcon-1.0:
         url: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
+    Libs/LibButtonGlow-1.0:
+        url: https://repos.wowace.com/wow/libbuttonglow-1-0/trunk/LibButtonGlow-1.0
