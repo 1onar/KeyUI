@@ -19,5 +19,25 @@ jobs:
         with:
           fetch-depth: 0 # read full history for changelog
 
+      - name: Resolve Lua compiler
+        run: |
+          set -euo pipefail
+          if command -v luac5.1 >/dev/null 2>&1; then
+            echo "LUAC_BIN=$(command -v luac5.1)" >> "$GITHUB_ENV"
+          elif command -v luac >/dev/null 2>&1; then
+            echo "LUAC_BIN=$(command -v luac)" >> "$GITHUB_ENV"
+          else
+            sudo apt-get update
+            sudo apt-get install -y lua5.1
+            echo "LUAC_BIN=$(command -v luac5.1)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Lua syntax check (core project)
+        run: |
+          set -euo pipefail
+          while IFS= read -r file; do
+            "$LUAC_BIN" -p "$file"
+          done < <(git ls-files '*.lua' ':!:API/**' ':!:Addons/**')
+
       - name: Package and Release
         uses: BigWigsMods/packager@v2

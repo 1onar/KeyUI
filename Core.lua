@@ -189,11 +189,38 @@ local layout_type_labels = {
     controller = "Controller",
 }
 
+local MAX_LAYOUT_NAME_LENGTH = addon.MAX_LAYOUT_NAME_LENGTH or 120
+local MAX_IMPORT_STRING_LENGTH = 512 * 1024
+local MAX_DESERIALIZE_DEPTH = 128
+local MAX_DESERIALIZE_NODES = 200000
+
 local function sanitize_layout_name(name)
     if type(name) ~= "string" then
         return ""
     end
     return (name:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function normalize_layout_name(name)
+    local normalized = sanitize_layout_name(name)
+    if normalized == "" then
+        return nil, "Name cannot be empty."
+    end
+    if #normalized > MAX_LAYOUT_NAME_LENGTH then
+        return nil, ("Name is too long (max %d characters)."):format(MAX_LAYOUT_NAME_LENGTH)
+    end
+    return normalized
+end
+
+function addon:NormalizeLayoutName(name)
+    return normalize_layout_name(name)
+end
+
+local function validate_import_string_size(serialized, label)
+    if #serialized > MAX_IMPORT_STRING_LENGTH then
+        return false, ("%s exceeds %d bytes."):format(label or "Serialized payload", MAX_IMPORT_STRING_LENGTH)
+    end
+    return true
 end
 
 function addon:IsPerformanceDebugEnabled()
@@ -591,7 +618,19 @@ serialize_value = function(value)
     end
 end
 
-local function deserialize_value(data, index)
+local function deserialize_value(data, index, depth, parse_state)
+    depth = depth or 0
+    parse_state = parse_state or { nodes = 0 }
+
+    if depth > MAX_DESERIALIZE_DEPTH then
+        error("Serialized payload is too deeply nested")
+    end
+
+    parse_state.nodes = parse_state.nodes + 1
+    if parse_state.nodes > MAX_DESERIALIZE_NODES then
+        error("Serialized payload is too complex")
+    end
+
     local prefix = data:sub(index, index)
 
     if prefix == "s" then
@@ -599,6 +638,9 @@ local function deserialize_value(data, index)
         if not colon then error("Malformed string token") end
         local length = tonumber(data:sub(index + 1, colon - 1))
         if not length then error("Invalid string length") end
+        if length < 0 or length > MAX_IMPORT_STRING_LENGTH then
+            error("String length exceeds limit")
+        end
 
         local start_pos = colon + 1
         local end_pos = start_pos + length - 1
@@ -629,9 +671,9 @@ local function deserialize_value(data, index)
                 return tbl, cursor + 1
             end
             local key
-            key, cursor = deserialize_value(data, cursor)
+            key, cursor = deserialize_value(data, cursor, depth + 1, parse_state)
             local value
-            value, cursor = deserialize_value(data, cursor)
+            value, cursor = deserialize_value(data, cursor, depth + 1, parse_state)
             tbl[key] = value
         end
         error("Unterminated table token")
@@ -720,6 +762,10 @@ function addon:ImportProfileString(serialized)
     if trimmed == "" then
         return false, "Profile string is empty"
     end
+    local size_ok, size_error = validate_import_string_size(trimmed, "Profile string")
+    if not size_ok then
+        return false, size_error
+    end
 
     local ok, data_or_error = self:DeserializeProfile(trimmed)
     if not ok then
@@ -750,10 +796,11 @@ function addon:RenameLayout(layout_type, old_name, new_name)
         return false, "Layout not found."
     end
 
-    new_name = sanitize_layout_name(new_name)
-    if new_name == "" then
-        return false, "Name cannot be empty."
+    local normalized_name, name_error = self:NormalizeLayoutName(new_name)
+    if not normalized_name then
+        return false, name_error
     end
+    new_name = normalized_name
 
     if container[new_name] then
         return false, "A layout with that name already exists."
@@ -795,10 +842,11 @@ function addon:CopyLayout(layout_type, source_name, new_name)
         return false, "Layout not found."
     end
 
-    new_name = sanitize_layout_name(new_name)
-    if new_name == "" then
-        return false, "Name cannot be empty."
+    local normalized_name, name_error = self:NormalizeLayoutName(new_name)
+    if not normalized_name then
+        return false, name_error
     end
+    new_name = normalized_name
 
     if container[new_name] then
         return false, "A layout with that name already exists."
@@ -850,8 +898,16 @@ function addon:SerializeTable(payload)
 end
 
 function addon:DeserializeTable(serialized)
+    if type(serialized) ~= "string" then
+        return false, "Serialized payload must be a string"
+    end
+    local size_ok, size_error = validate_import_string_size(serialized, "Serialized payload")
+    if not size_ok then
+        return false, size_error
+    end
+
     local success, value_or_error = pcall(function()
-        local value, position = deserialize_value(serialized, 1)
+        local value, position = deserialize_value(serialized, 1, 0, { nodes = 0 })
         if position <= #serialized then
             local remainder = serialized:sub(position):match("^%s*(.-)%s*$")
             if remainder ~= "" then
@@ -943,6 +999,11 @@ local function ensure_unique_layout_name(container, base_name)
 end
 
 function addon:SerializeLayoutPayload(layout_type, layout_name, layout_data)
+    local normalized_name, name_error = self:NormalizeLayoutName(layout_name)
+    if not normalized_name then
+        return nil, name_error
+    end
+
     if type(layout_data) ~= "table" then
         return nil, "Layout data is invalid."
     end
@@ -957,7 +1018,7 @@ function addon:SerializeLayoutPayload(layout_type, layout_name, layout_data)
     local payload = {
         version = LAYOUT_EXPORT_VERSION,
         layoutType = layout_type,
-        name = layout_name,
+        name = normalized_name,
         layout = deep_copy(layout_data),
     }
 
@@ -1009,6 +1070,10 @@ function addon:ImportLayoutString(layout_type, serialized)
     if trimmed == "" then
         return false, "Layout string is empty."
     end
+    local size_ok, size_error = validate_import_string_size(trimmed, "Layout string")
+    if not size_ok then
+        return false, size_error
+    end
 
     local ok, payload = self:DeserializeLayoutPayload(trimmed)
     if not ok then
@@ -1028,8 +1093,11 @@ function addon:ImportLayoutString(layout_type, serialized)
 
     local container = meta.edited()
 
-    local base_name = payload.name
-    if type(base_name) ~= "string" or base_name == "" then
+    local base_name
+    if type(payload.name) == "string" then
+        base_name = self:NormalizeLayoutName(payload.name)
+    end
+    if not base_name then
         base_name = ("Imported %s Layout"):format(layout_type_labels[layout_type] or "")
     end
 
@@ -4438,7 +4506,7 @@ local function build_spells_submenu(parentMenu)
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
                         SetBinding(key, spell)
-                        SaveBindings(2)
+                        SaveBindings(GetCurrentBindingSet())
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
                     end
                 end)
@@ -4462,9 +4530,10 @@ local function build_spells_submenu(parentMenu)
         end
     end
 
-    -- Assisted Combat (Single-Button Assistant) entry at the bottom of the spells menu
-    -- Only available in Retail
-    if API_COMPAT.has_modern_spellbook and C_AssistedCombat and C_AssistedCombat.IsAvailable and C_AssistedCombat.IsAvailable() and C_ActionBar and C_ActionBar.FindAssistedCombatActionButtons then
+    -- Assisted Combat (Single-Button Assistant) entry at the bottom of the spells menu.
+    -- Show this when the runtime explicitly reports availability.
+    if API_COMPAT.has_assisted_combat and C_AssistedCombat.IsAvailable()
+        and C_ActionBar and C_ActionBar.FindAssistedCombatActionButtons then
         local acSpellID = C_AssistedCombat.GetActionSpell()
         local acIcon = acSpellID and C_Spell.GetSpellTexture(acSpellID)
 
@@ -4511,10 +4580,11 @@ end
 
 -- Helper function: Build macros submenu
 local function build_macros_submenu(parentMenu)
-    -- General Macros (1-36)
+    -- General Macros (1-MAX_ACCOUNT_MACROS)
     local generalMacroMenu = parentMenu:CreateButton("General Macro")
-    for i = 1, 36 do
-        local title, icon, _ = GetMacroInfo(i)
+    for i = 1, MAX_ACCOUNT_MACROS do
+        local macro_index = i
+        local title, icon, _ = GetMacroInfo(macro_index)
         if title then
             local macroButton = generalMacroMenu:CreateButton(title, function()
                 local actionbutton = addon.current_clicked_key.binding
@@ -4529,13 +4599,13 @@ local function build_macros_submenu(parentMenu)
                         return
                     end
 
-                    PickupMacro(title)
+                    PickupMacro(macro_index)
                     PlaceAction(actionSlot)
                     ClearCursor()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
                     SetBinding(key, command)
-                    SaveBindings(2)
+                    SaveBindings(GetCurrentBindingSet())
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -4557,10 +4627,11 @@ local function build_macros_submenu(parentMenu)
         end
     end
 
-    -- Player Macros (37-54)
+    -- Player Macros (MAX_ACCOUNT_MACROS+1 to MAX_ACCOUNT_MACROS+MAX_CHARACTER_MACROS)
     local playerMacroMenu = parentMenu:CreateButton("Player Macro")
     for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-        local title, icon, _ = GetMacroInfo(i)
+        local macro_index = i
+        local title, icon, _ = GetMacroInfo(macro_index)
         if title then
             local macroButton = playerMacroMenu:CreateButton(title, function()
                 local actionbutton = addon.current_clicked_key.binding
@@ -4575,13 +4646,13 @@ local function build_macros_submenu(parentMenu)
                         return
                     end
 
-                    PickupMacro(title)
+                    PickupMacro(macro_index)
                     PlaceAction(actionSlot)
                     ClearCursor()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
                     SetBinding(key, command)
-                    SaveBindings(2)
+                    SaveBindings(GetCurrentBindingSet())
                     print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -4634,7 +4705,7 @@ local function build_interface_bindings_submenu(parentMenu)
             categoryMenu:CreateButton(binding_readable, function()
                 local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
                 SetBinding(key, binding_name)
-                SaveBindings(2)
+                SaveBindings(GetCurrentBindingSet())
                 print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
             end)
         end
@@ -4659,7 +4730,7 @@ function addon.context_menu_generator(owner, rootDescription)
     rootDescription:CreateButton(_G["UNBIND"], function()
         if addon.current_clicked_key.raw_key ~= "" then
             SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or ""))
-            SaveBindings(2)
+            SaveBindings(GetCurrentBindingSet())
             local keyText = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
             print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
         end
@@ -4776,6 +4847,9 @@ do
         t = t + elapsed
         if t >= 0.1 then
             t = 0
+            if not addon.open then
+                return
+            end
             addon:refresh_range()
         end
     end)
@@ -5196,7 +5270,14 @@ StaticPopupDialogs["KEYUI_LAYOUT_COPY"] = {
         local base = data and data.layoutName and (data.layoutName .. " Copy") or "New Layout"
         local layout_type = data and data.layoutType or "keyboard"
         local container = get_layout_container(layout_type) or {}
-        local suggestion = ensure_unique_layout_name(container, sanitize_layout_name(base))
+        local normalized_base = sanitize_layout_name(base)
+        if normalized_base == "" then
+            normalized_base = "New Layout"
+        end
+        if #normalized_base > MAX_LAYOUT_NAME_LENGTH then
+            normalized_base = normalized_base:sub(1, MAX_LAYOUT_NAME_LENGTH)
+        end
+        local suggestion = ensure_unique_layout_name(container, normalized_base)
         editBox:SetText(suggestion)
         editBox:HighlightText()
         editBox:SetFocus()

@@ -395,53 +395,53 @@ function addon:set_controller_system(system_type)
 end
 
 function addon:save_controller_layout(layout_name)
-    local name = layout_name
+    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    if not name then
+        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
+        return
+    end
 
-    if name ~= "" then
-        print("KeyUI: Saved the new controller layout '" .. name .. "'.")
+    print("KeyUI: Saved the new controller layout '" .. name .. "'.")
 
-        -- Initialize a new table for the saved layout
-        keyui_settings.layout_edited_controller[name] = {}
+    -- Initialize a new table for the saved layout
+    keyui_settings.layout_edited_controller[name] = {}
 
-        -- Get the center of the controller frame for relative X calculation
-        local controller_center_x = addon.controller_frame:GetLeft() + (addon.controller_frame:GetWidth() / 2)
-        local controller_bottom_y = addon.controller_frame:GetBottom()
+    -- Get the center of the controller frame for relative X calculation
+    local controller_center_x = addon.controller_frame:GetLeft() + (addon.controller_frame:GetWidth() / 2)
+    local controller_bottom_y = addon.controller_frame:GetBottom()
 
-        -- Iterate through all controller buttons to save their data
-        for _, button in ipairs(addon.keys_controller) do
-            if button:IsVisible() then
-                -- Save button properties: label, position, width, and height
-                keyui_settings.layout_edited_controller[name][#keyui_settings.layout_edited_controller[name] + 1] = {
-                    button.raw_key,                                                     -- Button name
-                    floor(button:GetCenter() - controller_center_x + 0.5),              -- X position relative to CENTER
-                    floor(button:GetBottom() - controller_bottom_y + 0.5),              -- Y position relative to BOTTOM
-                    floor(button:GetWidth() + 0.5),                                     -- Width
-                    floor(button:GetHeight() + 0.5)                                     -- Height
-                }
-            end
+    -- Iterate through all controller buttons to save their data
+    for _, button in ipairs(addon.keys_controller) do
+        if button:IsVisible() then
+            -- Save button properties: label, position, width, and height
+            keyui_settings.layout_edited_controller[name][#keyui_settings.layout_edited_controller[name] + 1] = {
+                button.raw_key,                                                     -- Button name
+                floor(button:GetCenter() - controller_center_x + 0.5),              -- X position relative to CENTER
+                floor(button:GetBottom() - controller_bottom_y + 0.5),              -- Y position relative to BOTTOM
+                floor(button:GetWidth() + 0.5),                                     -- Width
+                floor(button:GetHeight() + 0.5)                                     -- Height
+            }
         end
+    end
 
-        -- Set the layout_type for the saved layout
-        keyui_settings.layout_edited_controller[name].layout_type = addon.controller_system or "generic"
+    -- Set the layout_type for the saved layout
+    keyui_settings.layout_edited_controller[name].layout_type = addon.controller_system or "generic"
 
-        -- Clear the current layout and assign the new one
-        wipe(keyui_settings.layout_current_controller)
-        keyui_settings.layout_current_controller[name] = keyui_settings.layout_edited_controller[name]
+    -- Clear the current layout and assign the new one
+    wipe(keyui_settings.layout_current_controller)
+    keyui_settings.layout_current_controller[name] = keyui_settings.layout_edited_controller[name]
 
-        -- Remove Controller edited flag
-        addon.keys_controller_edited = false
-        if addon.controller_frame.edit_frame then
-            addon.controller_frame.edit_frame:Hide()
-        end
+    -- Remove Controller edited flag
+    addon.keys_controller_edited = false
+    if addon.controller_frame.edit_frame then
+        addon.controller_frame.edit_frame:Hide()
+    end
 
-        -- Refresh the keys and update the dropdown menu
-        addon:refresh_layouts()
+    -- Refresh the keys and update the dropdown menu
+    addon:refresh_layouts()
 
-        if addon.controller_selector then
-            addon.controller_selector:SetDefaultText(name)
-        end
-    else
-        print("KeyUI: Please enter a name for the layout before saving.")
+    if addon.controller_selector then
+        addon.controller_selector:SetDefaultText(name)
     end
 end
 

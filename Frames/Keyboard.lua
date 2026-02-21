@@ -280,81 +280,79 @@ function addon:create_keyboard_frame()
 end
 
 function addon:save_keyboard_layout(layout_name)
-    local name = layout_name
+    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    if not name then
+        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
+        return
+    end
 
-    if name ~= "" then
+    print("KeyUI: Saved the new keyboard layout '" .. name .. "'.")
 
-        print("KeyUI: Saved the new keyboard layout '" .. name .. "'.")
+    -- Initialize a new table for the saved layout
+    keyui_settings.layout_edited_keyboard[name] = {}
 
-        -- Initialize a new table for the saved layout
-        keyui_settings.layout_edited_keyboard[name] = {}
+    -- First pass: Find minimum X and maximum Y (closest to 0) of visible buttons
+    -- This allows us to normalize positions so deleted top/left rows don't leave empty space
+    local min_x = nil
+    local max_y = nil  -- Y is negative, so "max" means closest to 0
 
-        -- First pass: Find minimum X and maximum Y (closest to 0) of visible buttons
-        -- This allows us to normalize positions so deleted top/left rows don't leave empty space
-        local min_x = nil
-        local max_y = nil  -- Y is negative, so "max" means closest to 0
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button:IsVisible() then
+            local x = button:GetLeft() - addon.keyboard_frame:GetLeft()
+            local y = button:GetTop() - addon.keyboard_frame:GetTop()
 
-        for _, button in ipairs(addon.keys_keyboard) do
-            if button:IsVisible() then
-                local x = button:GetLeft() - addon.keyboard_frame:GetLeft()
-                local y = button:GetTop() - addon.keyboard_frame:GetTop()
-
-                if min_x == nil or x < min_x then
-                    min_x = x
-                end
-                if max_y == nil or y > max_y then
-                    max_y = y
-                end
+            if min_x == nil or x < min_x then
+                min_x = x
+            end
+            if max_y == nil or y > max_y then
+                max_y = y
             end
         end
+    end
 
-        -- Default to standard layout padding (original layouts use X=6, Y=-6)
-        local padding = 6
-        min_x = min_x or padding
-        max_y = max_y or -padding
+    -- Default to standard layout padding (original layouts use X=6, Y=-6)
+    local padding = 6
+    min_x = min_x or padding
+    max_y = max_y or -padding
 
-        -- Calculate offset to normalize positions (shift everything so top-left starts at padding)
-        local x_offset = min_x - padding
-        local y_offset = max_y + padding  -- Y is negative, so we add to move up
+    -- Calculate offset to normalize positions (shift everything so top-left starts at padding)
+    local x_offset = min_x - padding
+    local y_offset = max_y + padding  -- Y is negative, so we add to move up
 
-        -- Second pass: Save button data with normalized positions
-        for _, button in ipairs(addon.keys_keyboard) do
-            if button:IsVisible() then
-                local x = floor(button:GetLeft() - addon.keyboard_frame:GetLeft() - x_offset + 0.5)
-                local y = floor(button:GetTop() - addon.keyboard_frame:GetTop() - y_offset + 0.5)
+    -- Second pass: Save button data with normalized positions
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button:IsVisible() then
+            local x = floor(button:GetLeft() - addon.keyboard_frame:GetLeft() - x_offset + 0.5)
+            local y = floor(button:GetTop() - addon.keyboard_frame:GetTop() - y_offset + 0.5)
 
-                -- Save button properties: label, position, width, height, and icon sizes
-                keyui_settings.layout_edited_keyboard[name][#keyui_settings.layout_edited_keyboard[name] + 1] = {
-                    button.raw_key,                         -- Button name (column 1)
-                    x,                                      -- X position normalized (column 2)
-                    y,                                      -- Y position normalized (column 3)
-                    floor(button:GetWidth() + 0.5),         -- Width (column 4)
-                    floor(button:GetHeight() + 0.5),        -- Height (column 5)
-                    floor(button.icon:GetWidth() + 0.5),    -- Icon Width (column 6)
-                    floor(button.icon:GetHeight() + 0.5)    -- Icon Height (column 7)
-                }
-            end
+            -- Save button properties: label, position, width, height, and icon sizes
+            keyui_settings.layout_edited_keyboard[name][#keyui_settings.layout_edited_keyboard[name] + 1] = {
+                button.raw_key,                         -- Button name (column 1)
+                x,                                      -- X position normalized (column 2)
+                y,                                      -- Y position normalized (column 3)
+                floor(button:GetWidth() + 0.5),         -- Width (column 4)
+                floor(button:GetHeight() + 0.5),        -- Height (column 5)
+                floor(button.icon:GetWidth() + 0.5),    -- Icon Width (column 6)
+                floor(button.icon:GetHeight() + 0.5)    -- Icon Height (column 7)
+            }
         end
+    end
 
-        -- Clear the current layout and assign the new one
-        wipe(keyui_settings.layout_current_keyboard)
-        keyui_settings.layout_current_keyboard[name] = keyui_settings.layout_edited_keyboard[name]
+    -- Clear the current layout and assign the new one
+    wipe(keyui_settings.layout_current_keyboard)
+    keyui_settings.layout_current_keyboard[name] = keyui_settings.layout_edited_keyboard[name]
 
-        -- Remove Keyboard edited flag
-        addon.keys_keyboard_edited = false
-        if addon.keyboard_frame.edit_frame then
-            addon.keyboard_frame.edit_frame:Hide()
-        end
+    -- Remove Keyboard edited flag
+    addon.keys_keyboard_edited = false
+    if addon.keyboard_frame.edit_frame then
+        addon.keyboard_frame.edit_frame:Hide()
+    end
 
-        -- Refresh the keys and update the dropdown menu
-        addon:refresh_layouts()
+    -- Refresh the keys and update the dropdown menu
+    addon:refresh_layouts()
 
-        if addon.keyboard_selector then
-            addon.keyboard_selector:SetDefaultText(name)
-        end
-
-    else
-        print("KeyUI: Please enter a name for the layout before saving.")
+    if addon.keyboard_selector then
+        addon.keyboard_selector:SetDefaultText(name)
     end
 end
 

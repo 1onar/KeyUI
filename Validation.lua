@@ -5,6 +5,8 @@ local MAX_LAYOUT_ENTRIES = 600
 local MAX_LAYOUT_ABS_COORD = 10000
 local MAX_LAYOUT_DIMENSION = 4000
 
+addon.MAX_LAYOUT_NAME_LENGTH = MAX_LAYOUT_NAME_LENGTH
+
 local VALID_LAYOUT_TYPES = {
     keyboard = true,
     mouse = true,

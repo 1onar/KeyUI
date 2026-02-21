@@ -241,48 +241,46 @@ function addon:create_mouse_frame()
 end
 
 function addon:save_mouse_layout(layout_name)
-    local name = layout_name
+    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    if not name then
+        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
+        return
+    end
 
-    if name ~= "" then
+    print("KeyUI: Saved the new mouse layout '" .. name .. "'.")
 
-        print("KeyUI: Saved the new mouse layout '" .. name .. "'.")
+    -- Initialize a new table for the saved layout
+    keyui_settings.layout_edited_mouse[name] = {}
 
-        -- Initialize a new table for the saved layout
-        keyui_settings.layout_edited_mouse[name] = {}
-
-        -- Iterate through all mouse buttons to save their data
-        for _, button in ipairs(addon.keys_mouse) do
-            if button:IsVisible() then
-                -- Save button properties: label, position, width, and height
-                keyui_settings.layout_edited_mouse[name][#keyui_settings.layout_edited_mouse[name] + 1] = {
-                    button.raw_key,                                                -- Button name
-                    floor(button:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
-                    floor(button:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
-                    floor(button:GetWidth() + 0.5),                                -- Width
-                    floor(button:GetHeight() + 0.5)                                -- Height
-                }
-            end
+    -- Iterate through all mouse buttons to save their data
+    for _, button in ipairs(addon.keys_mouse) do
+        if button:IsVisible() then
+            -- Save button properties: label, position, width, and height
+            keyui_settings.layout_edited_mouse[name][#keyui_settings.layout_edited_mouse[name] + 1] = {
+                button.raw_key,                                                -- Button name
+                floor(button:GetLeft() - addon.mouse_frame:GetLeft() + 0.5),   -- X position
+                floor(button:GetTop() - addon.mouse_frame:GetTop() + 0.5),     -- Y position
+                floor(button:GetWidth() + 0.5),                                -- Width
+                floor(button:GetHeight() + 0.5)                                -- Height
+            }
         end
+    end
 
-        -- Clear the current layout and assign the new one
-        wipe(keyui_settings.layout_current_mouse)
-        keyui_settings.layout_current_mouse[name] = keyui_settings.layout_edited_mouse[name]
+    -- Clear the current layout and assign the new one
+    wipe(keyui_settings.layout_current_mouse)
+    keyui_settings.layout_current_mouse[name] = keyui_settings.layout_edited_mouse[name]
 
-        -- Remove Mouse edited flag
-        addon.keys_mouse_edited = false
-        if addon.mouse_image.edit_frame then
-            addon.mouse_image.edit_frame:Hide()
-        end
+    -- Remove Mouse edited flag
+    addon.keys_mouse_edited = false
+    if addon.mouse_image.edit_frame then
+        addon.mouse_image.edit_frame:Hide()
+    end
 
-        -- Refresh the keys and update the dropdown menu
-        addon:refresh_layouts()
+    -- Refresh the keys and update the dropdown menu
+    addon:refresh_layouts()
 
-        if addon.mouse_selector then
-            addon.mouse_selector:SetDefaultText(name)
-        end
-
-    else
-        print("KeyUI: Please enter a name for the layout before saving.")
+    if addon.mouse_selector then
+        addon.mouse_selector:SetDefaultText(name)
     end
 end
 
