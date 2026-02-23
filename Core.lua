@@ -1452,6 +1452,7 @@ function addon:load()
         -- Load spells and refresh the key bindings.
         addon:load_spellbook()
         addon:refresh_layouts()
+        addon:refresh_equipped()
 
         -- Enable keypress visualization if setting is on and not in combat
         if keyui_settings.show_keypress_highlight and not addon.in_combat then
@@ -1467,6 +1468,7 @@ end
 
 function addon:load_spellbook()
     addon.spells = {}
+    addon.spells_tab_order = {}  -- preserves API order: General → Class → Spec(s)
 
     if API_COMPAT.has_modern_spellbook then
         -- RETAIL: Modern C_SpellBook API
@@ -1477,6 +1479,7 @@ function addon:load_spellbook()
 
             if name then
                 addon.spells[name] = {}
+                table.insert(addon.spells_tab_order, name)
                 for j = offset + 1, offset + numSlots do
                     local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
                     local spellName = spellBookItemInfo.name
@@ -1500,6 +1503,7 @@ function addon:load_spellbook()
             -- Anniversary: offSpecID is 0 for normal tabs, not nil
             if name and (not offSpecID or offSpecID == 0) then  -- Skip off-spec tabs
                 addon.spells[name] = {}
+                table.insert(addon.spells_tab_order, name)
 
                 for slotIndex = offset + 1, offset + numSlots do
                     local spellType, spellID = GetSpellBookItemInfo(slotIndex, BOOKTYPE_SPELL)
@@ -2587,6 +2591,7 @@ function addon:set_key(button)
     addon:UpdateButtonCooldown(button)
     addon:UpdateButtonUsable(button)
     addon:UpdateButtonCount(button)
+    addon:UpdateButtonRange(button)
 end
 
 -- Resets the button's state
@@ -2609,6 +2614,9 @@ function addon:reset_button_state(button)
     end
     if button.count_text then button.count_text:SetText("") end
     if button.short_key then button.short_key:SetTextColor(1, 1, 1) end
+    addon:ClearButtonCooldown(button)
+    if button.charge_cooldown then button.charge_cooldown:Hide() end
+    if button.loc_cooldown    then button.loc_cooldown:Hide()    end
 end
 
 -- ============================================================================
@@ -2850,14 +2858,20 @@ end
 function addon:UpdateButtonRange(button)
     if not button.short_key then return end
     if not keyui_settings.show_actionbar_mode or not button.active_slot then
-        button.short_key:SetTextColor(1, 1, 1); return
+        button.short_key:SetTextColor(1, 1, 1)
+        return
     end
+
     local inRange
     if API_COMPAT.has_modern_action_in_range then
         inRange = C_ActionBar.IsActionInRange(button.active_slot)
     else
         inRange = IsActionInRange(button.active_slot)
     end
+
+    -- nil = no target or slot transitioning → freeze current color, no update
+    if inRange == nil then return end
+
     if inRange == false then
         button.short_key:SetTextColor(1, 0.2, 0.2)
     else
@@ -2973,6 +2987,26 @@ function addon:update_assisted_combat_indicator(button, slot)
     elseif button.assisted_combat_clip then
         button.assisted_combat_clip:Hide()
     end
+end
+
+-- Update the Assist-Overlay texture to Active (rotating) in combat, Inactive outside.
+function addon:refresh_assist_overlays()
+    if not C_ActionBar or not C_ActionBar.IsAssistedCombatAction then return end
+    local inCombat = UnitAffectingCombat and UnitAffectingCombat("player")
+    local atlasName = inCombat and "UI-HUD-RotationHelper-Active" or "UI-HUD-RotationHelper-Inactive"
+    local uv = inCombat and {0.905273, 0.967773, 0.0444336, 0.0756836}
+                         or {0.905273, 0.967773, 0.0766602, 0.10791}
+    local file = "Interface\\AddOns\\KeyUI\\Media\\Atlas\\CombatAssistantSingleButton"
+    local function update(list)
+        for _, b in ipairs(list) do
+            if b.assisted_combat_overlay and b.assisted_combat_clip and b.assisted_combat_clip:IsShown() then
+                addon:SetTexture(b.assisted_combat_overlay, atlasName, file, uv)
+            end
+        end
+    end
+    update(addon.keys_keyboard)
+    update(addon.keys_mouse)
+    update(addon.keys_controller)
 end
 
 -- Get spell ID from action slot (version-compatible)
@@ -3428,6 +3462,14 @@ function addon:sync_dragged_action_slots(button, slot_set)
         end
         addon:refresh_dominos_slot(slot)
     end
+    -- Drag completion may equip/unequip items → refresh green equipped border
+    -- and restore secure type attribute. Defer one frame for WoW to update slot data.
+    C_Timer.After(0, function()
+        addon:refresh_equipped()
+        if button and button.active_slot then
+            addon:SetButtonActionSlot(button, button.active_slot)
+        end
+    end)
 end
 
 -- Last-resort CLICK fallback when no live frame attributes are available.
@@ -4457,11 +4499,11 @@ local function build_spells_submenu(parentMenu)
         addon:load_spellbook()
     end
 
-    for tabName, _ in pairs(addon.spells) do
+    for _, tabName in ipairs(addon.spells_tab_order or {}) do
         local tabButton = parentMenu:CreateButton(tabName)
 
         -- Add individual spells for this tab
-        for _, spell in pairs(addon.spells[tabName]) do
+        for _, spell in pairs(addon.spells[tabName] or {}) do
             local spell_name = spell.name
             local spell_id = spell.id
 
@@ -4752,6 +4794,7 @@ local function reset_pending_updates()
         flash = false,
         equipped = false,
         petautocast = false,
+        assist_overlay = false,
         slot_changes = {},
     }
 end
@@ -4803,6 +4846,7 @@ flush_pending_updates = function()
     local should_refresh_flash = pending.flash
     local should_refresh_equipped = pending.equipped
     local should_refresh_petautocast = pending.petautocast
+    local should_refresh_assist_overlays = pending.assist_overlay
     local pending_slot_changes = pending.slot_changes
 
     reset_pending_updates()
@@ -4855,6 +4899,10 @@ flush_pending_updates = function()
 
     if should_refresh_petautocast then
         addon:refresh_pet_autocast()
+    end
+
+    if should_refresh_assist_overlays then
+        addon:refresh_assist_overlays()
     end
 
     if should_refresh_tooltip and addon.current_hovered_button then
@@ -4957,6 +5005,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
+        mark_pending("assist_overlay")
         addon:FlushDeferredUiUpdates()
         if addon.open and keyui_settings.show_keypress_highlight then
             addon:enable_keypress_input()
@@ -4970,6 +5019,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         addon:disable_keypress_input()
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
+        else
+            addon:refresh_assist_overlays()
         end
         return
     end
@@ -5004,6 +5055,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
                 end
             end
         end
+        -- Modifier changes the active slot → equipped border may need to update.
+        addon:refresh_equipped()
         return
     end
 
@@ -5015,6 +5068,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_pending("keys")
     elseif event == "ACTIONBAR_SLOT_CHANGED" then
         mark_slot_changed(...)
+        C_Timer.After(0, function() addon:refresh_equipped() end)
     elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
         mark_pending("bindings")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then

@@ -7,14 +7,6 @@ local name, addon = ...
 -- sub-element factories and update logic defined here.
 -- ============================================================================
 
-local LBG  -- LibButtonGlow-1.0, resolved lazily after embeds are loaded
-local function GetLBG()
-    if not LBG then
-        LBG = LibStub and LibStub("LibButtonGlow-1.0", true)
-    end
-    return LBG
-end
-
 -- ---------------------------------------------------------------------------
 -- Sub-element factories
 -- ---------------------------------------------------------------------------
@@ -62,12 +54,23 @@ function addon.CreateFlashTexture(button)
 end
 
 -- Equipped-item border: thin green overlay when an item on this slot is worn.
+-- Implemented as a child Frame (FrameLevel+4) so it renders above the cooldown
+-- child frames (+1, +2, +3) which otherwise obscure a plain texture on the parent.
 function addon.CreateEquippedBorder(button)
-    local tex = button:CreateTexture(nil, "OVERLAY", nil, 1)
-    tex:SetAllPoints(button.icon)
-    tex:SetColorTexture(0, 0.8, 0, 0.35)
-    tex:Hide()
-    return tex
+    local f = CreateFrame("Frame", nil, button)
+    -- Extend 5 px outward beyond the icon on each side; the atlas border texture has
+    -- transparent padding before the visible border line so we need extra room.
+    f:SetPoint("TOPLEFT",     button.icon, "TOPLEFT",     -5,  5)
+    f:SetPoint("BOTTOMRIGHT", button.icon, "BOTTOMRIGHT",  5, -5)
+    f:SetFrameLevel(button:GetFrameLevel() + 4)
+    local tex = f:CreateTexture(nil, "OVERLAY")
+    tex:SetAllPoints()
+    addon:SetTexture(tex, "UI-HUD-ActionBar-IconFrame-Border",
+        "Interface\\AddOns\\KeyUI\\Media\\Atlas\\CombatAssistantSingleButton",
+        {0.707031, 0.886719, 0.462891, 0.506836})
+    tex:SetVertexColor(0, 1.0, 0, 0.5)
+    f:Hide()
+    return f
 end
 
 -- ---------------------------------------------------------------------------
@@ -106,6 +109,8 @@ function addon:UpdateButtonChargeCooldown(button)
         cd:Hide()
         return
     end
+
+    if InCombatLockdown() then return end
 
     local charges, maxCharges, chargeStart, chargeDuration, chargeModRate
     if C_ActionBar and C_ActionBar.GetActionCharges then
@@ -148,13 +153,11 @@ function addon:UpdateButtonLoCCooldown(button)
         return
     end
 
+    if InCombatLockdown() then return end
+
     local locStart, locDuration
     if C_ActionBar and C_ActionBar.GetActionLossOfControlCooldown then
-        local info = C_ActionBar.GetActionLossOfControlCooldown(button.active_slot)
-        if info then
-            locStart    = info.startTime
-            locDuration = info.duration
-        end
+        locStart, locDuration = C_ActionBar.GetActionLossOfControlCooldown(button.active_slot)
     elseif GetActionLossOfControlCooldown then
         locStart, locDuration = GetActionLossOfControlCooldown(button.active_slot)
     end
@@ -291,33 +294,123 @@ function addon:refresh_equipped()
 end
 
 -- ---------------------------------------------------------------------------
--- Proc-glow (spell activation overlay) via LibButtonGlow-1.0
--- Taint-safe alternative to ActionButton_ShowOverlayGlow.
+-- Proc-glow via Blizzard's ActionButtonSpellAlertTemplate (1:1 implementation).
+-- Mirrors ActionButtonSpellAlertManager behaviour including the "downgrade" to
+-- ProcAltGlow when One Button Assist is active and the spell is in the rotation.
 -- ---------------------------------------------------------------------------
 
-function addon:ShowButtonProcGlow(button)
-    local lbg = GetLBG()
-    if lbg then
-        lbg:ShowOverlayGlow(button)
+-- Returns true when assisted combat is active AND spellID is part of the rotation.
+-- Mirrors AssistedCombatManager:ShouldDowngradeSpellAlertForButton for KeyUI buttons
+-- (Blizzard skips non-.bar.isNormalBar buttons, so we implement this ourselves).
+local function KeyUI_ShouldDowngradeAlert(spellID)
+    if not C_ActionBar or not C_ActionBar.HasAssistedCombatActionButtons then return false end
+    if not C_ActionBar.HasAssistedCombatActionButtons() then return false end
+    if not C_AssistedCombat or not C_AssistedCombat.GetRotationSpells then return false end
+    for _, sid in ipairs(C_AssistedCombat.GetRotationSpells()) do
+        if sid == spellID then return true end
     end
+    return false
+end
+
+-- Show proc glow on button. useAltGlow=true → ProcAltGlow (dezenter Rahmen),
+-- useAltGlow=false → volle Burst-Animation (OneButton-Atlas für Assist-Buttons).
+function addon:ShowButtonProcGlow(button, useAltGlow)
+    -- ActionButtonSpellAlertTemplate exists in Retail, Cata Classic, and Anniversary.
+    -- Classic Era (isVanilla) does not have it; fall back to LibButtonGlow if available.
+    if addon.VERSION.isRetail or addon.VERSION.isCata or addon.VERSION.isAnniversary then
+        if useAltGlow then
+            -- Subtle golden ring (downgrade): use a dedicated KeyUI frame so we can size
+            -- it to the icon exactly, without fighting useAtlasSize=true template internals.
+            if not button.KeyUI_ProcAltGlow then
+                local iw, ih = button.icon:GetSize()
+                local g = CreateFrame("Frame", nil, button)
+                g:SetFrameLevel(button:GetFrameLevel() + 5)
+                g:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
+                g:SetSize(iw * 1.1, ih * 1.1)
+                local tex = g:CreateTexture(nil, "OVERLAY")
+                tex:SetAllPoints()
+                if addon.VERSION.USE_ATLAS then
+                    tex:SetAtlas("UI-HUD-RotationHelper-ProcAltGlow")
+                else
+                    tex:SetColorTexture(1, 0.82, 0, 0.6)  -- golden fallback
+                end
+                button.KeyUI_ProcAltGlow = g
+            end
+            -- Hide full-burst if it was previously showing
+            if button.SpellActivationAlert then button.SpellActivationAlert:Hide() end
+            button.KeyUI_ProcAltGlow:Show()
+            return
+        end
+        -- Full burst animation (useAltGlow=false)
+        if not button.SpellActivationAlert then
+            -- Anchor to icon CENTER (not button CENTER) so the +4 Y offset on keyboard
+            -- icons is respected; size from icon (not button) so it scales correctly.
+            local iw, ih = button.icon:GetSize()
+            local f = CreateFrame("Frame", nil, button, "ActionButtonSpellAlertTemplate")
+            f:SetSize(iw * 1.4, ih * 1.4)
+            f:SetPoint("CENTER", button.icon, "CENTER", 0, 0)
+            button.SpellActivationAlert = f
+        end
+        -- Hide alt glow if it was previously showing
+        if button.KeyUI_ProcAltGlow then button.KeyUI_ProcAltGlow:Hide() end
+        local alert = button.SpellActivationAlert
+        -- Use OneButton atlas for assist buttons, standard flipbook for normal spell buttons
+        local isAssist = C_ActionBar and C_ActionBar.IsAssistedCombatAction and
+                         C_ActionBar.IsAssistedCombatAction(button.active_slot)
+        if isAssist then
+            alert.ProcStartFlipbook:SetAtlas("OneButton_ProcStart_Flipbook")
+            alert.ProcLoopFlipbook:SetAtlas("OneButton_ProcLoop_Flipbook")
+        else
+            alert.ProcStartFlipbook:SetAtlas("UI-HUD-ActionBar-Proc-Start-Flipbook")
+            alert.ProcLoopFlipbook:SetAtlas("UI-HUD-ActionBar-Proc-Loop-Flipbook")
+        end
+        alert.ProcAltGlow:Hide()
+        alert.ProcStartFlipbook:SetAlpha(1)
+        alert:Show()
+        alert.ProcStartAnim:Play()
+        return
+    end
+    -- Classic Era: native overlay glow (ActionButton_ShowOverlayGlow exists in 1.15.x)
+    ActionButton_ShowOverlayGlow(button)
 end
 
 function addon:HideButtonProcGlow(button)
-    local lbg = GetLBG()
-    if lbg then
-        lbg:HideOverlayGlow(button)
+    if addon.VERSION.isRetail or addon.VERSION.isCata or addon.VERSION.isAnniversary then
+        if button.KeyUI_ProcAltGlow then button.KeyUI_ProcAltGlow:Hide() end
+        if button.SpellActivationAlert then
+            local alert = button.SpellActivationAlert
+            alert.ProcStartAnim:Stop()
+            alert.ProcAltGlow:Hide()
+            alert:Hide()   -- OnHide Mixin stops ProcLoop
+        end
+        return
     end
+    -- Classic Era: native overlay glow
+    ActionButton_HideOverlayGlow(button)
 end
 
 -- Called when SPELL_ACTIVATION_OVERLAY_GLOW_SHOW fires with a spellID.
 function addon:HandleProcGlowShow(spellID)
     if not keyui_settings.show_actionbar_mode or not keyui_settings.show_proc_glow then return end
+    local downgrade = KeyUI_ShouldDowngradeAlert(spellID)
     local function check(list)
         for _, b in ipairs(list) do
             if b.active_slot and HasAction and HasAction(b.active_slot) then
-                local atype, aid = GetActionInfo(b.active_slot)
-                if atype == "spell" and aid == spellID then
-                    addon:ShowButtonProcGlow(b)
+                -- Identify assist buttons first; they need a different trigger condition.
+                local isAssist = C_ActionBar and C_ActionBar.IsAssistedCombatAction and
+                                 C_ActionBar.IsAssistedCombatAction(b.active_slot)
+                if isAssist then
+                    -- downgrade=true means: assist is active AND spellID is in the rotation.
+                    -- The assist button IS showing that rotation spell → show full burst on it.
+                    -- (GetActionInfo on assist slots returns nil, so we can't match by spellID.)
+                    if downgrade then
+                        addon:ShowButtonProcGlow(b, false)  -- assist: always full burst
+                    end
+                else
+                    local atype, aid = GetActionInfo(b.active_slot)
+                    if atype == "spell" and aid == spellID then
+                        addon:ShowButtonProcGlow(b, downgrade)
+                    end
                 end
             end
         end
@@ -332,9 +425,19 @@ function addon:HandleProcGlowHide(spellID)
     local function check(list)
         for _, b in ipairs(list) do
             if b.active_slot then
-                local atype, aid = GetActionInfo(b.active_slot)
-                if atype == "spell" and aid == spellID then
-                    addon:HideButtonProcGlow(b)
+                local isAssist = C_ActionBar and C_ActionBar.IsAssistedCombatAction and
+                                 C_ActionBar.IsAssistedCombatAction(b.active_slot)
+                if isAssist then
+                    -- Mirror the show-logic: hide when downgrade=true (assist active + rotation spell)
+                    local downgrade = KeyUI_ShouldDowngradeAlert(spellID)
+                    if downgrade then
+                        addon:HideButtonProcGlow(b)
+                    end
+                else
+                    local atype, aid = GetActionInfo(b.active_slot)
+                    if atype == "spell" and aid == spellID then
+                        addon:HideButtonProcGlow(b)
+                    end
                 end
             end
         end

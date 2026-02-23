@@ -49,14 +49,14 @@ function addon:create_mouse_image()
         mouse_image:SetScale(1)
     end
 
-    -- Enable dragging and movement (respects position lock)
+    -- Enable dragging and movement (respects position lock; blocked in combat)
     mouse_image:SetScript("OnMouseDown", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StartMoving()
         end
     end)
     mouse_image:SetScript("OnMouseUp", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StopMovingOrSizing()
         end
     end)
@@ -374,7 +374,7 @@ function addon:create_mouse_buttons(index)
         or  "SecureActionButtonTemplate"
     local mouse_button = CreateFrame("CheckButton", name, addon.mouse_image, templates)
 
-    mouse_button:RegisterForClicks("AnyUp", "AnyDown")
+    mouse_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
     mouse_button:RegisterForDrag("LeftButton", "RightButton")
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
@@ -522,7 +522,17 @@ function addon:create_mouse_buttons(index)
             if addon.mouse_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_mouse_edited = true
+            elseif not InCombatLockdown() then
+                if GetCursorInfo() then
+                    -- Cursor-Drop: place item onto slot, suppress AnyUp UseAction.
+                    -- UseAction does NOT auto-place cursor items; explicit PlaceAction required.
+                    addon:handle_action_drag(self)
+                    self:SetAttribute("type", nil)
+                    -- type restored by C_Timer in sync_dragged_action_slots
+                end
+                -- else: no cursor item → LeftButtonDown fires UseAction (cast on press) ✓
             end
+            -- In CombatLockdown: LeftButtonDown fires normally (no drag possible in combat)
         else
             if addon.mouse_locked == false then
                 addon:handle_key_down(self, mousebutton)

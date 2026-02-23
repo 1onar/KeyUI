@@ -63,14 +63,14 @@ function addon:create_keyboard_frame()
         keyboard_frame:SetScale(1)
     end
 
-    -- Enable dragging and movement (respects position lock)
+    -- Enable dragging and movement (respects position lock; blocked in combat)
     keyboard_frame:SetScript("OnMouseDown", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StartMoving()
         end
     end)
     keyboard_frame:SetScript("OnMouseUp", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StopMovingOrSizing()
         end
     end)
@@ -518,7 +518,7 @@ function addon:create_keyboard_buttons(index)
         or  "SecureActionButtonTemplate, BackdropTemplate"
     local keyboard_button = CreateFrame("CheckButton", name, addon.keyboard_frame, templates)
 
-    keyboard_button:RegisterForClicks("AnyUp", "AnyDown")
+    keyboard_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
@@ -639,8 +639,10 @@ function addon:create_keyboard_buttons(index)
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         addon.keyui_tooltip_frame:Hide()
-        keyboard_button:EnableKeyboard(false)
-        keyboard_button:EnableMouseWheel(false)
+        if not InCombatLockdown() then
+            keyboard_button:EnableKeyboard(false)
+            keyboard_button:EnableMouseWheel(false)
+        end
 
         if addon.current_pushed_button then
             addon.current_pushed_button:Hide()
@@ -668,7 +670,17 @@ function addon:create_keyboard_buttons(index)
             if addon.keyboard_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_keyboard_edited = true
+            elseif not InCombatLockdown() then
+                if GetCursorInfo() then
+                    -- Cursor-Drop: place item onto slot, suppress AnyUp UseAction.
+                    -- UseAction does NOT auto-place cursor items; explicit PlaceAction required.
+                    addon:handle_action_drag(self)
+                    self:SetAttribute("type", nil)
+                    -- type restored by C_Timer in sync_dragged_action_slots
+                end
+                -- else: no cursor item → LeftButtonDown fires UseAction (cast on press) ✓
             end
+            -- In CombatLockdown: LeftButtonDown fires normally (no drag possible in combat)
         else
             if addon.keyboard_locked == false then
                 addon:handle_key_down(self, mousebutton)
