@@ -1459,7 +1459,7 @@ function addon:keyboard_layout_selector()
     keyboard_selector:SetWidth(190)
 
     -- Order of keyboard layout categories
-    local category_order = { "ISO", "ANSI", "DVORAK", "Razer", "Logitech", "Azeron", "ZSA" }
+    local category_order = { "ISO", "ANSI", "DVORAK", "Razer", "Logitech", "Azeron", "ZSA", "MoErgo" }
     local board_categories = {
         ["ISO"] = {
             ["QWERTZ"] = { "QWERTZ_100%", "QWERTZ_96%", "QWERTZ_80%", "QWERTZ_75%", "QWERTZ_60%", "QWERTZ_1800", "QWERTZ_HALF", "QWERTZ_PRIMARY" },
@@ -1494,6 +1494,7 @@ function addon:keyboard_layout_selector()
             },
         },
         ["ZSA"] = { "Moonlander_MK_I" },
+        ["MoErgo"] = { "Glove_80" },
     }
 
     -- Mapping table for user-friendly names
@@ -1545,6 +1546,8 @@ function addon:keyboard_layout_selector()
         ["Cyro_Right"] = "Cyro (Right)",
 
         ["Moonlander_MK_I"] = "Moonlander Mark I",
+
+        ["Glove_80"] = "Glove 80",
 
         ["G13"] = "G13",
     }
