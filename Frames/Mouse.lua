@@ -77,7 +77,7 @@ function addon:create_mouse_image()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
-        mouse_image:Hide()
+        addon:SafeHideFrame(mouse_image)
     end)
 
     -- Create edit mode glow border frame

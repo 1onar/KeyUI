@@ -142,7 +142,7 @@ function addon:create_keyboard_frame()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
-        keyboard_frame:Hide()
+        addon:SafeHideFrame(keyboard_frame)
     end)
 
     toggle_button_textures(keyboard_frame.close_button, true)

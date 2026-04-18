@@ -145,7 +145,7 @@ function addon:create_controller_frame()
         if addon.controls_frame then
             addon.controls_frame:Hide()
         end
-        controller_frame:Hide()
+        addon:SafeHideFrame(controller_frame)
     end)
 
     toggle_button_textures(controller_frame.close_button, true)

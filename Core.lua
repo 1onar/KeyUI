@@ -1537,6 +1537,20 @@ function addon:IsRetailActionMutationBlocked()
     return addon.VERSION and addon.VERSION.isRetail and is_in_combat_lockdown()
 end
 
+-- Hides a frame immediately outside combat, or defers it until PLAYER_REGEN_ENABLED.
+-- Parent frames of SecureActionButtonTemplate buttons cannot be hidden during combat.
+function addon:SafeHideFrame(frame)
+    if not frame then return end
+    if InCombatLockdown() then
+        if not addon.combat_hide_queue then
+            addon.combat_hide_queue = {}
+        end
+        addon.combat_hide_queue[frame] = true
+    else
+        frame:Hide()
+    end
+end
+
 function addon:WarnRetailActionMutationBlockedOnce()
     if not (addon.VERSION and addon.VERSION.isRetail) then
         return
@@ -2209,10 +2223,10 @@ function addon:hide_all_frames()
     local mouse_frame = addon:get_mouse_frame()
     local controller_frame = addon:get_controller_frame()
 
-    keyboard_frame:Hide()
-    mouse_frame:Hide()
-    mouse_image:Hide()
-    controller_frame:Hide()
+    addon:SafeHideFrame(keyboard_frame)
+    addon:SafeHideFrame(mouse_frame)
+    addon:SafeHideFrame(mouse_image)
+    addon:SafeHideFrame(controller_frame)
 
     if addon.controls_frame then
         addon.controls_frame:Hide()
@@ -2915,6 +2929,7 @@ function addon:handle_action_drag(button)
         addon:WarnRetailActionMutationBlockedOnce()
         return
     end
+    if InCombatLockdown() then return end
 
     local target_slot = button and tonumber(button.slot)
     if not target_slot or target_slot <= 0 then
@@ -3044,11 +3059,13 @@ function addon:process_actionbutton_slot(slot, button)
     local adjusted_slot = resolved_slot or addon:get_action_button_slot(slot)
     button.slot = adjusted_slot
 
+    -- Always set type="action" so OnReceiveDrag fires for cursor-drops (even on empty slots)
+    addon:SetButtonActionSlot(button, adjusted_slot)
+
     -- Check if the slot has an action assigned
     if HasAction(adjusted_slot) then
         local texture = GetActionTexture(adjusted_slot)
         if texture then
-            addon:SetButtonActionSlot(button, adjusted_slot)
             button.icon:SetTexture(texture)
             button.icon:Show()
 
@@ -4247,6 +4264,7 @@ end
 -- Creates and manages the invisible input frame for keypress visualization
 function addon:enable_keypress_input()
     if addon.keypress_frame then
+        if not addon.key_lookup then addon:build_key_lookup() end
         addon.keypress_frame:Show()
         addon.keypress_frame:EnableKeyboard(true)
         return
@@ -5005,6 +5023,13 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
+        -- Process frames that were deferred because Hide() is blocked during combat
+        if addon.combat_hide_queue then
+            for frame in pairs(addon.combat_hide_queue) do
+                frame:Hide()
+            end
+            addon.combat_hide_queue = nil
+        end
         mark_pending("assist_overlay")
         addon:FlushDeferredUiUpdates()
         if addon.open and keyui_settings.show_keypress_highlight then
