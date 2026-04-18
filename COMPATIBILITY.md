@@ -5,7 +5,7 @@
 KeyUI uses an **All-in-One approach** with runtime version detection to support all active WoW versions from a single codebase:
 
 - **Retail** (12.0.0+ Midnight) - Build 120000+
-- **Cata Classic** (5.5.3) - Build 50503
+- **MoP Classic** (5.5.3) - Build 50503
 - **Anniversary Edition** (2.5.5) - Build 20505
 - **Classic Era** (1.15.8) - Build 11508
 
@@ -14,7 +14,7 @@ KeyUI uses an **All-in-One approach** with runtime version detection to support 
 The repository includes Blizzard API dumps used as source-of-truth during compatibility audits:
 
 - `API/12.0.1.65867` (Retail)
-- `API/5.5.3.65703` (Cata Classic)
+- `API/5.5.3.65703` (MoP Classic)
 - `API/2.5.5.65795` (Anniversary)
 - `API/1.15.8.64907` (Classic Era)
 
@@ -31,7 +31,7 @@ addon.VERSION = {
     isClassic = false,           -- Build < 100000
     isVanilla = false,           -- Build 11500-20000
     isAnniversary = false,       -- Build 20500-30000
-    isCata = false,              -- Build 50500-60000
+    isMoP = false,               -- Build 50500-60000
     USE_ATLAS = true,            -- Atlas API available (Retail only)
     string = "Retail (Build 120000)"  -- Human-readable version
 }
@@ -231,7 +231,7 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Custom tutorial arrows with manual textures work
 - [ ] All frames render with correct textures
 
-### Cata Classic (Build 50503, API dump 65703)
+### MoP Classic (Build 50503, API dump 65703)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
@@ -394,4 +394,4 @@ Users downloading from CurseForge/Wago will automatically receive the correct ve
 
 **Maintained by:** KeyUI Development Team
 **Last Updated:** 2026-02-18
-**Supported Versions:** Retail 12.0.0+, Cata 5.5.3, Anniversary 2.5.5, Classic Era 1.15.8
+**Supported Versions:** Retail 12.0.0+, MoP 5.5.3, Anniversary 2.5.5, Classic Era 1.15.8

@@ -315,9 +315,9 @@ end
 -- Show proc glow on button. useAltGlow=true → ProcAltGlow (dezenter Rahmen),
 -- useAltGlow=false → volle Burst-Animation (OneButton-Atlas für Assist-Buttons).
 function addon:ShowButtonProcGlow(button, useAltGlow)
-    -- ActionButtonSpellAlertTemplate exists in Retail, Cata Classic, and Anniversary.
+    -- ActionButtonSpellAlertTemplate exists in Retail, MoP Classic, and Anniversary.
     -- Classic Era (isVanilla) does not have it; fall back to LibButtonGlow if available.
-    if addon.VERSION.isRetail or addon.VERSION.isCata or addon.VERSION.isAnniversary then
+    if addon.VERSION.isRetail or addon.VERSION.isMoP or addon.VERSION.isAnniversary then
         if useAltGlow then
             -- Subtle golden ring (downgrade): use a dedicated KeyUI frame so we can size
             -- it to the icon exactly, without fighting useAtlasSize=true template internals.
@@ -375,7 +375,7 @@ function addon:ShowButtonProcGlow(button, useAltGlow)
 end
 
 function addon:HideButtonProcGlow(button)
-    if addon.VERSION.isRetail or addon.VERSION.isCata or addon.VERSION.isAnniversary then
+    if addon.VERSION.isRetail or addon.VERSION.isMoP or addon.VERSION.isAnniversary then
         if button.KeyUI_ProcAltGlow then button.KeyUI_ProcAltGlow:Hide() end
         if button.SpellActivationAlert then
             local alert = button.SpellActivationAlert

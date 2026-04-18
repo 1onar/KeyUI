@@ -518,7 +518,14 @@ function addon:create_keyboard_buttons(index)
         or  "SecureActionButtonTemplate, BackdropTemplate"
     local keyboard_button = CreateFrame("CheckButton", name, addon.keyboard_frame, templates)
 
-    keyboard_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
+    -- Retail: also register LeftButtonDown/RightButtonDown for ActionButtonUseKeyDown CVar support.
+    -- Classic (MoP/Anniversary/Vanilla): AnyUp only – LeftButtonDown fires before drag detection
+    -- and causes the mapped spell to cast when trying to drag the button.
+    if addon.VERSION.isRetail then
+        keyboard_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
+    else
+        keyboard_button:RegisterForClicks("AnyUp")
+    end
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
@@ -585,9 +592,10 @@ function addon:create_keyboard_buttons(index)
     -- Equipped item border (green border when item is equipped)
     keyboard_button.equipped_border = addon.CreateEquippedBorder(keyboard_button)
     -- Pet auto-cast rotating dots overlay
-    -- Cata Classic and Classic Era use AutoCastShineTemplate; Retail and Anniversary use AutoCastOverlayTemplate
-    local autocastTpl = (addon.VERSION.isCata or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
-    keyboard_button.autocast_overlay = CreateFrame("Frame", nil, keyboard_button, autocastTpl)
+    -- MoP Classic and Classic Era use AutoCastShineTemplate (requires named frame); Retail and Anniversary use AutoCastOverlayTemplate
+    local autocastTpl = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
+    local autocastName = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and (name .. "_AutoCast") or nil
+    keyboard_button.autocast_overlay = CreateFrame("Frame", autocastName, keyboard_button, autocastTpl)
     keyboard_button.autocast_overlay:SetAllPoints(keyboard_button.icon)
     keyboard_button.autocast_overlay:Hide()
 
@@ -671,16 +679,9 @@ function addon:create_keyboard_buttons(index)
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_keyboard_edited = true
             elseif not InCombatLockdown() then
-                if GetCursorInfo() then
-                    -- Cursor-Drop: place item onto slot, suppress AnyUp UseAction.
-                    -- UseAction does NOT auto-place cursor items; explicit PlaceAction required.
-                    addon:handle_action_drag(self)
-                    self:SetAttribute("type", nil)
-                    -- type restored by C_Timer in sync_dragged_action_slots
-                end
-                -- else: no cursor item → LeftButtonDown fires UseAction (cast on press) ✓
+                -- AnyUp fires UseAction on mouse release.
+                -- Cursor-drops are handled natively by OnReceiveDrag (like Blizzard's ActionButton).
             end
-            -- In CombatLockdown: LeftButtonDown fires normally (no drag possible in combat)
         else
             if addon.keyboard_locked == false then
                 addon:handle_key_down(self, mousebutton)

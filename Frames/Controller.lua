@@ -616,9 +616,10 @@ function addon:create_controller_buttons(index)
     -- Equipped item border (green border when item is equipped)
     controller_button.equipped_border = addon.CreateEquippedBorder(controller_button)
     -- Pet auto-cast rotating dots overlay
-    -- Cata Classic and Classic Era use AutoCastShineTemplate; Retail and Anniversary use AutoCastOverlayTemplate
-    local autocastTpl = (addon.VERSION.isCata or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
-    controller_button.autocast_overlay = CreateFrame("Frame", nil, controller_button, autocastTpl)
+    -- MoP Classic and Classic Era use AutoCastShineTemplate (requires named frame); Retail and Anniversary use AutoCastOverlayTemplate
+    local autocastTpl = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
+    local autocastName = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and (name .. "_AutoCast") or nil
+    controller_button.autocast_overlay = CreateFrame("Frame", autocastName, controller_button, autocastTpl)
     controller_button.autocast_overlay:SetAllPoints(controller_button.icon)
     controller_button.autocast_overlay:Hide()
 

@@ -23,12 +23,12 @@ addon.VERSION = {
 
     -- Version flags for quick checks
     isRetail = build >= 100000,      -- Retail (Dragonflight 10.0+, Midnight 12.0+)
-    isClassic = build < 100000,      -- Classic Era, Anniversary, Cata, Wrath
+    isClassic = build < 100000,      -- Classic Era, Anniversary, MoP, Wrath
 
     -- Specific version ranges
     isVanilla = build >= 11500 and build < 20000,      -- Classic Era (1.15.x)
     isAnniversary = build >= 20500 and build < 30000,  -- Anniversary (2.5.x)
-    isCata = build >= 50500 and build < 60000,         -- Cata Classic (5.5.x)
+    isMoP = build >= 50500 and build < 60000,          -- MoP Classic (5.5.x)
 
     -- Atlas system availability (Retail only)
     -- Retail uses SetAtlas() with atlas names
@@ -40,7 +40,7 @@ addon.VERSION = {
 addon.VERSION.string = string.format(
     "%s (Build %d)",
     addon.VERSION.isRetail and "Retail" or
-    addon.VERSION.isCata and "Cata Classic" or
+    addon.VERSION.isMoP and "MoP Classic" or
     addon.VERSION.isAnniversary and "Anniversary" or
     addon.VERSION.isVanilla and "Classic Era" or
     "Unknown",

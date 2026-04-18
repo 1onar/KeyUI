@@ -3025,7 +3025,7 @@ function addon:refresh_assist_overlays()
 end
 
 -- Get spell ID from action slot (version-compatible)
--- Retail & Anniversary have C_ActionBar.GetSpell, Cata Classic & Classic Era don't
+-- Retail & Anniversary have C_ActionBar.GetSpell, MoP Classic & Classic Era don't
 local function GetSpellFromActionSlot(slot)
     if API_COMPAT.has_actionbar_getspell then
         return C_ActionBar.GetSpell(slot)
