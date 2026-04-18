@@ -592,12 +592,7 @@ function addon:create_keyboard_buttons(index)
     -- Equipped item border (green border when item is equipped)
     keyboard_button.equipped_border = addon.CreateEquippedBorder(keyboard_button)
     -- Pet auto-cast rotating dots overlay
-    -- MoP Classic and Classic Era use AutoCastShineTemplate (requires named frame); Retail and Anniversary use AutoCastOverlayTemplate
-    local autocastTpl = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
-    local autocastName = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and (name .. "_AutoCast") or nil
-    keyboard_button.autocast_overlay = CreateFrame("Frame", autocastName, keyboard_button, autocastTpl)
-    keyboard_button.autocast_overlay:SetAllPoints(keyboard_button.icon)
-    keyboard_button.autocast_overlay:Hide()
+    keyboard_button.autocast_overlay = addon.CreateAutoCastOverlay(keyboard_button, name)
 
     -- Highlight texture for the button.
     keyboard_button.highlight = keyboard_button:CreateTexture(nil, "ARTWORK")

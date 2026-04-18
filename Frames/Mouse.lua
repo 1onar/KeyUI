@@ -445,12 +445,7 @@ function addon:create_mouse_buttons(index)
     -- Equipped item border (green border when item is equipped)
     mouse_button.equipped_border = addon.CreateEquippedBorder(mouse_button)
     -- Pet auto-cast rotating dots overlay
-    -- MoP Classic and Classic Era use AutoCastShineTemplate (requires named frame); Retail and Anniversary use AutoCastOverlayTemplate
-    local autocastTpl = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and "AutoCastShineTemplate" or "AutoCastOverlayTemplate"
-    local autocastName = (addon.VERSION.isMoP or addon.VERSION.isVanilla) and (name .. "_AutoCast") or nil
-    mouse_button.autocast_overlay = CreateFrame("Frame", autocastName, mouse_button, autocastTpl)
-    mouse_button.autocast_overlay:SetAllPoints(mouse_button.icon)
-    mouse_button.autocast_overlay:Hide()
+    mouse_button.autocast_overlay = addon.CreateAutoCastOverlay(mouse_button, name)
 
     -- Highlight texture for the button.
     mouse_button.highlight = mouse_button:CreateTexture(nil, "ARTWORK")

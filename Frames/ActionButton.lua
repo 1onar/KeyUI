@@ -73,6 +73,30 @@ function addon.CreateEquippedBorder(button)
     return f
 end
 
+-- Pet auto-cast overlay. Modern clients (Retail, Anniversary, MoP 5.5.4+) use
+-- AutoCastOverlayTemplate; Classic Era and MoP 5.5.3 use AutoCastShineTemplate
+-- which requires a named frame. Probe C_XMLUtil once (present in all clients)
+-- instead of relying on build-range heuristics that break across MoP patches.
+local autocast_template_name, autocast_needs_name
+local function resolve_autocast_template()
+    if autocast_template_name then return end
+    if C_XMLUtil.GetTemplateInfo("AutoCastOverlayTemplate") then
+        autocast_template_name, autocast_needs_name = "AutoCastOverlayTemplate", false
+    else
+        autocast_template_name, autocast_needs_name = "AutoCastShineTemplate", true
+    end
+end
+
+function addon.CreateAutoCastOverlay(button, name_prefix)
+    resolve_autocast_template()
+    local overlay = CreateFrame("Frame",
+        autocast_needs_name and (name_prefix .. "_AutoCast") or nil,
+        button, autocast_template_name)
+    overlay:SetAllPoints(button.icon)
+    overlay:Hide()
+    return overlay
+end
+
 -- ---------------------------------------------------------------------------
 -- Slot attribute helper
 -- ---------------------------------------------------------------------------
