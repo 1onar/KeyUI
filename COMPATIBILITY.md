@@ -13,10 +13,10 @@ KeyUI uses an **All-in-One approach** with runtime version detection to support 
 
 The repository includes Blizzard API dumps used as source-of-truth during compatibility audits:
 
-- `API/12.0.1.65867` (Retail)
-- `API/5.5.3.65703` (MoP Classic)
-- `API/2.5.5.65795` (Anniversary)
-- `API/1.15.8.64907` (Classic Era)
+- `API/12.0.5.67088` (Retail)
+- `API/5.5.3.66509` (MoP Classic)
+- `API/2.5.5.66765` (Anniversary)
+- `API/1.15.8.65888` (Classic Era)
 
 ## Version Detection System
 
@@ -97,9 +97,9 @@ local API_COMPAT = {
 
 Validated from the local `/API` snapshots:
 
-- `BINDINGS_LOADED` exists in `2.5.5.65795` and `12.0.1.65867`, not in `1.15.8.64907`/`5.5.3.65703`.
-- `C_ActionBar.PutActionInSlot` exists only in `12.0.1.65867`.
-- `C_ActionBar.GetSpell` and `C_ActionBar.IsAssistedCombatAction` exist in `2.5.5.65795` and `12.0.1.65867`.
+- `BINDINGS_LOADED` exists in `2.5.5.66765` and `12.0.5.67088`, not in `1.15.8.65888`/`5.5.3.66509`.
+- `C_ActionBar.PutActionInSlot` exists only in `12.0.5.67088`.
+- `C_ActionBar.GetSpell` and `C_ActionBar.IsAssistedCombatAction` exist in `2.5.5.66765` and `12.0.5.67088`.
 - `C_AssistedCombat.IsAvailable` exists in all four API dumps; actual availability is determined at runtime.
 
 Developer note:
@@ -213,7 +213,7 @@ KeyUI provides custom fallback implementations for Classic:
 
 Before releasing, test on **all 4 WoW versions**:
 
-### Retail (Build 120000, API dump 65867)
+### Retail (Build 120000, API dump 67088)
 - [ ] Addon loads without Lua errors
 - [ ] Atlas textures load correctly (no custom BLP files used)
 - [ ] `C_SpellBook` API functions correctly
@@ -222,7 +222,7 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Tutorial arrows use `Tutorial_Pointer*` templates
 - [ ] Settings panel appears in Interface options
 
-### Anniversary (Build 20505, API dump 65795)
+### Anniversary (Build 20505, API dump 66765)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures from `Media/Atlas/` load correctly
 - [ ] Legacy spell API (`GetSpellTabInfo`, `GetSpellBookItemInfo`) works
@@ -231,14 +231,14 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Custom tutorial arrows with manual textures work
 - [ ] All frames render with correct textures
 
-### MoP Classic (Build 50503, API dump 65703)
+### MoP Classic (Build 50503, API dump 66509)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
 - [ ] Keybind visualization works
 - [ ] All UI elements render correctly
 
-### Classic Era (Build 11508, API dump 64907)
+### Classic Era (Build 11508, API dump 65888)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
@@ -393,5 +393,5 @@ Users downloading from CurseForge/Wago will automatically receive the correct ve
 ---
 
 **Maintained by:** KeyUI Development Team
-**Last Updated:** 2026-02-18
+**Last Updated:** 2026-04-18
 **Supported Versions:** Retail 12.0.0+, MoP 5.5.3, Anniversary 2.5.5, Classic Era 1.15.8
