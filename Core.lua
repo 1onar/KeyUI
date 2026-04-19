@@ -328,6 +328,13 @@ end
 
 -- Helper function to open settings panel (Midnight compatibility)
 function addon:OpenSettings()
+    -- Settings.OpenToCategory dispatches to the protected C_SettingsUtil.OpenSettingsPanel
+    -- on Retail 12.x and MoP 5.5.4+, which is blocked during combat from insecure OnClick.
+    -- (Anniversary and Classic Era still use the unprotected SettingsInbound path.)
+    if InCombatLockdown() then
+        print("KeyUI: Cannot open settings while in combat.")
+        return
+    end
     if self.settingsCategory and self.settingsCategory.GetID then
         Settings.OpenToCategory(self.settingsCategory:GetID())
     else
@@ -1548,6 +1555,10 @@ function addon:SafeHideFrame(frame)
             addon.combat_hide_queue = {}
         end
         addon.combat_hide_queue[frame] = true
+        if not addon.combat_hide_hint_shown then
+            addon.combat_hide_hint_shown = true
+            print("KeyUI: Close will apply after combat ends.")
+        end
     else
         frame:Hide()
     end
@@ -5029,6 +5040,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
+        addon.combat_hide_hint_shown = false
         -- Process frames that were deferred because Hide() is blocked during combat
         if addon.combat_hide_queue then
             for frame in pairs(addon.combat_hide_queue) do
