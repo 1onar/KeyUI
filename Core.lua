@@ -343,14 +343,16 @@ local miniButton = LDB:NewDataObject("KeyUI", {
     OnClick = function(self, btn)
         if btn == "LeftButton" then
             if addon.open == true then
-                -- Close the addon regardless of the combat state
+                -- Close is safe in combat via SafeHideFrame (deferred).
                 addon:hide_all_frames()
             else
-                -- Open the addon if stay_open_in_combat is true OR if not in combat
-                if not addon.in_combat or keyui_settings.stay_open_in_combat then
-                    addon:load()
-                else
+                -- Opening requires no combat lockdown: Show on frames with
+                -- SecureActionButtonTemplate children is blocked during combat.
+                -- stay_open_in_combat only governs auto-close, not opening.
+                if InCombatLockdown() then
                     print("KeyUI: Cannot open while in combat.")
+                else
+                    addon:load()
                 end
             end
         elseif btn == "RightButton" then
@@ -1407,8 +1409,8 @@ function addon:load()
             addon.selection_frame:Show()
         end
     else
-        -- Prevent loading if in combat and 'stay_open_in_combat' is false.
-        if addon.in_combat and not keyui_settings.stay_open_in_combat then
+        -- Opening frames with secure children is blocked during combat lockdown.
+        if InCombatLockdown() then
             return
         end
 
@@ -1653,6 +1655,10 @@ end
 -- Update the visibility of keyboard and mouse based on settings, only if addon is open
 function addon:show_frames()
     if addon.open == false then
+        return
+    end
+    -- Defensive: Show on frames with secure children is blocked during combat.
+    if InCombatLockdown() then
         return
     end
 
