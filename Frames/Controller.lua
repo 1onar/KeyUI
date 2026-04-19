@@ -577,6 +577,14 @@ function addon:create_controller_buttons(index)
     controller_button:EnableKeyboard(true)
     controller_button:EnableGamePadButton(true)
 
+    -- Match keyboard/mouse: release-only click + drag registration so dragging
+    -- picks up the action instead of casting the spell. useOnKeyDown=false
+    -- overrides Retail's ActionButtonUseKeyDown CVar so the click fires on
+    -- release (required for AnyUp to trigger the secure handler in 12.0+).
+    controller_button:RegisterForClicks("AnyUp")
+    controller_button:RegisterForDrag("LeftButton", "RightButton")
+    controller_button:SetAttribute("useOnKeyDown", false)
+
     -- controller Keybind text string on the top right of the button (e.g. a-c-s-1)
     controller_button.short_key = controller_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     controller_button.short_key:SetTextColor(1, 1, 1)

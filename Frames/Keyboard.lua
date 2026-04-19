@@ -518,15 +518,15 @@ function addon:create_keyboard_buttons(index)
         or  "SecureActionButtonTemplate, BackdropTemplate"
     local keyboard_button = CreateFrame("CheckButton", name, addon.keyboard_frame, templates)
 
-    -- Retail: also register LeftButtonDown/RightButtonDown for ActionButtonUseKeyDown CVar support.
-    -- Classic (MoP/Anniversary/Vanilla): AnyUp only – LeftButtonDown fires before drag detection
-    -- and causes the mapped spell to cast when trying to drag the button.
-    if addon.VERSION.isRetail then
-        keyboard_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
-    else
-        keyboard_button:RegisterForClicks("AnyUp")
-    end
+    -- Fire actions on release only. Registering LeftButtonDown/RightButtonDown
+    -- caused the secure UseAction to run before the drag threshold was reached,
+    -- casting the spell when the user tried to drag the slot.
+    -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
+    -- which would suppress the AnyUp event entirely; explicitly pinning
+    -- useOnKeyDown=false overrides the CVar so the click fires on release.
+    keyboard_button:RegisterForClicks("AnyUp")
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
+    keyboard_button:SetAttribute("useOnKeyDown", false)
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:EnableGamePadButton(true)

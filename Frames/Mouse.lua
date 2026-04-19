@@ -374,15 +374,15 @@ function addon:create_mouse_buttons(index)
         or  "SecureActionButtonTemplate"
     local mouse_button = CreateFrame("CheckButton", name, addon.mouse_image, templates)
 
-    -- Retail: also register LeftButtonDown/RightButtonDown for ActionButtonUseKeyDown CVar support.
-    -- Classic (MoP/Anniversary/Vanilla): AnyUp only – LeftButtonDown fires before drag detection
-    -- and causes the mapped spell to cast when trying to drag the button.
-    if addon.VERSION.isRetail then
-        mouse_button:RegisterForClicks("AnyUp", "LeftButtonDown", "RightButtonDown")
-    else
-        mouse_button:RegisterForClicks("AnyUp")
-    end
+    -- Fire actions on release only. Registering LeftButtonDown/RightButtonDown
+    -- caused the secure UseAction to run before the drag threshold was reached,
+    -- casting the spell when the user tried to drag the slot.
+    -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
+    -- which would suppress the AnyUp event entirely; explicitly pinning
+    -- useOnKeyDown=false overrides the CVar so the click fires on release.
+    mouse_button:RegisterForClicks("AnyUp")
     mouse_button:RegisterForDrag("LeftButton", "RightButton")
+    mouse_button:SetAttribute("useOnKeyDown", false)
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
     mouse_button:EnableGamePadButton(true)
