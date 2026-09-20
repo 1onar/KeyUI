@@ -4716,10 +4716,21 @@ local function build_spells_submenu(parentMenu)
 end
 
 -- Helper function: Build macros submenu
+-- 12.0 moved the macro limits out of the global namespace into Constants.MacroConsts.
+-- The literals are the long-standing Blizzard values, used when neither source exists.
+local function macro_limits()
+    local consts = Constants and Constants.MacroConsts
+    local account_max = (consts and consts.MAX_ACCOUNT_MACROS) or _G.MAX_ACCOUNT_MACROS or 120
+    local character_max = (consts and consts.MAX_CHARACTER_MACROS) or _G.MAX_CHARACTER_MACROS or 18
+    return account_max, character_max
+end
+
 local function build_macros_submenu(parentMenu)
-    -- General Macros (1-MAX_ACCOUNT_MACROS)
+    local account_macro_max, character_macro_max = macro_limits()
+
+    -- General Macros (1-account_macro_max)
     local generalMacroMenu = parentMenu:CreateButton("General Macro")
-    for i = 1, MAX_ACCOUNT_MACROS do
+    for i = 1, account_macro_max do
         local macro_index = i
         local title, icon, _ = GetMacroInfo(macro_index)
         if title then
@@ -4764,9 +4775,9 @@ local function build_macros_submenu(parentMenu)
         end
     end
 
-    -- Player Macros (MAX_ACCOUNT_MACROS+1 to MAX_ACCOUNT_MACROS+MAX_CHARACTER_MACROS)
+    -- Player Macros (account_macro_max+1 to account_macro_max+character_macro_max)
     local playerMacroMenu = parentMenu:CreateButton("Player Macro")
-    for i = MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+    for i = account_macro_max + 1, account_macro_max + character_macro_max do
         local macro_index = i
         local title, icon, _ = GetMacroInfo(macro_index)
         if title then
