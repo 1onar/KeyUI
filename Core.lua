@@ -1800,7 +1800,12 @@ function addon:ApplyEscClose()
         end
     end
 
-    local enabled = keyui_settings.close_on_esc
+    -- Blizzard's ESC handler (CloseSpecialWindows) calls Hide() on every frame listed in
+    -- UISpecialFrames. KeyUI's frames parent SecureActionButtonTemplate buttons, so that
+    -- Hide() is blocked during combat and surfaces as ADDON_ACTION_BLOCKED. Withdraw them
+    -- for the duration of the fight and let PLAYER_REGEN_ENABLED put them back; frames are
+    -- only ever created out of combat, so nothing re-registers behind this.
+    local enabled = keyui_settings.close_on_esc and not is_in_combat_lockdown()
     set_esc_close_enabled(addon.keyboard_frame, enabled)
     set_esc_close_enabled(addon.controls_frame, enabled)
     set_esc_close_enabled(addon.mouse_image, enabled)
@@ -5112,6 +5117,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
         addon.combat_hide_hint_shown = false
+        -- Restore ESC close now that Hide() is permitted again
+        addon:ApplyEscClose()
         -- Process frames that were deferred because Hide() is blocked during combat
         if addon.combat_hide_queue then
             for frame in pairs(addon.combat_hide_queue) do
@@ -5130,6 +5137,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_DISABLED" then
         addon.in_combat = true
         addon.retail_action_block_warned_this_combat = false
+        -- Withdraw from UISpecialFrames so an ESC press does not trigger a blocked Hide()
+        addon:ApplyEscClose()
         addon:disable_keypress_input()
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
