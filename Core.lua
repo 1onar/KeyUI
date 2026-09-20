@@ -31,6 +31,10 @@ local API_COMPAT = {
     has_modern_action_in_range = (C_ActionBar and C_ActionBar.IsActionInRange ~= nil),
     has_modern_display_count   = (C_ActionBar and C_ActionBar.GetActionDisplayCount ~= nil),
     has_modern_action_charges  = (C_ActionBar and C_ActionBar.GetActionCharges ~= nil),
+    -- 12.0 cooldown "duration objects": opaque handles a Cooldown widget accepts even
+    -- when the timings inside them are secret to addon (tainted) code.
+    has_action_duration_objects = (C_ActionBar and C_ActionBar.GetActionCooldownDuration ~= nil),
+    has_spell_duration_objects  = (C_Spell and C_Spell.GetSpellCooldownDuration ~= nil),
 }
 addon.api_compat = API_COMPAT
 addon.compat = addon.compat or {}
@@ -2672,13 +2676,14 @@ function addon:GetButtonCooldownData(button)
             start, duration, _, modRate = GetActionCooldown(slot)
         end
 
-        -- In Retail combat, values may be "secret" (WoW security restriction).
-        -- pcall the comparison; on failure, pass through – SetCooldown accepts secret values.
+        -- In Retail combat these may be "secret" values, which raise on comparison and are
+        -- rejected by SetCooldown. Report "no data" so callers clear instead of erroring;
+        -- such buttons are served by GetButtonCooldownDurationObject anyway.
         local ok, has_main = pcall(function()
             return start and start > 0 and duration and duration > 0
         end)
         if not ok then
-            return start, duration, modRate  -- secret values: pass through directly
+            return nil, nil, nil
         end
         if has_main then
             return start, duration, modRate
@@ -2752,34 +2757,82 @@ function addon:ClearButtonCooldown(button)
     end
 end
 
+-- Reports whether a cooldown/charge/loss-of-control info table describes a running
+-- cooldown. In 12.0 `isActive` stays readable to tainted code while the timings beside
+-- it may be secret, so nothing else in the table is touched here.
+function addon:CooldownInfoIsActive(info)
+    if not info then return false end
+    local ok, active = pcall(function() return info.isActive == true end)
+    if not ok then return true end -- unreadable: let the widget decide what to draw
+    return active
+end
+
+-- Returns the 12.0 duration object for a button's base cooldown plus whether this button
+-- is served by duration objects at all. Callers must not fall back to the numeric path
+-- when `handled` is true: on Retail the numbers behind it are secret during combat.
+-- Priority mirrors GetButtonCooldownData, including its charge-recovery fallback.
+function addon:GetButtonCooldownDurationObject(button)
+    local slot = button.active_slot
+    if slot and API_COMPAT.has_action_duration_objects then
+        if addon:CooldownInfoIsActive(C_ActionBar.GetActionCooldown(slot)) then
+            return C_ActionBar.GetActionCooldownDuration(slot), true
+        end
+        -- No base cooldown – show charge recovery instead, as the numeric path does.
+        if C_ActionBar.GetActionChargeDuration
+            and addon:CooldownInfoIsActive(C_ActionBar.GetActionCharges(slot)) then
+            return C_ActionBar.GetActionChargeDuration(slot), true
+        end
+        return nil, true
+    end
+
+    if button.spellid and API_COMPAT.has_spell_duration_objects then
+        if addon:CooldownInfoIsActive(C_Spell.GetSpellCooldown(button.spellid)) then
+            return C_Spell.GetSpellCooldownDuration(button.spellid), true
+        end
+        return nil, true
+    end
+
+    return nil, false
+end
+
 -- Updates the cooldown overlay on a single button based on current game state.
 function addon:UpdateButtonCooldown(button)
-    if not button.cooldown then return end
+    local cd = button.cooldown
+    if not cd then return end
 
-    if not keyui_settings.show_actionbar_mode then
-        button.cooldown:Clear()
+    if not keyui_settings.show_actionbar_mode or not button.icon:IsShown() then
+        cd:Clear()
         return
     end
 
-    if not button.icon:IsShown() then
-        button.cooldown:Clear()
-        return
+    -- Retail 12.0: hand the widget an opaque duration object. Tainted code may not read
+    -- the timings inside it, but passing it straight through is allowed – this is the
+    -- only way to keep cooldowns updating during combat.
+    if cd.SetCooldownFromDurationObject then
+        local duration_object, handled = addon:GetButtonCooldownDurationObject(button)
+        if handled then
+            if duration_object then
+                cd:SetCooldownFromDurationObject(duration_object)
+            else
+                cd:Clear()
+            end
+            return
+        end
     end
 
+    -- Numeric path: Classic clients, and pet actions on every client.
     local start, duration, modRate = addon:GetButtonCooldownData(button)
-    if not start then
-        button.cooldown:Clear()
-        return
-    end
-    -- In Retail combat, GetActionCooldown may return "secret values" that cannot be compared
-    -- to literals with ==. pcall catches the error; when secret, SetCooldown accepts them directly.
-    local ok, no_cooldown = pcall(function() return start == 0 or duration == 0 end)
-    if ok and no_cooldown then
-        button.cooldown:Clear()
+    -- Secret timings raise on comparison rather than returning false. Either way there is
+    -- nothing safe to draw, and SetCooldown rejects them outright from tainted execution.
+    local ok, has_cooldown = pcall(function()
+        return start and start > 0 and duration and duration > 0
+    end)
+    if not (ok and has_cooldown) then
+        cd:Clear()
         return
     end
 
-    button.cooldown:SetCooldown(start, duration, modRate or 1.0)
+    cd:SetCooldown(start, duration, modRate or 1.0)
 end
 
 -- Refreshes cooldown overlays on all visible buttons.
