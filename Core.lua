@@ -4466,6 +4466,10 @@ end
 
 -- Shared KeyDown function for all buttons (keyboard + mouse)
 function addon:handle_key_down(frame, key)
+    -- Callers pass addon.current_hovered_button, which OnLeave clears while the OnKeyDown
+    -- script stays installed – so a keypress just after leaving a key arrives with no frame.
+    if not frame then return end
+
     -- Check if any modifier is held down
     local modifier = ""
 
@@ -4505,6 +4509,9 @@ function addon:handle_key_down(frame, key)
 end
 
 function addon:handle_gamepad_down(frame, key)
+    -- Same stale-hover race as handle_key_down.
+    if not frame then return end
+
     -- Check if any modifier is held down
     local modifier = ""
 
