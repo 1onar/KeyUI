@@ -3,6 +3,8 @@ local name, addon = ...
 addon.default_mouse_layouts = {
 
     ['Layout_4x3'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138,  172, 50, 50 },
         { 'BUTTON3',        138,  122, 50, 50 },
@@ -27,6 +29,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_2+4x3'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138,  172, 50, 50 },
         { 'BUTTON3',        138,  122, 50, 50 },
@@ -34,8 +38,8 @@ addon.default_mouse_layouts = {
         { 'N/A',            138,  22,  50, 50 },
         { 'N/A',            138,  -30, 50, 50 },
 
-        { 'N/A',            60,   167, 50, 50 },
-        { 'N/A',            60,   120, 50, 50 },
+        { 'N/A',            60,   110, 50, 50 },
+        { 'N/A',            60,   60,  50, 50 },
 
         { 'F1',             -100, 80,  50, 50 },
         { 'F4',             -100, 30,  50, 50 },
@@ -54,6 +58,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_3x3'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138,  172, 50, 50 },
         { 'BUTTON3',        138,  122, 50, 50 },
@@ -75,6 +81,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_3x2'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138, 172, 50, 50 },
         { 'BUTTON3',        138, 122, 50, 50 },
@@ -92,6 +100,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_1+2x2'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138, 172, 50, 50 },
         { 'BUTTON3',        138, 122, 50, 50 },
@@ -109,6 +119,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_2x2'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138, 172, 50, 50 },
         { 'BUTTON3',        138, 122, 50, 50 },
@@ -124,6 +136,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_2x1'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138, 172, 50, 50 },
         { 'BUTTON3',        138, 122, 50, 50 },
@@ -136,6 +150,8 @@ addon.default_mouse_layouts = {
     },
 
     ['Layout_Circle'] = {
+        { 'BUTTON1',        88,   172, 50, 50 },
+        { 'BUTTON2',        188,  172, 50, 50 },
 
         { 'MOUSEWHEELUP',   138,  172, 50, 50 },
         { 'BUTTON3',        138,  122, 50, 50 },

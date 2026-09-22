@@ -43,6 +43,21 @@ addon.no_highlight = {
     ["RMETA"] = true,
     ["N/A"] = true,
     ["Custom"] = true,
+    -- Never bindable, so never offer them as a free slot.
+    ["BUTTON1"] = true,
+    ["BUTTON2"] = true,
+}
+
+-- Keys KeyUI draws but must never bind.
+--
+-- BUTTON1/BUTTON2 exist on the mouse layouts so the picture is complete and so
+-- click-cast bindings can be shown on them (see the Clique integration in
+-- Core.lua). They are deliberately not assignable: KeyUI binds through the
+-- global SetBinding, and a SetBinding("BUTTON1", ...) would hijack left click
+-- across the whole game.
+addon.display_only_keys = {
+    ["BUTTON1"] = true,
+    ["BUTTON2"] = true,
 }
 
 addon.short_keys = {

@@ -2596,8 +2596,14 @@ function addon:set_key(button)
         -- Handle interface action labels
         addon:create_action_labels(binding, button)
     else
+        -- Nothing in WoW's binding table. Clique keeps its click-casts outside
+        -- that table, so check there before treating the key as unbound -- from
+        -- the player's point of view those keys are very much bound.
+        local clique_shown = addon:apply_clique_binding(
+            button, addon.current_modifier_string .. (button.raw_key or ""))
+
         -- Handle empty bindings if the option is enabled
-        if keyui_settings.show_empty_binds then
+        if not clique_shown and keyui_settings.show_empty_binds then
             addon:update_empty_binds(button)
         end
 
@@ -3847,6 +3853,117 @@ function addon:process_dominos(binding, button)
     end
 end
 
+-- ---------------------------------------------------------------------------
+-- Clique integration (read-only)
+-- ---------------------------------------------------------------------------
+-- Clique does its click-casting through secure attributes on unit frames, so
+-- its bindings never reach GetBindingAction and KeyUI cannot see them the way
+-- it sees everything else. They are readable from its AceDB saved variable
+-- instead: CliqueDB3.profiles[<profile>].bindings, a list of entries shaped
+--
+--   { key = "ALT-CTRL-SHIFT-BUTTON1", type = "spell", spell = "Healing Touch",
+--     icon = "Interface\\Icons\\...", unit = "mouseover", sets = { ... } }
+--
+-- The key strings use the same ALT-CTRL-SHIFT ordering that
+-- addon:update_modifier_string builds, so entries match KeyUI keys directly.
+--
+-- Strictly read-only: KeyUI never writes to another addon's database, and it
+-- never binds these keys itself (see addon.display_only_keys in Mappings.lua).
+
+local clique_lookup = nil
+local clique_generation = -1
+addon.clique_generation = 0
+
+-- Resolves Clique's active profile the way AceDB-3.0 does (AceDB-3.0.lua:254-281).
+local function clique_binding_list()
+    local sv = _G.CliqueDB3
+    if type(sv) ~= "table" or type(sv.profiles) ~= "table" then
+        return nil
+    end
+
+    local char_key = (UnitName("player") or "") .. " - " .. (GetRealmName() or "")
+    local profile_key = char_key
+    if type(sv.profileKeys) == "table" and sv.profileKeys[char_key] then
+        profile_key = sv.profileKeys[char_key]
+    end
+
+    local profile = sv.profiles[profile_key]
+    if type(profile) ~= "table" or type(profile.bindings) ~= "table" then
+        return nil
+    end
+    return profile.bindings
+end
+
+-- Human-readable label for a Clique entry. Returns nil when the entry carries
+-- nothing worth showing, so the caller can leave the key blank.
+local function clique_entry_label(entry)
+    if entry.type == "spell" then
+        return entry.spell
+    elseif entry.type == "item" then
+        return entry.item
+    elseif entry.type == "macro" then
+        return MACRO or "Macro"
+    elseif entry.type == "target" then
+        return TARGET or "Target"
+    elseif entry.type == "menu" then
+        return MENU or "Menu"
+    end
+    return entry.spell or entry.item
+end
+
+-- Rebuilt whenever addon.clique_generation advances; Clique edits mutate the
+-- same table in place, so there is nothing else to watch.
+local function clique_map()
+    if clique_lookup and clique_generation == addon.clique_generation then
+        return clique_lookup
+    end
+
+    local map = {}
+    local bindings = clique_binding_list()
+    if bindings then
+        for _, entry in pairs(bindings) do
+            if type(entry) == "table" and type(entry.key) == "string" and entry.key ~= "" then
+                -- First entry wins: Clique may hold several bindings on one key
+                -- for different unit sets, and KeyUI has one slot to show.
+                if not map[entry.key] then
+                    map[entry.key] = entry
+                end
+            end
+        end
+    end
+
+    clique_lookup = map
+    clique_generation = addon.clique_generation
+    return map
+end
+
+-- Draws the Clique binding for `key` onto `button`. Sets no secure attributes
+-- and no action slot: this is display only, the cast itself stays Clique's job.
+-- Returns true when something was drawn.
+function addon:apply_clique_binding(button, key)
+    if not key or key == "" then
+        return false
+    end
+
+    local entry = clique_map()[key]
+    if not entry then
+        return false
+    end
+
+    if entry.icon then
+        button.icon:SetTexture(entry.icon)
+        button.icon:Show()
+    end
+
+    local label = clique_entry_label(entry)
+    if label and label ~= "" then
+        button.readable_binding:SetText(label)
+        button.readable_binding:Show()
+    end
+
+    return true
+end
+
 -- Handles processing for OPie ring bindings
 function addon:process_opie(button)
     -- Assign the OPie ring icon to the button
@@ -4117,6 +4234,9 @@ end
 
 -- Updates the textures/texts of the keys bindings.
 function addon:refresh_keys()
+    -- Clique edits mutate its tables in place, so rebuild the lookup each pass.
+    addon.clique_generation = (addon.clique_generation or 0) + 1
+
     local perf_start = get_perf_timestamp()
 
     -- if the keyboard is visible we create the keys
@@ -4867,6 +4987,18 @@ end
 
 -- Main context menu generator for MenuUtil
 function addon.context_menu_generator(owner, rootDescription)
+    -- Display-only keys get no assignment menu at all. KeyUI binds through the
+    -- global SetBinding, so offering "assign a spell" on BUTTON1 would hand the
+    -- player a way to hijack their own left click. Say why instead of showing a
+    -- menu that silently does nothing.
+    local clicked = addon.current_clicked_key
+    if clicked and addon.display_only_keys[clicked.raw_key or ""] then
+        rootDescription:CreateTitle(clicked.raw_key)
+        local note = rootDescription:CreateButton("Display only", function() end)
+        note:SetEnabled(false)
+        return
+    end
+
     -- Spells submenu
     local spellsMenu = rootDescription:CreateButton(_G["SPELLS"] or "Spells")
     build_spells_submenu(spellsMenu)
