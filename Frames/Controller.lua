@@ -675,7 +675,7 @@ function addon:create_controller_buttons(index)
     controller_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
-        addon.keyui_tooltip_frame:Hide()
+        if addon.keyui_tooltip_frame then addon.keyui_tooltip_frame:Hide() end
         controller_button:EnableKeyboard(false)
         controller_button:EnableMouseWheel(false)
 

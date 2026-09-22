@@ -641,7 +641,7 @@ function addon:create_keyboard_buttons(index)
     keyboard_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
-        addon.keyui_tooltip_frame:Hide()
+        if addon.keyui_tooltip_frame then addon.keyui_tooltip_frame:Hide() end
         if not InCombatLockdown() then
             keyboard_button:EnableKeyboard(false)
             keyboard_button:EnableMouseWheel(false)

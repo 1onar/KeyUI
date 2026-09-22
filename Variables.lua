@@ -107,9 +107,12 @@ addon.open = false
 addon.in_combat = false
 addon.retail_action_block_warned_this_combat = false
 
-addon.bonusbar_offset = {}
-addon.current_actionbar_page = {}
-addon.class_name = {}
+-- Numbers, not tables: addon:get_action_button_slot compares both against numbers
+-- (`>= 2`, `== 5`), which raises "attempt to compare table with number". PLAYER_LOGIN
+-- overwrites them with the real values; these are the neutral defaults it starts from.
+addon.bonusbar_offset = 0
+addon.current_actionbar_page = 1
+addon.class_name = ""
 
 addon.modif = addon.modif or { ALT = false, CTRL = false, SHIFT = false }
 addon.current_modifier_string = ""
