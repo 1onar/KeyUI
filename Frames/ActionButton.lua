@@ -385,12 +385,24 @@ local function KeyUI_ShouldDowngradeAlert(spellID)
     return false
 end
 
+-- ActionButtonSpellAlertTemplate is defined on all four supported clients (checked
+-- against the 12.1.5, 5.5.4, 2.5.6 and 1.15.9 interface dumps), so probe for it
+-- instead of branching on the build. The globals this used to fall back to on
+-- Classic Era, ActionButton_ShowOverlayGlow and ActionButton_HideOverlayGlow, are
+-- defined in none of them -- that branch raised instead of drawing a glow.
+local spell_alert_template_available
+local function has_spell_alert_template()
+    if spell_alert_template_available == nil then
+        spell_alert_template_available =
+            C_XMLUtil.GetTemplateInfo("ActionButtonSpellAlertTemplate") ~= nil
+    end
+    return spell_alert_template_available
+end
+
 -- Show proc glow on button. useAltGlow=true → ProcAltGlow (dezenter Rahmen),
 -- useAltGlow=false → volle Burst-Animation (OneButton-Atlas für Assist-Buttons).
 function addon:ShowButtonProcGlow(button, useAltGlow)
-    -- ActionButtonSpellAlertTemplate exists in Retail, MoP Classic, and Anniversary.
-    -- Classic Era (isVanilla) does not have it; fall back to LibButtonGlow if available.
-    if addon.VERSION.isRetail or addon.VERSION.isMoP or addon.VERSION.isAnniversary then
+    if has_spell_alert_template() then
         if useAltGlow then
             -- Subtle golden ring (downgrade): use a dedicated KeyUI frame so we can size
             -- it to the icon exactly, without fighting useAtlasSize=true template internals.
@@ -441,25 +453,17 @@ function addon:ShowButtonProcGlow(button, useAltGlow)
         alert.ProcStartFlipbook:SetAlpha(1)
         alert:Show()
         alert.ProcStartAnim:Play()
-        return
     end
-    -- Classic Era: native overlay glow (ActionButton_ShowOverlayGlow exists in 1.15.x)
-    ActionButton_ShowOverlayGlow(button)
 end
 
 function addon:HideButtonProcGlow(button)
-    if addon.VERSION.isRetail or addon.VERSION.isMoP or addon.VERSION.isAnniversary then
-        if button.KeyUI_ProcAltGlow then button.KeyUI_ProcAltGlow:Hide() end
-        if button.SpellActivationAlert then
-            local alert = button.SpellActivationAlert
-            alert.ProcStartAnim:Stop()
-            alert.ProcAltGlow:Hide()
-            alert:Hide()   -- OnHide Mixin stops ProcLoop
-        end
-        return
+    if button.KeyUI_ProcAltGlow then button.KeyUI_ProcAltGlow:Hide() end
+    if button.SpellActivationAlert then
+        local alert = button.SpellActivationAlert
+        alert.ProcStartAnim:Stop()
+        alert.ProcAltGlow:Hide()
+        alert:Hide()   -- OnHide Mixin stops ProcLoop
     end
-    -- Classic Era: native overlay glow
-    ActionButton_HideOverlayGlow(button)
 end
 
 -- Called when SPELL_ACTIVATION_OVERLAY_GLOW_SHOW fires with a spellID.
@@ -547,17 +551,13 @@ function addon:UpdateButtonPetAutoCast(button)
 
     if allowed then
         overlay:Show()
-        -- Animate the rotating dots: Blizzard's AutoCastOverlayTemplate handles
-        -- the animation internally when shown/hidden via Show()/Hide().
-        if enabled then
-            if AutoCastShine_AutoCastStart then
-                AutoCastShine_AutoCastStart(overlay)
-            end
-            -- Retail/Anniversary: AutoCastOverlayTemplate animates automatically via Mixin
-        else
-            if AutoCastShine_AutoCastStop then
-                AutoCastShine_AutoCastStop(overlay)
-            end
+        -- The rotating "ants" are a separate texture inside AutoCastOverlayTemplate and
+        -- start hidden; showing the frame alone leaves autocast-on indistinguishable from
+        -- autocast-off. AutoCastOverlayMixin:ShowAutoCastEnabled drives it and exists on
+        -- all four clients. The AutoCastShine_AutoCastStart/Stop globals this used to call
+        -- exist on none of them, so the shine never ran.
+        if overlay.ShowAutoCastEnabled then
+            overlay:ShowAutoCastEnabled(enabled and true or false)
         end
     else
         overlay:Hide()
