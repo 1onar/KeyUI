@@ -4,19 +4,19 @@
 
 KeyUI uses an **All-in-One approach** with runtime version detection to support all active WoW versions from a single codebase:
 
-- **Retail** (12.0.0+ Midnight) - Build 120000+
-- **MoP Classic** (5.5.3) - Build 50503
-- **Anniversary Edition** (2.5.5) - Build 20505
-- **Classic Era** (1.15.8) - Build 11508
+- **Retail** (12.1.5 and 12.1.0 Midnight) - Build 120105 / 120100
+- **MoP Classic** (5.5.4) - Build 50504
+- **Anniversary Edition** (2.5.6) - Build 20506
+- **Classic Era** (1.15.9) - Build 11509
 
 ### Local API Snapshot Builds Used for Compatibility Validation
 
 The repository includes Blizzard API dumps used as source-of-truth during compatibility audits:
 
-- `API/12.0.5.67088` (Retail)
-- `API/5.5.3.66509` (MoP Classic)
-- `API/2.5.5.66765` (Anniversary)
-- `API/1.15.8.65888` (Classic Era)
+- `API/12.1.5.69848` (Retail)
+- `API/5.5.4.69383` (MoP Classic)
+- `API/2.5.6.69795` (Anniversary)
+- `API/1.15.9.69722` (Classic Era)
 
 ## Version Detection System
 
@@ -26,14 +26,14 @@ All version detection is centralized in `VersionCompat.lua`. This module runs at
 
 ```lua
 addon.VERSION = {
-    build = 120000,              -- Raw build number
+    build = 120105,              -- Raw build number
     isRetail = true,             -- Build >= 100000
     isClassic = false,           -- Build < 100000
     isVanilla = false,           -- Build 11500-20000
     isAnniversary = false,       -- Build 20500-30000
     isMoP = false,               -- Build 50500-60000
     USE_ATLAS = true,            -- Atlas API available (Retail only)
-    string = "Retail (Build 120000)"  -- Human-readable version
+    string = "Retail (Build 120105)"  -- Human-readable version
 }
 ```
 
@@ -95,12 +95,20 @@ local API_COMPAT = {
 
 ### Feature Audit from Local API Dumps
 
-Validated from the local `/API` snapshots:
+Re-validated 2026-09-22 against the snapshots listed above. Two findings changed since the
+previous audit -- the Classic clients have converged with Retail on most of `C_ActionBar`:
 
-- `BINDINGS_LOADED` exists in `2.5.5.66765` and `12.0.5.67088`, not in `1.15.8.65888`/`5.5.3.66509`.
-- `C_ActionBar.PutActionInSlot` exists only in `12.0.5.67088`.
-- `C_ActionBar.GetSpell` and `C_ActionBar.IsAssistedCombatAction` exist in `2.5.5.66765` and `12.0.5.67088`.
-- `C_AssistedCombat.IsAvailable` exists in all four API dumps; actual availability is determined at runtime.
+- `BINDINGS_LOADED` now exists in **all four** dumps (previously Anniversary/Retail only).
+- `C_ActionBar.GetSpell` and `C_ActionBar.IsAssistedCombatAction` now exist in **all four**
+  dumps (previously Anniversary/Retail only).
+- `C_ActionBar.PutActionInSlot` still exists **only** in `12.1.5.69848`.
+- `C_AssistedCombat.IsAvailable` exists in all four dumps; actual availability is determined
+  at runtime.
+- `C_SpellBook.GetNumSpellBookSkillLines` exists **only** in `12.1.5.69848`.
+- `C_ActionBar.GetActionCooldown`, `IsUsableAction`, `IsActionInRange`,
+  `GetActionDisplayCount`, `GetActionCharges` and `C_Spell.GetSpellCooldown` /
+  `GetSpellCharges` exist in **all four** dumps. Feature-detecting these therefore no longer
+  distinguishes Retail from Classic -- see the note on secret values below.
 
 Developer note:
 
@@ -108,6 +116,65 @@ Developer note:
   - `rg -n "BINDINGS_LOADED" API/*/Blizzard_APIDocumentationGenerated/KeyBindingsDocumentation.lua`
   - `rg -n "Name = \"(PutActionInSlot|IsAssistedCombatAction|GetSpell)\"" API/*/Blizzard_APIDocumentationGenerated/ActionBarFrameDocumentation.lua`
   - `rg -n "Name = \"IsAvailable\"" API/*/Blizzard_APIDocumentationGenerated/AssistedCombatDocumentation.lua`
+
+### Secret Values (Retail 12.x)
+
+Retail 12.0 introduced *secret values*: cooldown and charge timings that tainted (addon) code
+may not read. This is the single biggest behavioural difference between Retail and Classic
+today, and it is **not** detectable by checking whether a function exists.
+
+**What is readable.** In `API/12.1.5.69848/Blizzard_APIDocumentationGenerated/SpellSharedDocumentation.lua`
+the fields of `SpellCooldownInfo`, `SpellChargeInfo` and `SpellLossOfControlInfo` that carry
+`NeverSecret = true` stay readable under all circumstances:
+
+| Struct | Always readable | May be secret |
+|---|---|---|
+| `SpellCooldownInfo` | `isEnabled`, `isActive`, `isOnGCD` | `startTime`, `duration`, `modRate` |
+| `SpellChargeInfo` | `maxCharges`, `isActive` | `currentCharges`, `cooldownStartTime`, `cooldownDuration`, `chargeModRate` |
+| `SpellLossOfControlInfo` | `isActive`, `shouldReplaceNormalCooldown` | `startTime`, `duration`, `modRate` |
+
+The same file in the Classic dumps is identical except that every `NeverSecret` marker is
+absent -- on those clients nothing is secret in the first place.
+
+**Why `SetCooldown` is not a way out.** `SetCooldown`, `SetCooldownDuration` and
+`SetCooldownFromDurationObject` are all annotated `SecretArguments = "AllowedWhenUntainted"`
+(`FrameAPICooldownDocumentation.lua:281-319`). Blizzard's own untainted code may pass secret
+values straight through; **addon code may not**. Passing one raises, and because
+`UpdateButtonCooldown` runs first in `addon:set_key`, that error takes the whole refresh loop
+with it.
+
+**The addon-safe pattern.** Read only the `NeverSecret` booleans to decide *whether* to draw,
+and obtain the timings as an opaque duration object:
+
+```lua
+-- C_ActionBar.GetActionCooldownDuration carries no SecretWhenCooldownsRestricted,
+-- so the handle it returns is not itself secret and may be passed through.
+if C_ActionBar.GetActionCooldown(slot).isActive then
+    cooldown:SetCooldownFromDurationObject(C_ActionBar.GetActionCooldownDuration(slot))
+else
+    cooldown:Clear()
+end
+```
+
+Note that Blizzard's own action bars do **not** use duration objects -- being untainted, they
+read `isActive` and pass the possibly-secret numbers directly to `SetCooldown`
+(`Blizzard_ActionBar/ActionButton.lua:845-868`). That code is byte-identical across all four
+dumps and is therefore *not* a template an addon can copy.
+
+**Deciding which path to take.** The duration-object APIs
+(`GetActionCooldownDuration`, `GetActionChargeDuration`, `GetActionLossOfControlCooldownInfo`,
+`SetCooldownFromDurationObject`) are documented in **all four** dumps, so their presence says
+nothing about whether secret values are in play. Use `C_Secrets` instead
+(`SecretPredicateAPIDocumentation.lua`):
+
+- `C_Secrets.HasSecretRestrictions()` -- false on Classic, i.e. the numeric path is safe
+- `C_Secrets.ShouldCooldownsBeSecret()` -- whether cooldown queries generally produce secrets
+- `C_Secrets.ShouldActionCooldownBeSecret(actionID)` -- per-slot
+
+**Deprecated names.** `C_ActionBar.GetActionLossOfControlCooldown` and the bare global
+`GetActionLossOfControlCooldown` survive in 12.1.5 only as shims in
+`Blizzard_DeprecatedActionBar/Deprecated_ActionBar.lua`, behind
+`GetCVarBool("loadDeprecationFallbacks")`. Use `...GetActionLossOfControlCooldownInfo`.
 
 ### Example: Spellbook Loading
 
@@ -213,7 +280,7 @@ KeyUI provides custom fallback implementations for Classic:
 
 Before releasing, test on **all 4 WoW versions**:
 
-### Retail (Build 120000, API dump 67088)
+### Retail (Build 120105, API dump 69848)
 - [ ] Addon loads without Lua errors
 - [ ] Atlas textures load correctly (no custom BLP files used)
 - [ ] `C_SpellBook` API functions correctly
@@ -222,7 +289,7 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Tutorial arrows use `Tutorial_Pointer*` templates
 - [ ] Settings panel appears in Interface options
 
-### Anniversary (Build 20505, API dump 66765)
+### Anniversary (Build 20506, API dump 69795)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures from `Media/Atlas/` load correctly
 - [ ] Legacy spell API (`GetSpellTabInfo`, `GetSpellBookItemInfo`) works
@@ -231,14 +298,14 @@ Before releasing, test on **all 4 WoW versions**:
 - [ ] Custom tutorial arrows with manual textures work
 - [ ] All frames render with correct textures
 
-### MoP Classic (Build 50503, API dump 66509)
+### MoP Classic (Build 50504, API dump 69383)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
 - [ ] Keybind visualization works
 - [ ] All UI elements render correctly
 
-### Classic Era (Build 11508, API dump 65888)
+### Classic Era (Build 11509, API dump 69722)
 - [ ] Addon loads without Lua errors
 - [ ] Custom BLP textures load correctly
 - [ ] Legacy spell API works
@@ -326,10 +393,16 @@ end
 The `KeyUI.toc` file supports multiple WoW versions via a single multi-value interface entry:
 
 ```
-## Interface: 120000, 50503, 20505, 11508
+## Interface: 120105, 120100, 50504, 20506, 11509
 ```
 
 This allows a **single addon package** to work on all WoW versions automatically.
+
+Two Retail interface versions are listed on purpose. `120105` is the current target, but
+`120100` clients are still in circulation, and a TOC that names only one of them gets flagged
+as out of date on the other. Bartender4 and AdvancedInterfaceOptions do the same. The Classic
+values were cross-checked against ElvUI, Dominos, Bartender4 and AdvancedInterfaceOptions,
+which all declare `50504`, `20506` and `11509`.
 
 ### Building with BigWigsMods/packager
 
@@ -393,5 +466,5 @@ Users downloading from CurseForge/Wago will automatically receive the correct ve
 ---
 
 **Maintained by:** KeyUI Development Team
-**Last Updated:** 2026-04-18
-**Supported Versions:** Retail 12.0.0+, MoP 5.5.3, Anniversary 2.5.5, Classic Era 1.15.8
+**Last Updated:** 2026-09-22
+**Supported Versions:** Retail 12.1.5 + 12.1.0, MoP 5.5.4, Anniversary 2.5.6, Classic Era 1.15.9

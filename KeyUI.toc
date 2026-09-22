@@ -1,4 +1,4 @@
-## Interface: 120005, 50504, 20505, 11508
+## Interface: 120105, 120100, 50504, 20506, 11509
 ## Author: Blandros
 ## Category: Action Bars
 ## Version: @project-version@
