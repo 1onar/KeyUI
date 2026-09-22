@@ -314,7 +314,28 @@ Before releasing, test on **all 4 WoW versions**:
 
 ### Addon Integration Regression Tests
 
-#### Dominos (11.2.x)
+Frame names and binding formats are hard-coded in `Core.lua` (the `binding_handlers`
+table), so they need re-checking after every major patch. Last verified 2026-09-22 against:
+
+| Addon | Source checked | Pattern still valid |
+|---|---|---|
+| Dominos | `tullamods/Dominos` @ 3830240 (2026-08-12) | yes - `CLICK %s:HOTKEY` (`core/bindableButton.lua:4`), buttons named `DominosActionButton%d` (`bars/actionBar/buttons.lua:5`) |
+| ElvUI | `tukui-org/ElvUI` @ a739a68 (2026-09-22) | yes - bars `ElvUI_Bar%d`, buttons `%sButton%d` (`Game/Shared/Modules/ActionBars/ActionBars.lua:413,435`) |
+| Bartender4 | `Nevcairiel/Bartender4` @ 763e807 (2026-08-23) | yes - `CLICK BT4Button%d:Keybind` and `CLICK BT4StanceButton%d:LeftButton` (`Bartender4.lua:85,92`) |
+| OPie | not checked - not published on GitHub | unverified |
+
+Notes from that pass:
+
+- ElvUI maps its bars to very different binding prefixes: bar1 uses `ACTIONBUTTON`, bar2 and
+  bars 7-10 use `ELVUIBAR%dBUTTON`, and bars 3-6 and 13-15 borrow `MULTIACTIONBAR1-7BUTTON`
+  (`ActionBars.lua:88-100`). `Mappings.lua` covers `MULTIACTIONBAR1BUTTON` through
+  `MULTIACTIONBAR7BUTTON`, so bars 13-15 resolve.
+- Dominos migrates its own bindings from `:LeftButton` to `:HOTKEY` (`Dominos.lua:341-348`),
+  which is why both forms must keep resolving.
+- Resolution goes through `addon:resolve_addon_slot`, which prefers live frame attributes over
+  the name patterns. The patterns only have to yield a frame name that exists.
+
+#### Dominos (verified against 3830240, 2026-08-12)
 - [ ] Binding format `CLICK DominosActionButtonN:HOTKEY` resolves to a valid slot
 - [ ] Binding format `CLICK DominosActionButtonNHotkey:HOTKEY` resolves to the same slot
 - [ ] Binding format `CLICK MultiBarRightActionButtonNHotkey:HOTKEY` resolves to the expected slot
