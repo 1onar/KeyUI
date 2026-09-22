@@ -134,11 +134,27 @@ function addon:UpdateButtonChargeCooldown(button)
         return
     end
 
-    if InCombatLockdown() then return end
+    local slot = button.active_slot
+
+    -- Retail 12.0: charge timings are secret to tainted code in combat, but the opaque
+    -- duration object may still be handed to the widget, so this keeps working.
+    if cd.SetCooldownFromDurationObject and C_ActionBar and C_ActionBar.GetActionChargeDuration then
+        local duration_object
+        if addon:CooldownInfoIsActive(C_ActionBar.GetActionCharges(slot)) then
+            duration_object = C_ActionBar.GetActionChargeDuration(slot)
+        end
+        if duration_object then
+            cd:SetCooldownFromDurationObject(duration_object)
+            cd:Show()
+        else
+            cd:Hide()
+        end
+        return
+    end
 
     local charges, maxCharges, chargeStart, chargeDuration, chargeModRate
     if C_ActionBar and C_ActionBar.GetActionCharges then
-        local info = C_ActionBar.GetActionCharges(button.active_slot)
+        local info = C_ActionBar.GetActionCharges(slot)
         if info then
             charges      = info.currentCharges
             maxCharges   = info.maxCharges
@@ -147,11 +163,16 @@ function addon:UpdateButtonChargeCooldown(button)
             chargeModRate  = info.chargeModRate
         end
     elseif GetActionCharges then
-        charges, maxCharges, chargeStart, chargeDuration, chargeModRate = GetActionCharges(button.active_slot)
+        charges, maxCharges, chargeStart, chargeDuration, chargeModRate = GetActionCharges(slot)
     end
 
-    if maxCharges and maxCharges > 1 and charges and charges < maxCharges
-        and chargeStart and chargeStart > 0 and chargeDuration and chargeDuration > 0 then
+    -- Secret values raise on comparison; treat that as nothing to draw.
+    local ok, recovering = pcall(function()
+        return maxCharges and maxCharges > 1 and charges and charges < maxCharges
+            and chargeStart and chargeStart > 0 and chargeDuration and chargeDuration > 0
+    end)
+
+    if ok and recovering then
         cd:SetCooldown(chargeStart, chargeDuration, chargeModRate or 1.0)
         cd:Show()
     else
@@ -177,16 +198,39 @@ function addon:UpdateButtonLoCCooldown(button)
         return
     end
 
-    if InCombatLockdown() then return end
+    local slot = button.active_slot
 
-    local locStart, locDuration
-    if C_ActionBar and C_ActionBar.GetActionLossOfControlCooldown then
-        locStart, locDuration = C_ActionBar.GetActionLossOfControlCooldown(button.active_slot)
-    elseif GetActionLossOfControlCooldown then
-        locStart, locDuration = GetActionLossOfControlCooldown(button.active_slot)
+    -- Retail 12.0: same duration-object treatment as the base and charge cooldowns.
+    if cd.SetCooldownFromDurationObject and C_ActionBar and C_ActionBar.GetActionLossOfControlCooldownDuration then
+        local duration_object
+        if addon:CooldownInfoIsActive(C_ActionBar.GetActionLossOfControlCooldownInfo(slot)) then
+            duration_object = C_ActionBar.GetActionLossOfControlCooldownDuration(slot)
+        end
+        if duration_object then
+            cd:SetCooldownFromDurationObject(duration_object)
+            cd:Show()
+        else
+            cd:Hide()
+        end
+        return
     end
 
-    if locStart and locStart > 0 and locDuration and locDuration > 0 then
+    local locStart, locDuration
+    if C_ActionBar and C_ActionBar.GetActionLossOfControlCooldownInfo then
+        local info = C_ActionBar.GetActionLossOfControlCooldownInfo(slot)
+        if info then
+            locStart, locDuration = info.startTime, info.duration
+        end
+    elseif GetActionLossOfControlCooldown then
+        locStart, locDuration = GetActionLossOfControlCooldown(slot)
+    end
+
+    -- Secret values raise on comparison; treat that as nothing to draw.
+    local ok, active = pcall(function()
+        return locStart and locStart > 0 and locDuration and locDuration > 0
+    end)
+
+    if ok and active then
         cd:SetCooldown(locStart, locDuration)
         cd:Show()
     else
