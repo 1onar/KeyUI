@@ -126,69 +126,83 @@ local function register_addon_patterns(addon_name)
     local specs = addon_pattern_registry[addon_name]
     if specs and addon.compat.is_addon_loaded(addon_name) then
         for _, spec in ipairs(specs) do
-            keybind_patterns[spec.pattern] = function(binding, button)
-                local method = addon[spec.handler]
-                if type(method) ~= "function" then
-                    return
-                end
+            keybind_patterns[#keybind_patterns + 1] = {
+                pattern = spec.pattern,
+                handler = function(binding, button)
+                    local method = addon[spec.handler]
+                    if type(method) ~= "function" then
+                        return
+                    end
 
-                local success, err
-                if spec.pass_binding == false then
-                    success, err = pcall(method, addon, button)
-                else
-                    success, err = pcall(method, addon, binding, button)
-                end
+                    local success, err
+                    if spec.pass_binding == false then
+                        success, err = pcall(method, addon, button)
+                    else
+                        success, err = pcall(method, addon, binding, button)
+                    end
 
-                if not success then
-                    print(spec.error_prefix or "KeyUI: Integration error:", err)
-                end
-            end
+                    if not success then
+                        print(spec.error_prefix or "KeyUI: Integration error:", err)
+                    end
+                end,
+            }
         end
         registered_addons[addon_name] = true
         addon.loaded_integrations[addon_name] = true
     end
 end
 
+-- An ordered list, not a pattern-keyed map: addon:set_key walks it and stops at the
+-- first hit, and `pairs` over a hash table has no defined order, so which handler won
+-- for a binding that matches more than one pattern could differ between sessions.
+-- The order below is also the order of decreasing frequency, and addon integrations
+-- append themselves after it.
 local function initialize_keybind_patterns()
     keybind_patterns = {
         -- ACTIONBUTTON
-        ["^ACTIONBUTTON(%d+)$"] = function(binding, button)
+        { pattern = "^ACTIONBUTTON(%d+)$", handler = function(binding, button)
             local slot = tonumber(binding:match("ACTIONBUTTON(%d+)"))
             return addon:process_actionbutton_slot(slot, button)
-        end,
+        end },
 
         -- MULTIACTIONBARBUTTON
-        ["MULTIACTIONBAR(%d+)BUTTON(%d+)"] = function(binding, button)
-            local bar, bar_button = binding:match("MULTIACTIONBAR(%d+)BUTTON(%d+)")
+        { pattern = "^MULTIACTIONBAR(%d+)BUTTON(%d+)$", handler = function(binding, button)
+            local bar, bar_button = binding:match("^MULTIACTIONBAR(%d+)BUTTON(%d+)$")
             if not bar or not bar_button then return end
             return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
-        end,
+        end },
 
         -- BONUSACTIONBUTTON
-        ["^BONUSACTIONBUTTON(%d+)$"] = function(binding, button)
+        { pattern = "^BONUSACTIONBUTTON(%d+)$", handler = function(binding, button)
             return addon:process_pet_action_slot(binding, button)
-        end,
+        end },
 
         -- SHAPESHIFTBUTTON
-        ["^SHAPESHIFTBUTTON(%d+)$"] = function(binding, button)
+        { pattern = "^SHAPESHIFTBUTTON(%d+)$", handler = function(binding, button)
             local slot = tonumber(binding:match("SHAPESHIFTBUTTON(%d+)"))
             return addon:process_shapeshift_slot(slot, button)
-        end,
+        end },
 
         -- Spell
-        ["^Spell (.+)$"] = function(binding, button)
+        { pattern = "^Spell (.+)$", handler = function(binding, button)
             local spell_name = binding:match("^Spell (.+)$")
             return addon:process_spell(spell_name, button)
-        end,
+        end },
 
         -- Macro
-        ["^Macro (.+)$"] = function(binding, button)
+        { pattern = "^Macro (.+)$", handler = function(binding, button)
             local macro_name = binding:match("^Macro (.+)$")
             return addon:process_macro(macro_name, button)
-        end,
+        end },
     }
 
-    -- Register patterns for any supported addons already loaded
+    -- Register patterns for any supported addons already loaded.
+    -- The table above was just replaced, so anything an earlier ADDON_LOADED had
+    -- appended is gone. Without clearing the bookkeeping too, register_addon_patterns
+    -- would short-circuit and that addon's patterns would stay missing for the rest
+    -- of the session -- which is what happened to every integration whose folder sorts
+    -- after "KeyUI" and therefore loads after KeyUI's event frame exists.
+    wipe(registered_addons)
     for addon_name in pairs(addon_pattern_registry) do
         register_addon_patterns(addon_name)
     end
@@ -1710,6 +1724,11 @@ function addon:show_frames()
         end
     end
 
+    -- Resume range polling; its OnUpdate hides itself again when KeyUI closes.
+    if addon.range_poll_frame then
+        addon.range_poll_frame:Show()
+    end
+
     -- Apply visual and interaction settings
     addon:ApplyFrameBackgrounds()
     addon:ApplyClickThrough()
@@ -2558,9 +2577,10 @@ function addon:set_key(button)
     -- Loop through the keybind patterns and process the binding if the binding is not empty
     if binding ~= "" then
         local matched = false
-        for pattern, handler in pairs(keybind_patterns) do
-            if binding:find(pattern) then
-                handler(binding, button)
+        for i = 1, #keybind_patterns do
+            local entry = keybind_patterns[i]
+            if binding:find(entry.pattern) then
+                entry.handler(binding, button)
                 matched = true
                 break -- Exit loop once a match is found
             end
@@ -2667,7 +2687,7 @@ function addon:reset_button_state(button)
         button.assisted_combat_clip:Hide()
     end
     if button.count_text then button.count_text:SetText("") end
-    if button.short_key then button.short_key:SetTextColor(1, 1, 1) end
+    if button.short_key then addon.set_range_color(button, false) end
     addon:ClearButtonCooldown(button)
     if button.charge_cooldown then button.charge_cooldown:Hide() end
     if button.loc_cooldown    then button.loc_cooldown:Hide()    end
@@ -2976,10 +2996,25 @@ end
 
 -- ── Range Indicator ───────────────────────────────────────────────────────────
 
+-- Range polling runs ten times a second over every button on every visible device,
+-- so only touch the font string when the state actually flips.
+local function set_range_color(button, out_of_range)
+    if button._range_out == out_of_range then
+        return
+    end
+    button._range_out = out_of_range
+    if out_of_range then
+        button.short_key:SetTextColor(1, 0.2, 0.2)
+    else
+        button.short_key:SetTextColor(1, 1, 1)
+    end
+end
+addon.set_range_color = set_range_color
+
 function addon:UpdateButtonRange(button)
     if not button.short_key then return end
     if not keyui_settings.show_actionbar_mode or not button.active_slot then
-        button.short_key:SetTextColor(1, 1, 1)
+        set_range_color(button, false)
         return
     end
 
@@ -2993,11 +3028,7 @@ function addon:UpdateButtonRange(button)
     -- nil = no target or slot transitioning → freeze current color, no update
     if inRange == nil then return end
 
-    if inRange == false then
-        button.short_key:SetTextColor(1, 0.2, 0.2)
-    else
-        button.short_key:SetTextColor(1, 1, 1)
-    end
+    set_range_color(button, inRange == false)
 end
 
 function addon:refresh_range()
@@ -3007,9 +3038,9 @@ function addon:refresh_range()
 end
 
 function addon:clear_all_range()
-    for _, b in ipairs(addon.keys_keyboard)    do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
-    for _, b in ipairs(addon.keys_mouse)       do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
-    for _, b in ipairs(addon.keys_controller)  do if b.short_key then b.short_key:SetTextColor(1, 1, 1) end end
+    for _, b in ipairs(addon.keys_keyboard)    do if b.short_key then addon.set_range_color(b, false) end end
+    for _, b in ipairs(addon.keys_mouse)       do if b.short_key then addon.set_range_color(b, false) end end
+    for _, b in ipairs(addon.keys_controller)  do if b.short_key then addon.set_range_color(b, false) end end
 end
 
 -- Shows the pushed texture on the mapped action bar button when hovering a KeyUI button
@@ -3597,8 +3628,25 @@ function addon:sync_dragged_action_slots(button, slot_set)
 end
 
 -- Last-resort CLICK fallback when no live frame attributes are available.
--- Offsets intentionally reuse `multiactionbar_offsets` to stay in sync with the
--- primary MULTIACTIONBAR resolver and avoid drift in slot arithmetic.
+--
+-- These frame names belong to Dominos, not to Blizzard -- Blizzard's own buttons are
+-- MultiBarRightButton1 etc., without the "Action" (Blizzard_ActionBar/ActionButtonUtil.lua,
+-- ActionBarButtonNames). Dominos derives them from the action slot in
+-- Dominos/bars/actionBar/buttons.lua:264-292, and for the first four bars its arithmetic
+-- happens to agree with Blizzard's page offsets. For MultiBar5/6/7 it does not: Dominos
+-- names slot 133 "MultiBar5ActionButton1", where Blizzard's MultiBar5 starts at slot 145.
+-- Using multiactionbar_offsets for those three resolved every such binding twelve slots
+-- too high, so the fallback needs its own table.
+local dominos_click_offsets = {
+    multibar_right        = 24,   -- slots 25-36
+    multibar_left         = 36,   -- slots 37-48
+    multibar_bottom_right = 48,   -- slots 49-60
+    multibar_bottom_left  = 60,   -- slots 61-72
+    multibar5             = 132,  -- slots 133-144
+    multibar6             = 144,  -- slots 145-156
+    multibar7             = 156,  -- slots 157-168
+}
+
 local function resolve_multibar_click_slot(binding)
     if type(binding) ~= "string" then
         return nil, nil
@@ -3608,49 +3656,49 @@ local function resolve_multibar_click_slot(binding)
         or binding:match("^CLICK MultiBarRightActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBarRightActionButton(%d+):LeftButton$")
     if multibar_right then
-        return multiactionbar_offsets[3] + tonumber(multibar_right), "multibar_right_click_fallback"
+        return dominos_click_offsets.multibar_right + tonumber(multibar_right), "multibar_right_click_fallback"
     end
 
     local multibar_left = binding:match("^CLICK MultiBarLeftActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBarLeftActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBarLeftActionButton(%d+):LeftButton$")
     if multibar_left then
-        return multiactionbar_offsets[4] + tonumber(multibar_left), "multibar_left_click_fallback"
+        return dominos_click_offsets.multibar_left + tonumber(multibar_left), "multibar_left_click_fallback"
     end
 
     local multibar_bottom_right = binding:match("^CLICK MultiBarBottomRightActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBarBottomRightActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBarBottomRightActionButton(%d+):LeftButton$")
     if multibar_bottom_right then
-        return multiactionbar_offsets[2] + tonumber(multibar_bottom_right), "multibar_bottom_right_click_fallback"
+        return dominos_click_offsets.multibar_bottom_right + tonumber(multibar_bottom_right), "multibar_bottom_right_click_fallback"
     end
 
     local multibar_bottom_left = binding:match("^CLICK MultiBarBottomLeftActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBarBottomLeftActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBarBottomLeftActionButton(%d+):LeftButton$")
     if multibar_bottom_left then
-        return multiactionbar_offsets[1] + tonumber(multibar_bottom_left), "multibar_bottom_left_click_fallback"
+        return dominos_click_offsets.multibar_bottom_left + tonumber(multibar_bottom_left), "multibar_bottom_left_click_fallback"
     end
 
     local multibar5 = binding:match("^CLICK MultiBar5ActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBar5ActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBar5ActionButton(%d+):LeftButton$")
     if multibar5 then
-        return multiactionbar_offsets[5] + tonumber(multibar5), "multibar5_click_fallback"
+        return dominos_click_offsets.multibar5 + tonumber(multibar5), "multibar5_click_fallback"
     end
 
     local multibar6 = binding:match("^CLICK MultiBar6ActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBar6ActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBar6ActionButton(%d+):LeftButton$")
     if multibar6 then
-        return multiactionbar_offsets[6] + tonumber(multibar6), "multibar6_click_fallback"
+        return dominos_click_offsets.multibar6 + tonumber(multibar6), "multibar6_click_fallback"
     end
 
     local multibar7 = binding:match("^CLICK MultiBar7ActionButton(%d+)Hotkey:HOTKEY$")
         or binding:match("^CLICK MultiBar7ActionButton(%d+):HOTKEY$")
         or binding:match("^CLICK MultiBar7ActionButton(%d+):LeftButton$")
     if multibar7 then
-        return multiactionbar_offsets[7] + tonumber(multibar7), "multibar7_click_fallback"
+        return dominos_click_offsets.multibar7 + tonumber(multibar7), "multibar7_click_fallback"
     end
 
     return nil, nil
@@ -3932,7 +3980,9 @@ local function clique_entry_label(entry)
     elseif entry.type == "target" then
         return TARGET or "Target"
     elseif entry.type == "menu" then
-        return MENU or "Menu"
+        -- No MENU global exists in any of the four clients' GlobalStrings, so this
+        -- was always the literal anyway.
+        return "Menu"
     end
     return entry.spell or entry.item
 end
@@ -4318,7 +4368,16 @@ local function refresh_modifier_layer_for_collection(collection)
                     button.readable_binding:Hide()
                     button.readable_binding:SetText("")
 
-                    if keyui_settings.show_empty_binds then
+                    -- A Clique key looks empty in both layers, so the comparison above
+                    -- takes this branch and the key would keep the previous layer's icon
+                    -- while losing its label. Redraw it from the modifier layer we are
+                    -- switching to, exactly as addon:set_key does.
+                    button.icon:SetTexture(nil)
+                    button.icon:Hide()
+                    local clique_shown = addon:apply_clique_binding(
+                        button, addon.current_modifier_string .. (button.raw_key or ""))
+
+                    if not clique_shown and keyui_settings.show_empty_binds then
                         addon:update_empty_binds(button)
                     end
 
@@ -5179,17 +5238,23 @@ flush_pending_updates = function()
     end
 end
 
--- Range indicator polling (0.1 s throttle, mirrors Blizzard Classic approach)
+-- Range indicator polling (0.1 s throttle, mirrors Blizzard Classic approach).
+-- The frame stays hidden while KeyUI is closed so the handler is not called every
+-- frame for a session in which the player never opens the addon; addon:show_frames
+-- turns it back on.
 do
     local t = 0
     local f = CreateFrame("Frame")
-    f:SetScript("OnUpdate", function(_, elapsed)
+    f:Hide()
+    addon.range_poll_frame = f
+    f:SetScript("OnUpdate", function(self, elapsed)
+        if not addon.open then
+            self:Hide()
+            return
+        end
         t = t + elapsed
         if t >= 0.1 then
             t = 0
-            if not addon.open then
-                return
-            end
             addon:refresh_range()
         end
     end)
