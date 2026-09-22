@@ -15,7 +15,8 @@ local name, addon = ...
 -- Core.lua still owns addon.CreateCooldownFrame.
 
 -- Charge-recharge cooldown: thin edge ring, no swipe, no countdown numbers.
--- Shown only when currentCharges < maxCharges.
+-- Shown while chargeInfo.isActive, matching Blizzard's own ActionButton_ApplyCooldown.
+-- No swipe is drawn, so this reads as a spark rather than a second cooldown.
 function addon.CreateChargeCooldownFrame(button)
     local cd = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
     cd:ClearAllPoints()
@@ -138,7 +139,8 @@ function addon:UpdateButtonChargeCooldown(button)
 
     -- Retail 12.0: charge timings are secret to tainted code in combat, but the opaque
     -- duration object may still be handed to the widget, so this keeps working.
-    if cd.SetCooldownFromDurationObject and C_ActionBar and C_ActionBar.GetActionChargeDuration then
+    if cd.SetCooldownFromDurationObject and C_ActionBar and C_ActionBar.GetActionChargeDuration
+        and addon.api_compat and addon.api_compat.cooldowns_may_be_secret then
         local duration_object
         if addon:CooldownInfoIsActive(C_ActionBar.GetActionCharges(slot)) then
             duration_object = C_ActionBar.GetActionChargeDuration(slot)
@@ -201,7 +203,10 @@ function addon:UpdateButtonLoCCooldown(button)
     local slot = button.active_slot
 
     -- Retail 12.0: same duration-object treatment as the base and charge cooldowns.
-    if cd.SetCooldownFromDurationObject and C_ActionBar and C_ActionBar.GetActionLossOfControlCooldownDuration then
+    if cd.SetCooldownFromDurationObject and C_ActionBar
+        and C_ActionBar.GetActionLossOfControlCooldownInfo
+        and C_ActionBar.GetActionLossOfControlCooldownDuration
+        and addon.api_compat and addon.api_compat.cooldowns_may_be_secret then
         local duration_object
         if addon:CooldownInfoIsActive(C_ActionBar.GetActionLossOfControlCooldownInfo(slot)) then
             duration_object = C_ActionBar.GetActionLossOfControlCooldownDuration(slot)

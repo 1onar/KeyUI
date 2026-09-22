@@ -33,8 +33,16 @@ local API_COMPAT = {
     has_modern_action_charges  = (C_ActionBar and C_ActionBar.GetActionCharges ~= nil),
     -- 12.0 cooldown "duration objects": opaque handles a Cooldown widget accepts even
     -- when the timings inside them are secret to addon (tainted) code.
+    --
+    -- Presence alone is not the deciding factor: all four clients document these,
+    -- so testing for them would put MoP, TBC and Era on the new path too. Only
+    -- Retail 12.x actually hides timings from addons, and C_Secrets says so
+    -- outright, so gate on that and leave Classic on the numeric path it has
+    -- always used.
     has_action_duration_objects = (C_ActionBar and C_ActionBar.GetActionCooldownDuration ~= nil),
     has_spell_duration_objects  = (C_Spell and C_Spell.GetSpellCooldownDuration ~= nil),
+    cooldowns_may_be_secret     = (C_Secrets and C_Secrets.HasSecretRestrictions
+                                   and C_Secrets.HasSecretRestrictions()) or false,
 }
 addon.api_compat = API_COMPAT
 addon.compat = addon.compat or {}
@@ -2773,9 +2781,22 @@ end
 -- it may be secret, so nothing else in the table is touched here.
 function addon:CooldownInfoIsActive(info)
     if not info then return false end
-    local ok, active = pcall(function() return info.isActive == true end)
-    if not ok then return true end -- unreadable: let the widget decide what to draw
-    return active
+    -- isActive carries NeverSecret = true in SpellSharedDocumentation.lua, so it is
+    -- readable even while the timings beside it are not. No pcall needed, and this
+    -- runs for every button on every refresh.
+    return info.isActive == true
+end
+
+-- True while a loss-of-control effect should stand in for the normal cooldown.
+-- shouldReplaceNormalCooldown is NeverSecret as well; Blizzard gates the normal and
+-- charge swipes on it in Blizzard_ActionBar/ActionButton.lua:858-860, and without it
+-- KeyUI draws the ordinary cooldown on top of the red loss-of-control swipe.
+function addon:LossOfControlReplacesCooldown(slot)
+    if not slot or not C_ActionBar or not C_ActionBar.GetActionLossOfControlCooldownInfo then
+        return false
+    end
+    local info = C_ActionBar.GetActionLossOfControlCooldownInfo(slot)
+    return (info and info.shouldReplaceNormalCooldown) == true
 end
 
 -- Returns the 12.0 duration object for a button's base cooldown plus whether this button
@@ -2784,7 +2805,12 @@ end
 -- Priority mirrors GetButtonCooldownData, including its charge-recovery fallback.
 function addon:GetButtonCooldownDurationObject(button)
     local slot = button.active_slot
-    if slot and API_COMPAT.has_action_duration_objects then
+    if slot and API_COMPAT.has_action_duration_objects and API_COMPAT.cooldowns_may_be_secret then
+        -- A loss-of-control effect replaces the normal cooldown; UpdateButtonLoCCooldown
+        -- draws it, so this must not draw over it.
+        if addon:LossOfControlReplacesCooldown(slot) then
+            return nil, true
+        end
         if addon:CooldownInfoIsActive(C_ActionBar.GetActionCooldown(slot)) then
             return C_ActionBar.GetActionCooldownDuration(slot), true
         end
@@ -2796,7 +2822,7 @@ function addon:GetButtonCooldownDurationObject(button)
         return nil, true
     end
 
-    if button.spellid and API_COMPAT.has_spell_duration_objects then
+    if button.spellid and API_COMPAT.has_spell_duration_objects and API_COMPAT.cooldowns_may_be_secret then
         if addon:CooldownInfoIsActive(C_Spell.GetSpellCooldown(button.spellid)) then
             return C_Spell.GetSpellCooldownDuration(button.spellid), true
         end
@@ -2831,7 +2857,7 @@ function addon:UpdateButtonCooldown(button)
         end
     end
 
-    -- Numeric path: Classic clients, and pet actions on every client.
+    -- Numeric path: every client without secret cooldowns, and pet actions everywhere.
     local start, duration, modRate = addon:GetButtonCooldownData(button)
     -- Secret timings raise on comparison rather than returning false. Either way there is
     -- nothing safe to draw, and SetCooldown rejects them outright from tainted execution.
