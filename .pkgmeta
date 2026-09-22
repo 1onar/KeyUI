@@ -6,6 +6,12 @@ ignore:
   - tests
   - README.md
   - LICENSE
+  # Developer-only files; gitignored paths (API/, Addons/) are dropped by the
+  # packager automatically, these are tracked and would otherwise ship.
+  - .gitignore
+  - .luarc.json
+  - .pkgmeta
+  - COMPATIBILITY.md
 
 externals:
     Libs/LibStub:

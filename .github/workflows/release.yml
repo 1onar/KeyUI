@@ -1,9 +1,32 @@
 name: Release AddOn
 
+# Fires on version tags. The packager derives the release channel from the tag
+# name itself (release.sh:836-849): a tag containing "alpha" uploads as alpha,
+# one containing "beta" uploads as beta, anything else is a full release.
+#
+#   git tag -a v4.3.0-beta1 -m "..."   -> beta on CurseForge / Wago / WoWI
+#   git tag -a v4.3.0       -m "..."   -> full release
+#
+# Only v* tags are matched, so a scratch tag cannot push a build to users.
 on:
   push:
     tags:
-      - '**'
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to (re-)release, e.g. v4.3.0-beta1'
+        required: true
+
+# The packager creates the GitHub release; nothing here needs more than that.
+# Pinned explicitly so a change to the repository default cannot break it.
+permissions:
+  contents: write
+
+# Never let two releases of the same tag run at once.
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: false
 
 env:
   CF_API_KEY: ${{ secrets.CF_API_KEY }}
@@ -15,8 +38,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
+          # A manual run has no tag in github.ref, so take it from the input.
+          # Without this the packager would see an untagged commit and publish
+          # it as an alpha (release.sh:849).
+          ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0 # read full history for changelog
 
       - name: Resolve Lua compiler
@@ -32,12 +59,25 @@ jobs:
             echo "LUAC_BIN=$(command -v luac5.1)" >> "$GITHUB_ENV"
           fi
 
+      # Duplicated from pr-check.yml on purpose: this is the last gate before a
+      # build reaches users, and it must not depend on the PR check having run.
       - name: Lua syntax check (core project)
         run: |
           set -euo pipefail
           while IFS= read -r file; do
             "$LUAC_BIN" -p "$file"
           done < <(git ls-files '*.lua' ':!:API/**' ':!:Addons/**')
+
+      - name: Report release channel
+        run: |
+          set -euo pipefail
+          tag="${{ github.event.inputs.tag || github.ref_name }}"
+          shopt -s nocasematch
+          if [[ "$tag" == *alpha* ]]; then channel="ALPHA"
+          elif [[ "$tag" == *beta* ]]; then channel="BETA"
+          else channel="RELEASE"; fi
+          echo "Tag $tag will be published as $channel" >> "$GITHUB_STEP_SUMMARY"
+          grep -m1 "^## Interface" KeyUI.toc >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Package and Release
         uses: BigWigsMods/packager@v2
