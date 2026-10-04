@@ -4680,30 +4680,11 @@ function addon:handle_key_down(frame, key)
     -- script stays installed – so a keypress just after leaving a key arrives with no frame.
     if not frame then return end
 
-    -- Check if any modifier is held down
-    local modifier = ""
-
-    -- Check for ALT modifier
-    if IsAltKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "ALT-"
-    end
-
-    -- Check for CTRL modifier
-    if IsControlKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "CTRL-"
-    end
-
-    -- Check for SHIFT modifier
-    if IsShiftKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Set the label to the modifier and the pressed key
-    if key == "MiddleButton" then
-        frame.raw_key = modifier .. "BUTTON3" -- Handle middle mouse button
-    else
-        frame.raw_key = modifier .. key       -- Set label to the pressed key with modifier
-    end
+    -- Bare key only. raw_key doubles as a layout entry name and a key_lookup key, and
+    -- every consumer -- get_binding, apply_clique_binding, the unbind action -- prefixes
+    -- current_modifier_string itself, which handle_key_press already keeps in step with
+    -- the held modifiers. Baking the modifier in here produced lookups like ALT-ALT-X.
+    frame.raw_key = key == "MiddleButton" and "BUTTON3" or key
 
     -- Hide pushed texture
     local adjustedSlot = frame.active_slot
@@ -4722,51 +4703,21 @@ function addon:handle_gamepad_down(frame, key)
     -- Same stale-hover race as handle_key_down.
     if not frame then return end
 
-    -- Check if any modifier is held down
-    local modifier = ""
-
-    -- Check for ALT modifier
-    if IsAltKeyDown() then
-        modifier = modifier .. "ALT-"
-    end
-
-    -- Check for CTRL modifier
-    if IsControlKeyDown() then
-        modifier = modifier .. "CTRL-"
-    end
-
-    -- Check for SHIFT modifier
-    if IsShiftKeyDown() then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Set the raw key for Gamepad input
-    frame.raw_key = modifier .. key
+    -- Bare key, for the reason spelled out in handle_key_down.
+    frame.raw_key = key
 
     addon:refresh_keys()
 end
 
--- Shared MouseWheel function with modifier support
+-- Shared MouseWheel function
 function addon:handle_mouse_wheel(frame, delta)
-    -- Initialize the modifier string
-    local modifier = ""
+    if not frame then return end
 
-    -- Check the current state of modifier keys
-    if IsAltKeyDown() then
-        modifier = modifier .. "ALT-"
-    end
-    if IsControlKeyDown() then
-        modifier = modifier .. "CTRL-"
-    end
-    if IsShiftKeyDown() then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Combine with MouseWheel action
+    -- Bare key, for the reason spelled out in handle_key_down.
     if delta > 0 then
-        frame.raw_key = modifier .. "MOUSEWHEELUP"   -- Scrolled up with modifiers
+        frame.raw_key = "MOUSEWHEELUP"
     elseif delta < 0 then
-        frame.raw_key = modifier .. "MOUSEWHEELDOWN" -- Scrolled down with modifiers
+        frame.raw_key = "MOUSEWHEELDOWN"
     end
 
     addon:refresh_keys()
