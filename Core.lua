@@ -4041,6 +4041,12 @@ function addon:apply_clique_binding(button, key)
         button.icon:Show()
     end
 
+    -- No action slot to read a cooldown from, but a spell has an id, and that is all
+    -- the spellid branch of GetButtonCooldownData needs.
+    if entry.type == "spell" and entry.spell then
+        button.spellid = C_Spell.GetSpellIDForSpellIdentifier(entry.spell)
+    end
+
     local label = clique_entry_label(entry)
     if label and label ~= "" then
         button.readable_binding:SetText(label)
