@@ -421,11 +421,10 @@ function addon:ShowButtonProcGlow(button, useAltGlow)
                 g:SetSize(iw * 1.1, ih * 1.1)
                 local tex = g:CreateTexture(nil, "OVERLAY")
                 tex:SetAllPoints()
-                if addon.VERSION.USE_ATLAS then
-                    tex:SetAtlas("UI-HUD-RotationHelper-ProcAltGlow")
-                else
-                    tex:SetColorTexture(1, 0.82, 0, 0.6)  -- golden fallback
-                end
+                -- ActionButtonSpellAlertTemplate declares this atlas for its own ProcAltGlow
+                -- texture on every client, and has_spell_alert_template() already gated on
+                -- that template existing.
+                tex:SetAtlas("UI-HUD-RotationHelper-ProcAltGlow")
                 button.KeyUI_ProcAltGlow = g
             end
             -- Hide full-burst if it was previously showing
