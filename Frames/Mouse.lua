@@ -314,48 +314,39 @@ function addon:generate_mouse_key_frames()
     local active_count = 0
 
     if addon.open == true and addon.mouse_frame then
-        -- Check if the layout is empty
-        local layout_not_empty = false
-        for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
-            if #layoutData > 0 then
-                layout_not_empty = true
+        local layout_data = addon:GetCurrentLayout(keyui_settings.layout_current_mouse)
+
+        for i = 1, layout_data and #layout_data or 0 do
+            local button_data = layout_data[i]
+            active_count = active_count + 1
+
+            local button = addon:AcquireKeyButton("mouse", active_count)
+            if not button then
+                active_count = active_count - 1
                 break
             end
-        end
 
-        -- Only proceed if there is a valid layout
-        if layout_not_empty then
-            for _, layoutData in pairs(keyui_settings.layout_current_mouse) do
-                for i = 1, #layoutData do
-                    local button_data = layoutData[i]
-                    active_count = active_count + 1
+            button:SetWidth(button_data[4] or 50)
+            button:SetHeight(button_data[5] or 50)
 
-                    local button = addon:AcquireKeyButton("mouse", active_count)
-                    if not button then
-                        active_count = active_count - 1
-                        break
-                    end
+            -- Set the mouse button's icon size
+            local icon_width, icon_height = 44, 44
+            button.icon:SetSize(icon_width, icon_height)
 
-                    button:SetWidth(button_data[4] or 50)
-                    button:SetHeight(button_data[5] or 50)
-
-                    -- Set the mouse button's icon size
-                    local icon_width, icon_height = 44, 44
-                    button.icon:SetSize(icon_width, icon_height)
-
-                    -- If the button doesn't have an original icon size, set it
-                    if not button.original_icon_size then
-                        button.original_icon_size = { width = icon_width, height = icon_height }
-                    end
-
-                    addon.keys_mouse[active_count] = button
-                    button:ClearAllPoints()
-                    button:SetPoint("TOPRIGHT", addon.mouse_frame, "TOPRIGHT", button_data[2], button_data[3])
-                    button.raw_key = button_data[1]
-                    button.is_modifier = modifier_keys[button.raw_key] or false
-                    button:Show()
-                end
+            -- If the button doesn't have an original icon size, set it
+            if not button.original_icon_size then
+                button.original_icon_size = { width = icon_width, height = icon_height }
             end
+
+            addon.keys_mouse[active_count] = button
+            button:ClearAllPoints()
+            -- save_mouse_layout stores the offset from the frame's left edge, so anchor
+            -- from the left as well. TOPRIGHT only round-tripped while every button was
+            -- exactly as wide as the frame.
+            button:SetPoint("TOPLEFT", addon.mouse_frame, "TOPLEFT", button_data[2], button_data[3])
+            button.raw_key = button_data[1]
+            button.is_modifier = modifier_keys[button.raw_key] or false
+            button:Show()
         end
     end
 
