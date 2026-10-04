@@ -1234,10 +1234,23 @@ local function clear_key_button_pool(pool)
             button:EnableKeyboard(false)
             button:EnableMouseWheel(false)
             button:Hide()
+            addon:ReleaseFontStrings(button)
         end
         pool[i] = nil
     end
 end
+
+-- Nilled by a reset and rebuilt from scratch afterwards, so their font strings go too.
+local DISCARDED_WIDGETS = {
+    "dropdown",
+    "keyboard_selector",
+    "mouse_selector",
+    "controller_selector",
+    "keyui_tooltip_frame",
+    "name_input_dialog",
+    "edit_layout_dialog",
+    "controls_frame",
+}
 
 local function hide_resettable_frames(self)
     hide_widget(self.keyboard_frame)
@@ -1261,17 +1274,14 @@ local function hide_resettable_frames(self)
         self.performance_overlay_ticker = nil
     end
 
-    self.dropdown = nil
-    self.keyboard_selector = nil
-    self.mouse_selector = nil
-    self.controller_selector = nil
-    self.keyui_tooltip_frame = nil
-    self.name_input_dialog = nil
-    self.edit_layout_dialog = nil
+    for _, field in ipairs(DISCARDED_WIDGETS) do
+        self:ReleaseFontStrings(self[field])
+        self[field] = nil
+    end
+
     self.current_clicked_key = nil
     self.current_hovered_button = nil
     self.current_pushed_button = nil
-    self.controls_frame = nil
 end
 
 local function reset_saved_variables()

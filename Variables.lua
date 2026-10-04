@@ -180,22 +180,40 @@ function addon:GetFontSize(ratio)
     return math.floor((keyui_settings.font_base_size or 16) * ratio + 0.5)
 end
 
+-- Keyed by the font string itself, so re-registering one -- which the named CreateFont
+-- objects do on every rebuild -- replaces its entry instead of adding a second.
 addon._fontRegistry = {}
 
 function addon:RegisterFontString(fontString, ratio, isCondensed, flags)
-    table.insert(self._fontRegistry, {
-        obj = fontString,
+    self._fontRegistry[fontString] = {
         ratio = ratio,
         condensed = isCondensed or false,
         flags = flags,
-    })
+    }
+end
+
+-- A settings reset discards whole frames. Drop their font strings with them, or the
+-- registry holds the orphans forever and RefreshAllFonts keeps restyling them.
+function addon:ReleaseFontStrings(owner)
+    if not owner then return end
+
+    for fontString in pairs(self._fontRegistry) do
+        local node = fontString.GetParent and fontString:GetParent()
+        while node do
+            if node == owner then
+                self._fontRegistry[fontString] = nil
+                break
+            end
+            node = node.GetParent and node:GetParent()
+        end
+    end
 end
 
 function addon:RefreshAllFonts()
-    for _, entry in ipairs(self._fontRegistry) do
+    for fontString, entry in pairs(self._fontRegistry) do
         local path = entry.condensed and self:GetCondensedFont() or self:GetFont()
         local size = self:GetFontSize(entry.ratio)
-        entry.obj:SetFont(path, size, entry.flags or "")
+        fontString:SetFont(path, size, entry.flags or "")
     end
 
     if self.keyboard_frame and self.keyboard_frame.RefreshLayout then
