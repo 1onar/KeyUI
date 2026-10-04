@@ -4993,9 +4993,19 @@ local function build_macros_submenu(parentMenu)
     end
 end
 
--- Helper function: Build interface bindings submenu
-local function build_interface_bindings_submenu(parentMenu)
-    -- Dynamically enumerate all keybinding categories and commands from WoW
+-- Walking all ~300 GetNumBindings() entries and allocating a table per binding is too
+-- much to redo every time the context menu opens. The set only moves on UPDATE_BINDINGS.
+local interface_bindings
+
+function addon:InvalidateInterfaceBindings()
+    interface_bindings = nil
+end
+
+local function enumerate_interface_bindings()
+    if interface_bindings then
+        return interface_bindings
+    end
+
     local categories = {}       -- { [categoryKey] = { {command, readableName}, ... } }
     local category_order = {}   -- preserve WoW's category order
 
@@ -5013,11 +5023,19 @@ local function build_interface_bindings_submenu(parentMenu)
         end
     end
 
-    for _, category in ipairs(category_order) do
+    interface_bindings = { categories = categories, order = category_order }
+    return interface_bindings
+end
+
+-- Helper function: Build interface bindings submenu
+local function build_interface_bindings_submenu(parentMenu)
+    local enumerated = enumerate_interface_bindings()
+
+    for _, category in ipairs(enumerated.order) do
         local categoryName = _G[category] or category
         local categoryMenu = parentMenu:CreateButton(categoryName)
 
-        for _, binding in ipairs(categories[category]) do
+        for _, binding in ipairs(enumerated.categories[category]) do
             local binding_name = binding[1]
             local binding_readable = binding[2]
 
@@ -5377,6 +5395,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_slot_changed(...)
         C_Timer.After(0, function() addon:refresh_equipped() end)
     elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
+        addon:InvalidateInterfaceBindings()
         mark_pending("bindings")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         mark_pending("layout")
