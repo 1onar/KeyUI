@@ -1515,6 +1515,19 @@ function addon:load_spellbook()
     addon.spells = {}
     addon.spells_tab_order = {}  -- preserves API order: General → Class → Spec(s)
 
+    -- Two skill lines can carry the same name. Merging them under one tab keeps both
+    -- sets of spells, where keying a fresh table by name dropped the first silently
+    -- while still listing the tab twice.
+    local function open_spell_tab(name)
+        local tab = addon.spells[name]
+        if not tab then
+            tab = {}
+            addon.spells[name] = tab
+            table.insert(addon.spells_tab_order, name)
+        end
+        return tab
+    end
+
     if API_COMPAT.has_modern_spellbook then
         -- RETAIL: Modern C_SpellBook API
         for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
@@ -1523,8 +1536,7 @@ function addon:load_spellbook()
             local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
 
             if name then
-                addon.spells[name] = {}
-                table.insert(addon.spells_tab_order, name)
+                local tab = open_spell_tab(name)
                 for j = offset + 1, offset + numSlots do
                     local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
                     local spellName = spellBookItemInfo.name
@@ -1532,7 +1544,7 @@ function addon:load_spellbook()
                     local isPassive = spellBookItemInfo.isPassive
 
                     if spellName and not isPassive then
-                        table.insert(addon.spells[name], { name = spellName, id = spellID })
+                        table.insert(tab, { name = spellName, id = spellID })
                     end
                 end
             end
@@ -1547,8 +1559,7 @@ function addon:load_spellbook()
 
             -- Anniversary: offSpecID is 0 for normal tabs, not nil
             if name and (not offSpecID or offSpecID == 0) then  -- Skip off-spec tabs
-                addon.spells[name] = {}
-                table.insert(addon.spells_tab_order, name)
+                local tab = open_spell_tab(name)
 
                 for slotIndex = offset + 1, offset + numSlots do
                     local spellType, spellID = GetSpellBookItemInfo(slotIndex, BOOKTYPE_SPELL)
@@ -1559,7 +1570,7 @@ function addon:load_spellbook()
                         local isPassive = IsPassiveSpell(slotIndex, BOOKTYPE_SPELL)
 
                         if spellName and not isPassive then
-                            table.insert(addon.spells[name], { name = spellName, id = spellID })
+                            table.insert(tab, { name = spellName, id = spellID })
                         end
                     end
                 end
