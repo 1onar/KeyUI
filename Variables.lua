@@ -112,7 +112,6 @@ addon.retail_action_block_warned_this_combat = false
 -- overwrites them with the real values; these are the neutral defaults it starts from.
 addon.bonusbar_offset = 0
 addon.current_actionbar_page = 1
-addon.class_name = ""
 
 addon.modif = addon.modif or { ALT = false, CTRL = false, SHIFT = false }
 addon.current_modifier_string = ""

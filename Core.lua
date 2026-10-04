@@ -5311,7 +5311,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         refresh_loaded_integrations()
         initialize_keybind_patterns()
 
-        addon.class_name = UnitClassBase("player")
         addon.bonusbar_offset = GetBonusBarOffset()
         addon.current_actionbar_page = GetActionBarPage()
 
