@@ -4744,15 +4744,29 @@ local function held_modifier_prefix(key)
     return prefix
 end
 
+-- OnMouseDown reports mouse buttons by their widget names; the binding system knows them
+-- as BUTTON1..BUTTONn. A key named "Button4" would never match a binding.
+local MOUSE_BUTTON_BINDING_NAMES = {
+    LeftButton = "BUTTON1",
+    RightButton = "BUTTON2",
+    MiddleButton = "BUTTON3",
+}
+
+local function binding_key_name(key)
+    local number = key:match("^Button(%d+)$")
+    if number then
+        return "BUTTON" .. number
+    end
+    return MOUSE_BUTTON_BINDING_NAMES[key] or key
+end
+
 -- Shared KeyDown function for all buttons (keyboard + mouse)
 function addon:handle_key_down(frame, key)
     -- Callers pass addon.current_hovered_button, which OnLeave clears while the OnKeyDown
     -- script stays installed – so a keypress just after leaving a key arrives with no frame.
     if not frame then return end
 
-    if key == "MiddleButton" then
-        key = "BUTTON3"
-    end
+    key = binding_key_name(key)
     frame.raw_key = held_modifier_prefix(key) .. key
 
     -- Hide pushed texture

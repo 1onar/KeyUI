@@ -675,7 +675,9 @@ function addon:create_keyboard_buttons(index)
                 -- AnyUp fires UseAction on mouse release.
                 -- Cursor-drops are handled natively by OnReceiveDrag (like Blizzard's ActionButton).
             end
-        else
+        elseif mousebutton ~= "RightButton" then
+            -- Right-click opens the context menu on release, so it must not also rename
+            -- the key the menu is about to act on.
             if addon.keyboard_locked == false then
                 addon:handle_key_down(self, mousebutton)
                 addon.keys_keyboard_edited = true

@@ -697,7 +697,8 @@ function addon:create_controller_buttons(index)
                 addon:handle_drag_or_size(self, button)
                 addon.keys_controller_edited = true
             end
-        else
+        elseif button ~= "RightButton" then
+            -- Right-click opens the context menu on release; see create_keyboard_buttons.
             if addon.controller_locked == false then
                 addon:handle_key_down(self, button)
                 addon.keys_controller_edited = true
