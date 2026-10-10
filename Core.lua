@@ -4701,17 +4701,42 @@ local function handle_key_release(key)
     refresh_after_modifier_change()
 end
 
+-- Edit mode names a key after what was pressed on it, held modifiers included, so a
+-- layout can carry keys like CTRL-1 (what many MMO mouse side buttons send).
+-- get_binding prefixes current_modifier_string -- the modifier checkboxes -- on top of
+-- raw_key, so a modifier already in that string is left out here; adding it twice
+-- produced lookups like ALT-ALT-X. handle_key_press cannot supply the held modifiers
+-- instead: MODIFIER_STATE_CHANGED only reaches it while every device is locked, which
+-- is never the case in edit mode.
+local function held_modifier_prefix(key)
+    if addon.no_modifier_keys[key] then
+        return ""
+    end
+
+    local active = addon.current_modifier_string or ""
+    local prefix = ""
+    if IsAltKeyDown() and not active:find("ALT-", 1, true) then
+        prefix = prefix .. "ALT-"
+    end
+    if IsControlKeyDown() and not active:find("CTRL-", 1, true) then
+        prefix = prefix .. "CTRL-"
+    end
+    if IsShiftKeyDown() and not active:find("SHIFT-", 1, true) then
+        prefix = prefix .. "SHIFT-"
+    end
+    return prefix
+end
+
 -- Shared KeyDown function for all buttons (keyboard + mouse)
 function addon:handle_key_down(frame, key)
     -- Callers pass addon.current_hovered_button, which OnLeave clears while the OnKeyDown
     -- script stays installed – so a keypress just after leaving a key arrives with no frame.
     if not frame then return end
 
-    -- Bare key only. raw_key doubles as a layout entry name and a key_lookup key, and
-    -- every consumer -- get_binding, apply_clique_binding, the unbind action -- prefixes
-    -- current_modifier_string itself, which handle_key_press already keeps in step with
-    -- the held modifiers. Baking the modifier in here produced lookups like ALT-ALT-X.
-    frame.raw_key = key == "MiddleButton" and "BUTTON3" or key
+    if key == "MiddleButton" then
+        key = "BUTTON3"
+    end
+    frame.raw_key = held_modifier_prefix(key) .. key
 
     -- Hide pushed texture
     local adjustedSlot = frame.active_slot
@@ -4730,21 +4755,19 @@ function addon:handle_gamepad_down(frame, key)
     -- Same stale-hover race as handle_key_down.
     if not frame then return end
 
-    -- Bare key, for the reason spelled out in handle_key_down.
-    frame.raw_key = key
+    frame.raw_key = held_modifier_prefix(key) .. key
 
     addon:refresh_keys()
 end
 
--- Shared MouseWheel function
+-- Shared MouseWheel function with modifier support
 function addon:handle_mouse_wheel(frame, delta)
     if not frame then return end
 
-    -- Bare key, for the reason spelled out in handle_key_down.
     if delta > 0 then
-        frame.raw_key = "MOUSEWHEELUP"
+        frame.raw_key = held_modifier_prefix("MOUSEWHEELUP") .. "MOUSEWHEELUP"
     elseif delta < 0 then
-        frame.raw_key = "MOUSEWHEELDOWN"
+        frame.raw_key = held_modifier_prefix("MOUSEWHEELDOWN") .. "MOUSEWHEELDOWN"
     end
 
     addon:refresh_keys()
