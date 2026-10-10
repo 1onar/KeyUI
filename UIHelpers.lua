@@ -571,17 +571,17 @@ end
 -- A layout_current_* container is written as a single named layout. Picking that one
 -- entry explicitly keeps an imported profile that somehow carries two from drawing both
 -- on top of each other in whatever order pairs() happens to return.
+-- It has to be next()'s entry: the layout selector, the open path and delete_layout all
+-- take next() as the active layout, and drawing any other one would leave the screen
+-- disagreeing with them.
 function addon:GetCurrentLayout(container)
     if type(container) ~= "table" then
         return nil
     end
 
-    local chosen_name, chosen
-    for layout_name, layout_data in pairs(container) do
-        if type(layout_data) == "table" and (not chosen_name or layout_name < chosen_name) then
-            chosen_name, chosen = layout_name, layout_data
-        end
+    local _, layout_data = next(container)
+    if type(layout_data) == "table" then
+        return layout_data
     end
-
-    return chosen, chosen_name
+    return nil
 end
