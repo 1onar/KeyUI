@@ -4399,6 +4399,10 @@ local function refresh_modifier_layer_for_collection(collection)
                     -- takes this branch and the key would keep the previous layer's icon
                     -- while losing its label. Redraw it from the modifier layer we are
                     -- switching to, exactly as addon:set_key does.
+                    -- apply_clique_binding sets a spellid for spell entries but never
+                    -- clears one, so drop the previous layer's before asking again.
+                    local old_spellid = button.spellid
+                    button.spellid = nil
                     button.icon:SetTexture(nil)
                     button.icon:Hide()
                     local clique_shown = addon:apply_clique_binding(
@@ -4406,6 +4410,13 @@ local function refresh_modifier_layer_for_collection(collection)
 
                     if not clique_shown and keyui_settings.show_empty_binds then
                         addon:update_empty_binds(button)
+                    end
+
+                    addon:UpdateButtonCooldown(button)
+                    -- The tooltip reads spellid; counting the key as changed lets the
+                    -- caller redraw it if this is the hovered one.
+                    if button.spellid ~= old_spellid then
+                        changed_count = changed_count + 1
                     end
 
                     if keyui_settings.listen_to_modifier == true then
