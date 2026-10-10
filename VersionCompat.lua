@@ -46,8 +46,3 @@ addon.VERSION.string = string.format(
     "Unknown",
     build
 )
-
--- Log version detection at addon load
-if addon.debug then
-    print("KeyUI: " .. addon.VERSION.string)
-end

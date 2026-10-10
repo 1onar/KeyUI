@@ -476,68 +476,56 @@ function addon:generate_controller_key_frames()
     local active_count = 0
 
     if addon.open == true and addon.controller_frame then
-        -- Check if the layout is empty
-        local layout_not_empty = false
-        for _, layoutData in pairs(keyui_settings.layout_current_controller) do
-            if #layoutData > 0 then
-                layout_not_empty = true
+        local layout_data = addon:GetCurrentLayout(keyui_settings.layout_current_controller)
+
+        for i = 1, layout_data and #layout_data or 0 do
+            local button_data = layout_data[i]
+            active_count = active_count + 1
+
+            local button = addon:AcquireKeyButton("controller", active_count)
+            if not button then
+                active_count = active_count - 1
                 break
             end
-        end
 
-        -- Only proceed if there is a valid layout
-        if layout_not_empty then
-            for _, layoutData in pairs(keyui_settings.layout_current_controller) do
-                for i = 1, #layoutData do
-                    local button_data = layoutData[i]
-                    active_count = active_count + 1
+            button:SetWidth(button_data[4] or 50)
+            button:SetHeight(button_data[5] or 50)
 
-                    local button = addon:AcquireKeyButton("controller", active_count)
-                    if not button then
-                        active_count = active_count - 1
-                        break
-                    end
+            -- Set the controller button's icon size
+            local icon_width, icon_height = 44, 44
+            button.icon:SetSize(icon_width, icon_height)
 
-                    button:SetWidth(button_data[4] or 50)
-                    button:SetHeight(button_data[5] or 50)
+            -- If the button doesn't have an original icon size, set it
+            if not button.original_icon_size then
+                button.original_icon_size = { width = icon_width, height = icon_height }
+            end
 
-                    -- Set the controller button's icon size
-                    local icon_width, icon_height = 44, 44
-                    button.icon:SetSize(icon_width, icon_height)
+            addon.keys_controller[active_count] = button
+            button:ClearAllPoints()
+            -- Set the button position relative to the controller frame
+            button:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", button_data[2], button_data[3])
+            button.raw_key = button_data[1]
+            button.is_modifier = modifier_keys[button.raw_key] or false
 
-                    -- If the button doesn't have an original icon size, set it
-                    if not button.original_icon_size then
-                        button.original_icon_size = { width = icon_width, height = icon_height }
-                    end
-
-                    addon.keys_controller[active_count] = button
-                    button:ClearAllPoints()
-                    -- Set the button position relative to the controller frame
-                    button:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", button_data[2], button_data[3])
-                    button.raw_key = button_data[1]
-                    button.is_modifier = modifier_keys[button.raw_key] or false
-
-                    -- Determine the position of the short_key text based on the X-coordinate in button_data[2]
-                    button.short_key:ClearAllPoints()
-                    if button_data[2] < -200 then
-                        -- If the X-coordinate is negative, position the short_key to the left of the button
-                        button.short_key:SetPoint("LEFT", button, "RIGHT", 10, 0)
-                    elseif button_data[2] > 200 then
-                        -- If the X-coordinate is positive, position the short_key to the right of the button
-                        button.short_key:SetPoint("RIGHT", button, "LEFT", -10, 0)
-                    else
-                        if button_data[3] < 100 then
-                            button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
-                        elseif button_data[3] > 100 then
-                            button.short_key:SetPoint("TOP", button, "BOTTOM", 0, -10)
-                        else
-                            button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
-                        end
-                    end
-
-                    button:Show()
+            -- Determine the position of the short_key text based on the X-coordinate in button_data[2]
+            button.short_key:ClearAllPoints()
+            if button_data[2] < -200 then
+                -- If the X-coordinate is negative, position the short_key to the left of the button
+                button.short_key:SetPoint("LEFT", button, "RIGHT", 10, 0)
+            elseif button_data[2] > 200 then
+                -- If the X-coordinate is positive, position the short_key to the right of the button
+                button.short_key:SetPoint("RIGHT", button, "LEFT", -10, 0)
+            else
+                if button_data[3] < 100 then
+                    button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
+                elseif button_data[3] > 100 then
+                    button.short_key:SetPoint("TOP", button, "BOTTOM", 0, -10)
+                else
+                    button.short_key:SetPoint("BOTTOM", button, "TOP", 0, 10)
                 end
             end
+
+            button:Show()
         end
     end
 

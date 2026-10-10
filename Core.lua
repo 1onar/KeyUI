@@ -1234,10 +1234,23 @@ local function clear_key_button_pool(pool)
             button:EnableKeyboard(false)
             button:EnableMouseWheel(false)
             button:Hide()
+            addon:ReleaseFontStrings(button)
         end
         pool[i] = nil
     end
 end
+
+-- Nilled by a reset and rebuilt from scratch afterwards, so their font strings go too.
+local DISCARDED_WIDGETS = {
+    "dropdown",
+    "keyboard_selector",
+    "mouse_selector",
+    "controller_selector",
+    "keyui_tooltip_frame",
+    "name_input_dialog",
+    "edit_layout_dialog",
+    "controls_frame",
+}
 
 local function hide_resettable_frames(self)
     hide_widget(self.keyboard_frame)
@@ -1261,17 +1274,14 @@ local function hide_resettable_frames(self)
         self.performance_overlay_ticker = nil
     end
 
-    self.dropdown = nil
-    self.keyboard_selector = nil
-    self.mouse_selector = nil
-    self.controller_selector = nil
-    self.keyui_tooltip_frame = nil
-    self.name_input_dialog = nil
-    self.edit_layout_dialog = nil
+    for _, field in ipairs(DISCARDED_WIDGETS) do
+        self:ReleaseFontStrings(self[field])
+        self[field] = nil
+    end
+
     self.current_clicked_key = nil
     self.current_hovered_button = nil
     self.current_pushed_button = nil
-    self.controls_frame = nil
 end
 
 local function reset_saved_variables()
@@ -1505,6 +1515,19 @@ function addon:load_spellbook()
     addon.spells = {}
     addon.spells_tab_order = {}  -- preserves API order: General → Class → Spec(s)
 
+    -- Two skill lines can carry the same name. Merging them under one tab keeps both
+    -- sets of spells, where keying a fresh table by name dropped the first silently
+    -- while still listing the tab twice.
+    local function open_spell_tab(name)
+        local tab = addon.spells[name]
+        if not tab then
+            tab = {}
+            addon.spells[name] = tab
+            table.insert(addon.spells_tab_order, name)
+        end
+        return tab
+    end
+
     if API_COMPAT.has_modern_spellbook then
         -- RETAIL: Modern C_SpellBook API
         for i = 1, C_SpellBook.GetNumSpellBookSkillLines() do
@@ -1513,8 +1536,7 @@ function addon:load_spellbook()
             local offset, numSlots = skillLineInfo.itemIndexOffset, skillLineInfo.numSpellBookItems
 
             if name then
-                addon.spells[name] = {}
-                table.insert(addon.spells_tab_order, name)
+                local tab = open_spell_tab(name)
                 for j = offset + 1, offset + numSlots do
                     local spellBookItemInfo = C_SpellBook.GetSpellBookItemInfo(j, Enum.SpellBookSpellBank.Player)
                     local spellName = spellBookItemInfo.name
@@ -1522,7 +1544,7 @@ function addon:load_spellbook()
                     local isPassive = spellBookItemInfo.isPassive
 
                     if spellName and not isPassive then
-                        table.insert(addon.spells[name], { name = spellName, id = spellID })
+                        table.insert(tab, { name = spellName, id = spellID })
                     end
                 end
             end
@@ -1537,8 +1559,7 @@ function addon:load_spellbook()
 
             -- Anniversary: offSpecID is 0 for normal tabs, not nil
             if name and (not offSpecID or offSpecID == 0) then  -- Skip off-spec tabs
-                addon.spells[name] = {}
-                table.insert(addon.spells_tab_order, name)
+                local tab = open_spell_tab(name)
 
                 for slotIndex = offset + 1, offset + numSlots do
                     local spellType, spellID = GetSpellBookItemInfo(slotIndex, BOOKTYPE_SPELL)
@@ -1549,7 +1570,7 @@ function addon:load_spellbook()
                         local isPassive = IsPassiveSpell(slotIndex, BOOKTYPE_SPELL)
 
                         if spellName and not isPassive then
-                            table.insert(addon.spells[name], { name = spellName, id = spellID })
+                            table.insert(tab, { name = spellName, id = spellID })
                         end
                     end
                 end
@@ -4031,6 +4052,12 @@ function addon:apply_clique_binding(button, key)
         button.icon:Show()
     end
 
+    -- No action slot to read a cooldown from, but a spell has an id, and that is all
+    -- the spellid branch of GetButtonCooldownData needs.
+    if entry.type == "spell" and entry.spell then
+        button.spellid = C_Spell.GetSpellIDForSpellIdentifier(entry.spell)
+    end
+
     local label = clique_entry_label(entry)
     if label and label ~= "" then
         button.readable_binding:SetText(label)
@@ -4680,30 +4707,11 @@ function addon:handle_key_down(frame, key)
     -- script stays installed – so a keypress just after leaving a key arrives with no frame.
     if not frame then return end
 
-    -- Check if any modifier is held down
-    local modifier = ""
-
-    -- Check for ALT modifier
-    if IsAltKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "ALT-"
-    end
-
-    -- Check for CTRL modifier
-    if IsControlKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "CTRL-"
-    end
-
-    -- Check for SHIFT modifier
-    if IsShiftKeyDown() and not addon.no_modifier_keys[key] then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Set the label to the modifier and the pressed key
-    if key == "MiddleButton" then
-        frame.raw_key = modifier .. "BUTTON3" -- Handle middle mouse button
-    else
-        frame.raw_key = modifier .. key       -- Set label to the pressed key with modifier
-    end
+    -- Bare key only. raw_key doubles as a layout entry name and a key_lookup key, and
+    -- every consumer -- get_binding, apply_clique_binding, the unbind action -- prefixes
+    -- current_modifier_string itself, which handle_key_press already keeps in step with
+    -- the held modifiers. Baking the modifier in here produced lookups like ALT-ALT-X.
+    frame.raw_key = key == "MiddleButton" and "BUTTON3" or key
 
     -- Hide pushed texture
     local adjustedSlot = frame.active_slot
@@ -4722,51 +4730,21 @@ function addon:handle_gamepad_down(frame, key)
     -- Same stale-hover race as handle_key_down.
     if not frame then return end
 
-    -- Check if any modifier is held down
-    local modifier = ""
-
-    -- Check for ALT modifier
-    if IsAltKeyDown() then
-        modifier = modifier .. "ALT-"
-    end
-
-    -- Check for CTRL modifier
-    if IsControlKeyDown() then
-        modifier = modifier .. "CTRL-"
-    end
-
-    -- Check for SHIFT modifier
-    if IsShiftKeyDown() then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Set the raw key for Gamepad input
-    frame.raw_key = modifier .. key
+    -- Bare key, for the reason spelled out in handle_key_down.
+    frame.raw_key = key
 
     addon:refresh_keys()
 end
 
--- Shared MouseWheel function with modifier support
+-- Shared MouseWheel function
 function addon:handle_mouse_wheel(frame, delta)
-    -- Initialize the modifier string
-    local modifier = ""
+    if not frame then return end
 
-    -- Check the current state of modifier keys
-    if IsAltKeyDown() then
-        modifier = modifier .. "ALT-"
-    end
-    if IsControlKeyDown() then
-        modifier = modifier .. "CTRL-"
-    end
-    if IsShiftKeyDown() then
-        modifier = modifier .. "SHIFT-"
-    end
-
-    -- Combine with MouseWheel action
+    -- Bare key, for the reason spelled out in handle_key_down.
     if delta > 0 then
-        frame.raw_key = modifier .. "MOUSEWHEELUP"   -- Scrolled up with modifiers
+        frame.raw_key = "MOUSEWHEELUP"
     elseif delta < 0 then
-        frame.raw_key = modifier .. "MOUSEWHEELDOWN" -- Scrolled down with modifiers
+        frame.raw_key = "MOUSEWHEELDOWN"
     end
 
     addon:refresh_keys()
@@ -5032,9 +5010,19 @@ local function build_macros_submenu(parentMenu)
     end
 end
 
--- Helper function: Build interface bindings submenu
-local function build_interface_bindings_submenu(parentMenu)
-    -- Dynamically enumerate all keybinding categories and commands from WoW
+-- Walking all ~300 GetNumBindings() entries and allocating a table per binding is too
+-- much to redo every time the context menu opens. The set only moves on UPDATE_BINDINGS.
+local interface_bindings
+
+function addon:InvalidateInterfaceBindings()
+    interface_bindings = nil
+end
+
+local function enumerate_interface_bindings()
+    if interface_bindings then
+        return interface_bindings
+    end
+
     local categories = {}       -- { [categoryKey] = { {command, readableName}, ... } }
     local category_order = {}   -- preserve WoW's category order
 
@@ -5052,11 +5040,19 @@ local function build_interface_bindings_submenu(parentMenu)
         end
     end
 
-    for _, category in ipairs(category_order) do
+    interface_bindings = { categories = categories, order = category_order }
+    return interface_bindings
+end
+
+-- Helper function: Build interface bindings submenu
+local function build_interface_bindings_submenu(parentMenu)
+    local enumerated = enumerate_interface_bindings()
+
+    for _, category in ipairs(enumerated.order) do
         local categoryName = _G[category] or category
         local categoryMenu = parentMenu:CreateButton(categoryName)
 
-        for _, binding in ipairs(categories[category]) do
+        for _, binding in ipairs(enumerated.categories[category]) do
             local binding_name = binding[1]
             local binding_readable = binding[2]
 
@@ -5315,7 +5311,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         refresh_loaded_integrations()
         initialize_keybind_patterns()
 
-        addon.class_name = UnitClassBase("player")
         addon.bonusbar_offset = GetBonusBarOffset()
         addon.current_actionbar_page = GetActionBarPage()
 
@@ -5416,6 +5411,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_slot_changed(...)
         C_Timer.After(0, function() addon:refresh_equipped() end)
     elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
+        addon:InvalidateInterfaceBindings()
         mark_pending("bindings")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
         mark_pending("layout")

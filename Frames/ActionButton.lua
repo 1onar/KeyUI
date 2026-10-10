@@ -107,6 +107,13 @@ end
 function addon:SetButtonActionSlot(button, slot)
     button.active_slot = slot
     if not InCombatLockdown() then
+        -- Right-click opens the assignment menu from the insecure OnMouseUp handler. The
+        -- buttons register for AnyUp, and SecureButton_GetModifiedAttribute falls back to
+        -- the unsuffixed "type" when there is no "type2" -- so the right-click used the
+        -- action as well, burning a GCD in combat. ATTRIBUTE_NOOP is Blizzard's own way to
+        -- exclude one button from a shared attribute, and leaves left-click untouched.
+        button:SetAttribute("type2", ATTRIBUTE_NOOP)
+
         if slot and slot > 0 then
             button:SetAttribute("type", "action")
             button:SetAttribute("action", slot)
@@ -414,11 +421,10 @@ function addon:ShowButtonProcGlow(button, useAltGlow)
                 g:SetSize(iw * 1.1, ih * 1.1)
                 local tex = g:CreateTexture(nil, "OVERLAY")
                 tex:SetAllPoints()
-                if addon.VERSION.USE_ATLAS then
-                    tex:SetAtlas("UI-HUD-RotationHelper-ProcAltGlow")
-                else
-                    tex:SetColorTexture(1, 0.82, 0, 0.6)  -- golden fallback
-                end
+                -- ActionButtonSpellAlertTemplate declares this atlas for its own ProcAltGlow
+                -- texture on every client, and has_spell_alert_template() already gated on
+                -- that template existing.
+                tex:SetAtlas("UI-HUD-RotationHelper-ProcAltGlow")
                 button.KeyUI_ProcAltGlow = g
             end
             -- Hide full-burst if it was previously showing

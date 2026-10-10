@@ -568,3 +568,20 @@ function addon:CreateArrowUpButton(parent)
     return button
 end
 
+-- A layout_current_* container is written as a single named layout. Picking that one
+-- entry explicitly keeps an imported profile that somehow carries two from drawing both
+-- on top of each other in whatever order pairs() happens to return.
+function addon:GetCurrentLayout(container)
+    if type(container) ~= "table" then
+        return nil
+    end
+
+    local chosen_name, chosen
+    for layout_name, layout_data in pairs(container) do
+        if type(layout_data) == "table" and (not chosen_name or layout_name < chosen_name) then
+            chosen_name, chosen = layout_name, layout_data
+        end
+    end
+
+    return chosen, chosen_name
+end
