@@ -662,8 +662,9 @@ function addon:create_controls()
         end
     end
 
-    -- Apply custom font to the tab buttons
-    local custom_font = CreateFont("controls_tab_custom_font")
+    -- Apply custom font to the tab buttons. Reuse the named font on a rebuild so the font
+    -- registry, keyed by object, keeps one entry for it however CreateFont treats a taken name.
+    local custom_font = _G["controls_tab_custom_font"] or CreateFont("controls_tab_custom_font")
     custom_font:SetFont(addon:GetFont(), addon:GetFontSize(1.0), "OUTLINE")
     addon:RegisterFontString(custom_font, 1.0, false, "OUTLINE")
 

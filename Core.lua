@@ -1221,6 +1221,7 @@ local function clear_key_button_pool(pool)
     if type(pool) ~= "table" then
         return
     end
+    local discarded = {}
     for i = #pool, 1, -1 do
         local button = pool[i]
         if button then
@@ -1234,10 +1235,11 @@ local function clear_key_button_pool(pool)
             button:EnableKeyboard(false)
             button:EnableMouseWheel(false)
             button:Hide()
-            addon:ReleaseFontStrings(button)
+            discarded[button] = true
         end
         pool[i] = nil
     end
+    addon:ReleaseFontStrings(discarded)
 end
 
 -- Nilled by a reset and rebuilt from scratch afterwards, so their font strings go too.
@@ -1274,10 +1276,14 @@ local function hide_resettable_frames(self)
         self.performance_overlay_ticker = nil
     end
 
+    local discarded = {}
     for _, field in ipairs(DISCARDED_WIDGETS) do
-        self:ReleaseFontStrings(self[field])
+        if self[field] then
+            discarded[self[field]] = true
+        end
         self[field] = nil
     end
+    self:ReleaseFontStrings(discarded)
 
     self.current_clicked_key = nil
     self.current_hovered_button = nil

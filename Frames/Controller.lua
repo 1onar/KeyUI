@@ -109,8 +109,9 @@ function addon:create_controller_frame()
         end
     end
 
-    -- Apply custom font to the tab buttons
-    local custom_font = CreateFont("controller_tab_custom_font")
+    -- Apply custom font to the tab buttons. Reuse the named font on a rebuild so the font
+    -- registry, keyed by object, keeps one entry for it however CreateFont treats a taken name.
+    local custom_font = _G["controller_tab_custom_font"] or CreateFont("controller_tab_custom_font")
     custom_font:SetFont(addon:GetFont(), addon:GetFontSize(0.75), "OUTLINE")
     addon:RegisterFontString(custom_font, 0.75, false, "OUTLINE")
 

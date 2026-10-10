@@ -193,13 +193,15 @@ end
 
 -- A settings reset discards whole frames. Drop their font strings with them, or the
 -- registry holds the orphans forever and RefreshAllFonts keeps restyling them.
-function addon:ReleaseFontStrings(owner)
-    if not owner then return end
+-- Takes a set of owners ({ [frame] = true }), so a reset walks the registry once per
+-- batch rather than once per discarded key button.
+function addon:ReleaseFontStrings(owners)
+    if not owners or next(owners) == nil then return end
 
     for fontString in pairs(self._fontRegistry) do
         local node = fontString.GetParent and fontString:GetParent()
         while node do
-            if node == owner then
+            if owners[node] then
                 self._fontRegistry[fontString] = nil
                 break
             end
