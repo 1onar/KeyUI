@@ -371,9 +371,12 @@ function addon:create_mouse_buttons(index)
     -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
     -- which would suppress the AnyUp event entirely; explicitly pinning
     -- useOnKeyDown=false overrides the CVar so the click fires on release.
+    -- type2 = ATTRIBUTE_NOOP keeps the right-click that opens the menu from also using
+    -- the action; see create_keyboard_buttons.
     mouse_button:RegisterForClicks("AnyUp")
     mouse_button:RegisterForDrag("LeftButton", "RightButton")
     mouse_button:SetAttribute("useOnKeyDown", false)
+    mouse_button:SetAttribute("type2", ATTRIBUTE_NOOP)
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
     mouse_button:EnableGamePadButton(true)

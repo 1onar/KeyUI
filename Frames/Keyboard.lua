@@ -516,9 +516,15 @@ function addon:create_keyboard_buttons(index)
     -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
     -- which would suppress the AnyUp event entirely; explicitly pinning
     -- useOnKeyDown=false overrides the CVar so the click fires on release.
+    -- Right-click opens the assignment menu from the insecure OnMouseUp handler. AnyUp
+    -- delivers it to the secure handler too, and SecureButton_GetModifiedAttribute falls
+    -- back to the unsuffixed "type" when there is no "type2" -- so the right-click would
+    -- use the action as well, burning a GCD in combat. ATTRIBUTE_NOOP is Blizzard's own
+    -- way to exclude one button from a shared attribute, and leaves left-click untouched.
     keyboard_button:RegisterForClicks("AnyUp")
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
     keyboard_button:SetAttribute("useOnKeyDown", false)
+    keyboard_button:SetAttribute("type2", ATTRIBUTE_NOOP)
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:EnableGamePadButton(true)

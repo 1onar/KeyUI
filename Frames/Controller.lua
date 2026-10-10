@@ -570,9 +570,12 @@ function addon:create_controller_buttons(index)
     -- picks up the action instead of casting the spell. useOnKeyDown=false
     -- overrides Retail's ActionButtonUseKeyDown CVar so the click fires on
     -- release (required for AnyUp to trigger the secure handler in 12.0+).
+    -- type2 = ATTRIBUTE_NOOP keeps the right-click that opens the menu from also using
+    -- the action; see create_keyboard_buttons.
     controller_button:RegisterForClicks("AnyUp")
     controller_button:RegisterForDrag("LeftButton", "RightButton")
     controller_button:SetAttribute("useOnKeyDown", false)
+    controller_button:SetAttribute("type2", ATTRIBUTE_NOOP)
 
     -- controller Keybind text string on the top right of the button (e.g. a-c-s-1)
     controller_button.short_key = controller_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
