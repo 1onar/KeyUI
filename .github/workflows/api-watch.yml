@@ -1,0 +1,59 @@
+name: API Watch
+
+# Weekly reminder for new client builds. tools/update-api.sh check compares the
+# version.txt of each tracked Gethe/wow-ui-source branch with the Interface line
+# in KeyUI.toc; every interface version the TOC does not list yet gets one issue.
+# Exit code 1 from the script means "versions missing", anything higher is a
+# real failure (network, missing TOC) and fails the run instead.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: api-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare upstream builds with KeyUI.toc
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status=0
+          bash tools/update-api.sh check > check.log || status=$?
+          cat check.log
+          cat check.log >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -gt 1 ]; then
+            exit "$status"
+          fi
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          grep '^MISSING ' check.log | while read -r _ flavor interface version branch; do
+            title="KeyUI.toc is missing interface $interface ($flavor $version)"
+            open=$(gh issue list --state open --search "\"interface $interface\" in:title" --json number --jq 'length')
+            if [ "$open" -gt 0 ]; then
+              echo "Issue for interface $interface is already open"
+              continue
+            fi
+            body=$(cat <<EOF
+          The \`$branch\` branch of [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/$branch) is at **$version**, which is interface **$interface**. \`KeyUI.toc\` does not list it yet.
+
+          - [ ] \`tools/update-api.sh update $flavor\` and review the API documentation changes it prints
+          - [ ] Add \`$interface\` to \`## Interface\` in \`KeyUI.toc\`
+          - [ ] Update the snapshot table and audit notes in \`COMPATIBILITY.md\`
+          EOF
+            )
+            gh issue create --title "$title" --body "$body"
+          done

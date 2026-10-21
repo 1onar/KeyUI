@@ -12,6 +12,7 @@ ignore:
   - .luarc.json
   - .pkgmeta
   - COMPATIBILITY.md
+  - tools
 
 externals:
     Libs/LibStub:
