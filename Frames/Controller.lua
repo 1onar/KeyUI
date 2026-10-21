@@ -538,9 +538,9 @@ end
 function addon:create_controller_buttons(index)
 
     -- Secure action button: allows combat clicks and drag/drop on action slots.
-    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Retail only).
+    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Mainline clients: Retail, Forever).
     local name = "KeyUIButton_controller_" .. (index or 0)
-    local templates = addon.VERSION.isRetail
+    local templates = addon.VERSION.isModern
         and "SecureActionButtonTemplate, ActionButtonSpellFXTemplate"
         or  "SecureActionButtonTemplate"
     local controller_button = CreateFrame("CheckButton", name, addon.controller_frame, templates)

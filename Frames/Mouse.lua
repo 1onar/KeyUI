@@ -358,9 +358,9 @@ end
 function addon:create_mouse_buttons(index)
 
     -- Secure action button: allows combat clicks and drag/drop on action slots.
-    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Retail only).
+    -- ActionButtonSpellFXTemplate adds spell cast/channel/empower animations (Mainline clients: Retail, Forever).
     local name = "KeyUIButton_mouse_" .. (index or 0)
-    local templates = addon.VERSION.isRetail
+    local templates = addon.VERSION.isModern
         and "SecureActionButtonTemplate, ActionButtonSpellFXTemplate"
         or  "SecureActionButtonTemplate"
     local mouse_button = CreateFrame("CheckButton", name, addon.mouse_image, templates)

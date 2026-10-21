@@ -63,8 +63,10 @@ do
 
     function addon.compat.has_event(event_name)
         if event_name == "BINDINGS_LOADED" then
-            -- BINDINGS_LOADED exists in Anniversary (2.5.x) and Retail (10+/11+/12+)
-            return (compat_build >= 20500 and compat_build < 30000) or compat_build >= 100000
+            -- BINDINGS_LOADED exists in Anniversary (2.5.x), Forever (1.60.x) and Retail (10+/11+/12+)
+            return (compat_build >= 20500 and compat_build < 30000)
+                or (compat_build >= 16000 and compat_build < 17000)
+                or compat_build >= 100000
         end
         return true
     end
@@ -1595,8 +1597,9 @@ local function is_in_combat_lockdown()
     return addon.in_combat == true
 end
 
+-- "Retail" in these names means the Mainline client family, Forever included.
 function addon:IsRetailActionMutationBlocked()
-    return addon.VERSION and addon.VERSION.isRetail and is_in_combat_lockdown()
+    return addon.VERSION and addon.VERSION.isModern and is_in_combat_lockdown()
 end
 
 -- Hides a frame immediately outside combat, or defers it until PLAYER_REGEN_ENABLED.
@@ -1618,14 +1621,14 @@ function addon:SafeHideFrame(frame)
 end
 
 function addon:WarnRetailActionMutationBlockedOnce()
-    if not (addon.VERSION and addon.VERSION.isRetail) then
+    if not (addon.VERSION and addon.VERSION.isModern) then
         return
     end
     if addon.retail_action_block_warned_this_combat then
         return
     end
     addon.retail_action_block_warned_this_combat = true
-    print("KeyUI: Action changes are blocked during combat on Retail.")
+    print("KeyUI: Action changes are blocked during combat.")
 end
 
 function addon:MarkDeferredUiUpdate(flag)
