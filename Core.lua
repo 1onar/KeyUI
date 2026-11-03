@@ -71,12 +71,18 @@ do
         return true
     end
 
-    function addon.compat.register_event(frame, event_name)
+    -- `unit` registers through RegisterUnitEvent, so a raid's worth of other units'
+    -- UNIT_* events never reaches the handler.
+    function addon.compat.register_event(frame, event_name, unit)
         if not frame or not event_name then
             return false
         end
         if addon.compat.has_event(event_name) then
-            frame:RegisterEvent(event_name)
+            if unit then
+                frame:RegisterUnitEvent(event_name, unit)
+            else
+                frame:RegisterEvent(event_name)
+            end
             return true
         end
         return false
@@ -86,6 +92,24 @@ end
 -- Global keybind patterns cache (initialized on load)
 local keybind_patterns = {}
 
+-- Binding caches. Reading bindings is not restricted in combat -- GetBindingAction is
+-- neither protected nor secret -- so these exist for speed, not to get around lockdown.
+-- binding_cache: full key ("ALT-CTRL-1") -> action string, "" when unbound.
+-- binding_info_cache: action string -> what KeyUI does with it (matched pattern entry,
+-- CLICK fallback, OPie, readable label); see binding_info further down.
+-- Both are dropped on UPDATE_BINDINGS/BINDINGS_LOADED. UPDATE_BINDINGS is documented as
+-- a SynchronousEvent, and override binding changes raise it too -- Bartender4 guards its
+-- own UPDATE_BINDINGS handler against re-entry from its SetOverrideBindingClick calls
+-- (ActionBars.lua, ReassignBindings). binding_info_cache additionally goes whenever the
+-- pattern list changes, because its entries point into that list.
+local binding_cache = {}
+local binding_info_cache = {}
+
+local function invalidate_binding_caches()
+    wipe(binding_cache)
+    wipe(binding_info_cache)
+end
+
 -- Initialize keybind patterns with addon integrations
 -- Addon integration patterns, registered dynamically when addons are loaded
 local registered_addons = {}
@@ -93,16 +117,16 @@ addon.loaded_integrations = addon.loaded_integrations or {}
 
 local addon_pattern_registry = {
     ElvUI = {
-        { pattern = "^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$", handler = "process_elvui", error_prefix = "KeyUI: ElvUI integration error:" },
-        { pattern = "^ELVUIBAR(%d+)BUTTON(%d+)$", handler = "process_elvui", error_prefix = "KeyUI: ElvUI integration error:" },
+        { pattern = "^CLICK ElvUI_Bar(%d+)Button(%d+):LeftButton$", handler = "process_elvui", kind = "addon_slot", error_prefix = "KeyUI: ElvUI integration error:" },
+        { pattern = "^ELVUIBAR(%d+)BUTTON(%d+)$", handler = "process_elvui", kind = "addon_slot", error_prefix = "KeyUI: ElvUI integration error:" },
     },
     Bartender4 = {
         { pattern = "^CLICK BT4StanceButton(%d+):LeftButton$", handler = "process_addon_stance", error_prefix = "KeyUI: Bartender4 stance integration error:" },
-        { pattern = "^CLICK BT4Button(%d+):Keybind$", handler = "process_bartender", error_prefix = "KeyUI: Bartender4 integration error:" },
+        { pattern = "^CLICK BT4Button(%d+):Keybind$", handler = "process_bartender", kind = "addon_slot", error_prefix = "KeyUI: Bartender4 integration error:" },
     },
     Dominos = {
-        { pattern = "^CLICK DominosActionButton(%d+):HOTKEY$", handler = "process_dominos", error_prefix = "KeyUI: Dominos integration error:" },
-        { pattern = "^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$", handler = "process_dominos", error_prefix = "KeyUI: Dominos integration error:" },
+        { pattern = "^CLICK DominosActionButton(%d+):HOTKEY$", handler = "process_dominos", kind = "addon_slot", error_prefix = "KeyUI: Dominos integration error:" },
+        { pattern = "^CLICK DominosActionButton(%d+)Hotkey:HOTKEY$", handler = "process_dominos", kind = "addon_slot", error_prefix = "KeyUI: Dominos integration error:" },
     },
     OPie = {
         { pattern = "^CLICK ORL_RProxy.*$", handler = "process_opie", pass_binding = false, error_prefix = "KeyUI: OPie integration error:" },
@@ -130,6 +154,9 @@ local function register_addon_patterns(addon_name)
         for _, spec in ipairs(specs) do
             keybind_patterns[#keybind_patterns + 1] = {
                 pattern = spec.pattern,
+                -- How resolve_action_slot finds this binding's action slot without
+                -- drawing anything; nil when it has none.
+                kind = spec.kind,
                 handler = function(binding, button)
                     local method = addon[spec.handler]
                     if type(method) ~= "function" then
@@ -151,6 +178,8 @@ local function register_addon_patterns(addon_name)
         end
         registered_addons[addon_name] = true
         addon.loaded_integrations[addon_name] = true
+        -- Bindings remembered as unmatched may match the new patterns.
+        wipe(binding_info_cache)
     end
 end
 
@@ -162,13 +191,13 @@ end
 local function initialize_keybind_patterns()
     keybind_patterns = {
         -- ACTIONBUTTON
-        { pattern = "^ACTIONBUTTON(%d+)$", handler = function(binding, button)
+        { pattern = "^ACTIONBUTTON(%d+)$", kind = "actionbutton", handler = function(binding, button)
             local slot = tonumber(binding:match("ACTIONBUTTON(%d+)"))
             return addon:process_actionbutton_slot(slot, button)
         end },
 
         -- MULTIACTIONBARBUTTON
-        { pattern = "^MULTIACTIONBAR(%d+)BUTTON(%d+)$", handler = function(binding, button)
+        { pattern = "^MULTIACTIONBAR(%d+)BUTTON(%d+)$", kind = "multiactionbar", handler = function(binding, button)
             local bar, bar_button = binding:match("^MULTIACTIONBAR(%d+)BUTTON(%d+)$")
             if not bar or not bar_button then return end
             return addon:process_multiactionbar_slot(tonumber(bar), tonumber(bar_button), button)
@@ -205,6 +234,7 @@ local function initialize_keybind_patterns()
     -- of the session -- which is what happened to every integration whose folder sorts
     -- after "KeyUI" and therefore loads after KeyUI's event frame exists.
     wipe(registered_addons)
+    wipe(binding_info_cache)
     for addon_name in pairs(addon_pattern_registry) do
         register_addon_patterns(addon_name)
     end
@@ -1328,7 +1358,7 @@ local function reset_runtime_flags(self)
     self.keys_mouse_edited = false
     self.keys_controller_edited = false
 
-    self.open = false
+    self:set_open(false)
     self.in_combat = false
     self.is_keyboard_visible = false
     self.is_mouse_visible = false
@@ -1338,6 +1368,7 @@ local function reset_runtime_flags(self)
 
     self.modif = { ALT = false, CTRL = false, SHIFT = false }
     self.current_modifier_string = ""
+    self.short_modifier_string = ""
     self.alt_checkbox = false
     self.ctrl_checkbox = false
     self.shift_checkbox = false
@@ -1449,6 +1480,19 @@ EventUtil.ContinueOnAddOnLoaded(..., function()
     end
 end)
 
+-- The single place that flips addon.open. Opening and closing also decide whether KeyUI
+-- listens to its high-frequency events at all (addon:on_open_state_changed, next to the
+-- event frame below), so every transition has to come through here.
+function addon:set_open(state)
+    state = state == true
+    local changed = (self.open == true) ~= state
+    self.open = state
+    self:UpdatePerformanceOverlayVisibility()
+    if changed and self.on_open_state_changed then
+        self:on_open_state_changed(state)
+    end
+end
+
 -- Main function to load the addon.
 function addon:load()
 
@@ -1465,8 +1509,7 @@ function addon:load()
             return
         end
 
-        addon.open = true -- Mark the addon as open
-        addon:UpdatePerformanceOverlayVisibility()
+        addon:set_open(true)
         addon:show_frames()
 
         if keyui_settings.show_keyboard == true then
@@ -1505,7 +1548,13 @@ function addon:load()
         -- Load spells and refresh the key bindings.
         addon:load_spellbook()
         addon:refresh_layouts()
+        -- set_key draws the base cooldown, usable, count and range itself. The overlays
+        -- below are event-driven only, and KeyUI hears no events while closed.
         addon:refresh_equipped()
+        addon:refresh_charge_cooldowns()
+        addon:refresh_loc_cooldowns()
+        addon:refresh_flash()
+        addon:refresh_pet_autocast()
 
         -- Enable keypress visualization if setting is on and not in combat
         if keyui_settings.show_keypress_highlight and not addon.in_combat then
@@ -1710,6 +1759,9 @@ function addon:refresh_layouts()
     if addon.controller_locked ~= false and addon.keys_controller_edited ~= true then
         addon:generate_controller_key_frames(keyui_settings.key_bind_settings_controller.currentboard)
     end
+
+    -- The generators no longer apply click-through each; once covers all three devices.
+    addon:ApplyClickThrough()
 
     -- update the textures/texts of the keys bindings.
     addon:refresh_keys()
@@ -2329,17 +2381,15 @@ function addon:hide_all_frames()
 
     addon:disable_keypress_input()
 
-    addon.open = false
     addon.is_keyboard_visible = false
     addon.is_mouse_visible = false
     addon.is_controller_visible = false
-    addon:UpdatePerformanceOverlayVisibility()
+    addon:set_open(false)
 end
 
 local function on_frame_hide(self)
     if (addon.is_keyboard_visible == false or keyui_settings.show_keyboard == false) and (addon.is_mouse_visible == false or keyui_settings.show_mouse == false) and (addon.is_controller_visible == false or keyui_settings.show_controller == false) then
-        addon.open = false
-        addon:UpdatePerformanceOverlayVisibility()
+        addon:set_open(false)
 
         -- Discard Keyboard Editor Changes when closing
         if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
@@ -2578,6 +2628,39 @@ local function matches_opie_binding(binding)
     return type(binding_name) == "string" and binding_name:lower():find("opie", 1, true) ~= nil
 end
 
+-- What KeyUI does with one binding string, worked out once per string instead of once
+-- per key on every refresh: the first matching keybind_patterns entry (addon:set_key
+-- walks the list in order and stops at the first hit), otherwise whether it takes the
+-- generic CLICK fallback or counts as an OPie ring. `label` is filled in lazily by
+-- addon:create_action_labels. Slots are deliberately not part of this: Bartender,
+-- Dominos and ElvUI page their buttons by changing attributes live, so a slot has to be
+-- resolved again each time.
+local function binding_info(binding)
+    local info = binding_info_cache[binding]
+    if info then
+        return info
+    end
+
+    info = { entry = false }
+    for i = 1, #keybind_patterns do
+        local entry = keybind_patterns[i]
+        if binding:find(entry.pattern) then
+            info.entry = entry
+            break
+        end
+    end
+
+    if not info.entry then
+        local click_frame_name, click_button = binding:match("^CLICK ([^:]+):(.+)$")
+        info.click_fallback = click_frame_name ~= nil
+            and (click_button == "HOTKEY" or click_button == "LeftButton")
+        info.opie = matches_opie_binding(binding)
+    end
+
+    binding_info_cache[binding] = info
+    return info
+end
+
 -- Highlights a modifier button when the corresponding key is held down
 local function highlight_modifier_button(button)
     button.highlight:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Background\\yellow_bg")
@@ -2604,21 +2687,17 @@ function addon:set_key(button)
     -- Store the interface command (Blizzard Interface Commands)
     button.binding = binding
 
-    -- Loop through the keybind patterns and process the binding if the binding is not empty
+    -- Process the binding through its pattern handler if the binding is not empty
     if binding ~= "" then
+        local info = binding_info(binding)
         local matched = false
-        for i = 1, #keybind_patterns do
-            local entry = keybind_patterns[i]
-            if binding:find(entry.pattern) then
-                entry.handler(binding, button)
-                matched = true
-                break -- Exit loop once a match is found
-            end
+        if info.entry then
+            info.entry.handler(binding, button)
+            matched = true
         end
 
         if not matched then
-            local click_frame_name, click_button = binding:match("^CLICK ([^:]+):(.+)$")
-            if click_frame_name and (click_button == "HOTKEY" or click_button == "LeftButton") then
+            if info.click_fallback then
                 local slot = addon:resolve_addon_slot(binding)
                 if slot then
                     button.slot = slot
@@ -2638,7 +2717,7 @@ function addon:set_key(button)
             end
         end
 
-        if not matched and matches_opie_binding(binding) then
+        if not matched and info.opie then
             addon:process_opie(button)
             matched = true
         end
@@ -2707,6 +2786,12 @@ function addon:reset_button_state(button)
     button.binding = nil
     button.is_active = nil
     button.is_castable = nil
+    -- Where addon:refresh_icons re-reads this key's icon from; set by the process_*
+    -- handlers. Keys with an active_slot read it from the slot instead.
+    button.icon_spell = nil
+    button.icon_macro = nil
+    button.icon_form = nil
+    button._icon_tex = nil
     button.icon:SetTexture(nil)
     button.icon:Hide()
     button.icon:SetVertexColor(1, 1, 1)
@@ -3133,9 +3218,19 @@ function addon:handle_action_drag(button)
     addon:sync_dragged_action_slots(button, affected_slots)
 end
 
+-- Binding action for a full key such as "ALT-CTRL-1", overrides included, "" if unbound.
+local function lookup_binding(key)
+    local action = binding_cache[key]
+    if action == nil then
+        action = GetBindingAction(key, true) or ""
+        binding_cache[key] = action
+    end
+    return action
+end
+
 -- Retrieves the binding action
 function addon:get_binding(raw_key)
-    return GetBindingAction(self.current_modifier_string .. (raw_key or ""), true) or ""
+    return lookup_binding(self.current_modifier_string .. (raw_key or ""))
 end
 
 -- Shows or hides the Assisted Combat (Single-Button Assistant) indicator on a KeyUI button
@@ -3206,25 +3301,35 @@ local function GetSpellFromActionSlot(slot)
     return nil
 end
 
--- Handles processing for ACTIONBUTTON
-function addon:process_actionbutton_slot(slot, button)
-    if not slot then return end
-
-    local resolved_slot = nil
+-- The action slot behind ACTIONBUTTON<button_index>. Shared by
+-- addon:process_actionbutton_slot and addon:resolve_action_slot so the drawn key and its
+-- secure attributes cannot disagree. `silent` keeps an unresolved Dominos frame out of
+-- the /keyui diag counters, for lookups that only fill attributes.
+local function actionbutton_slot(button_index, silent)
     local loaded_integrations = addon.loaded_integrations or {}
 
     -- Dominos can remap ACTIONBUTTON1-12 through secure frame state/paging.
     -- Prefer the live Dominos frame action slot when available.
-    if loaded_integrations.Dominos and slot >= 1 and slot <= 12 then
-        local dominos_frame_name = ("DominosActionButton%d"):format(slot)
+    if loaded_integrations.Dominos and button_index >= 1 and button_index <= 12 then
+        local dominos_frame_name = ("DominosActionButton%d"):format(button_index)
         if _G[dominos_frame_name] then
             local dominos_binding = ("CLICK %s:HOTKEY"):format(dominos_frame_name)
-            resolved_slot = addon:resolve_addon_slot(dominos_binding)
+            local resolved_slot = addon:resolve_addon_slot(dominos_binding, silent)
+            if resolved_slot then
+                return resolved_slot
+            end
         end
     end
 
     -- Adjust the slot based on bonus bar offset and action bar page
-    local adjusted_slot = resolved_slot or addon:get_action_button_slot(slot)
+    return addon:get_action_button_slot(button_index)
+end
+
+-- Handles processing for ACTIONBUTTON
+function addon:process_actionbutton_slot(slot, button)
+    if not slot then return end
+
+    local adjusted_slot = actionbutton_slot(slot)
     button.slot = adjusted_slot
 
     -- Always set type="action" so OnReceiveDrag fires for cursor-drops (even on empty slots)
@@ -3286,14 +3391,16 @@ local multiactionbar_offsets = {
     [7] = 168,   -- Action bar 7
 }
 
+local function multiactionbar_slot(bar, bar_button)
+    local offset = bar and bar_button and multiactionbar_offsets[bar]
+    if not offset then return nil end
+    return offset + bar_button
+end
+
 -- Handles processing for MULTIACTIONBAR
 function addon:process_multiactionbar_slot(bar, bar_button, button)
-    if not bar or not bar_button then return end
-
-    local offset = multiactionbar_offsets[bar]
-    if not offset then return end
-
-    local slot = offset + bar_button
+    local slot = multiactionbar_slot(bar, bar_button)
+    if not slot then return end
 
     button.slot = slot
 
@@ -3365,6 +3472,7 @@ function addon:process_shapeshift_slot(slot, button)
     if icon then
         button.icon:SetTexture(icon)         -- Set the icon texture
         button.icon:Show()                   -- Show the icon
+        button.icon_form = slot              -- refresh_icons re-reads the form icon
         button.slot = nil
         addon:SetButtonActionSlot(button, nil)
         button.pet_action_index = nil
@@ -3390,6 +3498,7 @@ function addon:process_addon_stance(binding, button)
     if icon then
         button.icon:SetTexture(icon)
         button.icon:Show()
+        button.icon_form = stance_index
         button.slot = nil
         addon:SetButtonActionSlot(button, nil)
         button.pet_action_index = nil
@@ -3415,6 +3524,7 @@ function addon:process_spell(spell_name, button)
     if spell_icon then
         button.icon:SetTexture(spell_icon)  -- Set the icon texture
         button.icon:Show()                  -- Show the icon
+        button.icon_spell = spell_name      -- overrides change it; see refresh_icons
     end
 end
 
@@ -3428,6 +3538,7 @@ function addon:process_macro(macro_name, button)
     if icon then
         button.icon:SetTexture(icon)  -- Set the icon texture
         button.icon:Show()            -- Show the icon
+        button.icon_macro = macro_name -- conditional macros change it; see refresh_icons
     end
 end
 
@@ -3651,8 +3762,10 @@ function addon:sync_dragged_action_slots(button, slot_set)
     -- and restore secure type attribute. Defer one frame for WoW to update slot data.
     C_Timer.After(0, function()
         addon:refresh_equipped()
-        if button and button.active_slot then
-            addon:SetButtonActionSlot(button, button.active_slot)
+        if button then
+            -- Forget what was written so the sync rewrites this key in full.
+            button._secure_attrs = nil
+            addon:MarkSecureAttributesDirty()
         end
     end)
 end
@@ -3818,7 +3931,10 @@ local function clear_resolved_click_binding(binding)
     end
 end
 
-function addon:resolve_addon_slot(binding)
+-- `silent`: do not record a failure for /keyui diag. SyncSecureAttributes looks up all
+-- eight modifier layers of every key, and would otherwise count each unresolved binding
+-- eight times over on every sync.
+function addon:resolve_addon_slot(binding, silent)
     if type(binding) ~= "string" then
         return nil
     end
@@ -3893,7 +4009,7 @@ function addon:resolve_addon_slot(binding)
         return resolve_slot(multibar_slot, multibar_reason)
     end
 
-    if is_click_binding or is_elvui_binding then
+    if (is_click_binding or is_elvui_binding) and not silent then
         addon:TrackUnresolvedClickBinding(binding, unresolved_reason)
     end
 
@@ -3955,6 +4071,260 @@ function addon:process_dominos(binding, button)
 
         addon:update_assisted_combat_indicator(button, slot)
     end
+end
+
+-- ---------------------------------------------------------------------------
+-- Action slots without drawing, light icon refresh, secure attributes
+-- ---------------------------------------------------------------------------
+
+-- process_elvui/bartender/dominos and the generic CLICK fallback in set_key only give a
+-- key its action slot when the slot holds something with an icon.
+local function addon_slot_with_action(binding, silent)
+    local slot = addon:resolve_addon_slot(binding, silent)
+    if slot and HasAction(slot) and GetActionTexture(slot) then
+        return slot
+    end
+    return nil
+end
+
+-- n of "ACTIONBUTTON<n>", parsed once per binding string.
+local function actionbutton_index(binding, info)
+    local index = info.button_index
+    if index == nil then
+        index = tonumber(binding:match("^ACTIONBUTTON(%d+)$")) or false
+        info.button_index = index
+    end
+    return index or nil
+end
+
+-- The slot a key's binding points at right now, before the "is anything in it" check:
+-- what the process_* handlers store in button.slot. Only for bindings whose slot can
+-- move on its own -- ACTIONBUTTON with the page and bonus bar, addon buttons with their
+-- addon's paging. Returns false for every other binding.
+local function live_binding_slot(binding, info)
+    local kind = info.entry and info.entry.kind
+    if kind == "actionbutton" then
+        local button_index = actionbutton_index(binding, info)
+        return button_index and actionbutton_slot(button_index, true) or nil
+    elseif kind == "addon_slot" or (not info.entry and info.click_fallback) then
+        return addon:resolve_addon_slot(binding, true)
+    end
+    return false
+end
+
+-- The action slot addon:set_key would give a key bound to `binding` (its active_slot),
+-- worked out without touching the key. Uses the same helpers and the same rules as the
+-- process_* handlers: ACTIONBUTTON keeps its slot even when empty, so a cursor drop can
+-- land there; every other kind only counts when the slot is filled.
+function addon:resolve_action_slot(binding)
+    if type(binding) ~= "string" or binding == "" then
+        return nil
+    end
+
+    local info = binding_info(binding)
+    local kind = info.entry and info.entry.kind
+
+    if kind == "actionbutton" then
+        local button_index = actionbutton_index(binding, info)
+        return button_index and actionbutton_slot(button_index, true) or nil
+    elseif kind == "multiactionbar" then
+        local bar, bar_button = binding:match("^MULTIACTIONBAR(%d+)BUTTON(%d+)$")
+        local slot = multiactionbar_slot(tonumber(bar), tonumber(bar_button))
+        if slot and HasAction(slot) then
+            return slot
+        end
+        return nil
+    elseif kind == "addon_slot" or (not info.entry and info.click_fallback) then
+        return addon_slot_with_action(binding, true)
+    end
+    return nil
+end
+
+-- Re-reads only the icon of each shown key. For events that change what an icon looks
+-- like but not what a key is bound to: spell overrides (SPELL_UPDATE_ICON), macro
+-- conditions, attack icons that follow the shapeshift form (Blizzard re-reads the
+-- texture on UPDATE_SHAPESHIFT_FORM for the same reason, ActionButton.lua). A full
+-- set_key pass per such event used to rebuild every key several times a second in combat.
+--
+-- That full pass also happened to catch addon bars paging through their own state
+-- drivers (Bartender, Dominos, ElvUI), which no Blizzard event announces reliably. So
+-- each key first checks whether its binding now points at a different slot, and only
+-- such a key is rebuilt. Returns true when it was.
+local function refresh_button_icon(button)
+    local binding = button.binding
+    if binding and binding ~= "" then
+        local live_slot = live_binding_slot(binding, binding_info(binding))
+        if live_slot ~= false and live_slot ~= button.slot then
+            addon:set_key(button)
+            return true
+        end
+    end
+
+    if not button.icon:IsShown() then
+        return false
+    end
+
+    local texture
+    if button.active_slot then
+        texture = GetActionTexture(button.active_slot)
+    elseif button.icon_form then
+        texture = GetShapeshiftFormInfo(button.icon_form)
+    elseif button.icon_spell then
+        texture = C_Spell.GetSpellTexture(button.icon_spell)
+    elseif button.icon_macro then
+        local _, icon = GetMacroInfo(button.icon_macro)
+        texture = icon
+    end
+
+    if texture and texture ~= button._icon_tex then
+        button._icon_tex = texture
+        button.icon:SetTexture(texture)
+    end
+    return false
+end
+
+local function refresh_collection_icons(collection)
+    local rebuilt = 0
+    for i = 1, #collection do
+        if refresh_button_icon(collection[i]) then
+            rebuilt = rebuilt + 1
+        end
+    end
+    return rebuilt
+end
+
+-- Returns how many keys had to be rebuilt because their slot moved.
+function addon:refresh_icons()
+    local rebuilt = 0
+    if addon.is_keyboard_visible ~= false then
+        rebuilt = rebuilt + refresh_collection_icons(addon.keys_keyboard)
+    end
+    if addon.is_mouse_visible ~= false then
+        rebuilt = rebuilt + refresh_collection_icons(addon.keys_mouse)
+    end
+    if addon.is_controller_visible ~= false then
+        rebuilt = rebuilt + refresh_collection_icons(addon.keys_controller)
+    end
+    if rebuilt > 0 then
+        addon:MarkSecureAttributesDirty()
+    end
+    return rebuilt
+end
+
+-- Secure attributes ----------------------------------------------------------
+--
+-- A KeyUI key is a SecureActionButtonTemplate, so clicking it uses the action in its
+-- "action" attribute -- and attributes cannot be written during combat. Reading
+-- bindings can, so the display keeps following modifiers, pages and forms in combat; the
+-- click would not, and kept using whatever slot was written before the fight.
+--
+-- The secure template picks a modified attribute by itself, though: holding Shift makes
+-- it look for "shift-type"/"shift-action" first (SecureButton_GetModifierPrefix,
+-- SecureTemplates.lua). So all eight modifier layers are worked out ahead of time and
+-- written as prefixed attributes while that is still allowed. A Shift+click in combat
+-- then uses the Shift layer's slot without anything being written.
+--
+-- Limits: what is written is the state at the last sync. Paging during combat (forms,
+-- stealth, Bartender/Dominos/ElvUI paging, vehicles) still shows the right icons but
+-- clicks the slot from before the page change; see COMPATIBILITY.md.
+
+local secure_sync_scheduled = false
+
+-- Per-layer attributes follow the held modifiers, which only matches the display while
+-- KeyUI itself follows them: "Detect Modifier" on and no modifier checkbox pinned. In
+-- every other case the keys show one layer, and the click uses that one layer too.
+function addon:UsesPerLayerSecureAttributes()
+    return keyui_settings.listen_to_modifier == true
+        and not (self.alt_checkbox or self.ctrl_checkbox or self.shift_checkbox)
+end
+
+local function write_secure_attribute(button, name, value)
+    local written = button._secure_attrs
+    if not written then
+        written = {}
+        button._secure_attrs = written
+    end
+    local marker = value
+    if marker == nil then
+        marker = addon.SECURE_ATTRIBUTE_NIL
+    end
+    if written[name] == marker then
+        return
+    end
+    written[name] = marker
+    button:SetAttribute(name, value)
+end
+
+local function sync_button_attributes(button, per_layer)
+    local layers = addon.SECURE_MODIFIER_LAYERS
+    local raw_key = button.raw_key or ""
+
+    for i = 1, #layers do
+        local prefix = layers[i].prefix
+        local slot
+        if per_layer then
+            if raw_key ~= "" then
+                slot = addon:resolve_action_slot(lookup_binding(layers[i].layer .. raw_key))
+            end
+        elseif prefix == "" then
+            slot = button.active_slot
+        end
+
+        if prefix == "" then
+            write_secure_attribute(button, "type", slot and "action" or nil)
+            write_secure_attribute(button, "action", slot)
+        elseif per_layer then
+            -- A layer without a slot must not fall through to the unprefixed "type":
+            -- that would use the bare layer's action. Left without an "action",
+            -- SecureActionButtonMixin:CalculateAction would even fall back to slot 1.
+            write_secure_attribute(button, prefix .. "type", slot and "action" or ATTRIBUTE_NOOP)
+            write_secure_attribute(button, prefix .. "action", slot)
+        else
+            write_secure_attribute(button, prefix .. "type", nil)
+            write_secure_attribute(button, prefix .. "action", nil)
+        end
+    end
+end
+
+-- Writes the secure click attributes of every shown key, if anything changed since the
+-- last sync. Never during combat: the attributes stay as they are and
+-- PLAYER_REGEN_ENABLED syncs again. Only values that differ from the last write reach
+-- SetAttribute.
+function addon:SyncSecureAttributes()
+    if not self.secure_attrs_dirty then
+        return
+    end
+    if InCombatLockdown() then
+        return
+    end
+    self.secure_attrs_dirty = false
+
+    local per_layer = self:UsesPerLayerSecureAttributes()
+    if self.is_keyboard_visible ~= false then
+        for i = 1, #self.keys_keyboard do sync_button_attributes(self.keys_keyboard[i], per_layer) end
+    end
+    if self.is_mouse_visible ~= false then
+        for i = 1, #self.keys_mouse do sync_button_attributes(self.keys_mouse[i], per_layer) end
+    end
+    if self.is_controller_visible ~= false then
+        for i = 1, #self.keys_controller do sync_button_attributes(self.keys_controller[i], per_layer) end
+    end
+end
+
+local function run_scheduled_secure_sync()
+    secure_sync_scheduled = false
+    addon:SyncSecureAttributes()
+end
+
+-- Flags the attributes as stale and syncs them on the next frame, once, however many
+-- refreshes ask for it in between.
+function addon:MarkSecureAttributesDirty()
+    self.secure_attrs_dirty = true
+    if secure_sync_scheduled then
+        return
+    end
+    secure_sync_scheduled = true
+    C_Timer.After(0, run_scheduled_secure_sync)
 end
 
 -- ---------------------------------------------------------------------------
@@ -4173,11 +4543,8 @@ function addon:update_button_key_text(button)
             if not keyui_settings.dynamic_modifier then -- Check if dynamic modifier is disabled
                 button.short_key:SetText(readable_text) -- Set only the readable text, without a modifier
             else
-                -- Shorten existing modifiers in original_text
-                local shorten_modifier_string = (addon.current_modifier_string or "")
-                    :gsub("ALT%-", "a-")   -- Shorten ALT
-                    :gsub("CTRL%-", "c-")  -- Shorten CTRL
-                    :gsub("SHIFT%-", "s-") -- Shorten SHIFT
+                -- a-/c-/s- form of the modifiers, built once per change in update_modifier_string
+                local shorten_modifier_string = addon.short_modifier_string or ""
 
                 -- Append the shortened modifier string to the readable text
                 if shorten_modifier_string ~= "" then
@@ -4193,13 +4560,20 @@ function addon:update_button_key_text(button)
     local max_allowed_chars = math.floor(button:GetWidth() / 9)
     local combined_text = button.short_key:GetText() or "" -- Combined text with modifiers if present / Use empty string if GetText() returns nil
 
-    -- Use Condensed font if the combined text exceeds max_allowed_chars
+    -- Condensed font if the combined text exceeds max_allowed_chars, Regular otherwise.
+    -- SetFont makes the font string lay its text out again, and this runs for every key
+    -- on every refresh, so only call it when the choice actually changes.
+    local font_path
     if string.len(combined_text) > max_allowed_chars then
-        -- Use the Condensed font for longer text
-        button.short_key:SetFont(addon:GetCondensedFont(), addon:GetFontSize(1.0), "OUTLINE")
+        font_path = addon:GetCondensedFont()
     else
-        -- Use the Regular font for shorter text
-        button.short_key:SetFont(addon:GetFont(), addon:GetFontSize(1.0), "OUTLINE")
+        font_path = addon:GetFont()
+    end
+    local font_size = addon:GetFontSize(1.0)
+    if button._short_key_font ~= font_path or button._short_key_size ~= font_size then
+        button._short_key_font = font_path
+        button._short_key_size = font_size
+        button.short_key:SetFont(font_path, font_size, "OUTLINE")
     end
 end
 
@@ -4254,11 +4628,9 @@ local function resolve_click_binding_label(binding)
     return nil
 end
 
--- Sets and displays the interface action label
-function addon:create_action_labels(binding, button)
-    -- Adjust the width of the readable_binding based on button width
-    button.readable_binding:SetWidth(button:GetWidth() - 4)
-
+-- Works out the readable label for a binding string. Pure per string, so
+-- create_action_labels keeps the result in binding_info.
+local function compute_action_label(binding)
     local binding_name = resolve_click_binding_label(binding)
     local loaded_integrations = addon.loaded_integrations or {}
 
@@ -4324,6 +4696,21 @@ function addon:create_action_labels(binding, button)
         binding_name = _G["BINDING_NAME_" .. binding] or binding
     end
 
+    return binding_name
+end
+
+-- Sets and displays the interface action label
+function addon:create_action_labels(binding, button)
+    -- Adjust the width of the readable_binding based on button width
+    button.readable_binding:SetWidth(button:GetWidth() - 4)
+
+    local info = binding_info(binding)
+    local binding_name = info.label
+    if not binding_name then
+        binding_name = compute_action_label(binding)
+        info.label = binding_name
+    end
+
     -- Set the readable binding text
     button.readable_binding:SetText(binding_name)
 
@@ -4348,6 +4735,8 @@ end
 function addon:refresh_keys()
     -- Clique edits mutate its tables in place, so rebuild the lookup each pass.
     addon.clique_generation = (addon.clique_generation or 0) + 1
+    -- Slots may have moved; the click attributes follow on the next frame (out of combat).
+    addon:MarkSecureAttributesDirty()
 
     local perf_start = get_perf_timestamp()
 
@@ -4458,7 +4847,11 @@ local function refresh_modifier_layer_for_collection(collection)
     return changed_count
 end
 
-function addon:refresh_modifier_layers()
+-- Redraws only the keys whose binding differs from what they show, and refreshes the
+-- caption of the rest. Used when the modifier layer changes and on UPDATE_BINDINGS:
+-- neither moves a key, so neither needs refresh_layouts. That also keeps both working in
+-- combat, where refresh_layouts is deferred until the fight ends.
+function addon:refresh_changed_bindings()
     local changed_count = 0
     if addon.is_keyboard_visible ~= false then
         changed_count = changed_count + refresh_modifier_layer_for_collection(addon.keys_keyboard)
@@ -4473,11 +4866,14 @@ function addon:refresh_modifier_layers()
 end
 
 function addon:update_modifier_string()
-    local modifiers = {}
-    if addon.modif.ALT then table.insert(modifiers, "ALT-") end
-    if addon.modif.CTRL then table.insert(modifiers, "CTRL-") end
-    if addon.modif.SHIFT then table.insert(modifiers, "SHIFT-") end
-    addon.current_modifier_string = table.concat(modifiers)
+    local modif = addon.modif
+    addon.current_modifier_string = (modif.ALT and "ALT-" or "")
+        .. (modif.CTRL and "CTRL-" or "")
+        .. (modif.SHIFT and "SHIFT-" or "")
+    -- The a-/c-/s- form update_button_key_text shows with "dynamic modifier" on.
+    addon.short_modifier_string = (modif.ALT and "a-" or "")
+        .. (modif.CTRL and "c-" or "")
+        .. (modif.SHIFT and "s-" or "")
 end
 
 local function add_button_to_lookup(lookup, button)
@@ -4671,13 +5067,16 @@ local modifier_keys = {
     RSHIFT = { mod = "SHIFT", control_key = "shift_cb" },
 }
 
+-- With or without "dynamic modifier": the diff pass rewrites every caption anyway, so
+-- the modifier prefix shown on unchanged keys follows too; a full refresh_keys per
+-- modifier press is not needed.
 local function refresh_after_modifier_change()
-    if keyui_settings.dynamic_modifier then
-        addon:refresh_keys()
-        return
+    local changed_count = addon:refresh_changed_bindings()
+    -- Per-layer attributes already cover every modifier combination; only the
+    -- single-layer kind follows the modifier that is down right now.
+    if changed_count > 0 and not addon:UsesPerLayerSecureAttributes() then
+        addon:MarkSecureAttributesDirty()
     end
-
-    local changed_count = addon:refresh_modifier_layers()
     if changed_count > 0 and addon.current_hovered_button then
         addon:button_mouse_over(addon.current_hovered_button)
     end
@@ -5176,6 +5575,7 @@ local function reset_pending_updates()
         equipped = false,
         petautocast = false,
         assist_overlay = false,
+        icons = false,
         slot_changes = {},
     }
 end
@@ -5217,7 +5617,9 @@ flush_pending_updates = function()
     addon.flush_scheduled = false
 
     local pending = addon.pending
-    local should_refresh_layouts = pending.layout or pending.bindings
+    local should_refresh_layouts = pending.layout
+    local should_refresh_bindings = pending.bindings
+    local should_refresh_icons = pending.icons
     local should_refresh_keys = pending.keys
     local should_refresh_tooltip = pending.tooltip
     local should_reload_spellbook = pending.spellbook
@@ -5243,13 +5645,36 @@ flush_pending_updates = function()
 
     if should_refresh_layouts then
         addon:refresh_layouts()
-    elseif should_refresh_keys then
-        local did_partial_refresh = false
-        if pending_slot_changes and next(pending_slot_changes) and not has_ambiguous_slot_mappings() then
-            did_partial_refresh = addon:refresh_keys_for_slots(pending_slot_changes)
+    else
+        -- A full refresh_keys covers bindings and icons as well; the cheaper passes below
+        -- only run when it did not happen.
+        local did_full_refresh = false
+        if should_refresh_keys then
+            local did_partial_refresh = false
+            if pending_slot_changes and next(pending_slot_changes) and not has_ambiguous_slot_mappings() then
+                did_partial_refresh = addon:refresh_keys_for_slots(pending_slot_changes)
+            end
+            if not did_partial_refresh then
+                addon:refresh_keys()
+                did_full_refresh = true
+            end
+            -- A slot that filled or emptied can change another modifier layer's
+            -- attributes even when no key on screen shows that slot right now.
+            addon:MarkSecureAttributesDirty()
         end
-        if not did_partial_refresh then
-            addon:refresh_keys()
+
+        if should_refresh_bindings and not did_full_refresh then
+            if addon:refresh_changed_bindings() > 0 and addon.current_hovered_button then
+                should_refresh_tooltip = true
+            end
+            -- Any layer may have changed, not just the one on screen.
+            addon:MarkSecureAttributesDirty()
+        end
+
+        if should_refresh_icons and not did_full_refresh then
+            if addon:refresh_icons() > 0 and addon.current_hovered_button then
+                should_refresh_tooltip = true
+            end
         end
     end
 
@@ -5313,52 +5738,134 @@ do
     end)
 end
 
-local shared_events = {
-    "UPDATE_BONUS_ACTIONBAR",
-    "ACTIONBAR_PAGE_CHANGED",
-    "ACTIVE_TALENT_GROUP_CHANGED",
-    "SPELLS_CHANGED",
-    "UPDATE_BINDINGS",
-    "MODIFIER_STATE_CHANGED",
-    "ACTIONBAR_SLOT_CHANGED",
-    "ACTIONBAR_UPDATE_STATE",
-    "UPDATE_SHAPESHIFT_FORM",
-    "UPDATE_SHAPESHIFT_FORMS",
-    "UPDATE_SHAPESHIFT_USABLE",
-    "UPDATE_SHAPESHIFT_COOLDOWN",
-    "ACTIONBAR_UPDATE_USABLE",
-    "SPELL_UPDATE_COOLDOWN",
-    "SPELL_UPDATE_CHARGES",
-    "PET_BAR_UPDATE",
-    "PET_BAR_UPDATE_COOLDOWN",
-    "PET_BAR_UPDATE_USABLE",
-    "UNIT_PET",
-    "UPDATE_VEHICLE_ACTIONBAR",
+-- Events KeyUI needs whether or not it is open: start-up, integrations loading, combat
+-- transitions (deferred hides, ESC handling, the secure attribute sync) and binding
+-- changes (the binding caches must never go stale, open or not).
+local permanent_events = {
+    "PLAYER_LOGIN",
+    "PLAYER_LOGOUT",
     "ADDON_LOADED",
     "PLAYER_REGEN_ENABLED",
     "PLAYER_REGEN_DISABLED",
-    "PLAYER_LOGOUT",
-    "PLAYER_LOGIN",
-    -- New: auto-attack flash
-    "PLAYER_ENTER_COMBAT",
-    "PLAYER_LEAVE_COMBAT",
-    "START_AUTOREPEAT_SPELL",
-    "STOP_AUTOREPEAT_SPELL",
-    -- New: equipped border
-    "UNIT_INVENTORY_CHANGED",
-    "UPDATE_INVENTORY_ALERTS",
-    -- New: loss-of-control cooldown
-    "LOSS_OF_CONTROL_ADDED",
-    "LOSS_OF_CONTROL_UPDATE",
-    -- New: proc glow
-    "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW",
-    "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE",
+    "UPDATE_BINDINGS",
+    "BINDINGS_LOADED", -- skipped by compat.register_event where the client lacks it
 }
 
-for _, event_name in ipairs(shared_events) do
+-- Events that only matter for keys on screen. They are registered while KeyUI is open
+-- and dropped while it is closed -- by default that includes every fight, since KeyUI
+-- closes when combat starts -- so a closed KeyUI costs nothing per event.
+-- `unit` entries go through RegisterUnitEvent.
+local open_only_events = {
+    { "UPDATE_BONUS_ACTIONBAR" },
+    { "ACTIONBAR_PAGE_CHANGED" },
+    { "ACTIVE_TALENT_GROUP_CHANGED" },
+    { "SPELLS_CHANGED" },
+    { "MODIFIER_STATE_CHANGED" },
+    { "ACTIONBAR_SLOT_CHANGED" },
+    { "ACTIONBAR_UPDATE_STATE" },
+    { "UPDATE_SHAPESHIFT_FORM" },
+    { "UPDATE_SHAPESHIFT_FORMS" },
+    { "UPDATE_SHAPESHIFT_USABLE" },
+    { "UPDATE_SHAPESHIFT_COOLDOWN" },
+    { "ACTIONBAR_UPDATE_USABLE" },
+    { "SPELL_UPDATE_COOLDOWN" },
+    { "SPELL_UPDATE_CHARGES" },
+    { "SPELL_UPDATE_ICON" },
+    { "UPDATE_MACROS" },
+    { "PET_BAR_UPDATE" },
+    { "PET_BAR_UPDATE_COOLDOWN" },
+    { "PET_BAR_UPDATE_USABLE" },
+    { "UNIT_PET", "player" },
+    { "UPDATE_VEHICLE_ACTIONBAR" },
+    -- auto-attack flash
+    { "PLAYER_ENTER_COMBAT" },
+    { "PLAYER_LEAVE_COMBAT" },
+    { "START_AUTOREPEAT_SPELL" },
+    { "STOP_AUTOREPEAT_SPELL" },
+    -- equipped border
+    { "UNIT_INVENTORY_CHANGED", "player" },
+    { "UPDATE_INVENTORY_ALERTS" },
+    -- loss-of-control cooldown
+    { "LOSS_OF_CONTROL_ADDED" },
+    { "LOSS_OF_CONTROL_UPDATE" },
+    -- proc glow
+    { "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" },
+    { "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" },
+}
+
+for _, event_name in ipairs(permanent_events) do
     addon.compat.register_event(eventFrame, event_name)
 end
-addon.compat.register_event(eventFrame, "BINDINGS_LOADED")
+
+local open_events_registered = {}
+
+local function register_open_events()
+    for _, spec in ipairs(open_only_events) do
+        local event_name = spec[1]
+        if not open_events_registered[event_name]
+            and addon.compat.register_event(eventFrame, event_name, spec[2]) then
+            open_events_registered[event_name] = true
+        end
+    end
+end
+
+local function unregister_open_events()
+    for event_name in pairs(open_events_registered) do
+        eventFrame:UnregisterEvent(event_name)
+    end
+    wipe(open_events_registered)
+end
+
+local function hide_all_proc_glows()
+    for _, collection in ipairs({ addon.keys_keyboard, addon.keys_mouse, addon.keys_controller }) do
+        for i = 1, #collection do
+            addon:HideButtonProcGlow(collection[i])
+        end
+    end
+end
+
+-- Held modifiers are tracked through MODIFIER_STATE_CHANGED, which a closed KeyUI does
+-- not hear. Read them again on opening, as that handler would have left them.
+local function sync_modifiers_from_keyboard()
+    if keyui_settings.listen_to_modifier ~= true then
+        return
+    end
+    if addon.alt_checkbox or addon.ctrl_checkbox or addon.shift_checkbox then
+        return
+    end
+
+    addon.modif.ALT = IsAltKeyDown() and true or false
+    addon.modif.CTRL = IsControlKeyDown() and true or false
+    addon.modif.SHIFT = IsShiftKeyDown() and true or false
+
+    local controls = addon.controls_frame
+    if controls then
+        if controls.alt_cb then controls.alt_cb:SetChecked(addon.modif.ALT) end
+        if controls.ctrl_cb then controls.ctrl_cb:SetChecked(addon.modif.CTRL) end
+        if controls.shift_cb then controls.shift_cb:SetChecked(addon.modif.SHIFT) end
+    end
+
+    addon:update_modifier_string()
+end
+
+-- Called by addon:set_open on every open/close transition.
+function addon:on_open_state_changed(is_open)
+    if is_open then
+        register_open_events()
+        -- Nothing tracked these while closed.
+        addon.bonusbar_offset = GetBonusBarOffset()
+        addon.current_actionbar_page = GetActionBarPage()
+        sync_modifiers_from_keyboard()
+        if addon.flash_frame then
+            addon.flash_frame:Show()
+        end
+    else
+        unregister_open_events()
+        -- SPELL_ACTIVATION_OVERLAY_GLOW_HIDE no longer arrives, so a glow shown now
+        -- would still be up when KeyUI opens again.
+        hide_all_proc_glows()
+    end
+end
 
 -- Shared event handler function
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -5382,9 +5889,26 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if loaded_addon_name and addon_pattern_registry[loaded_addon_name] then
             addon.loaded_integrations[loaded_addon_name] = true
             register_addon_patterns(loaded_addon_name)
-            mark_pending("layout")
-            schedule_flush()
+            if addon.open then
+                mark_pending("layout")
+                schedule_flush()
+            end
         end
+        return
+    end
+
+    if event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
+        -- Drop the caches right away, not in the deferred flush, so nothing reads a
+        -- binding that has just changed.
+        addon:InvalidateInterfaceBindings()
+        invalidate_binding_caches()
+        if not addon.open then
+            return
+        end
+        -- No key moves when a binding changes: redraw the keys whose binding differs,
+        -- which -- unlike refresh_layouts -- also works during combat.
+        mark_pending("bindings")
+        schedule_flush()
         return
     end
 
@@ -5401,10 +5925,15 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
             addon.combat_hide_queue = nil
         end
-        mark_pending("assist_overlay")
         addon:FlushDeferredUiUpdates()
-        if addon.open and keyui_settings.show_keypress_highlight then
-            addon:enable_keypress_input()
+        -- Attributes the fight left stale (pages, forms, layers) can be written again.
+        addon:SyncSecureAttributes()
+        if addon.open then
+            mark_pending("assist_overlay")
+            schedule_flush()
+            if keyui_settings.show_keypress_highlight then
+                addon:enable_keypress_input()
+            end
         end
         return
     end
@@ -5417,7 +5946,11 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         addon:disable_keypress_input()
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
-        else
+        elseif addon.open then
+            -- Lockdown begins once this event has been handled (hide_all_frames above
+            -- relies on that as well), so this is the last moment to write anything
+            -- still pending. SyncSecureAttributes checks InCombatLockdown itself.
+            addon:SyncSecureAttributes()
             addon:refresh_assist_overlays()
         end
         return
@@ -5429,6 +5962,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         addon:save_controller_position()
         return
     end
+
+    -- Everything below is registered only while KeyUI is open.
 
     if event == "MODIFIER_STATE_CHANGED" then
         local key, state = ...
@@ -5444,7 +5979,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
                     if addon.current_hovered_button then
                         mark_pending("tooltip")
-                        schedule_flush()
                     end
 
                     if addon.current_pushed_button then
@@ -5454,7 +5988,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
         end
         -- Modifier changes the active slot → equipped border may need to update.
-        addon:refresh_equipped()
+        mark_pending("equipped")
+        schedule_flush()
         return
     end
 
@@ -5466,27 +6001,20 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_pending("keys")
     elseif event == "ACTIONBAR_SLOT_CHANGED" then
         mark_slot_changed(...)
-        C_Timer.After(0, function() addon:refresh_equipped() end)
-    elseif event == "UPDATE_BINDINGS" or event == "BINDINGS_LOADED" then
-        addon:InvalidateInterfaceBindings()
-        mark_pending("bindings")
+        mark_pending("equipped")
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" then
-        mark_pending("layout")
-        if addon.open or not addon.spells or next(addon.spells) == nil then
-            mark_pending("spellbook")
-        end
+        -- A spec swap rebinds nothing and moves no key; slots and spells are what change.
+        mark_pending("keys")
+        mark_pending("spellbook")
     elseif event == "SPELLS_CHANGED" then
-        if addon.open or not addon.spells or next(addon.spells) == nil then
-            mark_pending("spellbook")
-        end
+        mark_pending("spellbook")
+        mark_pending("keys")
+    elseif event == "UPDATE_MACROS" then
+        -- Name and icon of keys bound straight to a macro ("Macro <name>").
         mark_pending("keys")
     elseif event == "UNIT_PET" then
-        local unit = ...
-        if unit == "player" then
-            mark_pending("keys")
-        else
-            return
-        end
+        -- Registered for "player" only.
+        mark_pending("keys")
     elseif event == "SPELL_UPDATE_COOLDOWN" then
         mark_pending("cooldowns")
     elseif event == "SPELL_UPDATE_CHARGES" then
@@ -5494,7 +6022,24 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_pending("counts")
     elseif event == "ACTIONBAR_UPDATE_USABLE" then
         mark_pending("usable")
-    elseif event == "ACTIONBAR_UPDATE_STATE" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_SHAPESHIFT_FORMS" or event == "UPDATE_SHAPESHIFT_USABLE" or event == "UPDATE_SHAPESHIFT_COOLDOWN" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" or event == "PET_BAR_UPDATE_COOLDOWN" or event == "PET_BAR_UPDATE_USABLE" then
+    -- State events. These fire many times a second in combat and change no binding and
+    -- no slot, so they get the matching cheap pass instead of a set_key on every key.
+    -- Blizzard's own buttons do the same (ActionButton.lua: UpdateState on
+    -- ACTIONBAR_UPDATE_STATE; StanceBar.lua and PetActionBar.lua: cooldowns only).
+    elseif event == "ACTIONBAR_UPDATE_STATE" then
+        -- Current/auto-repeat state drives the attack flash; macro icons follow it too.
+        mark_pending("flash")
+        mark_pending("icons")
+    elseif event == "UPDATE_SHAPESHIFT_FORM" or event == "SPELL_UPDATE_ICON" then
+        -- Attack and form icons change with the form; the page change that may come
+        -- with it arrives as UPDATE_BONUS_ACTIONBAR.
+        mark_pending("icons")
+    elseif event == "UPDATE_SHAPESHIFT_USABLE" or event == "PET_BAR_UPDATE_USABLE" then
+        mark_pending("usable")
+    elseif event == "UPDATE_SHAPESHIFT_COOLDOWN" or event == "PET_BAR_UPDATE_COOLDOWN" then
+        mark_pending("cooldowns")
+    elseif event == "UPDATE_SHAPESHIFT_FORMS" or event == "UPDATE_VEHICLE_ACTIONBAR" or event == "PET_BAR_UPDATE" then
+        -- Forms learned, vehicle bar swapped, pet bar rebuilt: what the keys show changes.
         mark_pending("keys")
         mark_pending("usable")
         if event == "PET_BAR_UPDATE" then mark_pending("petautocast") end
@@ -5507,7 +6052,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         mark_pending("cooldowns")
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
         local spellID = ...
-        if addon.open and spellID then
+        if spellID then
             addon:HandleProcGlowShow(spellID)
         end
         return

@@ -115,6 +115,7 @@ addon.current_actionbar_page = 1
 
 addon.modif = addon.modif or { ALT = false, CTRL = false, SHIFT = false }
 addon.current_modifier_string = ""
+addon.short_modifier_string = ""
 addon.alt_checkbox = false
 addon.ctrl_checkbox = false
 addon.shift_checkbox = false
@@ -211,19 +212,23 @@ function addon:ReleaseFontStrings(owners)
 end
 
 function addon:RefreshAllFonts()
+    local regular, condensed = self:GetFont(), self:GetCondensedFont()
     for fontString, entry in pairs(self._fontRegistry) do
-        local path = entry.condensed and self:GetCondensedFont() or self:GetFont()
+        local path = entry.condensed and condensed or regular
         local size = self:GetFontSize(entry.ratio)
         fontString:SetFont(path, size, entry.flags or "")
     end
 
-    if self.keyboard_frame and self.keyboard_frame.RefreshLayout then
-        self.keyboard_frame:RefreshLayout()
-    end
-    if self.mouse_frame and self.mouse_frame.RefreshLayout then
-        self.mouse_frame:RefreshLayout()
-    end
-    if self.controller_frame and self.controller_frame.RefreshLayout then
-        self.controller_frame:RefreshLayout()
+    -- The key captions (short_key) are not in the registry: update_button_key_text picks
+    -- their font per key, regular or condensed by text length. Redraw the keys so they
+    -- follow -- once per frame, since the size slider calls this on every step.
+    if self.open and not self.font_refresh_scheduled then
+        self.font_refresh_scheduled = true
+        C_Timer.After(0, function()
+            addon.font_refresh_scheduled = false
+            if addon.open then
+                addon:refresh_keys()
+            end
+        end)
     end
 end

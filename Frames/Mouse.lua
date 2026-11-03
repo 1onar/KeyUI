@@ -286,6 +286,10 @@ end
 
 -- Discards any changes made to the mouse layout and resets the Control UI state
 function addon:discard_mouse_changes()
+    -- Nothing moved while the device stayed locked and unedited, so the keys on screen
+    -- already match the saved layout. Rebuilding them anyway made every close button run
+    -- a full refresh_layouts right before hiding the frame.
+    local needs_rebuild = addon.mouse_locked == false or addon.keys_mouse_edited == true
 
     if addon.keys_mouse_edited == true then
         -- Print message to the player
@@ -301,7 +305,9 @@ function addon:discard_mouse_changes()
         addon.mouse_image.edit_frame:Hide()
     end
 
-    addon:refresh_layouts()
+    if needs_rebuild then
+        addon:refresh_layouts()
+    end
 end
 
 local modifier_keys = {
@@ -350,8 +356,8 @@ function addon:generate_mouse_key_frames()
         end
     end
 
+    -- Click-through is applied once by the caller (refresh_layouts), not once per device.
     addon:ReleaseUnusedKeyButtons("mouse", active_count, addon.keys_mouse)
-    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main mouse image frame.
@@ -365,18 +371,9 @@ function addon:create_mouse_buttons(index)
         or  "SecureActionButtonTemplate"
     local mouse_button = CreateFrame("CheckButton", name, addon.mouse_image, templates)
 
-    -- Fire actions on release only. Registering LeftButtonDown/RightButtonDown
-    -- caused the secure UseAction to run before the drag threshold was reached,
-    -- casting the spell when the user tried to drag the slot.
-    -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
-    -- which would suppress the AnyUp event entirely; explicitly pinning
-    -- useOnKeyDown=false overrides the CVar so the click fires on release.
-    -- type2 = ATTRIBUTE_NOOP keeps the right-click that opens the menu from also using
-    -- the action; see create_keyboard_buttons.
-    mouse_button:RegisterForClicks("AnyUp")
+    -- Release-only clicks, and no action on right-click; see InitSecureClickAttributes.
+    addon:InitSecureClickAttributes(mouse_button)
     mouse_button:RegisterForDrag("LeftButton", "RightButton")
-    mouse_button:SetAttribute("useOnKeyDown", false)
-    mouse_button:SetAttribute("type2", ATTRIBUTE_NOOP)
     mouse_button:EnableMouse(true)
     mouse_button:EnableKeyboard(true)
     mouse_button:EnableGamePadButton(true)

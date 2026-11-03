@@ -389,7 +389,9 @@ function addon:create_controls()
             keyui_settings.listen_to_modifier = false
         end
 
-        -- Optionally: Add any additional logic you want to trigger here
+        -- Decides whether a click follows the held modifiers (per-layer secure
+        -- attributes) or always uses the layer on screen; see SyncSecureAttributes.
+        addon:MarkSecureAttributesDirty()
     end)
 
     -- Set the tooltip for the detect modifier checkbox

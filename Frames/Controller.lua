@@ -285,106 +285,98 @@ function addon:create_controller_frame()
     return controller_frame
 end
 
+-- Artwork per controller system: the controller body and its button lines, with anchors
+-- relative to controller_frame, plus the frame size each one needs.
+local CONTROLLER_ARTWORK = {
+    xbox = {
+        body  = { file = "xbox", point = { "BOTTOM", "BOTTOM", -1, 40 }, size = { 512, 512 } },
+        lines = { file = "lines_xbox", offset = { -2, 0 }, size = { 1200, 600 } },
+        height = 530,
+    },
+    ds4 = {
+        body  = { file = "ds4", point = { "BOTTOM", "BOTTOM", -2, 0 }, size = { 512, 512 } },
+        lines = { file = "lines_ds4", offset = { -2, 0 }, size = { 1200, 590 } },
+        height = 516,
+    },
+    ds5 = {
+        body  = { file = "ds5", point = { "BOTTOM", "BOTTOM", -3, 0 }, size = { 512, 512 } },
+        lines = { file = "lines_ds5", offset = { -1, 0 }, size = { 1150, 590 } },
+        height = 516,
+        width = 920,
+    },
+    deck = {
+        -- The deck has no line overlay yet (Media/Frame/Controller/lines_deck.blp is unused).
+        body  = { file = "deck", point = { "CENTER", "CENTER", 0, 10 }, size = { 512, 512 } },
+        height = 600,
+        width = 920,
+    },
+    -- "generic": coming soon
+}
+
+local CONTROLLER_MEDIA = "Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\"
+
+-- Builds the controller artwork for addon.controller_system on a single, reused frame.
+--
+-- This used to create a new named frame on every call, and show_frames calls it on every
+-- open: with no controller layout selected it returned nil, so the next open made yet
+-- another one. WoW never frees frames, so each open leaked a frame (and, with ESC-close
+-- on, another UISpecialFrames entry). Now there is one frame, its two textures are
+-- re-pointed, and the frame is always returned.
 function addon:create_controller_image()
-    -- Create controller_image as a child of controller_frame
-    local controller_image = CreateFrame("Frame", "keyui_controller_image", addon.controller_frame)
-    addon.controller_image = controller_image
+    local controller_image = addon.controller_image
+    if not controller_image then
+        controller_image = CreateFrame("Frame", "keyui_controller_image", addon.controller_frame)
+        controller_image.body = controller_image:CreateTexture(nil, "ARTWORK")
+        controller_image.lines = controller_image:CreateTexture(nil, "OVERLAY")
+        addon.controller_image = controller_image
 
-    -- Add to UISpecialFrames to allow closing with ESC key if the setting permits
-    if keyui_settings.close_on_esc == true then
-        tinsert(UISpecialFrames, "keyui_controller_image")
+        -- Add to UISpecialFrames to allow closing with ESC key if the setting permits
+        if keyui_settings.close_on_esc == true then
+            tinsert(UISpecialFrames, "keyui_controller_image")
+        end
     end
 
-    -- Check for the controller system type
-    if addon.controller_system == "generic" then
-        -- coming soon
+    local artwork = CONTROLLER_ARTWORK[addon.controller_system]
+    controller_image.shown_system = addon.controller_system
 
-    elseif addon.controller_system == "xbox" then
-        -- Add Xbox controller texture
-        controller_image.xbox = controller_image:CreateTexture(nil, "ARTWORK")
-        controller_image.xbox:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\xbox.blp")
-        controller_image.xbox:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -1, 40)
-        controller_image.xbox:SetSize(512, 512)
-
-        -- Add lines overlay texture for the Xbox controller
-        controller_image.xbox_lines = controller_image:CreateTexture(nil, "OVERLAY")
-        controller_image.xbox_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_xbox.blp")
-        controller_image.xbox_lines:SetPoint("CENTER", controller_image.xbox, "CENTER", -2, 0)
-        controller_image.xbox_lines:SetSize(1200, 600)
-
-        addon.controller_frame:SetHeight(530)
-
-        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
-
-    elseif addon.controller_system == "ds4" then
-        -- Add ds4 controller texture
-        controller_image.ds4 = controller_image:CreateTexture(nil, "ARTWORK")
-        controller_image.ds4:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\ds4.blp")
-        controller_image.ds4:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -2, 0)
-        controller_image.ds4:SetSize(512, 512)
-
-        -- Add lines overlay texture for the ds4 controller
-        controller_image.ds4_lines = controller_image:CreateTexture(nil, "OVERLAY")
-        controller_image.ds4_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_ds4.blp")
-        controller_image.ds4_lines:SetPoint("CENTER", controller_image.ds4, "CENTER", -2, 0)
-        controller_image.ds4_lines:SetSize(1200, 590)
-
-        addon.controller_frame:SetHeight(516)
-
-        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
-
-    elseif addon.controller_system == "ds5" then
-        -- Add ds5 controller texture
-        controller_image.ds5 = controller_image:CreateTexture(nil, "ARTWORK")
-        controller_image.ds5:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\ds5.blp")
-        controller_image.ds5:SetPoint("BOTTOM", addon.controller_frame, "BOTTOM", -3, 0)
-        controller_image.ds5:SetSize(512, 512)
-
-        -- Add lines overlay texture for the ds5 controller
-        controller_image.ds5_lines = controller_image:CreateTexture(nil, "OVERLAY")
-        controller_image.ds5_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_ds5.blp")
-        controller_image.ds5_lines:SetPoint("CENTER", controller_image.ds5, "CENTER", -1, 0)
-        controller_image.ds5_lines:SetSize(1150, 590)
-
-        addon.controller_frame:SetHeight(516)
-        addon.controller_frame:SetWidth(920)
-
-        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
-
-    elseif addon.controller_system == "deck" then
-        -- Add deck controller texture
-        controller_image.deck = controller_image:CreateTexture(nil, "ARTWORK")
-        controller_image.deck:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\deck.blp")
-        controller_image.deck:SetPoint("CENTER", addon.controller_frame, "CENTER", 0, 10)
-        controller_image.deck:SetSize(512, 512)
-
-        -- Add lines overlay texture for the deck controller
-        -- controller_image.deck_lines = controller_image:CreateTexture(nil, "OVERLAY")
-        -- controller_image.deck_lines:SetTexture("Interface\\AddOns\\KeyUI\\Media\\Frame\\Controller\\lines_deck.blp")
-        -- controller_image.deck_lines:SetPoint("CENTER", controller_image.deck, "CENTER", -1, 0)
-        -- controller_image.deck_lines:SetSize(1150, 590)
-
-        addon.controller_frame:SetHeight(600)
-        addon.controller_frame:SetWidth(920)
-
-        addon.controller_frame.edit_frame:SetSize(addon.controller_frame:GetWidth(), addon.controller_frame:GetHeight())
-
-    else
-        return
+    local body, lines = controller_image.body, controller_image.lines
+    body:Hide()
+    lines:Hide()
+    if not artwork then
+        return controller_image
     end
+
+    local frame = addon.controller_frame
+    local point = artwork.body.point
+    body:SetTexture(CONTROLLER_MEDIA .. artwork.body.file .. ".blp")
+    body:ClearAllPoints()
+    body:SetPoint(point[1], frame, point[2], point[3], point[4])
+    body:SetSize(artwork.body.size[1], artwork.body.size[2])
+    body:Show()
+
+    if artwork.lines then
+        lines:SetTexture(CONTROLLER_MEDIA .. artwork.lines.file .. ".blp")
+        lines:ClearAllPoints()
+        lines:SetPoint("CENTER", body, "CENTER", artwork.lines.offset[1], artwork.lines.offset[2])
+        lines:SetSize(artwork.lines.size[1], artwork.lines.size[2])
+        lines:Show()
+    end
+
+    frame:SetHeight(artwork.height)
+    if artwork.width then
+        frame:SetWidth(artwork.width)
+    end
+    frame.edit_frame:SetSize(frame:GetWidth(), frame:GetHeight())
 
     return controller_image
 end
 
 function addon:update_controller_image()
-    -- Check if a controller image already exists and hide it if so
-    if addon.controller_image then
-        addon.controller_image:Hide()
-        addon.controller_image:ClearAllPoints()
-        addon.controller_image:SetParent(nil)
+    -- Already showing this system: nothing to redo.
+    local controller_image = addon.controller_image
+    if controller_image and controller_image.shown_system == addon.controller_system then
+        return
     end
-
-    -- Create a new controller image based on the current system type
     addon:create_controller_image()
 end
 
@@ -448,6 +440,10 @@ end
 
 -- Discards any changes made to the controller layout and resets the Control UI state
 function addon:discard_controller_changes()
+    -- Nothing moved while the device stayed locked and unedited, so the keys on screen
+    -- already match the saved layout. Rebuilding them anyway made every close button run
+    -- a full refresh_layouts right before hiding the frame.
+    local needs_rebuild = addon.controller_locked == false or addon.keys_controller_edited == true
 
     if addon.keys_controller_edited == true then
         -- Print message to the player
@@ -463,7 +459,9 @@ function addon:discard_controller_changes()
         addon.controller_frame.edit_frame:Hide()
     end
 
-    addon:refresh_layouts()
+    if needs_rebuild then
+        addon:refresh_layouts()
+    end
 end
 
 local modifier_keys = {
@@ -530,8 +528,8 @@ function addon:generate_controller_key_frames()
         end
     end
 
+    -- Click-through is applied once by the caller (refresh_layouts), not once per device.
     addon:ReleaseUnusedKeyButtons("controller", active_count, addon.keys_controller)
-    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main controller image frame.
@@ -566,16 +564,10 @@ function addon:create_controller_buttons(index)
     controller_button:EnableKeyboard(true)
     controller_button:EnableGamePadButton(true)
 
-    -- Match keyboard/mouse: release-only click + drag registration so dragging
-    -- picks up the action instead of casting the spell. useOnKeyDown=false
-    -- overrides Retail's ActionButtonUseKeyDown CVar so the click fires on
-    -- release (required for AnyUp to trigger the secure handler in 12.0+).
-    -- type2 = ATTRIBUTE_NOOP keeps the right-click that opens the menu from also using
-    -- the action; see create_keyboard_buttons.
-    controller_button:RegisterForClicks("AnyUp")
+    -- Release-only clicks, and no action on right-click; see InitSecureClickAttributes.
+    -- Drag registration so dragging picks up the action instead of casting the spell.
+    addon:InitSecureClickAttributes(controller_button)
     controller_button:RegisterForDrag("LeftButton", "RightButton")
-    controller_button:SetAttribute("useOnKeyDown", false)
-    controller_button:SetAttribute("type2", ATTRIBUTE_NOOP)
 
     -- controller Keybind text string on the top right of the button (e.g. a-c-s-1)
     controller_button.short_key = controller_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")

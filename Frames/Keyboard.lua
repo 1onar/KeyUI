@@ -359,6 +359,10 @@ end
 
 -- Discards any changes made to the keyboard layout and resets the Control UI state
 function addon:discard_keyboard_changes()
+    -- Nothing moved while the device stayed locked and unedited, so the keys on screen
+    -- already match the saved layout. Rebuilding them anyway made every close button run
+    -- a full refresh_layouts right before hiding the frame.
+    local needs_rebuild = addon.keyboard_locked == false or addon.keys_keyboard_edited == true
 
     if addon.keys_keyboard_edited == true then
         -- Print message to the player
@@ -374,7 +378,9 @@ function addon:discard_keyboard_changes()
         addon.keyboard_frame.edit_frame:Hide()
     end
 
-    addon:refresh_layouts()
+    if needs_rebuild then
+        addon:refresh_layouts()
+    end
 end
 
 -- Recalculates the keyboard frame size based on visible keys
@@ -495,8 +501,8 @@ function addon:generate_keyboard_key_frames()
         end
     end
 
+    -- Click-through is applied once by the caller (refresh_layouts), not once per device.
     addon:ReleaseUnusedKeyButtons("keyboard", active_count, addon.keys_keyboard)
-    addon:ApplyClickThrough()
 end
 
 -- Create a new button to the main keyboard frame.
@@ -510,21 +516,9 @@ function addon:create_keyboard_buttons(index)
         or  "SecureActionButtonTemplate, BackdropTemplate"
     local keyboard_button = CreateFrame("CheckButton", name, addon.keyboard_frame, templates)
 
-    -- Fire actions on release only. Registering LeftButtonDown/RightButtonDown
-    -- caused the secure UseAction to run before the drag threshold was reached,
-    -- casting the spell when the user tried to drag the slot.
-    -- Retail additionally checks the ActionButtonUseKeyDown CVar (default true),
-    -- which would suppress the AnyUp event entirely; explicitly pinning
-    -- useOnKeyDown=false overrides the CVar so the click fires on release.
-    -- Right-click opens the assignment menu from the insecure OnMouseUp handler. AnyUp
-    -- delivers it to the secure handler too, and SecureButton_GetModifiedAttribute falls
-    -- back to the unsuffixed "type" when there is no "type2" -- so the right-click would
-    -- use the action as well, burning a GCD in combat. ATTRIBUTE_NOOP is Blizzard's own
-    -- way to exclude one button from a shared attribute, and leaves left-click untouched.
-    keyboard_button:RegisterForClicks("AnyUp")
+    -- Release-only clicks, and no action on right-click; see InitSecureClickAttributes.
+    addon:InitSecureClickAttributes(keyboard_button)
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
-    keyboard_button:SetAttribute("useOnKeyDown", false)
-    keyboard_button:SetAttribute("type2", ATTRIBUTE_NOOP)
     keyboard_button:EnableMouse(true)
     keyboard_button:EnableKeyboard(true)
     keyboard_button:EnableGamePadButton(true)

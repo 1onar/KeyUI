@@ -102,19 +102,66 @@ end
 -- Slot attribute helper
 -- ---------------------------------------------------------------------------
 
--- Call this every time button.active_slot changes (outside combat).
--- Sets the SecureActionButtonTemplate attributes so clicking executes the action.
+-- Records which action slot the key currently shows. Display only: the secure
+-- attributes that make a click use the action are written by
+-- addon:SyncSecureAttributes (Core.lua), the one place that writes them, because it
+-- has to write all modifier layers at once and only ever outside combat.
 function addon:SetButtonActionSlot(button, slot)
-    button.active_slot = slot
-    if not InCombatLockdown() then
-        if slot and slot > 0 then
-            button:SetAttribute("type", "action")
-            button:SetAttribute("action", slot)
-        else
-            button:SetAttribute("type", nil)
-            button:SetAttribute("action", nil)
-        end
+    if slot and slot > 0 then
+        button.active_slot = slot
+    else
+        button.active_slot = nil
     end
+end
+
+-- Modifier prefixes in the order SecureButton_GetModifierPrefix builds them
+-- (alt-ctrl-shift-), each paired with the binding layer that update_modifier_string
+-- builds for the same keys (ALT-CTRL-SHIFT-).
+addon.SECURE_MODIFIER_LAYERS = {
+    { prefix = "",                layer = "" },
+    { prefix = "alt-",            layer = "ALT-" },
+    { prefix = "ctrl-",           layer = "CTRL-" },
+    { prefix = "shift-",          layer = "SHIFT-" },
+    { prefix = "alt-ctrl-",       layer = "ALT-CTRL-" },
+    { prefix = "alt-shift-",      layer = "ALT-SHIFT-" },
+    { prefix = "ctrl-shift-",     layer = "CTRL-SHIFT-" },
+    { prefix = "alt-ctrl-shift-", layer = "ALT-CTRL-SHIFT-" },
+}
+
+-- Stands for "known to be nil" in a button's written-attribute cache, so that an
+-- unset entry can keep meaning "never written, write it".
+addon.SECURE_ATTRIBUTE_NIL = addon.SECURE_ATTRIBUTE_NIL or {}
+
+-- Click attributes every KeyUI key carries from creation on. Call once, right after
+-- CreateFrame, while combat lockdown cannot be active (frames are only built outside it).
+--
+-- Fire actions on release only. Registering LeftButtonDown/RightButtonDown caused the
+-- secure UseAction to run before the drag threshold was reached, casting the spell when
+-- the user tried to drag the slot. Retail additionally checks the ActionButtonUseKeyDown
+-- CVar (default true), which would suppress the AnyUp event entirely; pinning
+-- useOnKeyDown=false overrides the CVar so the click fires on release.
+--
+-- Right-click opens the assignment menu from the insecure OnMouseUp handler. AnyUp
+-- delivers it to the secure handler too, and SecureButton_GetModifiedAttribute falls back
+-- to the unsuffixed "type" when there is no "type2" -- so the right-click would use the
+-- action as well, burning a GCD in combat. ATTRIBUTE_NOOP is Blizzard's own way to
+-- exclude one button from a shared attribute. It is set for every modifier prefix, not
+-- only the bare one: once SyncSecureAttributes writes "shift-type", a shift-right-click
+-- would find that before the unprefixed "type2". The exact prefixed name always wins.
+function addon:InitSecureClickAttributes(button)
+    button:RegisterForClicks("AnyUp")
+    button:SetAttribute("useOnKeyDown", false)
+
+    local written = {}
+    local NIL = addon.SECURE_ATTRIBUTE_NIL
+    for _, entry in ipairs(addon.SECURE_MODIFIER_LAYERS) do
+        button:SetAttribute(entry.prefix .. "type2", ATTRIBUTE_NOOP)
+        -- A fresh frame has none of these set; recording that saves the first sync from
+        -- writing sixteen nils per key.
+        written[entry.prefix .. "type"] = NIL
+        written[entry.prefix .. "action"] = NIL
+    end
+    button._secure_attrs = written
 end
 
 -- ---------------------------------------------------------------------------
@@ -303,12 +350,19 @@ function addon:refresh_flash()
 end
 
 -- OnUpdate ticker that toggles the flash texture at FLASH_CYCLE intervals.
+-- Like the range poller, the frame stays hidden while KeyUI is closed so its handler is
+-- not called every frame for nothing; addon:on_open_state_changed shows it again.
 do
     local flashTime = 0
     local flashOn   = false
     local flashFrame = CreateFrame("Frame")
-    flashFrame:SetScript("OnUpdate", function(_, elapsed)
-        if not addon.open then return end
+    flashFrame:Hide()
+    addon.flash_frame = flashFrame
+    flashFrame:SetScript("OnUpdate", function(self, elapsed)
+        if not addon.open then
+            self:Hide()
+            return
+        end
 
         flashTime = flashTime + elapsed
         if flashTime < FLASH_CYCLE then return end

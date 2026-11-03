@@ -231,6 +231,41 @@ nothing about whether secret values are in play. Use `C_Secrets` instead
 `Blizzard_DeprecatedActionBar/Deprecated_ActionBar.lua`, behind
 `GetCVarBool("loadDeprecationFallbacks")`. Use `...GetActionLossOfControlCooldownInfo`.
 
+### Combat Lockdown, Bindings and Clicks on KeyUI Keys
+
+**Reading is free, writing is not.** `GetBindingAction` is a plain global: it is not
+protected and appears in none of the 12.x secret annotations, so KeyUI may read bindings in
+combat on every client. What combat lockdown blocks is writing: `SetBinding`, `SetAttribute`
+on secure frames, and `Show`/`Hide`/`SetPoint` on frames that are or parent secure buttons.
+The binding caches in `Core.lua` (`binding_cache`, `binding_info_cache`, both dropped on
+`UPDATE_BINDINGS`) are therefore a speed measure, not a way around lockdown.
+
+**What follows that:**
+
+- `UPDATE_BINDINGS` redraws only the keys whose binding changed (`refresh_changed_bindings`).
+  It does not go through `refresh_layouts`, which is deferred in combat, so binding changes
+  made during a fight (override bindings from Clique, vehicles, other addons) show at once.
+- Every KeyUI key is a `SecureActionButtonTemplate`, and its `type`/`action` attributes can
+  only be written out of combat. `addon:SyncSecureAttributes` is the only writer. With
+  "Detect Modifier" on and no modifier checkbox pinned, it writes all eight modifier layers
+  ahead of time as prefixed attributes (`shift-action`, `alt-ctrl-action`, ...).
+  `SecureButton_GetModifierPrefix` then picks the right one per click, in combat too. Layers
+  without a slot get `<prefix>type = ATTRIBUTE_NOOP`, because
+  `SecureActionButtonMixin:CalculateAction` would otherwise fall back to slot 1, and every
+  prefix carries `<prefix>type2 = ATTRIBUTE_NOOP` so right-click never uses an action.
+  Syncs run one frame after a structural refresh, at `PLAYER_REGEN_DISABLED` (before
+  lockdown starts) and at `PLAYER_REGEN_ENABLED`.
+- **Known limitation:** paging during combat (druid forms, stealth, Bartender/Dominos/ElvUI
+  paging, vehicles) changes which slot a key shows, and KeyUI draws that, but a click still
+  uses the slot from the last sync until combat ends. Fixing that would mean delegating
+  the click to the real action button (`type = "click"`), which is a separate change.
+
+**Closed means idle.** Only start-up, integration loading, combat transitions and binding
+events stay registered while KeyUI is closed; everything else is registered in
+`addon:on_open_state_changed`. Anything those events keep current (bonus bar offset, action
+bar page, held modifiers, charge/LoC cooldowns, flash, pet autocast, equipped border) is read
+again when KeyUI opens.
+
 ### Example: Spellbook Loading
 
 ```lua
@@ -418,6 +453,16 @@ Notes from that pass:
 - [ ] Repro test: pick up icon from a Dominos key and drop it back on the same key, icon remains visible and slot remains stable
 - [ ] Fallback regression: when a CLICK binding cannot resolve via live frame attributes, fallback slot equals the frame-attribute slot for the same button
 - [ ] Fallback regression: `frame_attr_chain` and numeric/MultiBar fallback produce the same final slot for equivalent Dominos bindings
+
+#### Combat and refresh paths
+- [ ] `/keyui perf on`, "Stay open in combat" on, 60 s on a training dummy: `refresh_keys` only counts structural changes (page, form, slot, bindings), not one per cast
+- [ ] Icons still follow: talent replacement spells, macro icon edits, macros with conditions, druid forms, stealth, vehicle/skyriding, pet bar, Bartender/Dominos/ElvUI paging
+- [ ] A binding changed in combat (Clique hover-cast, vehicle) shows at once
+- [ ] Shift+click on a key in combat uses the Shift layer's action; a layer without an action does nothing (not slot 1); right-click with or without modifiers never uses an action
+- [ ] Shift into Cat Form in combat, leave combat, click key 1: the Cat Form slot is used
+- [ ] With KeyUI closed in combat, the Retail AddOn performance view shows no KeyUI CPU
+- [ ] Reopening after a closed fight: modifiers, page, cooldowns, charge/LoC, flash and equipped border are right
+- [ ] No `ADDON_ACTION_BLOCKED` (BugSack, `/console taintLog 1`)
 
 ### In-Game Test Commands
 
