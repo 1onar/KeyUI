@@ -22,7 +22,8 @@ KeyUI is a powerful tool that allows you to visualize and customize your keyboar
 
 ### **2. Pre-Made Layouts**  
 - Access pre-designed layouts for popular keyboards, mice, and controllers.  
-  - **Keyboards:** ISO, ANSI, DVORAK, Razer, Azeron.  
+  - **Keyboards:** ISO, ANSI, DVORAK, Razer, Logitech, Azeron, ZSA, MoErgo.  
+  - **Mice:** Side-button layouts from 3 to 14 buttons.  
   - **Controllers:** Xbox, PS4, PS5, Steam Deck.
 
 ### **3. Easy Customization**  
@@ -45,6 +46,16 @@ KeyUI is a powerful tool that allows you to visualize and customize your keyboar
 
 ---
 
+## Supported Game Versions:
+One download covers every current client:  
+- **Retail** (Midnight)  
+- **WoW Forever**  
+- **Mists of Pandaria Classic**  
+- **Burning Crusade Anniversary**  
+- **Classic Era**  
+
+---
+
 ## Supported Addons:
 KeyUI integrates seamlessly with popular addons, including:  
 - **ElvUI**  
@@ -52,20 +63,25 @@ KeyUI integrates seamlessly with popular addons, including:
 - **Dominos**  
 - **OPie**  
 - **BindPad**  
+- **Clique** (your click-cast spells show on the left and right mouse buttons)  
 
 ---
 
-## Keyboard and Controller Layouts:
+## Pre-Made Layouts:
 
 ### **Keyboard Pre-Made Layouts**  
 - **ISO:** QWERTZ, AZERTY  
 - **ANSI:** QWERTY  
-- **DVORAK:** Standard, Right Hand, Left Hand  
+  - ISO and ANSI come in 100%, 96%, 80%, 75%, 60%, 1800, Half and Primary sizes.  
+- **DVORAK:** Standard, Right Hand, Left Hand (100% and Primary)  
 - **Razer:** Tartarus v1, Tartarus v2  
-- **Azeron:** Cyborg, Cyborg II  
+- **Logitech:** G13  
+- **Azeron:** Cyborg, Cyborg II, Keyzen, Cyro (left and right hand)  
+- **ZSA:** Moonlander MK I  
+- **MoErgo:** Glove80  
 
 ### **Mouse Pre-Made Layouts**  
-- Popular gaming mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX**.  
+- Side-button layouts with 3, 4, 5, 6, 9, 12 or 14 buttons, plus a circular one, to match gaming mice from **Razer**, **Corsair**, **Logitech**, **Steelseries**, **EVGA**, **Redragon**, and **HyperX**.  
 
 ### **Controller Layouts**  
 - Layouts for **Xbox**, **PS4**, **PS5**, and **Steam Deck** controllers.  

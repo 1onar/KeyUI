@@ -19,15 +19,15 @@ Its build number only looks like Classic. Code that follows the *client* therefo
 ### Local API Snapshots Used for Compatibility Validation
 
 `API/` (gitignored) holds one Blizzard UI source snapshot per client, used as source-of-truth
-during compatibility audits. Last refreshed 2026-10-21:
+during compatibility audits. Last refreshed 2026-11-03:
 
 | Folder | Client | Build | `_resources` build |
 |---|---|---|---|
-| `API/retail` | Retail | 12.1.5.70448 | 12.1.0 (69587) |
-| `API/forever` | Forever | 1.60.1.70450 | 1.60.1 (70338) |
-| `API/mists` | MoP Classic | 5.5.4.70531 | 5.5.4 (69155) |
-| `API/anniversary` | Anniversary | 2.5.6.70006 | 2.5.6 (68575) |
-| `API/classic_era` | Classic Era | 1.15.9.70003 | 1.15.9 (69109) |
+| `API/retail` | Retail | 12.1.5.70688 | 12.1.5 (70448) |
+| `API/forever` | Forever | 1.60.1.70707 | 1.60.1 (70532) |
+| `API/mists` | MoP Classic | 5.5.4.70631 | 5.5.4 (69155) |
+| `API/anniversary` | Anniversary | 2.5.6.70577 | 2.5.6 (68575) |
+| `API/classic_era` | Classic Era | 1.15.9.70576 | 1.15.9 (69109) |
 
 Each folder holds:
 
@@ -143,8 +143,9 @@ local API_COMPAT = {
 
 ### Feature Audit from Local API Dumps
 
-Re-validated 2026-10-21 against the five snapshots listed above. Nothing changed for the four
-existing clients since the 2026-09-22 audit. Forever matches Retail on every point:
+Re-validated 2026-11-03 against the five snapshots listed above; every point below still holds.
+The Forever update (70450 → 70707) made `GetActiveLossOfControlData` secret and changed
+`IsSpellCrowdControl`, neither of which KeyUI calls. Forever matches Retail on every point:
 
 - `BINDINGS_LOADED` exists in **all five** dumps. `addon.compat.has_event` still reports it only
   for Anniversary, Forever and Retail, the clients it was verified on in-game.
