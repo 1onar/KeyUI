@@ -165,6 +165,62 @@ function addon:InitSecureClickAttributes(button)
 end
 
 -- ---------------------------------------------------------------------------
+-- Edit-mode input capture
+-- ---------------------------------------------------------------------------
+
+-- Edit mode renames a key by hovering it and pressing the new key, turning the wheel or
+-- pressing a gamepad button. For that the hovered key has to take keyboard, wheel and
+-- gamepad input -- and a frame that takes input swallows it, so the key may only do so
+-- while edit mode is on and the pointer is over it. Outside edit mode no key takes any.
+--
+-- EnableKeyboard, EnableMouseWheel and EnableGamePadButton are protected functions
+-- (IsProtectedFunction in SimpleFrameAPIDocumentation.lua, all five clients), and KeyUI's
+-- keys are secure buttons, so during combat they are left as they are. PLAYER_REGEN_DISABLED
+-- switches the hovered key off just before lockdown begins, so nothing stays on.
+function addon:SetKeyCaptureEnabled(button, enabled)
+    if not button or InCombatLockdown() then
+        return
+    end
+    enabled = enabled == true
+    button:EnableKeyboard(enabled)
+    button:EnableMouseWheel(enabled)
+    button:EnableGamePadButton(enabled)
+end
+
+-- Installs the edit-mode input handlers on a key, once, at creation. `is_unlocked` tells
+-- whether the key's device is in edit mode and `mark_edited` flags its layout as changed.
+-- The handlers check the lock again because the device can be locked while a key is
+-- still hovered; such a key stops taking input right away.
+function addon:InstallKeyEditHandlers(button, is_unlocked, mark_edited)
+    button:SetScript("OnKeyDown", function(self, key)
+        if not is_unlocked() then
+            addon:SetKeyCaptureEnabled(self, false)
+            return
+        end
+        addon:handle_key_down(addon.current_hovered_button, key)
+        mark_edited()
+    end)
+
+    button:SetScript("OnGamePadButtonDown", function(self, key)
+        if not is_unlocked() then
+            addon:SetKeyCaptureEnabled(self, false)
+            return
+        end
+        addon:handle_gamepad_down(addon.current_hovered_button, key)
+        mark_edited()
+    end)
+
+    button:SetScript("OnMouseWheel", function(self, delta)
+        if not is_unlocked() then
+            addon:SetKeyCaptureEnabled(self, false)
+            return
+        end
+        addon:handle_mouse_wheel(addon.current_hovered_button, delta)
+        mark_edited()
+    end)
+end
+
+-- ---------------------------------------------------------------------------
 -- Charge-cooldown update
 -- ---------------------------------------------------------------------------
 

@@ -257,25 +257,14 @@ function addon:create_keyboard_frame()
         toggle_button_textures(keyboard_frame.options_button, true)
     end)
 
-    keyboard_frame:SetScript("OnHide", function()
-        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
-            addon:discard_keyboard_changes()
-        end
-        addon.keyboard_layout_dirty = true
-    end)
+    -- Closing (discarding edits) and showing are handled by the hooks in
+    -- addon:get_keyboard_frame and on_frame_hide (Core.lua).
 
     -- Create toggle menu button (top-left)
     addon:CreateToggleMenuButton(keyboard_frame, "show_keyboard_background")
 
     -- Fade all tab buttons when mouse is not over the frame
     addon:SetupButtonFade(keyboard_frame)
-
-    keyboard_frame:HookScript("OnShow", function()
-        if addon.keyboard_layout_dirty == true then
-            addon:generate_keyboard_key_frames()
-            addon.keyboard_layout_dirty = false
-        end
-    end)
 
     return keyboard_frame
 end
@@ -520,8 +509,8 @@ function addon:create_keyboard_buttons(index)
     addon:InitSecureClickAttributes(keyboard_button)
     keyboard_button:RegisterForDrag("LeftButton", "RightButton")
     keyboard_button:EnableMouse(true)
-    keyboard_button:EnableKeyboard(true)
-    keyboard_button:EnableGamePadButton(true)
+    -- Keyboard, wheel and gamepad input only while hovered in edit mode; see
+    -- SetKeyCaptureEnabled.
     keyboard_button:SetMovable(true)
     keyboard_button:SetClampedToScreen(true)
 
@@ -601,43 +590,29 @@ function addon:create_keyboard_buttons(index)
     keyboard_button.keypress_highlight:SetFrameLevel(keyboard_button:GetFrameLevel() + 5)
     keyboard_button.keypress_highlight:Hide()
 
+    -- Edit mode: hover a key and press a key, turn the wheel or press a gamepad button
+    -- to rename it.
+    addon:InstallKeyEditHandlers(keyboard_button,
+        function() return addon.keyboard_locked == false end,
+        function() addon.keys_keyboard_edited = true end)
+
     -- Define the mouse hover behavior to show tooltips.
     keyboard_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = keyboard_button -- save the current hovered button to re-trigger tooltip
         addon:button_mouse_over(keyboard_button)
 
-        local slot = self.slot
+        -- This switch-on was missing for keyboard keys: a key took input only until it
+        -- was first left, so renaming by keypress failed on any key hovered before.
+        addon:SetKeyCaptureEnabled(keyboard_button, addon.keyboard_locked == false)
 
-        if addon.keyboard_locked == false then
-
-            keyboard_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
-            end)
-
-            keyboard_button:SetScript("OnGamePadButtonDown", function(_, key)
-                addon:handle_gamepad_down(addon.current_hovered_button, key)
-                addon.keys_keyboard_edited = true
-            end)
-
-            keyboard_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
-                addon.keys_keyboard_edited = true
-            end)
-
-        end
-
-        addon:show_pushed_texture(slot)
+        addon:show_pushed_texture(self.slot)
     end)
 
     keyboard_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         if addon.keyui_tooltip_frame then addon.keyui_tooltip_frame:Hide() end
-        if not InCombatLockdown() then
-            keyboard_button:EnableKeyboard(false)
-            keyboard_button:EnableMouseWheel(false)
-        end
+        addon:SetKeyCaptureEnabled(keyboard_button, false)
 
         if addon.current_pushed_button then
             addon.current_pushed_button:Hide()

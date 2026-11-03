@@ -262,25 +262,14 @@ function addon:create_controller_frame()
         toggle_button_textures(controller_frame.options_button, true)
     end)
 
-    controller_frame:SetScript("OnHide", function()
-        if addon.controller_locked == false or addon.keys_controller_edited == true then
-            addon:discard_controller_changes()
-        end
-        addon.controller_layout_dirty = true
-    end)
+    -- Closing (discarding edits) and showing are handled by the hooks in
+    -- addon:get_controller_frame and on_frame_hide (Core.lua).
 
     -- Create toggle menu button (top-left)
     addon:CreateToggleMenuButton(controller_frame, "show_controller_background")
 
     -- Fade all tab buttons when mouse is not over the frame
     addon:SetupButtonFade(controller_frame)
-
-    controller_frame:HookScript("OnShow", function()
-        if addon.controller_layout_dirty == true then
-            addon:generate_controller_key_frames()
-            addon.controller_layout_dirty = false
-        end
-    end)
 
     return controller_frame
 end
@@ -561,8 +550,8 @@ function addon:create_controller_buttons(index)
 
     controller_button:SetMovable(true)
     controller_button:EnableMouse(true)
-    controller_button:EnableKeyboard(true)
-    controller_button:EnableGamePadButton(true)
+    -- Keyboard, wheel and gamepad input only while hovered in edit mode; see
+    -- SetKeyCaptureEnabled.
 
     -- Release-only clicks, and no action on right-click; see InitSecureClickAttributes.
     -- Drag registration so dragging picks up the action instead of casting the spell.
@@ -626,42 +615,28 @@ function addon:create_controller_buttons(index)
     controller_button.keypress_highlight:SetFrameLevel(controller_button:GetFrameLevel() + 5)
     controller_button.keypress_highlight:Hide()
 
+    -- Edit mode: hover a key and press a key, turn the wheel or press a gamepad button
+    -- to rename it.
+    addon:InstallKeyEditHandlers(controller_button,
+        function() return addon.controller_locked == false end,
+        function() addon.keys_controller_edited = true end)
+
     controller_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = controller_button -- save the current hovered button to re-trigger tooltip
         addon:button_mouse_over(controller_button)
-        controller_button:EnableKeyboard(true)
-        controller_button:EnableMouseWheel(true)
 
-        local active_slot = self.active_slot
+        -- Only in edit mode; see create_mouse_buttons for what the unconditional
+        -- switch-on did.
+        addon:SetKeyCaptureEnabled(controller_button, addon.controller_locked == false and not addon.is_moving)
 
-        if addon.controller_locked == false and not addon.is_moving then
-
-            controller_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(addon.current_hovered_button, key)
-                addon.keys_controller_edited = true
-            end)
-
-            controller_button:SetScript("OnGamePadButtonDown", function(_, key)
-                addon:handle_gamepad_down(addon.current_hovered_button, key)
-                addon.keys_controller_edited = true
-            end)
-
-            controller_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
-                addon.keys_controller_edited = true
-            end)
-
-        end
-
-        addon:show_pushed_texture(active_slot)
+        addon:show_pushed_texture(self.active_slot)
     end)
 
     controller_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         if addon.keyui_tooltip_frame then addon.keyui_tooltip_frame:Hide() end
-        controller_button:EnableKeyboard(false)
-        controller_button:EnableMouseWheel(false)
+        addon:SetKeyCaptureEnabled(controller_button, false)
 
         if addon.current_pushed_button then
             addon.current_pushed_button:Hide()

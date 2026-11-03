@@ -463,6 +463,10 @@ Notes from that pass:
 - [ ] With KeyUI closed in combat, the Retail AddOn performance view shows no KeyUI CPU
 - [ ] Reopening after a closed fight: modifiers, page, cooldowns, charge/LoC, flash and equipped border are right
 - [ ] No `ADDON_ACTION_BLOCKED` (BugSack, `/console taintLog 1`)
+- [ ] "Stay open in combat" + "Close on ESC": ESC during combat does nothing to KeyUI and raises nothing; after combat ESC closes it again
+- [ ] Hovering mouse and controller keys in combat raises nothing; in locked mode a keypress over any key goes to the game, also after an edit session
+- [ ] Edit mode, all three devices: hover a key, leave, hover again, press a key: the key is renamed
+- [ ] Closing the Controls window while editing the mouse or controller layout discards those edits
 
 ### In-Game Test Commands
 

@@ -357,8 +357,7 @@ function addon:ReleaseUnusedKeyButtons(device, active_count, active_collection)
             if button.keypress_highlight then
                 button.keypress_highlight:Hide()
             end
-            button:EnableKeyboard(false)
-            button:EnableMouseWheel(false)
+            addon:SetKeyCaptureEnabled(button, false)
             button:Hide()
         end
     end
@@ -804,10 +803,7 @@ function addon:ApplyProfileSnapshot(snapshot)
     self:InitializeSettings()
     keyui_settings.schema_version = addon.SETTINGS_SCHEMA_VERSION or keyui_settings.schema_version
 
-    self.keyboard_layout_dirty = true
-    self.mouse_layout_dirty = true
-    self.controller_layout_dirty = true
-
+    -- No per-device "dirty" flag needed: load() below rebuilds every shown device.
     self:hide_all_frames()
 
     self:SyncMinimapButton()
@@ -1242,8 +1238,7 @@ local function clear_key_collection(collection)
             if button.Hide then
                 button:Hide()
             end
-            button:EnableKeyboard(false)
-            button:EnableMouseWheel(false)
+            addon:SetKeyCaptureEnabled(button, false)
         end
         collection[i] = nil
     end
@@ -1264,8 +1259,7 @@ local function clear_key_button_pool(pool)
             if button.keypress_highlight then
                 button.keypress_highlight:Hide()
             end
-            button:EnableKeyboard(false)
-            button:EnableMouseWheel(false)
+            addon:SetKeyCaptureEnabled(button, false)
             button:Hide()
             discarded[button] = true
         end
@@ -1914,7 +1908,12 @@ function addon:ApplyEscClose()
     -- Hide() is blocked during combat and surfaces as ADDON_ACTION_BLOCKED. Withdraw them
     -- for the duration of the fight and let PLAYER_REGEN_ENABLED put them back; frames are
     -- only ever created out of combat, so nothing re-registers behind this.
-    local enabled = keyui_settings.close_on_esc and not is_in_combat_lockdown()
+    --
+    -- addon.in_combat, not only InCombatLockdown(): this runs from PLAYER_REGEN_DISABLED,
+    -- and lockdown only begins once that event has been handled (Clique and Bartender4
+    -- still write secure attributes in their handlers for it). Asking InCombatLockdown()
+    -- there got false, so the frames stayed listed for the whole fight.
+    local enabled = keyui_settings.close_on_esc and not (addon.in_combat or is_in_combat_lockdown())
     set_esc_close_enabled(addon.keyboard_frame, enabled)
     set_esc_close_enabled(addon.controls_frame, enabled)
     set_esc_close_enabled(addon.mouse_image, enabled)
@@ -2353,15 +2352,12 @@ end
 
 -- Hides all UI elements when the addon is closed
 function addon:hide_all_frames()
-    local keyboard_frame = addon:get_keyboard_frame()
-    local mouse_image = addon:get_mouse_image()
-    local mouse_frame = addon:get_mouse_frame()
-    local controller_frame = addon:get_controller_frame()
-
-    addon:SafeHideFrame(keyboard_frame)
-    addon:SafeHideFrame(mouse_frame)
-    addon:SafeHideFrame(mouse_image)
-    addon:SafeHideFrame(controller_frame)
+    -- The fields, not the get_* getters: those would build a device's frames only to hide
+    -- them, e.g. on a profile import before KeyUI was ever opened. SafeHideFrame skips nil.
+    addon:SafeHideFrame(addon.keyboard_frame)
+    addon:SafeHideFrame(addon.mouse_frame)
+    addon:SafeHideFrame(addon.mouse_image)
+    addon:SafeHideFrame(addon.controller_frame)
 
     if addon.controls_frame then
         addon.controls_frame:Hide()
@@ -2409,6 +2405,10 @@ local function on_frame_hide(self)
     end
 end
 
+-- The device frames get their open/close bookkeeping hooked on, not set: SetScript would
+-- drop the OnShow that SetupButtonFade installed while the frame was built (it resets
+-- the tab buttons to their faded look whenever the frame appears).
+
 -- Function to get or create the keyboard frame
 function addon:get_keyboard_frame()
     -- Check if the keyboard_frame already exists
@@ -2416,13 +2416,13 @@ function addon:get_keyboard_frame()
         -- Create the keyboard frame and assign it to the addon table
         addon.keyboard_frame = addon:create_keyboard_frame()
 
-        addon.keyboard_frame:SetScript("OnHide", function()
+        addon.keyboard_frame:HookScript("OnHide", function()
             addon:save_keyboard_position()
             addon.is_keyboard_visible = false
             on_frame_hide()
         end)
 
-        addon.keyboard_frame:SetScript("OnShow", function()
+        addon.keyboard_frame:HookScript("OnShow", function()
             addon.is_keyboard_visible = true
         end)
     end
@@ -2436,13 +2436,13 @@ function addon:get_mouse_image()
         -- Create the mouse image and assign it to the addon table
         addon.mouse_image = addon:create_mouse_image()
 
-        addon.mouse_image:SetScript("OnHide", function()
+        addon.mouse_image:HookScript("OnHide", function()
             addon:save_mouse_position()
             addon.is_mouse_visible = false
             on_frame_hide()
         end)
 
-        addon.mouse_image:SetScript("OnShow", function()
+        addon.mouse_image:HookScript("OnShow", function()
             addon.is_mouse_visible = true
         end)
     end
@@ -2464,13 +2464,13 @@ function addon:get_controller_frame()
         -- Create the controller frame and assign it to the addon table
         addon.controller_frame = addon:create_controller_frame()
 
-        addon.controller_frame:SetScript("OnHide", function()
+        addon.controller_frame:HookScript("OnHide", function()
             addon:save_controller_position()
             addon.is_controller_visible = false
             on_frame_hide()
         end)
 
-        addon.controller_frame:SetScript("OnShow", function()
+        addon.controller_frame:HookScript("OnShow", function()
             addon.is_controller_visible = true
         end)
     end
@@ -5944,6 +5944,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         -- Withdraw from UISpecialFrames so an ESC press does not trigger a blocked Hide()
         addon:ApplyEscClose()
         addon:disable_keypress_input()
+        -- A key hovered in edit mode takes keyboard input, and OnLeave cannot switch that
+        -- off once lockdown has begun. Switch it off while that is still allowed.
+        addon:SetKeyCaptureEnabled(addon.current_hovered_button, false)
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
         elseif addon.open then

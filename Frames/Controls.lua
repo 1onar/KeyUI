@@ -648,7 +648,18 @@ function addon:create_controls()
     controls_frame.close_button = addon:CreateCloseButton(controls_frame)
     controls_frame.close_button:SetPoint("TOPRIGHT", 0, 0)
     controls_frame.close_button:SetScript("OnClick", function(s)
-        addon:discard_keyboard_changes()
+        -- The edit dialogs live on this frame, so closing it ends any edit session.
+        -- This used to discard keyboard edits only, leaving a mouse or controller layout
+        -- in edit mode with nothing left on screen to save or discard it.
+        if addon.keyboard_locked == false or addon.keys_keyboard_edited == true then
+            addon:discard_keyboard_changes()
+        end
+        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
+            addon:discard_mouse_changes()
+        end
+        if addon.controller_locked == false or addon.keys_controller_edited == true then
+            addon:discard_controller_changes()
+        end
         controls_frame:Hide()
     end)
 

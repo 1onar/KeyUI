@@ -88,12 +88,8 @@ function addon:create_mouse_image()
     })
 
 
-    mouse_image:SetScript("OnHide", function()
-        if addon.mouse_locked == false or addon.keys_mouse_edited == true then
-            addon:discard_mouse_changes()
-        end
-        addon.mouse_layout_dirty = true
-    end)
+    -- Closing (discarding edits) and showing are handled by the hooks in
+    -- addon:get_mouse_image and on_frame_hide (Core.lua).
 
     -- Create arrow-up button for toggle menu (left of close button)
     mouse_image.menu_button = addon:CreateArrowUpButton(mouse_image)
@@ -205,13 +201,6 @@ function addon:create_mouse_image()
     -- Fade all tab buttons when mouse is not over the frame
     addon:SetupButtonFade(mouse_image)
 
-    mouse_image:HookScript("OnShow", function()
-        if addon.mouse_layout_dirty == true then
-            addon:generate_mouse_key_frames()
-            addon.mouse_layout_dirty = false
-        end
-    end)
-
     return mouse_image
 end
 
@@ -229,13 +218,6 @@ function addon:create_mouse_frame()
     mouse_frame:SetPoint("RIGHT", addon.mouse_image, "LEFT", 5, -25)
     mouse_frame:SetScale(1)
     mouse_frame:Hide()
-
-    mouse_frame:SetScript("OnShow", function()
-        if addon.mouse_layout_dirty == true then
-            addon:generate_mouse_key_frames()
-            addon.mouse_layout_dirty = false
-        end
-    end)
 
     return mouse_frame
 end
@@ -375,8 +357,8 @@ function addon:create_mouse_buttons(index)
     addon:InitSecureClickAttributes(mouse_button)
     mouse_button:RegisterForDrag("LeftButton", "RightButton")
     mouse_button:EnableMouse(true)
-    mouse_button:EnableKeyboard(true)
-    mouse_button:EnableGamePadButton(true)
+    -- Keyboard, wheel and gamepad input only while hovered in edit mode; see
+    -- SetKeyCaptureEnabled.
     mouse_button:SetMovable(true)
     mouse_button:SetClampedToScreen(true)
 
@@ -454,42 +436,29 @@ function addon:create_mouse_buttons(index)
     mouse_button.keypress_highlight:SetFrameLevel(mouse_button:GetFrameLevel() + 5)
     mouse_button.keypress_highlight:Hide()
 
+    -- Edit mode: hover a key and press a key, turn the wheel or press a gamepad button
+    -- to rename it.
+    addon:InstallKeyEditHandlers(mouse_button,
+        function() return addon.mouse_locked == false end,
+        function() addon.keys_mouse_edited = true end)
+
     mouse_button:SetScript("OnEnter", function(self)
         addon.current_hovered_button = mouse_button -- save the current hovered button to re-trigger tooltip
         addon:button_mouse_over(mouse_button)
-        mouse_button:EnableKeyboard(true)
-        mouse_button:EnableMouseWheel(true)
 
-        local active_slot = self.active_slot
+        -- Only in edit mode. This used to switch input on for every hover, in combat too
+        -- (a blocked call on a secure button), and once an edit session had installed the
+        -- handlers, a keypress over a locked key renamed it and was swallowed.
+        addon:SetKeyCaptureEnabled(mouse_button, addon.mouse_locked == false and not addon.is_moving)
 
-        if addon.mouse_locked == false and not addon.is_moving then
-
-            mouse_button:SetScript("OnKeyDown", function(_, key)
-                addon:handle_key_down(addon.current_hovered_button, key)
-                addon.keys_mouse_edited = true
-            end)
-
-            mouse_button:SetScript("OnGamePadButtonDown", function(_, key)
-                addon:handle_gamepad_down(addon.current_hovered_button, key)
-                addon.keys_mouse_edited = true
-            end)
-
-            mouse_button:SetScript("OnMouseWheel", function(_, delta)
-                addon:handle_mouse_wheel(addon.current_hovered_button, delta)
-                addon.keys_mouse_edited = true
-            end)
-
-        end
-
-        addon:show_pushed_texture(active_slot)
+        addon:show_pushed_texture(self.active_slot)
     end)
 
     mouse_button:SetScript("OnLeave", function()
         addon.current_hovered_button = nil -- Clear the current hovered button
         GameTooltip:Hide()
         if addon.keyui_tooltip_frame then addon.keyui_tooltip_frame:Hide() end
-        mouse_button:EnableKeyboard(false)
-        mouse_button:EnableMouseWheel(false)
+        addon:SetKeyCaptureEnabled(mouse_button, false)
 
         if addon.current_pushed_button then
             addon.current_pushed_button:Hide()

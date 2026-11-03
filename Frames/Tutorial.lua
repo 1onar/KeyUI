@@ -1,5 +1,16 @@
 local name, addon = ...
 
+-- Whether Blizzard's pointer-arrow templates are available. They live in
+-- Blizzard_TutorialTemplates, which only Retail and Forever ship and which is load-on-demand
+-- there, so this can change during a session. The probe used to create a real frame on
+-- UIParent with the template just to see whether that raised, and left it behind.
+-- GetTemplateInfo returns nil for an unknown template in practice (ActionButton.lua relies
+-- on that as well); the pcall only guards against it raising instead, and builds nothing.
+local function has_template(template_name)
+    local ok, info = pcall(C_XMLUtil.GetTemplateInfo, template_name)
+    return ok and info ~= nil
+end
+
 -- Function to create a glowing tutorial highlight around the selected button
 function addon:create_tutorial_frame1()
 
@@ -38,7 +49,7 @@ function addon:create_tutorial_frame1()
 
     -- Create arrow frame (Retail uses template, Anniversary builds manually)
     local arrow
-    if pcall(function() CreateFrame("Frame", nil, UIParent, "Tutorial_PointerDown") end) then
+    if has_template("Tutorial_PointerDown") then
         -- Retail: Use built-in template
         arrow = CreateFrame("Frame", nil, tutorial_frame, "Tutorial_PointerDown")
         arrow:SetPoint("TOP", tutorial_frame, "CENTER", 0, 0)
@@ -132,7 +143,7 @@ function addon:create_tutorial_frame1()
 
                 -- Create arrow frame (Retail uses template, Anniversary builds manually)
                 local arrow2
-                if pcall(function() CreateFrame("Frame", nil, UIParent, "Tutorial_PointerLeft") end) then
+                if has_template("Tutorial_PointerLeft") then
                     -- Retail: Use built-in template
                     arrow2 = CreateFrame("Frame", nil, tutorial_frame2, "Tutorial_PointerLeft")
                     arrow2:ClearAllPoints()

@@ -125,9 +125,6 @@ addon.active_control_tab = ""
 addon.tutorial_frame1_created = false
 addon.tutorial_frame2_created = false
 
-addon.keyboard_layout_dirty = false
-addon.mouse_layout_dirty = false
-addon.controller_layout_dirty = false
 addon.deferred_ui_updates = addon.deferred_ui_updates or {
     refresh_layouts = false,
     apply_click_through = false,
