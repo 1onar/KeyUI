@@ -21,6 +21,13 @@ local CONTROLLER_LAYOUT_TYPES = {
     deck = true,
 }
 
+-- A number that is neither NaN nor infinite. An imported string can carry "nan" or
+-- "inf" (tonumber accepts both), and NaN fails every < and > test, so a plain range
+-- check would let it through to SetPoint and SetSize.
+local function is_finite(value)
+    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
 local function trim(value)
     if type(value) ~= "string" then
         return ""
@@ -38,7 +45,7 @@ end
 
 local function normalize_number(settings, key, default, min_value, max_value)
     local value = settings[key]
-    if type(value) ~= "number" then
+    if not is_finite(value) then
         value = default
     end
     if min_value and value < min_value then
@@ -166,14 +173,14 @@ function addon:ValidateLayoutData(layout_type, layout_data)
         if type(key) ~= "string" then
             return false, ("Layout entry %d has invalid key label."):format(index)
         end
-        if type(x) ~= "number" or type(y) ~= "number" then
+        if not is_finite(x) or not is_finite(y) then
             return false, ("Layout entry %d has invalid coordinates."):format(index)
         end
         if math.abs(x) > MAX_LAYOUT_ABS_COORD or math.abs(y) > MAX_LAYOUT_ABS_COORD then
             return false, ("Layout entry %d coordinates exceed bounds."):format(index)
         end
 
-        if type(width) ~= "number" or type(height) ~= "number" then
+        if not is_finite(width) or not is_finite(height) then
             return false, ("Layout entry %d has invalid dimensions."):format(index)
         end
         if width <= 0 or height <= 0 or width > MAX_LAYOUT_DIMENSION or height > MAX_LAYOUT_DIMENSION then
@@ -183,10 +190,10 @@ function addon:ValidateLayoutData(layout_type, layout_data)
         if layout_type == "keyboard" then
             local icon_width = row[6]
             local icon_height = row[7]
-            if icon_width ~= nil and (type(icon_width) ~= "number" or icon_width <= 0 or icon_width > MAX_LAYOUT_DIMENSION) then
+            if icon_width ~= nil and (not is_finite(icon_width) or icon_width <= 0 or icon_width > MAX_LAYOUT_DIMENSION) then
                 return false, ("Keyboard layout entry %d has invalid icon width."):format(index)
             end
-            if icon_height ~= nil and (type(icon_height) ~= "number" or icon_height <= 0 or icon_height > MAX_LAYOUT_DIMENSION) then
+            if icon_height ~= nil and (not is_finite(icon_height) or icon_height <= 0 or icon_height > MAX_LAYOUT_DIMENSION) then
                 return false, ("Keyboard layout entry %d has invalid icon height."):format(index)
             end
         end
