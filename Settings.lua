@@ -128,6 +128,13 @@ local function InitializeSettingsPanel()
     -- Profiles Header + Buttons
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Profiles"))
 
+    -- The buttons below pass addSearchTags = false, so they stay out of the Options search.
+    -- Search tags added from addon code taint the search, and its results then call the
+    -- protected C_Discord.IsUserOAuthed for Blizzard's Discord row: ADDON_ACTION_FORBIDDEN
+    -- blamed on KeyUI while typing in the search box (seen on Forever 1.60.1; Blizzard
+    -- bug, https://github.com/Stanzilla/WoWUIBugs/issues/873). The argument must not be
+    -- nil -- CreateSettingsButtonInitializer asserts on that, on all five clients.
+
     -- Export Profile Button
     local exportButton = CreateSettingsButtonInitializer(
         "Export Profile",
@@ -136,7 +143,7 @@ local function InitializeSettingsPanel()
             addon:ShowProfileExportPopup()
         end,
         "Copy your current KeyUI configuration as a sharable string",
-        true
+        false
     )
     layout:AddInitializer(exportButton)
 
@@ -148,7 +155,7 @@ local function InitializeSettingsPanel()
             addon:ShowProfileImportPopup()
         end,
         "Paste a profile string to apply someone else's configuration",
-        true
+        false
     )
     layout:AddInitializer(importButton)
 
@@ -172,7 +179,7 @@ local function InitializeSettingsPanel()
             StaticPopup_Show("KEYUI_CONFIRM_RESET")
         end,
         "Completely resets all KeyUI data: settings, custom layouts, frame positions, and keybind configurations",
-        true
+        false
     )
     layout:AddInitializer(resetButton)
 
