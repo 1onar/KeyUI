@@ -237,8 +237,10 @@ nothing about whether secret values are in play. Use `C_Secrets` instead
 protected and appears in none of the 12.x secret annotations, so KeyUI may read bindings in
 combat on every client. What combat lockdown blocks is writing: `SetBinding`, `SetAttribute`
 on secure frames, and `Show`/`Hide`/`SetPoint` on frames that are or parent secure buttons.
-The binding caches in `Core.lua` (`binding_cache`, `binding_info_cache`, both dropped on
-`UPDATE_BINDINGS`) are therefore a speed measure, not a way around lockdown.
+KeyUI asks `GetBindingAction` afresh on every refresh. 4.4.0-beta1 cached key → action and
+relied on `UPDATE_BINDINGS` to drop the cache, so a single missed event froze a key on its old
+binding; only `binding_info_cache` (binding string → pattern, label) remains, dropped on
+`UPDATE_BINDINGS` and whenever the pattern list changes.
 
 **What follows that:**
 
@@ -248,12 +250,21 @@ The binding caches in `Core.lua` (`binding_cache`, `binding_info_cache`, both dr
 - Every KeyUI key is a `SecureActionButtonTemplate`, and its `type`/`action` attributes can
   only be written out of combat. `addon:SyncSecureAttributes` is the only writer. With
   "Detect Modifier" on and no modifier checkbox pinned, it writes all eight modifier layers
-  ahead of time as prefixed attributes (`shift-action`, `alt-ctrl-action`, ...).
-  `SecureButton_GetModifierPrefix` then picks the right one per click, in combat too. Layers
-  without a slot get `<prefix>type = ATTRIBUTE_NOOP`, because
-  `SecureActionButtonMixin:CalculateAction` would otherwise fall back to slot 1, and every
-  prefix carries `<prefix>type2 = ATTRIBUTE_NOOP` so right-click never uses an action.
-  Syncs run one frame after a structural refresh, at `PLAYER_REGEN_DISABLED` (before
+  ahead of time as prefixed attributes (`shift-type*`/`shift-action*`,
+  `alt-ctrl-type*`/`alt-ctrl-action*`, ...; the bare layer stays `type`/`action`).
+  `SecureButton_GetModifiedAttribute` then picks the right one per click, in combat too.
+- **The `*` is required.** A click asks `GetAttribute(prefix, name, suffix)`, which tries
+  `prefix..name..suffix`, `"*"..name..suffix`, `prefix..name.."*"`, `"*"..name.."*"` and
+  then the bare `name` (warcraft.wiki.gg, API Frame:GetAttribute) -- never `prefix..name`
+  alone. 4.4.0-beta1 wrote `shift-type`/`shift-action`, which no click ever read: a
+  Shift+click fell through to the bare layer's `type`/`action`. The names live in one place,
+  `addon.SECURE_MODIFIER_LAYERS` (`Frames/ActionButton.lua`), as `type_attr`/`action_attr`.
+- Layers without a slot get `<prefix>type* = ATTRIBUTE_NOOP`, because
+  `SecureActionButtonMixin:CalculateAction` would otherwise fall back to slot 1. Every prefix
+  carries `<prefix>type2 = ATTRIBUTE_NOOP`: that exact name is the first one a right-click
+  tries, so it wins over `<prefix>type*` and right-click never uses an action (4.3.1 set only
+  the bare `type2`, so Shift+right-click used the action).
+- Syncs run one frame after a structural refresh, at `PLAYER_REGEN_DISABLED` (before
   lockdown starts) and at `PLAYER_REGEN_ENABLED`.
 - **Known limitation:** paging during combat (druid forms, stealth, Bartender/Dominos/ElvUI
   paging, vehicles) changes which slot a key shows, and KeyUI draws that, but a click still
@@ -264,7 +275,34 @@ The binding caches in `Core.lua` (`binding_cache`, `binding_info_cache`, both dr
 events stay registered while KeyUI is closed; everything else is registered in
 `addon:on_open_state_changed`. Anything those events keep current (bonus bar offset, action
 bar page, held modifiers, charge/LoC cooldowns, flash, pet autocast, equipped border) is read
-again when KeyUI opens.
+again when KeyUI opens. Hiding UIParent (Alt+Z, cinematics) fires `OnHide` on KeyUI's frames
+too; that is not a close, and the hooks in `get_*_frame` skip it while the frame itself is
+still shown.
+
+**Icons that arrive late.** Item and spell textures can be missing on the first query.
+State events get the light `refresh_icons` pass rather than a full `set_key`, so that pass
+also rebuilds a key whose icon is hidden while its slot, spell or macro now has a texture
+(`addon:IconBecameAvailable`).
+
+### Headless Harness (`tools/harness`)
+
+Nobody can test in-game before a release, so `tools/harness/check.sh` runs KeyUI under plain
+Lua 5.1 in a stand-in client (`wow.lua`) through a fixed session (`run.lua`): open,
+modifiers, paging, bonus bar, slot and binding changes, late icons, Bartender paging, Alt+Z,
+combat (staying open and closing), reopening, `/keyui report`. After each step every visible
+bound key is compared with what the game state says it should show and what a click should
+use. Lua errors and calls the client would block in combat count as failures. It runs on all
+five client flavors in `pr-check.yml`.
+
+- `tools/harness/check.sh` -- check the working tree (exit 1 on any problem)
+- `tools/harness/check.sh diff [ref]` -- what each step shows in `ref` (default: latest
+  release tag) versus the working tree, for reviewing behaviour changes before a release
+
+The stand-in models visibility (`IsShown` vs `IsVisible`, `OnShow`/`OnHide` through
+ancestors), protected frames in combat, the `GetAttribute(prefix, name, suffix)` lookup and
+secure click resolution. It does not model rendering, real API return values beyond what the
+session sets up, or secret values. A green run says the logic holds for these steps, not that
+the client agrees -- testers' `/keyui report` stays the final word.
 
 ### Example: Spellbook Loading
 
