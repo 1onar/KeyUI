@@ -33,3 +33,16 @@ jobs:
           while IFS= read -r file; do
             "$LUAC_BIN" -p "$file"
           done < <(git ls-files '*.lua' ':!:API/**' ':!:Addons/**')
+
+      # Nobody can test in-game before a release, so a session runs headless: open,
+      # modifiers, paging, late icons, Alt+Z, combat, reopening, on all five clients.
+      # Every bound key is checked against what the game state says it should show and
+      # click. Needs the Lua 5.1 interpreter (WoW's dialect), not just luac.
+      - name: Headless session (tools/harness)
+        run: |
+          set -euo pipefail
+          if ! command -v lua5.1 >/dev/null 2>&1 && ! command -v luajit >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y lua5.1
+          fi
+          tools/harness/check.sh
