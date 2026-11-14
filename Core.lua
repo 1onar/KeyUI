@@ -4255,33 +4255,35 @@ local function write_secure_attribute(button, name, value)
     button:SetAttribute(name, value)
 end
 
+-- Attribute names per layer: see SECURE_MODIFIER_LAYERS (Frames/ActionButton.lua) for why
+-- the modified layers carry a "*" suffix.
 local function sync_button_attributes(button, per_layer)
     local layers = addon.SECURE_MODIFIER_LAYERS
     local raw_key = button.raw_key or ""
 
     for i = 1, #layers do
-        local prefix = layers[i].prefix
+        local entry = layers[i]
         local slot
         if per_layer then
             if raw_key ~= "" then
-                slot = addon:resolve_action_slot(lookup_binding(layers[i].layer .. raw_key))
+                slot = addon:resolve_action_slot(lookup_binding(entry.layer .. raw_key))
             end
-        elseif prefix == "" then
+        elseif entry.prefix == "" then
             slot = button.active_slot
         end
 
-        if prefix == "" then
-            write_secure_attribute(button, "type", slot and "action" or nil)
-            write_secure_attribute(button, "action", slot)
+        if entry.prefix == "" then
+            write_secure_attribute(button, entry.type_attr, slot and "action" or nil)
+            write_secure_attribute(button, entry.action_attr, slot)
         elseif per_layer then
             -- A layer without a slot must not fall through to the unprefixed "type":
             -- that would use the bare layer's action. Left without an "action",
             -- SecureActionButtonMixin:CalculateAction would even fall back to slot 1.
-            write_secure_attribute(button, prefix .. "type", slot and "action" or ATTRIBUTE_NOOP)
-            write_secure_attribute(button, prefix .. "action", slot)
+            write_secure_attribute(button, entry.type_attr, slot and "action" or ATTRIBUTE_NOOP)
+            write_secure_attribute(button, entry.action_attr, slot)
         else
-            write_secure_attribute(button, prefix .. "type", nil)
-            write_secure_attribute(button, prefix .. "action", nil)
+            write_secure_attribute(button, entry.type_attr, nil)
+            write_secure_attribute(button, entry.action_attr, nil)
         end
     end
 end

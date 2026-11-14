@@ -117,7 +117,16 @@ end
 -- Modifier prefixes in the order SecureButton_GetModifierPrefix builds them
 -- (alt-ctrl-shift-), each paired with the binding layer that update_modifier_string
 -- builds for the same keys (ALT-CTRL-SHIFT-).
-addon.SECURE_MODIFIER_LAYERS = {
+--
+-- type_attr/action_attr are the attribute names a click with exactly these modifiers
+-- finds. The secure template asks GetAttribute(prefix, name, suffix), which tries
+-- prefix..name..suffix, "*"..name..suffix, prefix..name.."*", "*"..name.."*" and
+-- finally the bare name -- never prefix..name without a suffix. So a modified layer has
+-- to be written as "shift-type*" ("shift-", any mouse button); "shift-type" would never
+-- be read, and a Shift+click fell through to the bare layer's "type"/"action".
+-- The bare layer stays at "type"/"action", the last step of that lookup.
+addon.SECURE_MODIFIER_LAYERS = {}
+for _, entry in ipairs({
     { prefix = "",                layer = "" },
     { prefix = "alt-",            layer = "ALT-" },
     { prefix = "ctrl-",           layer = "CTRL-" },
@@ -126,7 +135,12 @@ addon.SECURE_MODIFIER_LAYERS = {
     { prefix = "alt-shift-",      layer = "ALT-SHIFT-" },
     { prefix = "ctrl-shift-",     layer = "CTRL-SHIFT-" },
     { prefix = "alt-ctrl-shift-", layer = "ALT-CTRL-SHIFT-" },
-}
+}) do
+    local wildcard = entry.prefix == "" and "" or "*"
+    entry.type_attr = entry.prefix .. "type" .. wildcard
+    entry.action_attr = entry.prefix .. "action" .. wildcard
+    addon.SECURE_MODIFIER_LAYERS[#addon.SECURE_MODIFIER_LAYERS + 1] = entry
+end
 
 -- Stands for "known to be nil" in a button's written-attribute cache, so that an
 -- unset entry can keep meaning "never written, write it".
@@ -146,8 +160,9 @@ addon.SECURE_ATTRIBUTE_NIL = addon.SECURE_ATTRIBUTE_NIL or {}
 -- to the unsuffixed "type" when there is no "type2" -- so the right-click would use the
 -- action as well, burning a GCD in combat. ATTRIBUTE_NOOP is Blizzard's own way to
 -- exclude one button from a shared attribute. It is set for every modifier prefix, not
--- only the bare one: once SyncSecureAttributes writes "shift-type", a shift-right-click
--- would find that before the unprefixed "type2". The exact prefixed name always wins.
+-- only the bare one: a shift-right-click looks up "shift-type2" first and never reaches
+-- "type2", so without its own entry it would find the "shift-type*" that
+-- SyncSecureAttributes writes. prefix.."type2" is the first name tried and wins.
 function addon:InitSecureClickAttributes(button)
     button:RegisterForClicks("AnyUp")
     button:SetAttribute("useOnKeyDown", false)
@@ -158,8 +173,8 @@ function addon:InitSecureClickAttributes(button)
         button:SetAttribute(entry.prefix .. "type2", ATTRIBUTE_NOOP)
         -- A fresh frame has none of these set; recording that saves the first sync from
         -- writing sixteen nils per key.
-        written[entry.prefix .. "type"] = NIL
-        written[entry.prefix .. "action"] = NIL
+        written[entry.type_attr] = NIL
+        written[entry.action_attr] = NIL
     end
     button._secure_attrs = written
 end
