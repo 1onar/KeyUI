@@ -1021,15 +1021,20 @@ function addon:create_name_input_dialog()
     name_input_frame.save_button:SetScript("OnClick", function()
         local layout_name = name_input_frame.input_box:GetText()
 
-        -- Call the save function
-        if layout_name ~= "" then
-            if addon.active_control_tab == "keyboard" then
-                addon:save_keyboard_layout(layout_name)
-            elseif addon.active_control_tab == "mouse" then
-                addon:save_mouse_layout(layout_name)
-            elseif addon.active_control_tab == "controller" then
-                addon:save_controller_layout(layout_name)
-            end
+        local saved = false
+        if addon.active_control_tab == "keyboard" then
+            saved = addon:save_keyboard_layout(layout_name)
+        elseif addon.active_control_tab == "mouse" then
+            saved = addon:save_mouse_layout(layout_name)
+        elseif addon.active_control_tab == "controller" then
+            saved = addon:save_controller_layout(layout_name)
+        end
+
+        -- A refused name (empty, a built-in layout's) keeps the dialog open, so the edits
+        -- can still be saved under another name or cancelled. Closing it here used to
+        -- leave the device edited with neither on screen.
+        if not saved then
+            return
         end
 
         name_input_frame:Hide()

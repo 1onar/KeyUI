@@ -281,6 +281,24 @@ function addon:NormalizeLayoutName(name)
     return normalize_layout_name(name)
 end
 
+local default_layout_fields = {
+    keyboard = "default_keyboard_layouts",
+    mouse = "default_mouse_layouts",
+    controller = "default_controller_layouts",
+}
+
+-- Whether `name` is the internal name of a built-in layout ("QWERTZ_100%", "xbox", ...).
+-- A custom layout under such a name used to be replaced by the built-in one the next
+-- time KeyUI opened, so no custom layout may take one.
+function addon:IsDefaultLayoutName(layout_type, name)
+    local defaults = self[default_layout_fields[layout_type] or ""]
+    return type(defaults) == "table" and name ~= nil and defaults[name] ~= nil
+end
+
+local function built_in_name_error(name)
+    return ("'%s' is the name of a built-in layout. Please choose another name."):format(name)
+end
+
 local function validate_import_string_size(serialized, label)
     if #serialized > MAX_IMPORT_STRING_LENGTH then
         return false, ("%s exceeds %d bytes."):format(label or "Serialized payload", MAX_IMPORT_STRING_LENGTH)
@@ -876,6 +894,9 @@ function addon:RenameLayout(layout_type, old_name, new_name)
     end
     new_name = normalized_name
 
+    if self:IsDefaultLayoutName(layout_type, new_name) then
+        return false, built_in_name_error(new_name)
+    end
     if container[new_name] then
         return false, "A layout with that name already exists."
     end
@@ -922,6 +943,9 @@ function addon:CopyLayout(layout_type, source_name, new_name)
     end
     new_name = normalized_name
 
+    if self:IsDefaultLayoutName(layout_type, new_name) then
+        return false, built_in_name_error(new_name)
+    end
     if container[new_name] then
         return false, "A layout with that name already exists."
     end
@@ -943,6 +967,21 @@ function addon:CopyLayout(layout_type, source_name, new_name)
     print(("KeyUI: Copied %s layout '%s' to '%s'."):format(layout_type_labels[layout_type] or layout_type, source_name, new_name))
     addon:refresh_layouts()
     return true
+end
+
+-- Checks the name typed into the Save Layout dialog. Returns the normalized name, or nil
+-- after telling the player why the layout cannot be saved under it.
+function addon:CheckLayoutSaveName(layout_type, layout_name)
+    local name, name_error = self:NormalizeLayoutName(layout_name)
+    if not name then
+        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
+        return nil
+    end
+    if self:IsDefaultLayoutName(layout_type, name) then
+        print("KeyUI: " .. built_in_name_error(name))
+        return nil
+    end
+    return name
 end
 
 function addon:ShowProfileExportPopup()
@@ -1059,16 +1098,21 @@ local function get_layout_container(layout_type)
     return meta.edited()
 end
 
-local function ensure_unique_layout_name(container, base_name)
+-- A free name for a new custom layout: neither taken by another custom layout nor the
+-- name of a built-in one.
+local function ensure_unique_layout_name(container, base_name, layout_type)
+    local function taken(candidate)
+        return container[candidate] ~= nil or addon:IsDefaultLayoutName(layout_type, candidate)
+    end
     local candidate = base_name
-    if not container[candidate] then
+    if not taken(candidate) then
         return candidate
     end
     local suffix = 2
     repeat
         candidate = ("%s (%d)"):format(base_name, suffix)
         suffix = suffix + 1
-    until not container[candidate]
+    until not taken(candidate)
     return candidate
 end
 
@@ -1175,7 +1219,7 @@ function addon:ImportLayoutString(layout_type, serialized)
         base_name = ("Imported %s Layout"):format(layout_type_labels[layout_type] or "")
     end
 
-    local unique_name = ensure_unique_layout_name(container, base_name)
+    local unique_name = ensure_unique_layout_name(container, base_name, layout_type)
     container[unique_name] = deep_copy(payload.layout)
 
     local current_container = meta.current()
@@ -6574,7 +6618,7 @@ StaticPopupDialogs["KEYUI_LAYOUT_COPY"] = {
         if #normalized_base > MAX_LAYOUT_NAME_LENGTH then
             normalized_base = normalized_base:sub(1, MAX_LAYOUT_NAME_LENGTH)
         end
-        local suggestion = ensure_unique_layout_name(container, normalized_base)
+        local suggestion = ensure_unique_layout_name(container, normalized_base, layout_type)
         editBox:SetText(suggestion)
         editBox:HighlightText()
         editBox:SetFocus()

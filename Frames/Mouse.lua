@@ -223,10 +223,9 @@ function addon:create_mouse_frame()
 end
 
 function addon:save_mouse_layout(layout_name)
-    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    local name = addon:CheckLayoutSaveName("mouse", layout_name)
     if not name then
-        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
-        return
+        return false
     end
 
     print("KeyUI: Saved the new mouse layout '" .. name .. "'.")
@@ -266,6 +265,7 @@ function addon:save_mouse_layout(layout_name)
     if addon.mouse_selector then
         addon.mouse_selector:SetDefaultText(name)
     end
+    return true
 end
 
 -- Discards any changes made to the mouse layout and resets the Control UI state

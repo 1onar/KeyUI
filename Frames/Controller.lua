@@ -378,10 +378,9 @@ function addon:set_controller_system(system_type)
 end
 
 function addon:save_controller_layout(layout_name)
-    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    local name = addon:CheckLayoutSaveName("controller", layout_name)
     if not name then
-        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
-        return
+        return false
     end
 
     print("KeyUI: Saved the new controller layout '" .. name .. "'.")
@@ -428,6 +427,7 @@ function addon:save_controller_layout(layout_name)
     if addon.controller_selector then
         addon.controller_selector:SetDefaultText(name)
     end
+    return true
 end
 
 -- Discards any changes made to the controller layout and resets the Control UI state

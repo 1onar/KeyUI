@@ -270,10 +270,9 @@ function addon:create_keyboard_frame()
 end
 
 function addon:save_keyboard_layout(layout_name)
-    local name, name_error = addon:NormalizeLayoutName(layout_name)
+    local name = addon:CheckLayoutSaveName("keyboard", layout_name)
     if not name then
-        print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
-        return
+        return false
     end
 
     print("KeyUI: Saved the new keyboard layout '" .. name .. "'.")
@@ -346,6 +345,7 @@ function addon:save_keyboard_layout(layout_name)
     if addon.keyboard_selector then
         addon.keyboard_selector:SetDefaultText(name)
     end
+    return true
 end
 
 -- Discards any changes made to the keyboard layout and resets the Control UI state

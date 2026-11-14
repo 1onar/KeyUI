@@ -546,6 +546,17 @@ local function save_layout_as(device, name)
     addon.name_input_dialog.save_button:Click()
 end
 
+-- The name dialog is left open (refused name) or a popup asks: back out of the edit.
+local function abandon_edit()
+    if addon.name_input_dialog and addon.name_input_dialog:IsShown() then
+        addon.name_input_dialog.cancel_button:Click()
+    end
+    if addon.edit_layout_dialog and addon.edit_layout_dialog:IsShown() then
+        addon.edit_layout_dialog.cancel_button:Click()
+    end
+    if addon.controls_frame then addon.controls_frame:Hide() end
+end
+
 local SAVED_NAMES = { keyboard = "My Board", mouse = "My Mouse", controller = "My Pad" }
 
 step("36 save a layout on each device", function()
@@ -563,6 +574,31 @@ for device, name in pairs(SAVED_NAMES) do
     if board ~= name then
         problem(("36 save: %s currentboard is %q, expected %q"):format(device, tostring(board), name))
     end
+end
+
+-- A custom layout under a built-in layout's name is hidden by the built-in one the next
+-- time KeyUI opens; none of the ways to name a layout may produce one.
+step("37 built-in layout names refused", function()
+    save_layout_as("keyboard", kb)
+    if not (addon.name_input_dialog and addon.name_input_dialog:IsShown()) then
+        problem("37 built-in names: the name dialog closed after a refused name")
+    end
+    abandon_edit()
+    addon:RenameLayout("mouse", SAVED_NAMES.mouse, mouse)
+    addon:CopyLayout("keyboard", SAVED_NAMES.keyboard, kb)
+    local payload = addon:SerializeLayoutPayload("controller", pad, addon.default_controller_layouts[pad])
+    addon:ImportLayoutString("controller", payload)
+end)
+for device, default_name in pairs({ keyboard = kb, mouse = mouse, controller = pad }) do
+    if keyui_settings[DEVICE_SETTINGS[device].edited][default_name] then
+        problem(("37 built-in names: custom %s layout saved as %q"):format(device, default_name))
+    end
+end
+if not keyui_settings.layout_edited_mouse[SAVED_NAMES.mouse] then
+    problem("37 built-in names: refused rename lost the mouse layout")
+end
+if not keyui_settings.layout_edited_controller[pad .. " (2)"] then
+    problem(("37 built-in names: import not stored as %q"):format(pad .. " (2)"))
 end
 
 if mode == "dump" then
