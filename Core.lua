@@ -3521,10 +3521,13 @@ function addon:process_spell(spell_name, button)
     -- Retrieve the spell's icon
     local spell_icon = C_Spell.GetSpellTexture(spell_name)
 
+    -- Remembered even without an icon: refresh_icons follows overrides with it and
+    -- shows the icon once the texture arrives.
+    button.icon_spell = spell_name
+
     if spell_icon then
         button.icon:SetTexture(spell_icon)  -- Set the icon texture
         button.icon:Show()                  -- Show the icon
-        button.icon_spell = spell_name      -- overrides change it; see refresh_icons
     end
 end
 
@@ -3535,10 +3538,12 @@ function addon:process_macro(macro_name, button)
     -- Retrieve the macro's info
     local name, icon = GetMacroInfo(macro_name)
 
+    -- Remembered even without an icon; see process_spell.
+    button.icon_macro = macro_name
+
     if icon then
         button.icon:SetTexture(icon)  -- Set the icon texture
         button.icon:Show()            -- Show the icon
-        button.icon_macro = macro_name -- conditional macros change it; see refresh_icons
     end
 end
 
@@ -4161,6 +4166,14 @@ local function refresh_button_icon(button)
     end
 
     if not button.icon:IsShown() then
+        -- An icon that was not there yet when the key was drawn: item and spell textures
+        -- can arrive after the first query, and nothing tells KeyUI when. The full
+        -- set_key pass this replaced picked them up on the next state event; this does
+        -- the same for the one key.
+        if addon:IconBecameAvailable(button) then
+            addon:set_key(button)
+            return true
+        end
         return false
     end
 
@@ -4179,6 +4192,24 @@ local function refresh_button_icon(button)
     if texture and texture ~= button._icon_tex then
         button._icon_tex = texture
         button.icon:SetTexture(texture)
+    end
+    return false
+end
+
+-- Whether a key drawn without an icon could show one now. Checks the same sources the
+-- process_* handlers read: the action slot (button.slot is set even when the slot had no
+-- texture), or the spell or macro the key is bound to.
+function addon:IconBecameAvailable(button)
+    local slot = button.active_slot or button.slot
+    if slot then
+        return HasAction(slot) and GetActionTexture(slot) ~= nil
+    end
+    if button.icon_spell then
+        return C_Spell.GetSpellTexture(button.icon_spell) ~= nil
+    end
+    if button.icon_macro then
+        local _, icon = GetMacroInfo(button.icon_macro)
+        return icon ~= nil
     end
     return false
 end
