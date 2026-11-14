@@ -251,6 +251,8 @@ function addon:save_mouse_layout(layout_name)
     -- Clear the current layout and assign the new one
     wipe(keyui_settings.layout_current_mouse)
     keyui_settings.layout_current_mouse[name] = keyui_settings.layout_edited_mouse[name]
+    -- The same bookkeeping as selecting a layout; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_mouse.currentboard = name
 
     -- Remove Mouse edited flag
     addon.keys_mouse_edited = false

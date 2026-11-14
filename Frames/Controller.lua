@@ -413,6 +413,8 @@ function addon:save_controller_layout(layout_name)
     -- Clear the current layout and assign the new one
     wipe(keyui_settings.layout_current_controller)
     keyui_settings.layout_current_controller[name] = keyui_settings.layout_edited_controller[name]
+    -- The same bookkeeping as selecting a layout; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_controller.currentboard = name
 
     -- Remove Controller edited flag
     addon.keys_controller_edited = false

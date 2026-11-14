@@ -522,6 +522,49 @@ step("35 edit cancelled", function()
     if addon.controls_frame then addon.controls_frame:Hide() end
 end)
 
+---------------------------------------------------------------------------
+-- Saving layouts: Edit Layout, Save, enter a name, Save.
+---------------------------------------------------------------------------
+
+local DEVICE_SETTINGS = {
+    keyboard = { edited = "layout_edited_keyboard", current = "layout_current_keyboard",
+        bind = "key_bind_settings_keyboard", defaults = "default_keyboard_layouts" },
+    mouse = { edited = "layout_edited_mouse", current = "layout_current_mouse",
+        bind = "key_bind_settings_mouse", defaults = "default_mouse_layouts" },
+    controller = { edited = "layout_edited_controller", current = "layout_current_controller",
+        bind = "key_bind_settings_controller", defaults = "default_controller_layouts" },
+}
+
+local function save_layout_as(device, name)
+    H.last_popup = nil
+    local controls = addon:get_controls_frame()
+    controls:Show()
+    addon.active_control_tab = device
+    addon.controls_frame.edit_layout_button:Click()
+    addon.edit_layout_dialog.save_button:Click()
+    addon.name_input_dialog.input_box:SetText(name)
+    addon.name_input_dialog.save_button:Click()
+end
+
+local SAVED_NAMES = { keyboard = "My Board", mouse = "My Mouse", controller = "My Pad" }
+
+step("36 save a layout on each device", function()
+    for _, device in ipairs({ "keyboard", "mouse", "controller" }) do
+        save_layout_as(device, SAVED_NAMES[device])
+    end
+    if addon.controls_frame then addon.controls_frame:Hide() end
+end)
+for device, name in pairs(SAVED_NAMES) do
+    local names = DEVICE_SETTINGS[device]
+    if not keyui_settings[names.edited][name] then
+        problem(("36 save: %s layout %q not saved"):format(device, name))
+    end
+    local board = keyui_settings[names.bind].currentboard
+    if board ~= name then
+        problem(("36 save: %s currentboard is %q, expected %q"):format(device, tostring(board), name))
+    end
+end
+
 if mode == "dump" then
     io.write(table.concat(out, "\n"), "\n")
 else

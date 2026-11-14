@@ -331,6 +331,8 @@ function addon:save_keyboard_layout(layout_name)
     -- Clear the current layout and assign the new one
     wipe(keyui_settings.layout_current_keyboard)
     keyui_settings.layout_current_keyboard[name] = keyui_settings.layout_edited_keyboard[name]
+    -- The same bookkeeping as selecting a layout; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_keyboard.currentboard = name
 
     -- Remove Keyboard edited flag
     addon.keys_keyboard_edited = false
