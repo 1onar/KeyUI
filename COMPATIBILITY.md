@@ -34,10 +34,11 @@ Each folder holds:
 - the `Interface/AddOns` tree of the matching [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source)
   branch (`live`, `forever`, `classic`, `classic_anniversary`, `classic_era`)
 - `version.txt` with that build
-- `_resources/` with `AtlasInfo.lua`, `GlobalAPI.lua` and `Templates.lua` from
+- `_resources/` with `AtlasInfo.lua`, `GlobalAPI.lua`, `Templates.lua`, `Events.lua`,
+  `FrameXML.lua`, `Frames.lua`, `Mixins.lua`, `LuaEnum.lua` and `GlobalStrings/enUS.lua` from
   [Ketho/BlizzardInterfaceResources](https://github.com/Ketho/BlizzardInterfaceResources), the
-  source for atlas names. That repository trails the clients by weeks at times, so its build is
-  recorded separately in `_resources/version.txt`.
+  source for atlas names and for the luacheck globals list. That repository trails the clients
+  by weeks at times, so its build is recorded separately in `_resources/version.txt`.
 
 Unlike the older client exports, wow-ui-source keeps Blizzard's flavor subfolders, e.g.
 `Blizzard_ActionBar/Shared/ActionButton.lua` instead of `Blizzard_ActionBar/ActionButton.lua`.
@@ -49,6 +50,7 @@ The `classic_anniversary` branch is stored with CRLF line endings.
 tools/update-api.sh check            # upstream build vs. KeyUI.toc and API/
 tools/update-api.sh update           # refresh every flavor that changed
 tools/update-api.sh update forever   # refresh one flavor
+tools/update-api.sh resources        # refresh only _resources/ (e.g. after adding a file)
 ```
 
 `update` prints which files in `Blizzard_APIDocumentationGenerated` changed (`~`), appeared (`+`)
@@ -341,6 +343,34 @@ pins Shift with its checkbox and opens Edit Layout, exports a profile and delete
 named with a `%`. It does not model rendering, real API return values beyond what the
 session sets up, or secret values. A green run says the logic holds for these steps, not that
 the client agrees -- testers' `/keyui report` stays the final word.
+
+### Lint (`luacheck`)
+
+`.luacheckrc` runs luacheck 1.2.0 over KeyUI's own Lua (not `Layouts/`, `Libs/`, `API/`);
+`pr-check.yml` runs it as its own job. Run it from the repository root: `luacheck .`
+
+The useful warning is *accessing undefined variable*. `tools/luacheck/wow_globals.lua` lists
+the WoW globals KeyUI reads, each with the clients that define it. It is generated, not
+written by hand:
+
+```sh
+tools/update-api.sh resources        # once, fetches the resource files below
+luajit tools/luacheck-globals.lua    # rewrites tools/luacheck/wow_globals.lua
+```
+
+The generator collects names from all five `_resources` folders (GlobalAPI, FrameXML, Frames,
+Mixins, LuaEnum, GlobalStrings) and from top-level assignments in the UI source, then keeps the
+ones KeyUI uses. It prints the names that some client lacks (today only the Classic spell
+globals, all behind `API_COMPAT`) and those no client defines, which stay luacheck errors.
+Names defined only by the `Blizzard_Deprecated*` forwarders go into a separate `deprecated`
+list that `.luacheckrc` allows in `Core.lua` and `Frames/ActionButton.lua` only, where they
+are fallbacks behind `C_ActionBar` (see "Deprecated names" above). Action buttons
+(`ActionButton1`, `MultiBar5Button1`, ...) are created from name prefixes in Lua, so no
+resource lists them; `.luacheckrc` builds them for `Mappings.lua`.
+
+`tools/harness/wow.lua` sets the globals it emulates and is allowed to. It must not use
+`allow_defined`: luacheck shares implicitly defined globals between all files of a run, which
+would hide undefined globals in the addon.
 
 ### Example: Spellbook Loading
 

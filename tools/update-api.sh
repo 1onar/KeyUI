@@ -5,6 +5,9 @@
 #   tools/update-api.sh check               compare upstream builds with KeyUI.toc
 #                                           (and with API/, when it exists)
 #   tools/update-api.sh update [flavor...]  refresh API/<flavor>/ (default: all)
+#   tools/update-api.sh resources [flavor...]
+#                                           refresh only API/<flavor>/_resources/, e.g.
+#                                           after RESOURCE_FILES gained a file
 #
 # Sources:
 #   UI code    https://github.com/Gethe/wow-ui-source              Interface/AddOns
@@ -29,7 +32,9 @@ FLAVORS=(
     "classic_era:classic_era:classic_era"
 )
 
-RESOURCE_FILES=(AtlasInfo.lua GlobalAPI.lua Templates.lua)
+# FrameXML, Frames, Mixins, LuaEnum and GlobalStrings feed tools/luacheck-globals.lua.
+RESOURCE_FILES=(AtlasInfo.lua GlobalAPI.lua Templates.lua Events.lua FrameXML.lua Frames.lua
+    Mixins.lua LuaEnum.lua GlobalStrings/enUS.lua)
 
 UI_SOURCE_RAW="https://raw.githubusercontent.com/Gethe/wow-ui-source"
 UI_SOURCE_TARBALL="https://codeload.github.com/Gethe/wow-ui-source/tar.gz/refs/heads"
@@ -148,6 +153,36 @@ api_doc_changes() {
     fi
 }
 
+# Downloads RESOURCE_FILES of one BlizzardInterfaceResources branch into $2 and
+# prints the resources commit message (its build) for the caller.
+fetch_resources() {
+    local res_branch=$1 dest=$2 file res_version
+    for file in "${RESOURCE_FILES[@]}"; do
+        mkdir -p "$dest/$(dirname "$file")"
+        fetch "$RESOURCES_RAW/$res_branch/Resources/$file" -o "$dest/$file"
+    done
+    res_version=$(fetch "$RESOURCES_API/$res_branch" 2>/dev/null \
+        | sed -n '/"message"/{s/.*"message": *"\([^"]*\)".*/\1/p;q;}' || true)
+    printf '%s\n' "${res_version:-unknown}" > "$dest/version.txt"
+    printf '%s\n' "${res_version:-unknown}"
+}
+
+cmd_resources() {
+    local entry flavor res_branch staging res_version
+    [[ -d $API_DIR ]] || die "$API_DIR not found; run update first"
+    WORK=$(mktemp -d "$API_DIR/.work.XXXXXX")
+    trap 'rm -rf "$WORK"' EXIT
+    while IFS= read -r entry; do
+        IFS=: read -r flavor _ res_branch <<< "$entry"
+        [[ -d "$API_DIR/$flavor" ]] || die "$API_DIR/$flavor not found; run update $flavor first"
+        staging="$WORK/$flavor"
+        res_version=$(fetch_resources "$res_branch" "$staging")
+        rm -rf "$API_DIR/$flavor/_resources"
+        mv "$staging" "$API_DIR/$flavor/_resources"
+        echo "$flavor: resources $res_version"
+    done <<< "$(select_flavors "$@")"
+}
+
 cmd_update() {
     local entry flavor branch res_branch upstream current staging archive top version res_version file
     local entries
@@ -183,12 +218,7 @@ cmd_update() {
         rm -f "$archive"
         printf '%s\n' "$version" > "$staging/version.txt"
 
-        for file in "${RESOURCE_FILES[@]}"; do
-            fetch "$RESOURCES_RAW/$res_branch/Resources/$file" -o "$staging/_resources/$file"
-        done
-        res_version=$(fetch "$RESOURCES_API/$res_branch" 2>/dev/null \
-            | sed -n '/"message"/{s/.*"message": *"\([^"]*\)".*/\1/p;q;}' || true)
-        printf '%s\n' "${res_version:-unknown}" > "$staging/_resources/version.txt"
+        res_version=$(fetch_resources "$res_branch" "$staging/_resources")
 
         if [[ -d "$API_DIR/$flavor" ]]; then
             api_doc_changes "$API_DIR/$flavor" "$staging"
@@ -218,8 +248,12 @@ case "${1:-}" in
         shift
         cmd_update "$@"
         ;;
+    resources)
+        shift
+        cmd_resources "$@"
+        ;;
     *)
-        echo "usage: $0 check | update [flavor...]" >&2
+        echo "usage: $0 check | update [flavor...] | resources [flavor...]" >&2
         exit 2
         ;;
 esac

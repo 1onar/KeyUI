@@ -10,6 +10,7 @@ ignore:
   # packager automatically, these are tracked and would otherwise ship.
   - .gitignore
   - .luarc.json
+  - .luacheckrc
   - .pkgmeta
   - COMPATIBILITY.md
   - tools

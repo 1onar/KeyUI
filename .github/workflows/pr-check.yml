@@ -46,3 +46,22 @@ jobs:
             sudo apt-get install -y lua5.1
           fi
           tools/harness/check.sh
+
+  luacheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Undefined globals are the useful part: tools/luacheck/wow_globals.lua lists every
+      # WoW global KeyUI may read, checked against all five clients
+      # (tools/luacheck-globals.lua). A new or misspelled one fails here.
+      - name: Install luacheck
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 liblua5.1-0-dev luarocks
+          luarocks install --local luacheck 1.2.0
+          echo "$HOME/.luarocks/bin" >> "$GITHUB_PATH"
+
+      - name: luacheck
+        run: luacheck .
