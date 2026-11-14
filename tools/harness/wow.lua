@@ -339,7 +339,13 @@ function Widget:SetBlendMode() end
 function Widget:SetDesaturated(v) self._desaturated = v end
 
 -- Font strings and buttons with text
-function Widget:SetText(text) self._text = text end
+function Widget:SetText(text)
+    -- Edit boxes cut what does not fit their letter limit (0: none).
+    if type(text) == "string" and (self._max_letters or 0) > 0 then
+        text = text:sub(1, self._max_letters)
+    end
+    self._text = text
+end
 function Widget:GetText() return self._text end
 function Widget:SetFormattedText(fmt, ...) self._text = fmt:format(...) end
 function Widget:SetFont(path, size, flags) self._font = { path, size, flags } return true end
@@ -390,7 +396,7 @@ function Widget:SetFocus() end
 function Widget:ClearFocus() end
 function Widget:HighlightText() end
 function Widget:SetAutoFocus() end
-function Widget:SetMaxLetters() end
+function Widget:SetMaxLetters(n) self._max_letters = n end
 function Widget:SetMinMaxValues(lo, hi) self._min, self._max = lo, hi end
 function Widget:SetValueStep() end
 function Widget:SetValue(v) self._value = v end
@@ -501,12 +507,16 @@ HUD_EDIT_MODE_COLLAPSE_OPTIONS, HUD_EDIT_MODE_EXPAND_OPTIONS = "Collapse", "Expa
 local popup = CreateFrame("Frame", "StaticPopup1", UIParent)
 popup:Hide()
 popup.EditBox = CreateFrame("EditBox", nil, popup)
+-- Left over from a Blizzard dialog that used the same pooled popup earlier on.
+popup.EditBox._max_letters = 24
 function popup:GetEditBox() return self.EditBox end
 function StaticPopup_Show(which, text_arg1, text_arg2, data)
     local info = StaticPopupDialogs[which]
     if not info then return nil end
     H.last_popup = which
     popup.data = data
+    -- GameDialog.lua: the limit is only set when the dialog defines one.
+    if info.maxLetters then popup.EditBox:SetMaxLetters(info.maxLetters) end
     popup.EditBox:SetText("")
     popup:Show()
     if info.OnShow then protected_call(info.OnShow, popup, data) end

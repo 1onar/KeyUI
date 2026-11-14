@@ -461,6 +461,17 @@ if addon.BuildDiagnosticReport then
     emit("  report: " .. report:sub(1, 400))
 end
 
+-- The profile string is far longer than the letter limit a pooled popup may still carry
+-- from a Blizzard dialog (issue #72).
+step("31b profile export", function()
+    H.last_popup_text = nil
+    StaticPopup1.EditBox:SetMaxLetters(24)   -- a Blizzard dialog used the popup since
+    StaticPopup_Show("KEYUI_EXPORT_PROFILE")
+end, { oracle = false })
+if #(H.last_popup_text or "") <= 24 then
+    problem(("31b profile export: string cut to %d letters"):format(#(H.last_popup_text or "")))
+end
+
 -- Edit Layout clears the modifier checkboxes; the keys have to leave the pinned layer
 -- with them, in edit mode and after Cancel (issue #73).
 step("32 shift released", function() H.set_modifier("shift", false) end)

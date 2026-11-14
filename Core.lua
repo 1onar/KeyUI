@@ -6357,6 +6357,10 @@ StaticPopupDialogs["KEYUI_EXPORT_PROFILE"] = {
     text = "Copy the profile string below to share your KeyUI configuration.",
     button1 = CLOSE,
     hasEditBox = true,
+    -- Popups are pooled, and the client applies maxLetters only when a dialog sets it
+    -- (GameDialog.lua, all five clients): without it, a limit left by a Blizzard dialog
+    -- (24, 32, ...) would cut the text. 0 means no limit.
+    maxLetters = 0,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
@@ -6388,6 +6392,10 @@ StaticPopupDialogs["KEYUI_IMPORT_PROFILE"] = {
     button1 = ACCEPT,
     button2 = CANCEL,
     hasEditBox = true,
+    -- Popups are pooled, and the client applies maxLetters only when a dialog sets it
+    -- (GameDialog.lua, all five clients): without it, a limit left by a Blizzard dialog
+    -- (24, 32, ...) would cut the text. 0 means no limit.
+    maxLetters = 0,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
@@ -6420,6 +6428,10 @@ StaticPopupDialogs["KEYUI_EXPORT_LAYOUT"] = {
     text = "Copy the layout string below.",
     button1 = CLOSE,
     hasEditBox = true,
+    -- Popups are pooled, and the client applies maxLetters only when a dialog sets it
+    -- (GameDialog.lua, all five clients): without it, a limit left by a Blizzard dialog
+    -- (24, 32, ...) would cut the text. 0 means no limit.
+    maxLetters = 0,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
@@ -6453,6 +6465,10 @@ StaticPopupDialogs["KEYUI_IMPORT_LAYOUT"] = {
     button1 = ACCEPT,
     button2 = CANCEL,
     hasEditBox = true,
+    -- Popups are pooled, and the client applies maxLetters only when a dialog sets it
+    -- (GameDialog.lua, all five clients): without it, a limit left by a Blizzard dialog
+    -- (24, 32, ...) would cut the text. 0 means no limit.
+    maxLetters = 0,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
@@ -6493,6 +6509,8 @@ StaticPopupDialogs["KEYUI_LAYOUT_RENAME"] = {
     button1 = SAVE,
     button2 = CANCEL,
     hasEditBox = true,
+    -- Set for the same reason as on the import/export popups; names may be this long.
+    maxLetters = MAX_LAYOUT_NAME_LENGTH,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
@@ -6529,6 +6547,8 @@ StaticPopupDialogs["KEYUI_LAYOUT_COPY"] = {
     button1 = ACCEPT,
     button2 = CANCEL,
     hasEditBox = true,
+    -- Set for the same reason as on the import/export popups; names may be this long.
+    maxLetters = MAX_LAYOUT_NAME_LENGTH,
     preferredIndex = 3,
     timeout = 0,
     whileDead = true,
