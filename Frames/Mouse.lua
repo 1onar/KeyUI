@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
 
@@ -485,10 +485,9 @@ function addon:create_mouse_buttons(index)
             if addon.mouse_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_mouse_edited = true
-            elseif not InCombatLockdown() then
-                -- AnyUp fires UseAction on mouse release.
-                -- Cursor-drops are handled natively by OnReceiveDrag (like Blizzard's ActionButton).
             end
+            -- Locked: AnyUp fires UseAction on mouse release, and cursor-drops are
+            -- handled natively by OnReceiveDrag (like Blizzard's ActionButton).
         elseif mousebutton ~= "RightButton" then
             -- Right-click opens the context menu on release; see create_keyboard_buttons.
             if addon.mouse_locked == false then

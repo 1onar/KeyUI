@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- Initialize libraries
 local LibDBIcon = LibStub("LibDBIcon-1.0", true)
@@ -67,9 +67,8 @@ do
             local _, loaded = C_AddOns.IsAddOnLoaded(addon_name)
             return loaded == true
         end
-        if IsAddOnLoaded then
-            return IsAddOnLoaded(addon_name)
-        end
+        -- C_AddOns.IsAddOnLoaded exists on all five clients; the bare global it replaced
+        -- exists on none of them any more.
         return false
     end
 
@@ -1623,7 +1622,7 @@ function addon:load_spellbook()
         local numTabs = GetNumSpellTabs()
 
         for tabIndex = 1, numTabs do
-            local name, texture, offset, numSlots, _, offSpecID = GetSpellTabInfo(tabIndex)
+            local name, _, offset, numSlots, _, offSpecID = GetSpellTabInfo(tabIndex)
 
             -- Anniversary: offSpecID is 0 for normal tabs, not nil
             if name and (not offSpecID or offSpecID == 0) then  -- Skip off-spec tabs
@@ -2766,7 +2765,6 @@ function addon:set_key(button)
 
         if not matched and info.opie then
             addon:process_opie(button)
-            matched = true
         end
 
         if specific_bindings[binding] then
@@ -3482,7 +3480,7 @@ function addon:process_pet_action_slot(binding, button)
     if not pet_action_index then return end
 
     -- Get pet action information
-    local pet_name, pet_texture, is_token, is_active, auto_cast_allowed, auto_cast_enabled, spell_id =
+    local _, pet_texture, is_token, _, _, _, spell_id =
         GetPetActionInfo(pet_action_index)
 
     -- Handle the texture if it's a token
@@ -3582,7 +3580,7 @@ function addon:process_macro(macro_name, button)
     if not macro_name then return end
 
     -- Retrieve the macro's info
-    local name, icon = GetMacroInfo(macro_name)
+    local _, icon = GetMacroInfo(macro_name)
 
     -- Remembered even without an icon; see process_spell.
     button.icon_macro = macro_name
@@ -5285,22 +5283,22 @@ end
 -- Edit mode on a key: drag it, or Shift+click to remove it. The callers only get here
 -- while their device is unlocked for editing. The key is a secure button, so neither
 -- works in combat lockdown.
-function addon:handle_drag_or_size(self, button)
+function addon:handle_drag_or_size(frame, button)
     if addon:IsBlockedByCombat() then
         return
     end
 
     if button == "LeftButton" and IsShiftKeyDown() then
-        self:Hide()
+        frame:Hide()
     elseif button == "LeftButton" then
-        self:StartMoving()
+        frame:StartMoving()
         addon.is_moving = true -- Add a flag to indicate the frame is being moved
     end
 end
 
-function addon:handle_release(self, button)
+function addon:handle_release(frame, button)
     if button == "LeftButton" and addon.is_moving then
-        self:StopMovingOrSizing()
+        frame:StopMovingOrSizing()
         addon.is_moving = false -- Reset the flag when the movement is stopped
     end
 end
@@ -5359,7 +5357,7 @@ local function build_spells_submenu(parentMenu)
             if is_known then
                 local spellButton = tabButton:CreateButton(spell_name, function()
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                    local spell = "Spell " .. spell_name
+                    local command = "Spell " .. spell_name
                     local binding_name = addon.current_clicked_key.readable_binding:GetText()
                     local actionbutton = addon.current_clicked_key.binding
                     local targetSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
@@ -5380,7 +5378,7 @@ local function build_spells_submenu(parentMenu)
                         ClearCursor()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
-                        if not set_binding_and_save(key, spell) then
+                        if not set_binding_and_save(key, command) then
                             return
                         end
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")

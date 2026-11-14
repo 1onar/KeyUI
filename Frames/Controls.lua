@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
 local USE_ATLAS = addon.VERSION.USE_ATLAS
@@ -754,9 +754,8 @@ function addon:create_controls()
     end)
 
     -- Set OnShow behavior for keyboard tab button
-    controls_frame.keyboard_button:SetScript("OnShow", function(s)
-        local frame_width = controls_frame:GetWidth()
-        adjust_button_width(controls_frame.keyboard_button, frame_width)
+    controls_frame.keyboard_button:SetScript("OnShow", function()
+        adjust_button_width(controls_frame.keyboard_button, controls_frame:GetWidth())
     end)
 
     -- Set button text and font for the mouse tab button
@@ -766,7 +765,7 @@ function addon:create_controls()
     controls_frame.mouse_button:SetDisabledFontObject(custom_font)
 
     -- Adjust text properties for the mouse tab button
-    local text = controls_frame.mouse_button:GetFontString()
+    text = controls_frame.mouse_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("TOP", controls_frame.mouse_button, "TOP", 0, -6)
     text:SetTextColor(1, 1, 1) -- Set text color to white
@@ -780,9 +779,8 @@ function addon:create_controls()
     end)
 
     -- Set OnShow behavior for mouse tab button
-    controls_frame.mouse_button:SetScript("OnShow", function(s)
-        local frame_width = controls_frame:GetWidth()
-        adjust_button_width(controls_frame.mouse_button, frame_width)
+    controls_frame.mouse_button:SetScript("OnShow", function()
+        adjust_button_width(controls_frame.mouse_button, controls_frame:GetWidth())
     end)
 
     -- Set button text and font for the controller tab button
@@ -792,7 +790,7 @@ function addon:create_controls()
     controls_frame.controller_button:SetDisabledFontObject(custom_font)
 
     -- Adjust text properties for the controller tab button
-    local text = controls_frame.controller_button:GetFontString()
+    text = controls_frame.controller_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("TOP", controls_frame.controller_button, "TOP", 0, -6)
     text:SetTextColor(1, 1, 1) -- Set text color to white
@@ -806,9 +804,8 @@ function addon:create_controls()
     end)
 
     -- Set OnShow behavior for controller tab button
-    controls_frame.controller_button:SetScript("OnShow", function(s)
-        local frame_width = controls_frame:GetWidth()
-        adjust_button_width(controls_frame.controller_button, frame_width)
+    controls_frame.controller_button:SetScript("OnShow", function()
+        adjust_button_width(controls_frame.controller_button, controls_frame:GetWidth())
     end)
 
     addon.controls_frame:SetScript("OnLoad", function()
@@ -1701,15 +1698,15 @@ function addon:keyboard_layout_selector()
                 end)
 
                 layoutButton:DeactivateSubmenu()
-                local copyButton = layoutButton:CreateButton("Copy Layout", function()
+                layoutButton:CreateButton("Copy Layout", function()
                     addon:ShowLayoutCopyPopup("keyboard", layout_name)
                 end)
 
-                local renameButton = layoutButton:CreateButton("Rename Layout", function()
+                layoutButton:CreateButton("Rename Layout", function()
                     addon:ShowLayoutRenamePopup("keyboard", layout_name)
                 end)
 
-                local exportButton = layoutButton:CreateButton("Export Layout", function()
+                layoutButton:CreateButton("Export Layout", function()
                     addon:ShowLayoutExportPopup("keyboard", layout_name, layout_data)
                 end)
 
@@ -1838,15 +1835,15 @@ function addon:mouse_layout_selector()
                 end)
 
                 layoutButton:DeactivateSubmenu()
-                local copyButton = layoutButton:CreateButton("Copy Layout", function()
+                layoutButton:CreateButton("Copy Layout", function()
                     addon:ShowLayoutCopyPopup("mouse", layout_name)
                 end)
 
-                local renameButton = layoutButton:CreateButton("Rename Layout", function()
+                layoutButton:CreateButton("Rename Layout", function()
                     addon:ShowLayoutRenamePopup("mouse", layout_name)
                 end)
 
-                local exportButton = layoutButton:CreateButton("Export Layout", function()
+                layoutButton:CreateButton("Export Layout", function()
                     addon:ShowLayoutExportPopup("mouse", layout_name, layout_data)
                 end)
 
@@ -1972,15 +1969,15 @@ function addon:controller_layout_selector()
                     end)
 
                     layoutButton:DeactivateSubmenu()
-                    local copyButton = layoutButton:CreateButton("Copy Layout", function()
+                    layoutButton:CreateButton("Copy Layout", function()
                         addon:ShowLayoutCopyPopup("controller", layout_name)
                     end)
 
-                    local renameButton = layoutButton:CreateButton("Rename Layout", function()
+                    layoutButton:CreateButton("Rename Layout", function()
                         addon:ShowLayoutRenamePopup("controller", layout_name)
                     end)
 
-                    local exportButton = layoutButton:CreateButton("Export Layout", function()
+                    layoutButton:CreateButton("Export Layout", function()
                         addon:ShowLayoutExportPopup("controller", layout_name, layout_data)
                     end)
 

@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
 local USE_ATLAS = addon.VERSION.USE_ATLAS
@@ -177,7 +177,7 @@ function addon:create_controller_frame()
     controller_frame.controls_button:SetHighlightFontObject(custom_font)
     controller_frame.controls_button:SetDisabledFontObject(custom_font)
 
-    local text = controller_frame.controls_button:GetFontString()
+    text = controller_frame.controls_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("BOTTOM", controller_frame.controls_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white
@@ -243,7 +243,7 @@ function addon:create_controller_frame()
     controller_frame.options_button:SetHighlightFontObject(custom_font)
     controller_frame.options_button:SetDisabledFontObject(custom_font)
 
-    local text = controller_frame.options_button:GetFontString()
+    text = controller_frame.options_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("BOTTOM", controller_frame.options_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white

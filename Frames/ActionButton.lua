@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- The bare action bar globals are only forwarders to C_ActionBar since 12.0.0, on every
 -- client, and vanish with the loadDeprecationFallbacks CVar; see the note in Core.lua.
@@ -707,8 +707,7 @@ end
 function addon:ToggleButtonPetAutoCast(button)
     if not button.active_slot then return end
     if C_ActionBar and C_ActionBar.ToggleAutoCastPetAction then
+        -- In C_ActionBar on all five clients; no client has the bare global any more.
         C_ActionBar.ToggleAutoCastPetAction(button.active_slot)
-    elseif ToggleAutoCastPetAction then
-        ToggleAutoCastPetAction(button.active_slot)
     end
 end

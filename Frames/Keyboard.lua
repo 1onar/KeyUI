@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 -- Use centralized version detection from VersionCompat.lua
 local USE_ATLAS = addon.VERSION.USE_ATLAS
@@ -171,7 +171,7 @@ function addon:create_keyboard_frame()
     keyboard_frame.controls_button:SetHighlightFontObject(custom_font)
     keyboard_frame.controls_button:SetDisabledFontObject(custom_font)
 
-    local text = keyboard_frame.controls_button:GetFontString()
+    text = keyboard_frame.controls_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("BOTTOM", keyboard_frame.controls_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white
@@ -237,7 +237,7 @@ function addon:create_keyboard_frame()
     keyboard_frame.options_button:SetHighlightFontObject(custom_font)
     keyboard_frame.options_button:SetDisabledFontObject(custom_font)
 
-    local text = keyboard_frame.options_button:GetFontString()
+    text = keyboard_frame.options_button:GetFontString()
     text:ClearAllPoints()
     text:SetPoint("BOTTOM", keyboard_frame.options_button, "BOTTOM", 0, 4)
     text:SetTextColor(1, 1, 1) -- Set text color to white
@@ -640,10 +640,9 @@ function addon:create_keyboard_buttons(index)
             if addon.keyboard_locked == false then
                 addon:handle_drag_or_size(self, mousebutton)
                 addon.keys_keyboard_edited = true
-            elseif not InCombatLockdown() then
-                -- AnyUp fires UseAction on mouse release.
-                -- Cursor-drops are handled natively by OnReceiveDrag (like Blizzard's ActionButton).
             end
+            -- Locked: AnyUp fires UseAction on mouse release, and cursor-drops are
+            -- handled natively by OnReceiveDrag (like Blizzard's ActionButton).
         elseif mousebutton ~= "RightButton" then
             -- Right-click opens the context menu on release, so it must not also rename
             -- the key the menu is about to act on.

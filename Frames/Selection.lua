@@ -1,4 +1,4 @@
-local name, addon = ...
+local _, addon = ...
 
 function addon:create_selection_frame()
     -- Create the main selection frame
@@ -53,16 +53,16 @@ function addon:create_selection_frame()
 
     local button_width = selection_frame:GetWidth() / 2 - 30  -- 1/2 of the width
     local one_quarter_offset = selection_frame:GetWidth() / 4  -- 1/4 of the width
-    local three_quarter_offset = selection_frame:GetWidth() * 3 / 4  -- 3/4 of the width    
+    local three_quarter_offset = selection_frame:GetWidth() * 3 / 4  -- 3/4 of the width
 
     bottom_frame:SetSize(total_width, 60)  -- Height for the controls section
     bottom_frame:SetPoint("TOPLEFT", selection_frame, "BOTTOMLEFT", 0, 0)  -- Adjust positioning as needed
 
-    local control_backdropInfo = {
+    local bottom_backdropInfo = {
         bgFile = "Interface\\AddOns\\KeyUI\\Media\\Background\\topblack_bg",
         tile = false,
     }
-    bottom_frame:SetBackdrop(control_backdropInfo)
+    bottom_frame:SetBackdrop(bottom_backdropInfo)
     bottom_frame:SetBackdropColor(0.1, 0.1, 0.1, 1)
 
     -- Load Button
@@ -188,7 +188,7 @@ function addon:create_selection_frame()
     end
 
     -- Create and position the child frames
-    local keyboard_frame = create_child_frame(
+    create_child_frame(
         selection_frame,
         "Interface\\AddOns\\KeyUI\\Media\\Frame\\selection_keyboard.tga",
         child_frame_width,
@@ -198,7 +198,7 @@ function addon:create_selection_frame()
         "Keyboard"       -- Label text
     )
 
-    local mouse_frame = create_child_frame(
+    create_child_frame(
         selection_frame,
         "Interface\\AddOns\\KeyUI\\Media\\Frame\\selection_mouse.tga",
         child_frame_width,
@@ -208,7 +208,7 @@ function addon:create_selection_frame()
         "Mouse"       -- Label text
     )
 
-    local controller_frame = create_child_frame(
+    create_child_frame(
         selection_frame,
         "Interface\\AddOns\\KeyUI\\Media\\Frame\\selection_controller.tga",
         child_frame_width,
