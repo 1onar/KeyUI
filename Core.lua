@@ -3115,8 +3115,12 @@ function addon:GetButtonCountText(button)
     if not button.active_slot then return "" end
     local slot = button.active_slot
     if API_COMPAT.has_modern_display_count then
-        return C_ActionBar.GetActionDisplayCount(slot) or ""
+        -- Never nil, and secret in combat on Retail and Forever (SecretWhenCooldownsRestricted):
+        -- hand it to SetText untouched, as Blizzard's ActionButton UpdateCount does. An
+        -- `or ""` here would test the secret string, which tainted code may not.
+        return C_ActionBar.GetActionDisplayCount(slot)
     end
+    -- Only for a client without GetActionDisplayCount (none of the five today).
     if IsConsumableAction(slot) or IsStackableAction(slot) then
         local count = GetActionCount(slot)
         if count > 9999 then return "*" end
