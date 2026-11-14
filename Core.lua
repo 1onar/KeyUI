@@ -828,6 +828,10 @@ function addon:ImportProfileString(serialized)
     if type(serialized) ~= "string" then
         return false, "Invalid profile string"
     end
+    -- Applying a profile closes and reopens KeyUI, which combat lockdown refuses.
+    if InCombatLockdown() then
+        return false, "Profiles can't be imported during combat."
+    end
 
     local trimmed = serialized:match("^%s*(.-)%s*$")
     if trimmed == "" then
@@ -1446,6 +1450,11 @@ local function reset_frame_positions(self)
 end
 
 function addon:ResetAddonSettings()
+    -- Hides and rebuilds frames that parent secure buttons. The confirmation popup can
+    -- still be accepted after a fight has started.
+    if self:IsBlockedByCombat() then
+        return
+    end
     hide_resettable_frames(self)
     reset_saved_variables()
     reset_runtime_flags(self)
