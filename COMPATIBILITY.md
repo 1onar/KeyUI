@@ -339,8 +339,10 @@ ancestors), protected frames in combat (including `StartMoving`, `SetBinding` an
 `SaveBindings`), the `GetAttribute(prefix, name, suffix)` lookup, secure click resolution,
 pooled popups (inherited letter limit, formatted text) and the Gamepad atlases missing on
 Anniversary and Classic Era. The session also uses the Controls window during combat,
-pins Shift with its checkbox and opens Edit Layout, exports a profile and deletes a layout
-named with a `%`. It does not model rendering, real API return values beyond what the
+pins Shift with its checkbox and opens Edit Layout, exports a profile, deletes a layout
+named with a `%`, saves a layout on each device, tries the built-in layout names, reopens a
+custom layout that shares a built-in name as after `/reload`, and saves over custom layouts
+(the one being edited, another one confirmed and cancelled). It does not model rendering, real API return values beyond what the
 session sets up, or secret values. A green run says the logic holds for these steps, not that
 the client agrees -- testers' `/keyui report` stays the final word.
 
@@ -591,6 +593,10 @@ Notes from that pass:
 - [ ] Anniversary and Classic Era: controller layout keys show text labels (PAD1, ...), not blanks; Retail, Forever and MoP show the glyphs
 - [ ] A custom layout named with a `%` can be deleted
 - [ ] Closing the Controls window while editing the mouse or controller layout discards those edits
+- [ ] Saving, renaming or copying a layout as `QWERTZ_100%`, `Layout_4x3` or `xbox` is refused with a chat line; the Save Layout dialog stays open
+- [ ] Importing a layout string named like a built-in layout stores it as `<name> (2)`
+- [ ] A custom layout saved under a built-in name with an older KeyUI is still shown after `/reload`
+- [ ] Saving under the name of another custom layout asks "Replace it?"; Cancel returns to the name dialog; saving the edited custom layout under its own name does not ask
 
 ### In-Game Test Commands
 
