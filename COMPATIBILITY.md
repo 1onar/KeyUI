@@ -19,12 +19,12 @@ Its build number only looks like Classic. Code that follows the *client* therefo
 ### Local API Snapshots Used for Compatibility Validation
 
 `API/` (gitignored) holds one Blizzard UI source snapshot per client, used as source-of-truth
-during compatibility audits. Last refreshed 2026-11-03:
+during compatibility audits. Last refreshed 2026-11-14:
 
 | Folder | Client | Build | `_resources` build |
 |---|---|---|---|
-| `API/retail` | Retail | 12.1.5.70688 | 12.1.5 (70448) |
-| `API/forever` | Forever | 1.60.1.70707 | 1.60.1 (70532) |
+| `API/retail` | Retail | 12.1.5.70783 | 12.1.5 (70448) |
+| `API/forever` | Forever | 1.60.1.70938 | 1.60.1 (70532) |
 | `API/mists` | MoP Classic | 5.5.4.70631 | 5.5.4 (69155) |
 | `API/anniversary` | Anniversary | 2.5.6.70577 | 2.5.6 (68575) |
 | `API/classic_era` | Classic Era | 1.15.9.70576 | 1.15.9 (69109) |
@@ -143,7 +143,7 @@ local API_COMPAT = {
 
 ### Feature Audit from Local API Dumps
 
-Re-validated 2026-11-03 against the five snapshots listed above; every point below still holds.
+Re-validated 2026-11-14 against the five snapshots listed above; every point below still holds.
 The Forever update (70450 → 70707) made `GetActiveLossOfControlData` secret and changed
 `IsSpellCrowdControl`, neither of which KeyUI calls. Forever matches Retail on every point:
 
@@ -287,6 +287,24 @@ binding; only `binding_info_cache` (binding string → pattern, label) remains, 
   uses the slot from the last sync until combat ends. Fixing that would mean delegating
   the click to the real action button (`type = "click"`), which is a separate change.
 
+**Controls that only work out of combat.** With "Stay open in combat" the whole UI stays
+reachable during a fight. Everything that moves, scales or hides a device frame or a key
+(size slider, dragging the controller frame, Edit Layout and the edit-mode drag/delete),
+and every `SetBinding`/`SaveBindings` from the right-click menu (`#nocombat`), goes through
+`addon:IsBlockedByCombat()` first: it refuses during lockdown and prints one chat line per
+fight. The settings reset and the profile import refuse as well; both close and rebuild
+KeyUI. Keyboard and mouse frames check `InCombatLockdown()` before `StartMoving` directly.
+
+**Secret strings.** `C_ActionBar.GetActionDisplayCount` is `SecretWhenCooldownsRestricted`
+and returns a secret string in combat. It goes to `SetText` untouched (which accepts
+secrets) -- no `or ""`, no comparison.
+
+**Popups.** Blizzard pools its popups and applies `maxLetters` only when a dialog defines
+it (`GameDialog.lua`, all five clients), so every KeyUI popup with an edit box sets one
+(0 = no limit for import/export strings). Dialog text is a format string
+(`SetFormattedText`): user text such as a layout name goes in as `text_arg1`, never
+concatenated into `text`.
+
 **Closed means idle.** Only start-up, integration loading, combat transitions and binding
 events stay registered while KeyUI is closed; everything else is registered in
 `addon:on_open_state_changed`. Anything those events keep current (bonus bar offset, action
@@ -315,8 +333,12 @@ five client flavors in `pr-check.yml`.
   release tag) versus the working tree, for reviewing behaviour changes before a release
 
 The stand-in models visibility (`IsShown` vs `IsVisible`, `OnShow`/`OnHide` through
-ancestors), protected frames in combat, the `GetAttribute(prefix, name, suffix)` lookup and
-secure click resolution. It does not model rendering, real API return values beyond what the
+ancestors), protected frames in combat (including `StartMoving`, `SetBinding` and
+`SaveBindings`), the `GetAttribute(prefix, name, suffix)` lookup, secure click resolution,
+pooled popups (inherited letter limit, formatted text) and the Gamepad atlases missing on
+Anniversary and Classic Era. The session also uses the Controls window during combat,
+pins Shift with its checkbox and opens Edit Layout, exports a profile and deletes a layout
+named with a `%`. It does not model rendering, real API return values beyond what the
 session sets up, or secret values. A green run says the logic holds for these steps, not that
 the client agrees -- testers' `/keyui report` stays the final word.
 
@@ -387,12 +409,25 @@ texture:SetTexCoord(0.03125, 0.53125, 0.570312, 0.695312)
 
 ### Blizzard Templates Availability
 
-| Template | Retail | Classic | Fallback |
+| Template | Retail/Forever | Classic | Fallback |
 |----------|--------|---------|----------|
-| `PanelTabButtonTemplate` | ✅ | ❌ | `addon:CreateTabButton()` |
-| `PanelTopTabButtonTemplate` | ✅ | ❌ | `addon:CreateTopTabButton()` |
+| `PanelTabButtonTemplate` | ✅ | ✅ (but styled differently) | `addon:CreateTabButton()` |
+| `PanelTopTabButtonTemplate` | ✅ | ✅ (but styled differently) | `addon:CreateTopTabButton()` |
 | `Tutorial_PointerDown` | ✅ | ❌ | Manual texture construction |
 | `Tutorial_PointerLeft` | ✅ | ❌ | Manual texture construction |
+
+Both tab templates exist in all five `_resources/Templates.lua` dumps today. KeyUI still
+uses its own tabs on Classic (`USE_ATLAS` is false there), because they draw from the
+bundled Retail art in `Media/Atlas/`.
+
+### Atlases on Classic
+
+`SetAtlas` is only used on the Mainline client, but the controller key glyphs
+(`addon.playstation_buttons`, `xbox_buttons`, `deck_buttons` in `Mappings.lua`) are shown
+as `|A:name:32:32|a` markup on every client. MoP Classic has all `Gamepad_*` atlases;
+Anniversary and Classic Era have none, and markup for an unknown atlas draws nothing.
+`update_button_key_text` therefore asks `C_Texture.GetAtlasInfo` (present on all five
+clients) once per name and keeps the text label where the atlas is missing.
 
 ### Creating Version-Agnostic Buttons
 
@@ -520,6 +555,11 @@ Notes from that pass:
 - [ ] "Stay open in combat" + "Close on ESC": ESC during combat does nothing to KeyUI and raises nothing; after combat ESC closes it again
 - [ ] Hovering mouse and controller keys in combat raises nothing; in locked mode a keypress over any key goes to the game, also after an edit session
 - [ ] Edit mode, all three devices: hover a key, leave, hover again, press a key: the key is renamed
+- [ ] "Stay open in combat", in a fight: size slider, dragging the controller frame, Edit Layout and right-click → Unbind each print "This can't be changed during combat." once and raise nothing
+- [ ] Tick Shift in Controls, click Edit Layout: the keys leave the Shift layer at once, and stay on the base layer after Cancel
+- [ ] After using a Blizzard dialog with a name field (pet rename, guild bank tab), Import Profile still accepts a full profile string
+- [ ] Anniversary and Classic Era: controller layout keys show text labels (PAD1, ...), not blanks; Retail, Forever and MoP show the glyphs
+- [ ] A custom layout named with a `%` can be deleted
 - [ ] Closing the Controls window while editing the mouse or controller layout discards those edits
 
 ### In-Game Test Commands
@@ -582,7 +622,7 @@ end
 The `KeyUI.toc` file supports multiple WoW versions via a single multi-value interface entry:
 
 ```
-## Interface: 120105, 120100, 50504, 20506, 11509
+## Interface: 120105, 120100, 50504, 20506, 16001, 11509
 ```
 
 This allows a **single addon package** to work on all WoW versions automatically.
@@ -655,5 +695,5 @@ Users downloading from CurseForge/Wago will automatically receive the correct ve
 ---
 
 **Maintained by:** KeyUI Development Team
-**Last Updated:** 2026-09-22
-**Supported Versions:** Retail 12.1.5 + 12.1.0, MoP 5.5.4, Anniversary 2.5.6, Classic Era 1.15.9
+**Last Updated:** 2026-11-14
+**Supported Versions:** Retail 12.1.5 + 12.1.0, Forever 1.60.1, MoP 5.5.4, Anniversary 2.5.6, Classic Era 1.15.9
