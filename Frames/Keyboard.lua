@@ -683,7 +683,8 @@ function addon:generate_keyboard_layout(layout_name)
     end
 
     -- Check whether the layout exists
-    local layout = addon.default_keyboard_layouts[layout_name] or keyui_settings.layout_edited_keyboard[layout_name]
+    local layout = addon:ResolveLayoutByName(addon.default_keyboard_layouts,
+        keyui_settings.layout_edited_keyboard, keyui_settings.layout_current_keyboard, layout_name)
     if not layout then
         print("Error: Layout " .. layout_name .. " not found.")
         return

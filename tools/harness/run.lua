@@ -601,6 +601,47 @@ if not keyui_settings.layout_edited_controller[pad .. " (2)"] then
     problem(("37 built-in names: import not stored as %q"):format(pad .. " (2)"))
 end
 
+-- Layouts saved before that was refused: a custom keyboard layout named like the active
+-- built-in one. After /reload layout_current and layout_edited hold separate copies, and
+-- the layout menu does not exist yet when KeyUI opens.
+local legacy_custom = { { "Q", 6, -6, 60, 60, 50, 50 }, { "W", 68, -6, 60, 60, 50, 50 } }
+step("38 reopen a custom layout named like a built-in one", function()
+    toggle_minimap()   -- close
+    keyui_settings.layout_edited_keyboard[kb] = legacy_custom
+    keyui_settings.layout_current_keyboard = { [kb] = {
+        { "Q", 6, -6, 60, 60, 50, 50 }, { "W", 68, -6, 60, 60, 50, 50 } } }
+    keyui_settings.key_bind_settings_keyboard.currentboard = kb
+    addon.keyboard_selector = nil
+    toggle_minimap()   -- open, as after /reload
+end)
+do
+    local shown = 0
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button:IsShown() then shown = shown + 1 end
+    end
+    if shown ~= #legacy_custom then
+        problem(("38 legacy custom layout: %d keyboard keys shown, expected %d"):format(shown, #legacy_custom))
+    end
+end
+-- And a built-in layout picked by a player who also has such a custom one stays built-in.
+step("38b reopen the built-in layout of that name", function()
+    toggle_minimap()
+    keyui_settings.layout_current_keyboard = { [kb] = addon.default_keyboard_layouts[kb] }
+    addon.keyboard_selector = nil
+    toggle_minimap()
+end)
+do
+    local shown = 0
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button:IsShown() then shown = shown + 1 end
+    end
+    if shown ~= #addon.default_keyboard_layouts[kb] then
+        problem(("38b built-in layout: %d keyboard keys shown, expected %d"):format(shown,
+            #addon.default_keyboard_layouts[kb]))
+    end
+    keyui_settings.layout_edited_keyboard[kb] = nil
+end
+
 if mode == "dump" then
     io.write(table.concat(out, "\n"), "\n")
 else

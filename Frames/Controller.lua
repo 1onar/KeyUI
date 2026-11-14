@@ -703,7 +703,8 @@ function addon:generate_controller_layout(layout_name)
     end
 
     -- Check whether the layout exists
-    local layout = addon.default_controller_layouts[layout_name] or keyui_settings.layout_edited_controller[layout_name]
+    local layout = addon:ResolveLayoutByName(addon.default_controller_layouts,
+        keyui_settings.layout_edited_controller, keyui_settings.layout_current_controller, layout_name)
     if not layout then
         print("Error: controller layout " .. layout_name .. " not found.")
         return

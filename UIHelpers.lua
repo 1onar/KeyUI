@@ -585,3 +585,29 @@ function addon:GetCurrentLayout(container)
     end
     return nil
 end
+
+local function layouts_equal(a, b)
+    if a == b then return true end
+    if type(a) ~= "table" or type(b) ~= "table" then return false end
+    for key, value in pairs(a) do
+        if not layouts_equal(value, b[key]) then return false end
+    end
+    for key in pairs(b) do
+        if a[key] == nil then return false end
+    end
+    return true
+end
+
+-- The layout to open under `name` when only the name is known (addon:load before the layout
+-- menu exists). Custom layouts saved before 4.4.0-beta4 may share a built-in layout's name.
+-- layout_current_* holds a copy of whichever one was active (after /reload it is a table
+-- of its own), so the custom layout wins when it matches that copy; otherwise the built-in
+-- one does, which also picks up changes to a built-in layout in a new KeyUI version.
+function addon:ResolveLayoutByName(defaults, edited, current, name)
+    local custom = type(edited) == "table" and edited[name] or nil
+    local saved = type(current) == "table" and current[name] or nil
+    if custom and saved and layouts_equal(custom, saved) then
+        return custom
+    end
+    return (type(defaults) == "table" and defaults[name]) or custom
+end

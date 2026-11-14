@@ -526,7 +526,8 @@ function addon:generate_mouse_layout(layout_name)
     end
 
     -- Check whether the layout exists
-    local layout = addon.default_mouse_layouts[layout_name] or keyui_settings.layout_edited_mouse[layout_name]
+    local layout = addon:ResolveLayoutByName(addon.default_mouse_layouts,
+        keyui_settings.layout_edited_mouse, keyui_settings.layout_current_mouse, layout_name)
     if not layout then
         print("Error: Mouse layout " .. layout_name .. " not found.")
         return
