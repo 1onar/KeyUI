@@ -491,6 +491,19 @@ if #(H.last_popup_text or "") <= 24 then
     problem(("31b profile export: string cut to %d letters"):format(#(H.last_popup_text or "")))
 end
 
+-- A custom layout whose name holds a "%": the delete confirmation formats its text.
+step("31c delete a layout named with %", function()
+    keyui_settings.layout_edited_keyboard["50% keys"] = { { "Q", 0, 0, 60, 60 } }
+    addon.active_control_tab = "keyboard"
+    addon:confirm_delete_layout("50% keys")
+    if H.last_popup_info and H.last_popup_info.OnAccept then
+        H.last_popup_info.OnAccept(StaticPopup1)
+    end
+end, { oracle = false })
+if keyui_settings.layout_edited_keyboard["50% keys"] then
+    problem("31c delete a layout named with %: layout still there")
+end
+
 -- Edit Layout clears the modifier checkboxes; the keys have to leave the pinned layer
 -- with them, in edit mode and after Cancel (issue #73).
 step("32 shift released", function() H.set_modifier("shift", false) end)

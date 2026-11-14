@@ -1364,7 +1364,9 @@ end
 -- Function to handle layout deletion based on the active control tab
 function addon:confirm_delete_layout(name)
     StaticPopupDialogs["KEYUI_LAYOUT_CONFIRM_DELETE"] = {
-        text = "Are you sure you want to delete the layout '" .. name .. "'?",
+        -- The client formats this text (SetFormattedText), so the name goes in as an
+        -- argument: a "%" in a layout name would otherwise raise.
+        text = "Are you sure you want to delete the layout '%s'?",
         button1 = "Yes",
         button2 = "No",
         OnAccept = function()
@@ -1431,7 +1433,7 @@ function addon:confirm_delete_layout(name)
         hideOnEscape = true,
         preferredIndex = 3, -- Avoids conflicts with other popups
     }
-    StaticPopup_Show("KEYUI_LAYOUT_CONFIRM_DELETE")
+    StaticPopup_Show("KEYUI_LAYOUT_CONFIRM_DELETE", name)
 end
 
 -- Function to handle layout selection based on the active control tab

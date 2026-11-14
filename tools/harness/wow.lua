@@ -517,6 +517,10 @@ function StaticPopup_Show(which, text_arg1, text_arg2, data)
     popup.data = data
     -- GameDialog.lua: the limit is only set when the dialog defines one.
     if info.maxLetters then popup.EditBox:SetMaxLetters(info.maxLetters) end
+    -- GameDialog.lua: the dialog text is a format string for the two text arguments.
+    popup.Text = popup.Text or popup:CreateFontString()
+    protected_call(popup.Text.SetFormattedText, popup.Text, info.text or "", text_arg1, text_arg2)
+    H.last_popup_info = info
     popup.EditBox:SetText("")
     popup:Show()
     if info.OnShow then protected_call(info.OnShow, popup, data) end
