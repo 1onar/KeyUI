@@ -1,5 +1,14 @@
 local name, addon = ...
 
+-- The bare action bar globals are only forwarders to C_ActionBar since 12.0.0, on every
+-- client, and vanish with the loadDeprecationFallbacks CVar; see the note in Core.lua.
+-- The checks below test them for existence, so without this the proc glow and the
+-- attack flash would just stop working.
+local HasAction = (C_ActionBar and C_ActionBar.HasAction) or HasAction
+local IsAttackAction = (C_ActionBar and C_ActionBar.IsAttackAction) or IsAttackAction
+local IsCurrentAction = (C_ActionBar and C_ActionBar.IsCurrentAction) or IsCurrentAction
+local IsAutoRepeatAction = (C_ActionBar and C_ActionBar.IsAutoRepeatAction) or IsAutoRepeatAction
+
 -- ============================================================================
 -- ActionButton.lua – Shared factory functions for KeyUI secure action buttons
 -- ============================================================================

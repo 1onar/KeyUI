@@ -10,6 +10,11 @@
 #
 # check exits 1 when any flavor reports a Lua error, an ADDON_ACTION_BLOCKED or an
 # oracle mismatch. It needs lua5.1 (or luajit).
+#
+# The stand-in client leaves out Blizzard's deprecation forwarders (HasAction,
+# GetActionTexture, IsSpellKnown on Classic, ...), as the client does with the
+# loadDeprecationFallbacks CVar off and will once Blizzard deletes them.
+# KEYUI_DEPRECATION_FALLBACKS=1 puts them back.
 
 set -euo pipefail
 

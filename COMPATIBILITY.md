@@ -226,10 +226,26 @@ nothing about whether secret values are in play. Use `C_Secrets` instead
 - `C_Secrets.ShouldCooldownsBeSecret()` -- whether cooldown queries generally produce secrets
 - `C_Secrets.ShouldActionCooldownBeSecret(actionID)` -- per-slot
 
-**Deprecated names.** `C_ActionBar.GetActionLossOfControlCooldown` and the bare global
-`GetActionLossOfControlCooldown` survive in 12.1.5 and Forever only as shims in
-`Blizzard_DeprecatedActionBar/Deprecated_ActionBar.lua`, behind
-`GetCVarBool("loadDeprecationFallbacks")`. Use `...GetActionLossOfControlCooldownInfo`.
+**Deprecated names.** `Blizzard_DeprecatedActionBar/Deprecated_ActionBar.lua` is identical on
+**all five** clients ("Deprecated in 12.0.0"): the bare action bar globals -- `HasAction`,
+`GetActionTexture`, `GetActionBarPage`, `GetBonusBarOffset`, `IsUsableAction`,
+`IsActionInRange`, `IsAttackAction`, `IsCurrentAction`, `IsAutoRepeatAction`,
+`IsEquippedAction`, `GetActionCooldown`, `GetActionCharges`, `GetActionCount`, ... -- exist
+only as forwarders to `C_ActionBar` there. The file returns early unless
+`GetCVarBool("loadDeprecationFallbacks")`, and its TOC says the functions "will be removed at
+the next expansion". The same holds for `IsSpellKnown` on the Classic clients
+(`Blizzard_DeprecatedSpellBook`, forwarding to
+`C_SpellBook.IsSpellInSpellBook(id, Player, false)`), and for
+`C_ActionBar.GetActionLossOfControlCooldown`.
+
+The CVar defaults to on and is not saved, so today the forwarders are normally there -- but
+KeyUI must not depend on them: without `HasAction`/`GetActionTexture` every key is empty.
+`Core.lua` and `Frames/ActionButton.lua` therefore bind file-local names to the `C_ActionBar`
+functions (all present in the five `GlobalAPI.lua` dumps), keeping the global only as a
+fallback, and the Classic spell menu calls `IsSpellInSpellBook` directly. The headless
+harness runs without the forwarders by default (`KEYUI_DEPRECATION_FALLBACKS=1` adds them).
+To find other dependencies of this kind, look for globals that are defined only under
+`API/*/Blizzard_Deprecated*`.
 
 ### Combat Lockdown, Bindings and Clicks on KeyUI Keys
 

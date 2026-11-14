@@ -47,6 +47,18 @@ local API_COMPAT = {
 addon.api_compat = API_COMPAT
 addon.compat = addon.compat or {}
 
+-- Action bar API. Since 12.0.0 the bare globals (HasAction, GetActionTexture, ...) are
+-- only forwarders to C_ActionBar in Blizzard_DeprecatedActionBar -- on all five clients,
+-- Classic included. That file loads only while the loadDeprecationFallbacks CVar is on,
+-- and Blizzard marks it "will be removed at the next expansion"; without it every key
+-- would come up empty. The forwarders pass arguments and results straight through, so
+-- calling C_ActionBar directly changes nothing else. The global stays as a fallback for
+-- a client that lacks the namespaced function.
+local HasAction = (C_ActionBar and C_ActionBar.HasAction) or HasAction
+local GetActionTexture = (C_ActionBar and C_ActionBar.GetActionTexture) or GetActionTexture
+local GetActionBarPage = (C_ActionBar and C_ActionBar.GetActionBarPage) or GetActionBarPage
+local GetBonusBarOffset = (C_ActionBar and C_ActionBar.GetBonusBarOffset) or GetBonusBarOffset
+
 do
     local compat_build = (addon.VERSION and addon.VERSION.build) or select(4, GetBuildInfo()) or 0
 
@@ -5295,8 +5307,11 @@ local function build_spells_submenu(parentMenu)
                     is_known = C_SpellBook.IsSpellKnown(spell_id)
                     spell_icon = C_Spell.GetSpellTexture(spell_id)
                 elseif API_COMPAT.has_legacy_spell_api then
-                    -- ANNIVERSARY: Use legacy API
-                    is_known = IsSpellKnown(spell_id)
+                    -- CLASSIC: what the global IsSpellKnown does there. That global is
+                    -- only a forwarder in Blizzard_DeprecatedSpellBook (loaded while
+                    -- loadDeprecationFallbacks is on), and it asks IsSpellInSpellBook
+                    -- without overrides, not C_SpellBook.IsSpellKnown.
+                    is_known = C_SpellBook.IsSpellInSpellBook(spell_id, Enum.SpellBookSpellBank.Player, false)
                     spell_icon = GetSpellTexture(spell_id)
                 end
 

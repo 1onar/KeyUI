@@ -646,7 +646,24 @@ function CreateSettingsButtonInitializer(name, buttonText, buttonClick, tooltip,
 end
 function CreateSettingsListSectionHeaderInitializer() return settings_object() end
 MinimalSliderWithSteppersMixin = { Label = { Right = 1 } }
-MenuUtil = { CreateContextMenu = function() return nil end }
+-- Menu descriptions: every builder call returns another description, so a generator can
+-- build its whole tree. H.menu_entries counts the buttons it created.
+local function menu_description()
+    return setmetatable({}, { __index = function(_, method)
+        return function(_, text)
+            if method == "CreateButton" or method == "CreateCheckbox" then
+                H.menu_entries = (H.menu_entries or 0) + 1
+            end
+            return menu_description()
+        end
+    end })
+end
+MenuUtil = {
+    CreateContextMenu = function(owner, generator)
+        protected_call(generator, owner, menu_description())
+        return nil
+    end,
+}
 MenuTemplates = {}
 
 ---------------------------------------------------------------------------
@@ -678,31 +695,10 @@ function GetCurrentBindingSet() return 1 end
 function SetBinding(key, action) H.state.bindings[key] = action return true end
 function SaveBindings() end
 
-function GetBonusBarOffset() return H.state.bonusbar end
-function GetActionBarPage() return H.state.page end
-function HasAction(slot) return H.state.actions[slot] ~= nil end
-function GetActionTexture(slot)
-    local a = H.state.actions[slot]
-    return a and a.texture
-end
 function GetActionInfo(slot)
     local a = H.state.actions[slot]
     if a then return a.kind or "spell", a.id end
 end
-function GetActionText() return nil end
-function GetActionCooldown() return 0, 0, 1, 1 end
-function GetActionCharges() return 0, 0, 0, 0, 1 end
-function GetActionCount() return 0 end
-function GetActionLossOfControlCooldown() return 0, 0 end
-function GetActionAutocast() return false, false end
-function IsConsumableAction() return false end
-function IsStackableAction() return false end
-function IsUsableAction(slot) return H.state.actions[slot] ~= nil, false end
-function IsActionInRange() return nil end
-function IsAttackAction() return false end
-function IsCurrentAction() return false end
-function IsAutoRepeatAction() return false end
-function IsEquippedAction() return false end
 function PickupAction() end
 function PlaceAction() end
 function ClearCursor() end
@@ -719,6 +715,20 @@ function GetMacroInfo(name)
 end
 
 C_ActionBar = {
+    HasAction = function(slot) return H.state.actions[slot] ~= nil end,
+    GetActionTexture = function(slot)
+        local a = H.state.actions[slot]
+        return a and a.texture
+    end,
+    GetActionText = function() return nil end,
+    GetActionBarPage = function() return H.state.page end,
+    GetBonusBarOffset = function() return H.state.bonusbar end,
+    GetActionUseCount = function() return 0 end,
+    IsConsumableAction = function() return false end,
+    IsStackableAction = function() return false end,
+    IsAttackAction = function() return false end,
+    IsCurrentAction = function() return false end,
+    IsAutoRepeatAction = function() return false end,
     GetActionCooldown = function() return { startTime = 0, duration = 0, isEnabled = true, modRate = 1, isActive = false } end,
     GetActionCharges = function() return { currentCharges = 0, maxCharges = 0, cooldownStartTime = 0, cooldownDuration = 0, chargeModRate = 1, isActive = false } end,
     GetActionDisplayCount = function() return "" end,
@@ -774,8 +784,11 @@ local function spell_list()
     table.sort(list, function(a, b) return a.name < b.name end)
     return list
 end
-C_SpellBook = { IsSpellKnown = function() return true end }
-Enum = { SpellBookSpellBank = { Player = 0 } }
+C_SpellBook = {
+    IsSpellKnown = function() return true end,
+    IsSpellInSpellBook = function() return true end,
+}
+Enum = { SpellBookSpellBank = { Player = 0, Pet = 1 } }
 if MODERN then
     C_SpellBook.GetNumSpellBookSkillLines = function() return 1 end
     C_SpellBook.GetSpellBookSkillLineInfo = function()
@@ -797,10 +810,38 @@ else
         if name then return name, nil, s.texture end
     end
     function IsPassiveSpell() return false end
-    function IsSpellKnown() return true end
     function GetSpellTexture(id) local _, s = spell_by(id) return s and s.texture end
     function GetSpellCooldown() return 0, 0, 1 end
     function PickupSpell() end
+end
+
+-- Blizzard_DeprecatedActionBar and Blizzard_DeprecatedSpellBook: since 12.0.0, on all five
+-- clients, the bare action bar globals are only forwarders to C_ActionBar, and they exist
+-- only while the loadDeprecationFallbacks CVar is on ("will be removed at the next
+-- expansion"). The harness leaves them out unless KEYUI_DEPRECATION_FALLBACKS=1, so KeyUI
+-- is checked against the client as it will be once they are gone.
+H.deprecation_fallbacks = os.getenv("KEYUI_DEPRECATION_FALLBACKS") == "1"
+if H.deprecation_fallbacks then
+    for _, name in ipairs({
+        "HasAction", "GetActionTexture", "GetActionText", "GetActionBarPage", "GetBonusBarOffset",
+        "IsUsableAction", "IsActionInRange", "IsAttackAction", "IsCurrentAction",
+        "IsAutoRepeatAction", "IsEquippedAction", "IsConsumableAction", "IsStackableAction",
+        "GetActionAutocast",
+    }) do
+        _G[name] = C_ActionBar[name]
+    end
+    GetActionCount = C_ActionBar.GetActionUseCount
+    function GetActionCooldown(slot)
+        local info = C_ActionBar.GetActionCooldown(slot)
+        return info.startTime, info.duration, info.isEnabled, info.modRate
+    end
+    function GetActionCharges(slot)
+        local info = C_ActionBar.GetActionCharges(slot)
+        return info.currentCharges, info.maxCharges, info.cooldownStartTime, info.cooldownDuration, info.chargeModRate
+    end
+    if not MODERN then
+        function IsSpellKnown(id) return C_SpellBook.IsSpellInSpellBook(id, Enum.SpellBookSpellBank.Player, false) end
+    end
 end
 
 C_AssistedCombat = {

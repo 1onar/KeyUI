@@ -403,6 +403,20 @@ step("30b controls window", function()
     controls.close_button:Click()
 end)
 
+-- Right-click on a key: the assignment menu (spells, macros, interface bindings) is built.
+step("30c right-click menu", function()
+    H.menu_entries = 0
+    local key
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button.raw_key == "Q" then key = button end
+    end
+    H.run_script(key, "OnMouseUp", "RightButton")
+end, { oracle = false })
+-- Spells, Macro, Interface and Unbind, plus at least one spell tab.
+if (H.menu_entries or 0) < #(addon.spells_tab_order or {}) + 4 then
+    problem(("30c right-click menu: only %d entries built"):format(H.menu_entries or 0))
+end
+
 -- The report a tester sends: it must build, and mention every visible bound key.
 step("31 /keyui report", function()
     H.last_popup_text = nil
