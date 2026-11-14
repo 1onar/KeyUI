@@ -222,10 +222,12 @@ function addon:create_mouse_frame()
     return mouse_frame
 end
 
-function addon:save_mouse_layout(layout_name)
-    local name = addon:CheckLayoutSaveName("mouse", layout_name)
+-- Returns true once saved, false for a refused name, "pending" while the player is asked
+-- whether to replace another custom layout (`force` skips that question).
+function addon:save_mouse_layout(layout_name, force)
+    local name, pending = addon:CheckLayoutSaveName("mouse", layout_name, force)
     if not name then
-        return false
+        return pending or false
     end
 
     print("KeyUI: Saved the new mouse layout '" .. name .. "'.")

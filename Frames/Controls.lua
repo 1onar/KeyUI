@@ -1039,6 +1039,11 @@ function addon:create_name_input_dialog()
 
         name_input_frame:Hide()
 
+        -- KEYUI_LAYOUT_OVERWRITE decides now, and reopens what comes next.
+        if saved == "pending" then
+            return
+        end
+
         if addon.controls_frame then
             addon.controls_frame:Show()
         end

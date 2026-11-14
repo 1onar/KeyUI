@@ -377,10 +377,12 @@ function addon:set_controller_system(system_type)
     addon:update_controller_image()
 end
 
-function addon:save_controller_layout(layout_name)
-    local name = addon:CheckLayoutSaveName("controller", layout_name)
+-- Returns true once saved, false for a refused name, "pending" while the player is asked
+-- whether to replace another custom layout (`force` skips that question).
+function addon:save_controller_layout(layout_name, force)
+    local name, pending = addon:CheckLayoutSaveName("controller", layout_name, force)
     if not name then
-        return false
+        return pending or false
     end
 
     print("KeyUI: Saved the new controller layout '" .. name .. "'.")

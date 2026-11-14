@@ -598,6 +598,11 @@ local function layouts_equal(a, b)
     return true
 end
 
+-- Whether two layout tables hold the same keys (deep comparison).
+function addon:LayoutsEqual(a, b)
+    return layouts_equal(a, b)
+end
+
 -- The layout to open under `name` when only the name is known (addon:load before the layout
 -- menu exists). Custom layouts saved before 4.4.0-beta4 may share a built-in layout's name.
 -- layout_current_* holds a copy of whichever one was active (after /reload it is a table

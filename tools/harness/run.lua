@@ -642,6 +642,47 @@ do
     keyui_settings.layout_edited_keyboard[kb] = nil
 end
 
+-- Saving over another custom layout asks first; saving the layout being edited does not.
+local function one_key_layout() return { { "Q", 6, -6, 60, 60, 50, 50 } } end
+step("39 save over the layout being edited", function()
+    addon:select_custom_keyboard_layout(SAVED_NAMES.keyboard, keyui_settings.layout_edited_keyboard[SAVED_NAMES.keyboard])
+    save_layout_as("keyboard", SAVED_NAMES.keyboard)
+    abandon_edit()
+end)
+if H.last_popup == "KEYUI_LAYOUT_OVERWRITE" then
+    problem("39 save over the edited layout: asked to replace it")
+end
+step("39b save over another layout, replace", function()
+    keyui_settings.layout_edited_keyboard.Other = one_key_layout()
+    save_layout_as("keyboard", "Other")
+    if H.last_popup ~= "KEYUI_LAYOUT_OVERWRITE" then
+        problem("39b save over another layout: no confirmation")
+    elseif #keyui_settings.layout_edited_keyboard.Other ~= 1 then
+        problem("39b save over another layout: replaced before the confirmation")
+    else
+        H.last_popup_info.OnAccept(StaticPopup1, StaticPopup1.data)
+    end
+    abandon_edit()
+end)
+if #keyui_settings.layout_edited_keyboard.Other <= 1
+    or keyui_settings.key_bind_settings_keyboard.currentboard ~= "Other" then
+    problem("39b save over another layout: not replaced after confirming")
+end
+step("39c save over another layout, cancel", function()
+    keyui_settings.layout_edited_keyboard.Third = one_key_layout()
+    save_layout_as("keyboard", "Third")
+    if H.last_popup == "KEYUI_LAYOUT_OVERWRITE" and H.last_popup_info.OnCancel then
+        H.last_popup_info.OnCancel(StaticPopup1, StaticPopup1.data)
+        if not (addon.name_input_dialog and addon.name_input_dialog:IsShown()) then
+            problem("39c cancel: the name dialog did not come back")
+        end
+    end
+    abandon_edit()
+end)
+if #keyui_settings.layout_edited_keyboard.Third ~= 1 then
+    problem("39c save over another layout: replaced although cancelled")
+end
+
 if mode == "dump" then
     io.write(table.concat(out, "\n"), "\n")
 else

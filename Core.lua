@@ -970,8 +970,11 @@ function addon:CopyLayout(layout_type, source_name, new_name)
 end
 
 -- Checks the name typed into the Save Layout dialog. Returns the normalized name, or nil
--- after telling the player why the layout cannot be saved under it.
-function addon:CheckLayoutSaveName(layout_type, layout_name)
+-- after telling the player why the layout cannot be saved under it, or nil and "pending"
+-- while KEYUI_LAYOUT_OVERWRITE asks whether to replace another custom layout of that
+-- name; its Replace button saves again with `force`. Saving the custom layout that is
+-- being edited under its own name replaces it without asking: that is what Save is for.
+function addon:CheckLayoutSaveName(layout_type, layout_name, force)
     local name, name_error = self:NormalizeLayoutName(layout_name)
     if not name then
         print("KeyUI: " .. (name_error or "Please enter a name for the layout before saving."))
@@ -980,6 +983,18 @@ function addon:CheckLayoutSaveName(layout_type, layout_name)
     if self:IsDefaultLayoutName(layout_type, name) then
         print("KeyUI: " .. built_in_name_error(name))
         return nil
+    end
+    local meta = get_layout_meta(layout_type)
+    local existing = meta and meta.edited()[name]
+    if existing and not force then
+        local active = meta.current()[name]
+        if not (active and self:LayoutsEqual(active, existing)) then
+            StaticPopup_Show("KEYUI_LAYOUT_OVERWRITE", layout_type_labels[layout_type] or layout_type, name, {
+                layoutType = layout_type,
+                layoutName = name,
+            })
+            return nil, "pending"
+        end
     end
     return name
 end
@@ -6590,6 +6605,34 @@ StaticPopupDialogs["KEYUI_LAYOUT_RENAME"] = {
             print(("KeyUI: Unable to rename layout - %s"):format(err or "Unknown error"))
         else
             self:Hide()
+        end
+    end,
+}
+
+-- Asked by addon:CheckLayoutSaveName. The client formats the text with the device label
+-- and the layout name as arguments, so a "%" in the name is harmless.
+StaticPopupDialogs["KEYUI_LAYOUT_OVERWRITE"] = {
+    text = "A %s layout named '%s' already exists. Replace it?",
+    button1 = ACCEPT,
+    button2 = CANCEL,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnAccept = function(_, data)
+        local save = data and addon["save_" .. tostring(data.layoutType) .. "_layout"]
+        if not save then
+            return
+        end
+        if save(addon, data.layoutName, true) and addon.controls_frame then
+            addon.controls_frame:Show()
+        end
+    end,
+    -- Back to the name dialog, where the edits can go under another name or be cancelled.
+    -- ESC lands here as well.
+    OnCancel = function()
+        if addon.name_input_dialog then
+            addon.name_input_dialog:Show()
         end
     end,
 }
