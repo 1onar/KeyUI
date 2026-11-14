@@ -178,6 +178,25 @@ function addon:create_controls()
         -- Round the value to the nearest multiple of the step size (0.01)
         local rounded_value = math.floor(value / stepSize + 0.5) * stepSize
 
+        -- The device frames parent secure buttons, so SetScale is refused in combat.
+        -- Put the slider back on the current scale instead (SetValue to the same value
+        -- does not call this handler again).
+        if InCombatLockdown() then
+            local current = nil
+            if addon.active_control_tab == "keyboard" and addon.keyboard_frame then
+                current = addon.keyboard_frame:GetScale()
+            elseif addon.active_control_tab == "mouse" and addon.mouse_image then
+                current = addon.mouse_image:GetScale()
+            elseif addon.active_control_tab == "controller" and addon.controller_frame then
+                current = addon.controller_frame:GetScale()
+            end
+            if current and math.abs(current - value) > stepSize / 2 then
+                addon:IsBlockedByCombat()
+                self:SetValue(current)
+            end
+            return
+        end
+
         -- Check the active control tab and apply the scale change to the appropriate frame
         if addon.active_control_tab == "keyboard" and addon.keyboard_frame then
             addon.keyboard_frame:SetScale(rounded_value)
@@ -853,6 +872,11 @@ function addon:create_controls()
 
     -- Attach the OnClick handler to the "Edit Layout" button
     addon.controls_frame.edit_layout_button:SetScript("OnClick", function()
+        -- Edit mode moves keys and switches keyboard input on them; both are refused
+        -- for secure buttons in combat.
+        if addon:IsBlockedByCombat() then
+            return
+        end
 
         if not addon.edit_layout_dialog then
             addon:create_edit_layout_dialog()

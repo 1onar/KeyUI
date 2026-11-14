@@ -64,13 +64,14 @@ function addon:create_controller_frame()
     end
 
     -- Enable dragging and movement (respects position lock)
+    -- Not in combat: the frame parents secure buttons, as in Keyboard.lua and Mouse.lua.
     controller_frame:SetScript("OnMouseDown", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StartMoving()
         end
     end)
     controller_frame:SetScript("OnMouseUp", function(self)
-        if not keyui_settings.position_locked then
+        if not keyui_settings.position_locked and not InCombatLockdown() then
             self:StopMovingOrSizing()
         end
     end)

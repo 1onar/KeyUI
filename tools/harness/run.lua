@@ -356,6 +356,31 @@ step("23 release in combat", function()
     H.set_modifier("ctrl", false)
     H.set_modifier("shift", false)
 end)
+-- The controls that move, scale or hide KeyUI's frames, and the menu entries that call
+-- SetBinding, are all refused by the client in combat (issue #74). Using them during a
+-- fight must not reach the client at all.
+step("23b controls used in combat", function()
+    local controls = addon:get_controls_frame()
+    controls:Show()
+    addon.active_control_tab = "keyboard"
+    H.run_script(controls.size_slider, "OnValueChanged", 1.25)
+    H.run_script(addon.controller_frame, "OnMouseDown", "LeftButton")
+    H.run_script(addon.controller_frame, "OnMouseUp", "LeftButton")
+    local key
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button.raw_key == "Q" then key = button end
+    end
+    addon:handle_drag_or_size(key, "LeftButton")
+    addon:handle_release(key, "LeftButton")
+    wipe(H.menu_actions)
+    H.run_script(key, "OnMouseUp", "RightButton")
+    if H.menu_actions.Unbind then H.menu_actions.Unbind() end
+    controls:Hide()
+end)
+if (addon.keyboard_frame and addon.keyboard_frame:GetScale() or 1) ~= 1 then
+    problem("23b controls used in combat: keyboard frame scaled in combat")
+end
+
 step("24 page 2 in combat", function()
     S.page = 2
     H.fire("ACTIONBAR_PAGE_CHANGED")

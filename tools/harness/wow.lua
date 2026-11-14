@@ -169,7 +169,7 @@ local PROTECTED_METHODS = {
     SetAllPoints = true, SetWidth = true, SetHeight = true, SetSize = true, SetScale = true,
     SetParent = true, SetAttribute = true, EnableMouse = true, EnableKeyboard = true,
     EnableMouseWheel = true, EnableGamePadButton = true, SetFrameLevel = true,
-    RegisterForClicks = true,
+    RegisterForClicks = true, StartMoving = true, StopMovingOrSizing = true,
 }
 
 local function blocked(w, method)
@@ -300,8 +300,8 @@ function Widget:RegisterForClicks(...) if blocked(self, "RegisterForClicks") the
 function Widget:RegisterForDrag() end
 function Widget:SetMovable() end
 function Widget:SetClampedToScreen() end
-function Widget:StartMoving() end
-function Widget:StopMovingOrSizing() end
+function Widget:StartMoving() if blocked(self, "StartMoving") then return end self._moving = true end
+function Widget:StopMovingOrSizing() if blocked(self, "StopMovingOrSizing") then return end self._moving = false end
 function Widget:SetPropagateKeyboardInput() end
 function Widget:SetHitRectInsets() end
 function Widget:SetClipsChildren() end
@@ -647,12 +647,17 @@ end
 function CreateSettingsListSectionHeaderInitializer() return settings_object() end
 MinimalSliderWithSteppersMixin = { Label = { Right = 1 } }
 -- Menu descriptions: every builder call returns another description, so a generator can
--- build its whole tree. H.menu_entries counts the buttons it created.
+-- build its whole tree. H.menu_entries counts the buttons it created; H.menu_actions
+-- keeps each button's callback by its text, so a step can pick an entry.
+H.menu_actions = {}
 local function menu_description()
     return setmetatable({}, { __index = function(_, method)
-        return function(_, text)
+        return function(_, text, fn)
             if method == "CreateButton" or method == "CreateCheckbox" then
                 H.menu_entries = (H.menu_entries or 0) + 1
+                if type(text) == "string" and type(fn) == "function" then
+                    H.menu_actions[text] = fn
+                end
             end
             return menu_description()
         end
@@ -692,8 +697,20 @@ function GetNumBindings()
 end
 function GetBinding() return nil end
 function GetCurrentBindingSet() return 1 end
-function SetBinding(key, action) H.state.bindings[key] = action return true end
-function SaveBindings() end
+-- SetBinding and SaveBindings are #nocombat: refused, and reported, in lockdown.
+function SetBinding(key, action)
+    if H.state.lockdown then
+        H.blocked[#H.blocked + 1] = "SetBinding()"
+        return false
+    end
+    H.state.bindings[key] = action
+    return true
+end
+function SaveBindings()
+    if H.state.lockdown then
+        H.blocked[#H.blocked + 1] = "SaveBindings()"
+    end
+end
 
 function GetActionInfo(slot)
     local a = H.state.actions[slot]

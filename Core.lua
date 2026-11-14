@@ -1682,6 +1682,22 @@ function addon:WarnRetailActionMutationBlockedOnce()
     print("KeyUI: Action changes are blocked during combat.")
 end
 
+-- True during combat lockdown, with one chat line per fight. For the controls that only
+-- work out of combat on every client: moving, scaling or hiding KeyUI's frames (they
+-- parent secure buttons) and SetBinding/SaveBindings (#nocombat). With "Stay open in
+-- combat" all of them stay reachable during a fight; letting the call through only
+-- earns an ADDON_ACTION_BLOCKED.
+function addon:IsBlockedByCombat()
+    if not is_in_combat_lockdown() then
+        return false
+    end
+    if not addon.combat_block_warned_this_combat then
+        addon.combat_block_warned_this_combat = true
+        print("KeyUI: This can't be changed during combat.")
+    end
+    return true
+end
+
 function addon:MarkDeferredUiUpdate(flag)
     if not flag then
         return
@@ -5256,9 +5272,12 @@ function addon:handle_mouse_wheel(frame, delta)
     addon:refresh_keys()
 end
 
+-- Edit mode on a key: drag it, or Shift+click to remove it. The callers only get here
+-- while their device is unlocked for editing. The key is a secure button, so neither
+-- works in combat lockdown.
 function addon:handle_drag_or_size(self, button)
-    if self.mouse_locked then
-        return -- Do nothing if not MouseLocked is selected
+    if addon:IsBlockedByCombat() then
+        return
     end
 
     if button == "LeftButton" and IsShiftKeyDown() then
@@ -5270,7 +5289,7 @@ function addon:handle_drag_or_size(self, button)
 end
 
 function addon:handle_release(self, button)
-    if button == "LeftButton" then
+    if button == "LeftButton" and addon.is_moving then
         self:StopMovingOrSizing()
         addon.is_moving = false -- Reset the flag when the movement is stopped
     end
@@ -5279,6 +5298,18 @@ end
 -- ============================================================================
 -- MenuUtil Context Menu System (Modern WoW 11.0.0+ API)
 -- ============================================================================
+
+-- Binds `command` to `key` (nil unbinds) and saves the binding set. SetBinding is
+-- #nocombat on every client, so in combat lockdown nothing is changed and false comes
+-- back. The menus below are reachable in combat with "Stay open in combat" on.
+local function set_binding_and_save(key, command)
+    if addon:IsBlockedByCombat() then
+        return false
+    end
+    SetBinding(key, command)
+    SaveBindings(GetCurrentBindingSet())
+    return true
+end
 
 -- Helper function: Build spells submenu
 local function build_spells_submenu(parentMenu)
@@ -5339,8 +5370,9 @@ local function build_spells_submenu(parentMenu)
                         ClearCursor()
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
-                        SetBinding(key, spell)
-                        SaveBindings(GetCurrentBindingSet())
+                        if not set_binding_and_save(key, spell) then
+                            return
+                        end
                         print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
                     end
                 end)
@@ -5449,8 +5481,9 @@ local function build_macros_submenu(parentMenu)
                     ClearCursor()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
-                    SetBinding(key, command)
-                    SaveBindings(GetCurrentBindingSet())
+                    if not set_binding_and_save(key, command) then
+                        return
+                    end
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -5496,8 +5529,9 @@ local function build_macros_submenu(parentMenu)
                     ClearCursor()
                     print("KeyUI: Bound Macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                 else
-                    SetBinding(key, command)
-                    SaveBindings(GetCurrentBindingSet())
+                    if not set_binding_and_save(key, command) then
+                        return
+                    end
                     print("KeyUI: Bound macro |cffa335ee" .. title .. "|r to |cffff8000" .. key .. "|r")
                 end
             end)
@@ -5567,8 +5601,9 @@ local function build_interface_bindings_submenu(parentMenu)
 
             categoryMenu:CreateButton(binding_readable, function()
                 local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                SetBinding(key, binding_name)
-                SaveBindings(GetCurrentBindingSet())
+                if not set_binding_and_save(key, binding_name) then
+                    return
+                end
                 print("KeyUI: Bound |cffa335ee" .. binding_readable .. "|r to |cffff8000" .. key .. "|r")
             end)
         end
@@ -5604,8 +5639,9 @@ function addon.context_menu_generator(owner, rootDescription)
     -- Unbind action (direct button)
     rootDescription:CreateButton(_G["UNBIND"], function()
         if addon.current_clicked_key.raw_key ~= "" then
-            SetBinding(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or ""))
-            SaveBindings(GetCurrentBindingSet())
+            if not set_binding_and_save(addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")) then
+                return
+            end
             local keyText = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
             print("KeyUI: Unbound key |cffff8000" .. keyText .. "|r")
         end
@@ -5968,6 +6004,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_ENABLED" then
         addon.in_combat = false
         addon.retail_action_block_warned_this_combat = false
+        addon.combat_block_warned_this_combat = false
         addon.combat_hide_hint_shown = false
         -- Restore ESC close now that Hide() is permitted again
         addon:ApplyEscClose()
@@ -5994,6 +6031,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_REGEN_DISABLED" then
         addon.in_combat = true
         addon.retail_action_block_warned_this_combat = false
+        addon.combat_block_warned_this_combat = false
         -- Withdraw from UISpecialFrames so an ESC press does not trigger a blocked Hide()
         addon:ApplyEscClose()
         addon:disable_keypress_input()
