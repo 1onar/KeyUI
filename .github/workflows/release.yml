@@ -4,8 +4,12 @@ name: Release AddOn
 # name itself (release.sh:836-849): a tag containing "alpha" uploads as alpha,
 # one containing "beta" uploads as beta, anything else is a full release.
 #
-#   git tag -a v4.3.0-beta1 -m "..."   -> beta on CurseForge / Wago / WoWI
-#   git tag -a v4.3.0       -m "..."   -> full release
+#   git tag -a v4.3.0-beta1 -m "..."   -> beta on CurseForge / Wago / GitHub
+#   git tag -a v4.3.0       -m "..."   -> full release, WoWInterface included
+#
+# WoWInterface has no beta channel: whatever is uploaded there becomes the download
+# for everyone (v4.4.0-beta1 did). Alpha and beta builds therefore skip it; the
+# packager treats "-w 0" as "no WoWInterface id" (release.sh, addonid handling).
 #
 # Only v* tags are matched, so a scratch tag cannot push a build to users.
 on:
@@ -77,7 +81,13 @@ jobs:
           elif [[ "$tag" == *beta* ]]; then channel="BETA"
           else channel="RELEASE"; fi
           echo "Tag $tag will be published as $channel" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$channel" != "RELEASE" ]]; then
+            echo "PACKAGER_ARGS=-w 0" >> "$GITHUB_ENV"
+            echo "WoWInterface skipped (no beta channel there)" >> "$GITHUB_STEP_SUMMARY"
+          fi
           grep -m1 "^## Interface" KeyUI.toc >> "$GITHUB_STEP_SUMMARY" || true
 
       - name: Package and Release
         uses: BigWigsMods/packager@v2
+        with:
+          args: ${{ env.PACKAGER_ARGS }}
