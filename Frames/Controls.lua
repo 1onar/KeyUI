@@ -925,6 +925,11 @@ function addon:create_controls()
             addon.controls_frame.shift_cb:SetChecked(false)
         end
 
+        -- Every key reads its binding through current_modifier_string. Without this the
+        -- keys stayed on the layer the checkboxes had pinned, with all three unticked.
+        addon:update_modifier_string()
+        addon:refresh_keys()
+
         addon.controls_frame:Hide()
     end)
 

@@ -182,7 +182,8 @@ local function inspect(step, opts)
     emit(("== %s  open=%s mods=%s page=%d bonus=%d lockdown=%s"):format(step, tostring(addon.open),
         modifier_string() == "" and "-" or modifier_string(), S.page, S.bonusbar, tostring(S.lockdown)))
 
-    local mods = modifier_string()
+    -- opts.layer: the layer the keys should show when a modifier checkbox pins one.
+    local mods = opts.layer or modifier_string()
     for _, device in ipairs(DEVICES) do
         local tag, field = device[1], device[2]
         local keys = addon[field] or {}
@@ -459,6 +460,24 @@ if addon.BuildDiagnosticReport then
     end
     emit("  report: " .. report:sub(1, 400))
 end
+
+-- Edit Layout clears the modifier checkboxes; the keys have to leave the pinned layer
+-- with them, in edit mode and after Cancel (issue #73).
+step("32 shift released", function() H.set_modifier("shift", false) end)
+step("33 shift checkbox", function()
+    local controls = addon:get_controls_frame()
+    controls:Show()
+    addon.keyboard_frame.controls_button:Click()
+    controls.shift_cb:SetChecked(true)
+    controls.shift_cb:Click()
+end, { layer = "SHIFT-" })
+step("34 edit layout", function()
+    addon.controls_frame.edit_layout_button:Click()
+end, { check_clicks = false })
+step("35 edit cancelled", function()
+    addon.edit_layout_dialog.cancel_button:Click()
+    if addon.controls_frame then addon.controls_frame:Hide() end
+end)
 
 if mode == "dump" then
     io.write(table.concat(out, "\n"), "\n")
