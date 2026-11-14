@@ -92,21 +92,17 @@ end
 -- Global keybind patterns cache (initialized on load)
 local keybind_patterns = {}
 
--- Binding caches. Reading bindings is not restricted in combat -- GetBindingAction is
--- neither protected nor secret -- so these exist for speed, not to get around lockdown.
--- binding_cache: full key ("ALT-CTRL-1") -> action string, "" when unbound.
 -- binding_info_cache: action string -> what KeyUI does with it (matched pattern entry,
--- CLICK fallback, OPie, readable label); see binding_info further down.
--- Both are dropped on UPDATE_BINDINGS/BINDINGS_LOADED. UPDATE_BINDINGS is documented as
--- a SynchronousEvent, and override binding changes raise it too -- Bartender4 guards its
--- own UPDATE_BINDINGS handler against re-entry from its SetOverrideBindingClick calls
--- (ActionBars.lua, ReassignBindings). binding_info_cache additionally goes whenever the
--- pattern list changes, because its entries point into that list.
-local binding_cache = {}
+-- CLICK fallback, OPie, readable label); see binding_info further down. It depends on the
+-- string alone, plus the pattern list and the labels other addons register, so it is
+-- dropped on UPDATE_BINDINGS/BINDINGS_LOADED and whenever the pattern list changes.
+--
+-- Which action a key has is deliberately not cached: GetBindingAction is cheap, and a
+-- key -> action cache depends on UPDATE_BINDINGS arriving for every change. One missed
+-- event left a key showing the old binding until the next one (4.4.0-beta1).
 local binding_info_cache = {}
 
 local function invalidate_binding_caches()
-    wipe(binding_cache)
     wipe(binding_info_cache)
 end
 
@@ -3220,12 +3216,7 @@ end
 
 -- Binding action for a full key such as "ALT-CTRL-1", overrides included, "" if unbound.
 local function lookup_binding(key)
-    local action = binding_cache[key]
-    if action == nil then
-        action = GetBindingAction(key, true) or ""
-        binding_cache[key] = action
-    end
-    return action
+    return GetBindingAction(key, true) or ""
 end
 
 -- Retrieves the binding action
@@ -5773,7 +5764,7 @@ end
 
 -- Events KeyUI needs whether or not it is open: start-up, integrations loading, combat
 -- transitions (deferred hides, ESC handling, the secure attribute sync) and binding
--- changes (the binding caches must never go stale, open or not).
+-- changes (the binding info cache must never go stale, open or not).
 local permanent_events = {
     "PLAYER_LOGIN",
     "PLAYER_LOGOUT",
