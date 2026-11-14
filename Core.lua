@@ -1915,6 +1915,9 @@ function addon:ApplyEscClose()
     set_esc_close_enabled(addon.mouse_image, enabled)
     set_esc_close_enabled(addon.mouse_frame, enabled)
     set_esc_close_enabled(addon.controller_frame, enabled)
+    -- The controller artwork registers itself at creation; without this the ESC toggle
+    -- left it listed, and ESC hid the controller picture with ESC-close turned off.
+    set_esc_close_enabled(addon.controller_image, enabled)
 end
 
 -- Update the visual state of all toggle buttons across frames
@@ -2404,6 +2407,14 @@ end
 -- The device frames get their open/close bookkeeping hooked on, not set: SetScript would
 -- drop the OnShow that SetupButtonFade installed while the frame was built (it resets
 -- the tab buttons to their faded look whenever the frame appears).
+--
+-- OnHide also fires when only UIParent goes away (Alt+Z, cinematics). The frame is
+-- still shown then and comes back with UIParent, so that is not a close: treating it as
+-- one marked KeyUI closed while its keys reappeared, and a closed KeyUI listens to no
+-- events -- the keys froze until it was toggled.
+local function hidden_with_parent_only(frame)
+    return frame:IsShown()
+end
 
 -- Function to get or create the keyboard frame
 function addon:get_keyboard_frame()
@@ -2412,7 +2423,8 @@ function addon:get_keyboard_frame()
         -- Create the keyboard frame and assign it to the addon table
         addon.keyboard_frame = addon:create_keyboard_frame()
 
-        addon.keyboard_frame:HookScript("OnHide", function()
+        addon.keyboard_frame:HookScript("OnHide", function(frame)
+            if hidden_with_parent_only(frame) then return end
             addon:save_keyboard_position()
             addon.is_keyboard_visible = false
             on_frame_hide()
@@ -2432,7 +2444,8 @@ function addon:get_mouse_image()
         -- Create the mouse image and assign it to the addon table
         addon.mouse_image = addon:create_mouse_image()
 
-        addon.mouse_image:HookScript("OnHide", function()
+        addon.mouse_image:HookScript("OnHide", function(frame)
+            if hidden_with_parent_only(frame) then return end
             addon:save_mouse_position()
             addon.is_mouse_visible = false
             on_frame_hide()
@@ -2460,7 +2473,8 @@ function addon:get_controller_frame()
         -- Create the controller frame and assign it to the addon table
         addon.controller_frame = addon:create_controller_frame()
 
-        addon.controller_frame:HookScript("OnHide", function()
+        addon.controller_frame:HookScript("OnHide", function(frame)
+            if hidden_with_parent_only(frame) then return end
             addon:save_controller_position()
             addon.is_controller_visible = false
             on_frame_hide()
