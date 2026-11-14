@@ -1759,6 +1759,8 @@ function addon:select_custom_keyboard_layout(name, layout)
     if not addon.keyboard_locked or addon.keys_keyboard_edited then
         addon:discard_keyboard_changes()
     end
+    -- Same bookkeeping as the default-layout selector; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_keyboard.currentboard = name
     wipe(keyui_settings.layout_current_keyboard)
     keyui_settings.layout_current_keyboard[name] = layout
     addon:refresh_layouts()
@@ -1894,6 +1896,8 @@ function addon:select_custom_mouse_layout(name, layout)
     if not addon.mouse_locked or addon.keys_mouse_edited then
         addon:discard_mouse_changes()
     end
+    -- Same bookkeeping as the default-layout selector; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_mouse.currentboard = name
     wipe(keyui_settings.layout_current_mouse)
     keyui_settings.layout_current_mouse[name] = layout
     addon:refresh_layouts()
@@ -2044,6 +2048,8 @@ function addon:select_custom_controller_layout(name, layout)
         addon.controller_system = nil
     end
 
+    -- Same bookkeeping as the default-layout selector; RenameLayout follows currentboard.
+    keyui_settings.key_bind_settings_controller.currentboard = name
     wipe(keyui_settings.layout_current_controller)
     keyui_settings.layout_current_controller[name] = layout
     addon:refresh_layouts()
