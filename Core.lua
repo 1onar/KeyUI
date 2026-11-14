@@ -6110,6 +6110,120 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     schedule_flush()
 end)
 
+-- /keyui report ----------------------------------------------------------------
+-- One copyable line describing what KeyUI sees right now, so that a tester's "the keys
+-- are empty or wrong" comes with the facts: client, state, and per bound key its
+-- binding, slot, whether the slot holds an action, whether the icon shows and which
+-- slot a plain left-click uses. Single line on purpose: the popup's edit box is
+-- single-line.
+
+local MAX_REPORT_LENGTH = 20000
+
+-- The slot a plain left-click would use, read the way the secure template reads it.
+local function report_click_slot(button)
+    if not SecureButton_GetModifiedAttribute then
+        return "?"
+    end
+    if SecureButton_GetModifiedAttribute(button, "type", "LeftButton") ~= "action" then
+        return "-"
+    end
+    return tostring(SecureButton_GetModifiedAttribute(button, "action", "LeftButton") or 1)
+end
+
+local function report_device(tag, keys, visible, current_layouts)
+    local layout_name = type(current_layouts) == "table" and next(current_layouts) or nil
+    local entries, unbound = {}, 0
+    for i = 1, #keys do
+        local button = keys[i]
+        local binding = button.binding or ""
+        local icon_shown = button.icon and button.icon:IsShown() and button.icon:GetTexture() ~= nil
+        if binding == "" and not icon_shown then
+            unbound = unbound + 1
+        else
+            local slot = button.active_slot or button.slot
+            entries[#entries + 1] = ("%s=%s s%s H%s I%s C%s"):format(
+                button.raw_key or "?", binding ~= "" and binding or "(clique/other)",
+                tostring(slot or "-"),
+                slot and (HasAction(slot) and "+" or "-") or ".",
+                icon_shown and "+" or "-",
+                report_click_slot(button))
+        end
+    end
+    return ("%s[%s %s keys=%d unbound=%d]: %s"):format(tag, tostring(layout_name or "-"),
+        visible and "shown" or "hidden", #keys, unbound, table.concat(entries, "; "))
+end
+
+function addon:BuildDiagnosticReport()
+    local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata("KeyUI", "Version") or "?"
+    local game_version, game_build = GetBuildInfo()
+
+    local integrations = {}
+    for name, loaded in pairs(addon.loaded_integrations or {}) do
+        if loaded then integrations[#integrations + 1] = name end
+    end
+    table.sort(integrations)
+
+    local open_event_count = 0
+    for _ in pairs(open_events_registered) do
+        open_event_count = open_event_count + 1
+    end
+
+    local parts = {
+        ("KeyUI %s on %s %s.%s"):format(tostring(version), addon.VERSION.string,
+            tostring(game_version), tostring(game_build)),
+        ("open=%s events=%d lockdown=%s mods=%s page=%s bonus=%s detect=%s per_layer=%s"):format(
+            tostring(addon.open), open_event_count, tostring(InCombatLockdown()),
+            addon.current_modifier_string ~= "" and addon.current_modifier_string or "-",
+            tostring(addon.current_actionbar_page), tostring(addon.bonusbar_offset),
+            tostring(keyui_settings.listen_to_modifier), tostring(addon:UsesPerLayerSecureAttributes())),
+        "addons=" .. (#integrations > 0 and table.concat(integrations, ",") or "-"),
+        report_device("kb", addon.keys_keyboard, addon.is_keyboard_visible == true,
+            keyui_settings.layout_current_keyboard),
+        report_device("mouse", addon.keys_mouse, addon.is_mouse_visible == true,
+            keyui_settings.layout_current_mouse),
+        report_device("pad", addon.keys_controller, addon.is_controller_visible == true,
+            keyui_settings.layout_current_controller),
+    }
+
+    local report = table.concat(parts, " | ")
+    if #report > MAX_REPORT_LENGTH then
+        report = report:sub(1, MAX_REPORT_LENGTH) .. " ...(cut)"
+    end
+    return report
+end
+
+StaticPopupDialogs["KEYUI_REPORT"] = {
+    text = "KeyUI report: press Ctrl+A, then Ctrl+C, and send the text.",
+    button1 = CLOSE,
+    hasEditBox = true,
+    -- Popups are pooled and keep the last dialog's letter limit (Blizzard's own use 24
+    -- or 32), which would cut the report. 0 means no limit.
+    maxLetters = 0,
+    editBoxWidth = 350,
+    preferredIndex = 3,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self)
+        local editBox = self.editBox or self.EditBox or (self.GetEditBox and self:GetEditBox())
+        if not editBox then
+            return
+        end
+        if editBox.SetMaxLetters then
+            editBox:SetMaxLetters(0)
+        end
+        editBox:SetText(addon:BuildDiagnosticReport())
+        editBox:SetFocus()
+        editBox:HighlightText()
+    end,
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+    EditBoxOnEnterPressed = function(self)
+        self:ClearFocus()
+    end,
+}
+
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
@@ -6119,6 +6233,7 @@ local function print_keyui_command_help()
     print("KeyUI: /keyui perf [on|off|reset]")
     print("KeyUI: /keyui diag [limit]")
     print("KeyUI: /keyui diagreset")
+    print("KeyUI: /keyui report")
 end
 
 SlashCmdList["KeyUI"] = function(msg)
@@ -6167,6 +6282,11 @@ SlashCmdList["KeyUI"] = function(msg)
 
     if command == "diag" then
         addon:PrintUnresolvedClickBindings(tonumber(argument) or 15)
+        return
+    end
+
+    if command == "report" then
+        StaticPopup_Show("KEYUI_REPORT")
         return
     end
 
