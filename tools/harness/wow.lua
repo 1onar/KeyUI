@@ -898,6 +898,16 @@ function SecureButton_GetModifiedAttribute(frame, name, button)
     if value == ATTRIBUTE_NOOP then return nil end
     return value
 end
+-- Atlases: only what KeyUI asks about matters. Anniversary and Classic Era have none of
+-- the Gamepad_* glyphs (API/*/_resources/AtlasInfo.lua); every other name counts as known.
+C_Texture = {
+    GetAtlasInfo = function(name)
+        if (H.flavor == "anniversary" or H.flavor == "classic_era") and name:find("^Gamepad_") then
+            return nil
+        end
+        return { width = 64, height = 64 }
+    end,
+}
 C_XMLUtil = {
     GetTemplateInfo = function(name)
         if KNOWN_TEMPLATES[name] then return { type = "Frame" } end

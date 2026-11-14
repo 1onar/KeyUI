@@ -4551,50 +4551,47 @@ function addon:process_bindpad(binding, button)
     end
 end
 
+-- Whether this client has an atlas, asked once per name.
+local atlas_known = {}
+local function has_atlas(name)
+    local known = atlas_known[name]
+    if known == nil then
+        known = (C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(name)) ~= nil
+        atlas_known[name] = known
+    end
+    return known
+end
+
+-- The glyph atlas for a controller key under the current controller family, or nil.
+local function controller_glyph_atlas(raw_key)
+    local system = addon.controller_system
+    local atlas
+    if system == "ds4" or system == "ds5" then
+        atlas = addon.playstation_buttons[raw_key]
+    elseif system == "xbox" then
+        atlas = addon.xbox_buttons[raw_key]
+    elseif system == "deck" then
+        atlas = addon.deck_buttons[raw_key]
+    end
+    if atlas and has_atlas(atlas) then
+        return atlas
+    end
+    return nil
+end
+
 -- Determines the text displayed on the button based on the button and binding
 function addon:update_button_key_text(button)
 
     -- Set visible key name based on the current modifier string
     local original_text = button.raw_key or "" -- Ensure original_text is never nil
 
-    -- Check if the key is a PlayStation button and the controller system is DS4 or DS5
-    if addon.playstation_buttons[original_text] and (addon.controller_system == "ds4" or addon.controller_system == "ds5") then
-        -- Retrieve the PlayStation icon
-        local texture = addon.playstation_buttons[original_text]
-        -- Format the texture into an icon string
-        local playstation_icon = string.format("|A:%s:32:32|a", texture)
-
-        -- Set the PlayStation icon as the short key text
-        if button.short_key then
-            button.short_key:SetText(playstation_icon)
-            return -- Exit here since we don't need further processing for PlayStation buttons
-        end
-
-    -- Check if the key is an Xbox button and the controller system is Xbox
-    elseif addon.xbox_buttons[original_text] and addon.controller_system == "xbox" then
-        -- Retrieve the Xbox icon
-        local texture = addon.xbox_buttons[original_text]
-        -- Format the texture into an icon string
-        local xbox_icon = string.format("|A:%s:32:32|a", texture)
-
-        -- Set the Xbox icon as the short key text
-        if button.short_key then
-            button.short_key:SetText(xbox_icon)
-            return -- Exit here since we don't need further processing for Xbox buttons
-        end
-
-    -- Check if the key is a Deck button and the controller system is Deck
-    elseif addon.deck_buttons[original_text] and addon.controller_system == "deck" then
-        -- Retrieve the Deck icon
-        local texture = addon.deck_buttons[original_text]
-        -- Format the texture into an icon string
-        local deck_icon = string.format("|A:%s:32:32|a", texture)
-
-        -- Set the Deck icon as the short key text
-        if button.short_key then
-            button.short_key:SetText(deck_icon)
-            return -- Exit here since we don't need further processing for Deck buttons
-        end
+    -- Controller buttons show the glyph of the chosen controller family, as an atlas.
+    -- Anniversary and Classic Era lack every Gamepad_* atlas, and an unknown atlas in |A:
+    -- markup draws nothing, which left those keys blank; they keep their text there.
+    local atlas = controller_glyph_atlas(original_text)
+    if atlas and button.short_key then
+        button.short_key:SetText(string.format("|A:%s:32:32|a", atlas))
+        return
     end
 
     -- For non-gamepad buttons, follow the usual logic for readable text

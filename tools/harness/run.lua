@@ -263,6 +263,25 @@ end
 
 step("02 open", function() SlashCmdList["KeyUI"]("") end)
 
+-- Controller keys show their glyph where the client has the atlas, their name elsewhere;
+-- never markup for an atlas the client does not know.
+do
+    local glyphs = 0
+    for _, button in ipairs(addon.keys_controller or {}) do
+        local text = button.short_key and button.short_key:GetText() or ""
+        local atlas = text:match("^|A:([^:]+):")
+        if atlas then
+            glyphs = glyphs + 1
+            if not C_Texture.GetAtlasInfo(atlas) then
+                problem(("02 open: pad %s shows unknown atlas %s"):format(tostring(button.raw_key), atlas))
+            end
+        end
+    end
+    if H.modern and glyphs == 0 then
+        problem("02 open: no controller key shows a glyph")
+    end
+end
+
 step("03 hold shift", function() H.set_modifier("shift", true) end)
 step("04 hold ctrl+shift", function() H.set_modifier("ctrl", true) end)
 step("05 release shift", function() H.set_modifier("shift", false) end)
