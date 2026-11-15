@@ -254,7 +254,19 @@ function Widget:IsMouseOver() return false end
 function Widget:IsProtected() return self._protected == true end
 
 -- Scripts and events
-function Widget:SetScript(script, fn) self._scripts[script] = fn end
+-- Pessimistic about the client: setting an input handler is taken to switch that input on
+-- (no documentation says either way). A key that swallows input then shows up as
+-- IsKeyboardEnabled() and the "no key takes input" checks in run.lua catch it.
+local INPUT_SCRIPTS = {
+    OnKeyDown = "_keyboard", OnKeyUp = "_keyboard", OnChar = "_keyboard",
+    OnMouseWheel = "_wheel", OnGamePadButtonDown = "_gamepad", OnGamePadButtonUp = "_gamepad",
+}
+function Widget:SetScript(script, fn)
+    self._scripts[script] = fn
+    if fn and INPUT_SCRIPTS[script] then
+        self[INPUT_SCRIPTS[script]] = true
+    end
+end
 function Widget:GetScript(script)
     return self._scripts[script] or (self._hooks[script] and self._hooks[script][1])
 end
@@ -295,7 +307,9 @@ function Widget:IsMouseEnabled() return self._mouse == true end
 function Widget:EnableKeyboard(v) if blocked(self, "EnableKeyboard") then return end self._keyboard = v end
 function Widget:IsKeyboardEnabled() return self._keyboard == true end
 function Widget:EnableMouseWheel(v) if blocked(self, "EnableMouseWheel") then return end self._wheel = v end
+function Widget:IsMouseWheelEnabled() return self._wheel == true end
 function Widget:EnableGamePadButton(v) if blocked(self, "EnableGamePadButton") then return end self._gamepad = v end
+function Widget:IsGamePadButtonEnabled() return self._gamepad == true end
 function Widget:RegisterForClicks(...) if blocked(self, "RegisterForClicks") then return end self._clicks = { ... } end
 function Widget:RegisterForDrag() end
 function Widget:SetMovable() end

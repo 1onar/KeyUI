@@ -242,6 +242,35 @@ function addon:InstallKeyEditHandlers(button, is_unlocked, mark_edited)
         addon:handle_mouse_wheel(addon.current_hovered_button, delta)
         mark_edited()
     end)
+
+    -- Switch the input off again explicitly. Setting a key or wheel handler may leave the
+    -- frame taking that input (beta4 on Forever: with KeyUI open, no keypress reached the
+    -- game until each of the 88 keys had swallowed one). Keys are only built out of combat.
+    addon:SetKeyCaptureEnabled(button, false)
+end
+
+-- Switches key input off on every key of every device, except the key the pointer is on
+-- while its device is in edit mode. Called when KeyUI opens, when a device leaves edit
+-- mode (the hovered key gets no OnLeave then) and at combat start.
+local LOCK_FIELDS = { keys_keyboard = "keyboard_locked", keys_mouse = "mouse_locked",
+    keys_controller = "controller_locked" }
+function addon:ReleaseKeyCapture()
+    if InCombatLockdown() then
+        return
+    end
+    local hovered = addon.current_hovered_button
+    for field, lock_field in pairs(LOCK_FIELDS) do
+        local keys = addon[field]
+        if keys then
+            local keep = addon[lock_field] == false and not addon.in_combat
+            for i = 1, #keys do
+                local button = keys[i]
+                if not (keep and button == hovered) then
+                    addon:SetKeyCaptureEnabled(button, false)
+                end
+            end
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------

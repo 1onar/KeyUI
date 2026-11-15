@@ -1192,6 +1192,8 @@ function addon:create_edit_layout_dialog()
         elseif addon.active_control_tab == "controller" then
             addon.controller_locked = true
         end
+        -- The key still under the pointer gets no OnLeave; stop it taking key input now.
+        addon:ReleaseKeyCapture()
 
     end)
 

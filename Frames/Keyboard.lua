@@ -364,6 +364,8 @@ function addon:discard_keyboard_changes()
 
     -- Remove Keyboard locked flag
     addon.keyboard_locked = true
+    -- The key still under the pointer gets no OnLeave; stop it taking key input now.
+    addon:ReleaseKeyCapture()
 
     -- Remove Keyboard edited flag
     addon.keys_keyboard_edited = false

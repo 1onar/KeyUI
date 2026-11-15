@@ -1625,6 +1625,9 @@ function addon:load()
         addon:refresh_flash()
         addon:refresh_pet_autocast()
 
+        -- No key may take key input while KeyUI is open and locked; it would swallow it.
+        addon:ReleaseKeyCapture()
+
         -- Enable keypress visualization if setting is on and not in combat
         if keyui_settings.show_keypress_highlight and not addon.in_combat then
             addon:enable_keypress_input()
@@ -6103,8 +6106,9 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         addon:ApplyEscClose()
         addon:disable_keypress_input()
         -- A key hovered in edit mode takes keyboard input, and OnLeave cannot switch that
-        -- off once lockdown has begun. Switch it off while that is still allowed.
-        addon:SetKeyCaptureEnabled(addon.current_hovered_button, false)
+        -- off once lockdown has begun. Switch every key off while that is still allowed
+        -- (addon.in_combat is already set, so the hovered key is not spared).
+        addon:ReleaseKeyCapture()
         if addon.open and not keyui_settings.stay_open_in_combat then
             addon:hide_all_frames()
         elseif addon.open then
@@ -6250,6 +6254,23 @@ local function report_click_slot(button)
     return tostring(SecureButton_GetModifiedAttribute(button, "action", "LeftButton") or 1)
 end
 
+-- Who takes key input: "capture" counts the keys that do (each swallows keypresses), and
+-- "keypress" tells whether the keypress-highlight frame listens (it passes them on).
+local function report_key_input()
+    local capture = 0
+    for _, keys in ipairs({ addon.keys_keyboard, addon.keys_mouse, addon.keys_controller }) do
+        for i = 1, #(keys or {}) do
+            local button = keys[i]
+            if button.IsKeyboardEnabled and button:IsKeyboardEnabled() then
+                capture = capture + 1
+            end
+        end
+    end
+    local frame = addon.keypress_frame
+    local keypress = frame and frame:IsShown() and frame:IsKeyboardEnabled() and "on" or "off"
+    return ("capture=%d keypress=%s"):format(capture, keypress)
+end
+
 local function report_device(tag, keys, visible, current_layouts)
     local layout_name = type(current_layouts) == "table" and next(current_layouts) or nil
     local entries, unbound = {}, 0
@@ -6296,6 +6317,7 @@ function addon:BuildDiagnosticReport()
             addon.current_modifier_string ~= "" and addon.current_modifier_string or "-",
             tostring(addon.current_actionbar_page), tostring(addon.bonusbar_offset),
             tostring(keyui_settings.listen_to_modifier), tostring(addon:UsesPerLayerSecureAttributes())),
+        report_key_input(),
         "addons=" .. (#integrations > 0 and table.concat(integrations, ",") or "-"),
         report_device("kb", addon.keys_keyboard, addon.is_keyboard_visible == true,
             keyui_settings.layout_current_keyboard),

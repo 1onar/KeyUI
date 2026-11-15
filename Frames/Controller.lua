@@ -446,6 +446,8 @@ function addon:discard_controller_changes()
 
     -- Remove controller locked flag
     addon.controller_locked = true
+    -- The key still under the pointer gets no OnLeave; stop it taking key input now.
+    addon:ReleaseKeyCapture()
 
     -- Remove controller edited flag
     addon.keys_controller_edited = false

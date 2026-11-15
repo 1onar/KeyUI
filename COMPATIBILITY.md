@@ -297,6 +297,17 @@ and every `SetBinding`/`SaveBindings` from the right-click menu (`#nocombat`), g
 fight. The settings reset and the profile import refuse as well; both close and rebuild
 KeyUI. Keyboard and mouse frames check `InCombatLockdown()` before `StartMoving` directly.
 
+**Keys never take key input while locked.** A key that takes keyboard input swallows it
+(it does not propagate), so no binding fires. Since 4.4.0-beta1 every key gets its
+`OnKeyDown`/`OnMouseWheel`/`OnGamePadButtonDown` handler at creation; beta4 on Forever
+then lost every keypress while KeyUI was open, until each key had swallowed one ("no
+input for the first 30 seconds"). Nothing documents whether setting such a handler turns
+the input on, so KeyUI does not rely on either answer: `InstallKeyEditHandlers` switches
+input off right after setting them, and `addon:ReleaseKeyCapture()` switches it off on
+every key when KeyUI opens, when a device leaves edit mode and at combat start. Only the
+key hovered in edit mode takes input. The harness assumes the pessimistic answer and
+checks this; `/keyui report` shows `capture=<keys taking input> keypress=<on|off>`.
+
 **Secret strings.** `C_ActionBar.GetActionDisplayCount` is `SecretWhenCooldownsRestricted`
 and returns a secret string in combat. It goes to `SetText` untouched (which accepts
 secrets) -- no `or ""`, no comparison.
@@ -586,6 +597,8 @@ Notes from that pass:
 - [ ] No `ADDON_ACTION_BLOCKED` (BugSack, `/console taintLog 1`)
 - [ ] "Stay open in combat" + "Close on ESC": ESC during combat does nothing to KeyUI and raises nothing; after combat ESC closes it again
 - [ ] Hovering mouse and controller keys in combat raises nothing; in locked mode a keypress over any key goes to the game, also after an edit session
+- [ ] `/reload`, open KeyUI without moving the pointer over it, press a movement key or an ability at once: it works; `/keyui report` with KeyUI open shows `capture=0`
+- [ ] Edit Layout, hover a key, Cancel or Save without leaving the key: keypresses reach the game again at once
 - [ ] Edit mode, all three devices: hover a key, leave, hover again, press a key: the key is renamed
 - [ ] "Stay open in combat", in a fight: size slider, dragging the controller frame, Edit Layout and right-click → Unbind each print "This can't be changed during combat." once and raise nothing
 - [ ] Tick Shift in Controls, click Edit Layout: the keys leave the Shift layer at once, and stay on the base layer after Cancel

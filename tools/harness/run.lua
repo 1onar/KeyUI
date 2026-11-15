@@ -242,6 +242,29 @@ local function step(name, fn, opts)
     inspect(name, opts)
 end
 
+-- A key that takes keyboard, wheel or gamepad input swallows it: nothing reaches the
+-- game's bindings (beta4 report: "no input for the first 30 seconds while KeyUI is open").
+-- Only the key hovered in edit mode may take input.
+local LOCK_FIELDS = { keys_keyboard = "keyboard_locked", keys_mouse = "mouse_locked",
+    keys_controller = "controller_locked" }
+local function check_no_capture(where)
+    local count, first = 0, nil
+    for _, device in ipairs(DEVICES) do
+        local field = device[2]
+        for _, button in ipairs(addon[field] or {}) do
+            local editing = addon[LOCK_FIELDS[field]] == false and button == addon.current_hovered_button
+            if not editing and (button:IsKeyboardEnabled() or button:IsMouseWheelEnabled()
+                or button:IsGamePadButtonEnabled()) then
+                count = count + 1
+                first = first or ("%s %s"):format(device[1], tostring(button.raw_key))
+            end
+        end
+    end
+    if count > 0 then
+        problem(("%s: %d keys take key input and swallow it (first: %s)"):format(where, count, first))
+    end
+end
+
 local function toggle_minimap()
     H.ldb.OnClick(nil, "LeftButton")
 end
@@ -262,6 +285,7 @@ if H.search_tagged_buttons and #H.search_tagged_buttons > 0 then
 end
 
 step("02 open", function() SlashCmdList["KeyUI"]("") end)
+check_no_capture("02 open")
 
 -- Controller keys show their glyph where the client has the atlas, their name elsewhere;
 -- never markup for an atlas the client does not know.
@@ -370,6 +394,7 @@ step("20 combat, stay open", function()
     keyui_settings.stay_open_in_combat = true
     H.enter_combat()
 end)
+check_no_capture("20 combat, stay open")
 step("21 shift in combat", function() H.set_modifier("shift", true) end)
 step("22 ctrl+shift in combat", function() H.set_modifier("ctrl", true) end)
 step("23 release in combat", function()
@@ -474,6 +499,9 @@ if addon.BuildDiagnosticReport then
         or not report:find("1=MULTIACTIONBAR1BUTTON1 s61 H+ I+ C61", 1, true) then
         problem("31 /keyui report: unexpected report text: " .. report:sub(1, 200))
     end
+    if not report:find(" capture=0 keypress=", 1, true) then
+        problem("31 /keyui report: no 'capture=0 keypress=' in: " .. report:sub(1, 300))
+    end
     if report:find("\n", 1, true) then
         problem("31 /keyui report: contains a line break; the popup edit box is single-line")
     end
@@ -517,10 +545,27 @@ end, { layer = "SHIFT-" })
 step("34 edit layout", function()
     addon.controls_frame.edit_layout_button:Click()
 end, { check_clicks = false })
+-- Edit mode: the hovered key takes key input (that is how a key is renamed) ...
+step("34b hover a key in edit mode", function()
+    local key
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button.raw_key == "Q" then key = button end
+    end
+    H.run_script(key, "OnEnter")
+end, { check_clicks = false, oracle = false })
+if not (addon.current_hovered_button and addon.current_hovered_button:IsKeyboardEnabled()) then
+    problem("34b hover a key in edit mode: the hovered key takes no key input")
+end
+check_no_capture("34b hover a key in edit mode")
+-- ... and gives it up when the edit ends, although the pointer never left it.
 step("35 edit cancelled", function()
     addon.edit_layout_dialog.cancel_button:Click()
     if addon.controls_frame then addon.controls_frame:Hide() end
 end)
+check_no_capture("35 edit cancelled")
+if addon.current_hovered_button then
+    H.run_script(addon.current_hovered_button, "OnLeave")
+end
 
 ---------------------------------------------------------------------------
 -- Saving layouts: Edit Layout, Save, enter a name, Save.

@@ -284,6 +284,8 @@ function addon:discard_mouse_changes()
 
     -- Remove mouse locked flag
     addon.mouse_locked = true
+    -- The key still under the pointer gets no OnLeave; stop it taking key input now.
+    addon:ReleaseKeyCapture()
 
     -- Remove mouse edited flag
     addon.keys_mouse_edited = false
