@@ -43,7 +43,8 @@ H.state = {
     mods = { alt = false, ctrl = false, shift = false },
     lockdown = false,
     combat = false,
-    spells = {},        -- name -> { id = ..., texture = ... }
+    spells = {},        -- name -> { id = ..., texture = ..., rank = ... }; a lower rank is
+                        -- keyed "Name(Rank 1)" with name = "Name", as its binding names it
     macros = {},        -- name -> icon
     addons = {},        -- loaded addon names
 }
@@ -802,11 +803,16 @@ else
     Constants = {}
 end
 
+-- A bare name resolves to the entry keyed by it (the highest rank), as on the client.
 local function spell_by(identifier)
-    for name, s in pairs(H.state.spells) do
-        if name == identifier or s.id == identifier then return name, s end
+    local exact = H.state.spells[identifier]
+    if exact then return exact.name or identifier, exact end
+    for key, s in pairs(H.state.spells) do
+        if s.id == identifier then return s.name or key, s end
     end
 end
+-- The last spell put on the cursor: { slot = spellbook slot } or { id = spell ID }.
+H.last_pickup = nil
 C_Spell = {
     GetSpellIDForSpellIdentifier = function(identifier)
         local _, s = spell_by(identifier)
@@ -817,7 +823,14 @@ C_Spell = {
         return s and s.texture
     end,
     GetSpellCooldown = function() return { startTime = 0, duration = 0, isEnabled = true, modRate = 1, isActive = false } end,
-    PickupSpell = function() end,
+    GetSpellSubtext = function(identifier)
+        local _, s = spell_by(identifier)
+        return s and s.rank or ""
+    end,
+    PickupSpell = function(identifier)
+        local _, s = spell_by(identifier)
+        H.last_pickup = { id = s and s.id or identifier }
+    end,
 }
 if MODERN then
     C_Spell.GetSpellCooldownDuration = function() return nil end
@@ -825,10 +838,13 @@ end
 
 local function spell_list()
     local list = {}
-    for name, s in pairs(H.state.spells) do list[#list + 1] = { name = name, id = s.id, texture = s.texture } end
-    table.sort(list, function(a, b) return a.name < b.name end)
+    for key, s in pairs(H.state.spells) do
+        list[#list + 1] = { key = key, name = s.name or key, id = s.id, texture = s.texture, rank = s.rank }
+    end
+    table.sort(list, function(a, b) return a.key < b.key end)
     return list
 end
+H.spell_list = spell_list
 C_SpellBook = {
     IsSpellKnown = function() return true end,
     IsSpellInSpellBook = function() return true end,
@@ -841,8 +857,9 @@ if MODERN then
     end
     C_SpellBook.GetSpellBookItemInfo = function(i)
         local s = spell_list()[i]
-        return { name = s and s.name, spellID = s and s.id, isPassive = false }
+        return { name = s and s.name, spellID = s and s.id, subName = s and s.rank or "", isPassive = false }
     end
+    C_SpellBook.PickupSpellBookItem = function(i) H.last_pickup = { slot = i } end
 else
     function GetNumSpellTabs() return 1 end
     function GetSpellTabInfo() return "General", nil, 0, #spell_list(), nil, 0 end
@@ -850,6 +867,11 @@ else
         local s = spell_list()[i]
         if s then return "SPELL", s.id end
     end
+    function GetSpellBookItemName(i)
+        local s = spell_list()[i]
+        if s then return s.name, s.rank or "", s.id end
+    end
+    function PickupSpellBookItem(i) H.last_pickup = { slot = i } end
     function GetSpellInfo(id)
         local name, s = spell_by(id)
         if name then return name, nil, s.texture end
@@ -857,7 +879,7 @@ else
     function IsPassiveSpell() return false end
     function GetSpellTexture(id) local _, s = spell_by(id) return s and s.texture end
     function GetSpellCooldown() return 0, 0, 1 end
-    function PickupSpell() end
+    function PickupSpell(identifier) C_Spell.PickupSpell(identifier) end
 end
 
 -- Blizzard_DeprecatedActionBar and Blizzard_DeprecatedSpellBook: since 12.0.0, on all five

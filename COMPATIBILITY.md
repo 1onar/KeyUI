@@ -137,7 +137,8 @@ local API_COMPAT = {
 |---------|------------|-------------|-------------------|
 | **Spellbook** | `C_SpellBook.GetNumSpellBookSkillLines()` | `GetNumSpellTabs()` | `API_COMPAT.has_modern_spellbook` |
 | **Spell Info** | `C_SpellBook.GetSpellBookItemInfo(i, bank)` | `GetSpellBookItemInfo(i, "spell")` | `API_COMPAT.has_legacy_spell_api` |
-| **Spell Pickup** | `C_Spell.PickupSpell(spellID)` | `PickupSpell(spellID)` | `API_COMPAT.has_modern_spellbook` |
+| **Spell Pickup** | `C_SpellBook.PickupSpellBookItem(slot, bank)` | `PickupSpellBookItem(slot, "spell")` | `API_COMPAT.has_modern_spellbook` |
+| **Spell Rank** | `spellBookItemInfo.subName` | `GetSpellBookItemName(slot, "spell")` (2nd return) | `API_COMPAT.has_modern_spellbook` |
 | **Actionbar GetSpell** | `C_ActionBar.GetSpell(slot)` | `GetActionInfo(slot)` fallback | `API_COMPAT.has_actionbar_getspell` |
 | **Assisted Combat Action** | `C_ActionBar.IsAssistedCombatAction(slot)` | Availability depends on runtime APIs | Runtime guard (`C_AssistedCombat.IsAvailable()` + `C_ActionBar` checks) |
 | **PutActionInSlot** | `C_ActionBar.PutActionInSlot(slot)` | N/A | Runtime guard (`C_ActionBar.PutActionInSlot`) |

@@ -487,6 +487,86 @@ if (H.menu_entries or 0) < #(addon.spells_tab_order or {}) + 4 then
     problem(("30c right-click menu: only %d entries built"):format(H.menu_entries or 0))
 end
 
+-- Issue #76: Forever and Classic list each rank of a spell under the same name. The
+-- spell menu names the rank, and the rank picked is the one that ends up on the key:
+-- picked up from its spellbook slot for an action bar key, bound as "Spell Name(Rank N)"
+-- otherwise. A spell with a single rank keeps its plain "Spell Name" binding.
+local function menu_entry(pattern)
+    for text, fn in pairs(H.menu_actions) do
+        if text:find(pattern) then return text, fn end
+    end
+end
+local function keyboard_key(raw)
+    for _, button in ipairs(addon.keys_keyboard) do
+        if button.raw_key == raw then return button end
+    end
+end
+step("30d spell ranks", function()
+    local saved_bindings = {}
+    for k, v in pairs(S.bindings) do saved_bindings[k] = v end
+    S.spells.Fireball.rank = "Rank 2"
+    S.spells["Fireball(Rank 1)"] = { name = "Fireball", rank = "Rank 1", id = 143, texture = 135812 }
+    addon:load_spellbook()
+
+    local low_slot
+    for i, entry in ipairs(H.spell_list()) do
+        if entry.key == "Fireball(Rank 1)" then low_slot = i end
+    end
+
+    -- Q holds no action slot: the menu binds the spell itself.
+    wipe(H.menu_actions)
+    H.run_script(keyboard_key("Q"), "OnMouseUp", "RightButton")
+    local low_text, low_fn = menu_entry("^Fireball .*%(Rank 1%)")
+    local high_text = menu_entry("^Fireball .*%(Rank 2%)")
+    local _, frost_fn = menu_entry("^Frostbolt$")
+    if not (low_text and high_text) then
+        problem("30d spell ranks: the spell menu does not name both Fireball ranks")
+    end
+    local function bound_to(command)
+        for _, action in pairs(S.bindings) do
+            if action == command then return true end
+        end
+    end
+    if low_fn then
+        low_fn()
+        if not bound_to("Spell Fireball(Rank 1)") then
+            problem("30d spell ranks: Fireball Rank 1 not bound as 'Spell Fireball(Rank 1)'")
+        end
+    end
+    if frost_fn then
+        frost_fn()
+        if not bound_to("Spell Frostbolt") then
+            problem("30d spell ranks: single-rank Frostbolt not bound as 'Spell Frostbolt'")
+        end
+    else
+        problem("30d spell ranks: no plain 'Frostbolt' entry in the spell menu")
+    end
+
+    -- Key 1 shows an action bar slot (Shift is still held from step 30: slot 61): the
+    -- spell goes there from its spellbook slot.
+    wipe(H.menu_actions)
+    H.last_pickup = nil
+    local bar_key = keyboard_key("1")
+    if not bar_key.slot then problem("30d spell ranks: key 1 shows no action slot") end
+    H.run_script(bar_key, "OnMouseUp", "RightButton")
+    _, low_fn = menu_entry("^Fireball .*%(Rank 1%)")
+    if low_fn then
+        low_fn()
+        if not (H.last_pickup and H.last_pickup.slot == low_slot) then
+            problem(("30d spell ranks: Fireball Rank 1 picked up as %s, not from spellbook slot %s"):format(
+                H.last_pickup and (H.last_pickup.slot and "slot " .. H.last_pickup.slot
+                    or "spell " .. tostring(H.last_pickup.id)) or "nothing", tostring(low_slot)))
+        end
+    end
+
+    S.spells["Fireball(Rank 1)"] = nil
+    S.spells.Fireball.rank = nil
+    wipe(S.bindings)
+    for k, v in pairs(saved_bindings) do S.bindings[k] = v end
+    addon:load_spellbook()
+    H.fire("UPDATE_BINDINGS")
+end, { oracle = false })
+
 -- The report a tester sends: it must build, and mention every visible bound key.
 step("31 /keyui report", function()
     H.last_popup_text = nil

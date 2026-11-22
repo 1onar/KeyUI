@@ -40,6 +40,7 @@ return {
         "GetRealmName", -- all
         "GetShapeshiftFormInfo", -- all
         "GetSpellBookItemInfo", -- mists, anniversary, classic_era
+        "GetSpellBookItemName", -- mists, anniversary, classic_era
         "GetSpellCooldown", -- mists, anniversary, classic_era
         "GetSpellInfo", -- mists, anniversary, classic_era
         "GetSpellTabInfo", -- mists, anniversary, classic_era
@@ -67,6 +68,7 @@ return {
         "PickupAction", -- all
         "PickupMacro", -- all
         "PickupSpell", -- mists, anniversary, classic_era
+        "PickupSpellBookItem", -- mists, anniversary, classic_era
         "PlaceAction", -- all
         "SAVE", -- all
         "STANDARD_TEXT_FONT", -- all

@@ -1673,7 +1673,7 @@ function addon:load_spellbook()
                     local isPassive = spellBookItemInfo.isPassive
 
                     if spellName and not isPassive then
-                        table.insert(tab, { name = spellName, id = spellID })
+                        table.insert(tab, { name = spellName, id = spellID, rank = spellBookItemInfo.subName, slot = j })
                     end
                 end
             end
@@ -1699,7 +1699,8 @@ function addon:load_spellbook()
                         local isPassive = IsPassiveSpell(slotIndex, BOOKTYPE_SPELL)
 
                         if spellName and not isPassive then
-                            table.insert(tab, { name = spellName, id = spellID })
+                            local _, subName = GetSpellBookItemName(slotIndex, BOOKTYPE_SPELL)
+                            table.insert(tab, { name = spellName, id = spellID, rank = subName, slot = slotIndex })
                         end
                     end
                 end
@@ -1708,6 +1709,58 @@ function addon:load_spellbook()
     else
         -- Fallback: No spell API available
         print("KeyUI: Warning - No compatible spell API found")
+    end
+
+    -- Forever and the Classic clients list every rank of a spell under the same name.
+    -- Only such spells get their rank in the binding command, so Retail subtexts such
+    -- as "Racial" never end up in one.
+    for _, tab in pairs(addon.spells) do
+        local count = {}
+        for _, spell in ipairs(tab) do
+            count[spell.name] = (count[spell.name] or 0) + 1
+        end
+        for _, spell in ipairs(tab) do
+            spell.multi_rank = count[spell.name] > 1
+        end
+    end
+end
+
+-- The rank shown in the spellbook ("Rank 3"), or nil. The spellbook leaves subName
+-- empty while the spell's data is still loading; by the time a menu opens it is there.
+local function spell_rank(spell)
+    local rank = spell.rank
+    if (rank == nil or rank == "") and spell.id and C_Spell.GetSpellSubtext then
+        rank = C_Spell.GetSpellSubtext(spell.id)
+    end
+    if rank ~= nil and rank ~= "" then
+        return rank
+    end
+end
+
+-- Puts the spell on the cursor from its spellbook slot, which carries the exact rank.
+-- C_Spell.PickupSpell / PickupSpell by ID hand out the highest rank instead (issue #76).
+-- The slot is checked first: a spell learned since the menu was built shifts the slots.
+local function pickup_spellbook_entry(spell)
+    local slot = spell.slot
+    if slot then
+        if API_COMPAT.has_modern_spellbook and C_SpellBook.PickupSpellBookItem then
+            local info = C_SpellBook.GetSpellBookItemInfo(slot, Enum.SpellBookSpellBank.Player)
+            if info and info.spellID == spell.id then
+                C_SpellBook.PickupSpellBookItem(slot, Enum.SpellBookSpellBank.Player)
+                return
+            end
+        elseif API_COMPAT.has_legacy_spell_api and PickupSpellBookItem then
+            local _, slot_spell_id = GetSpellBookItemInfo(slot, "spell")
+            if slot_spell_id == spell.id then
+                PickupSpellBookItem(slot, "spell")
+                return
+            end
+        end
+    end
+    if API_COMPAT.has_modern_spellbook then
+        C_Spell.PickupSpell(spell.id)
+    else
+        PickupSpell(spell.id)  -- Legacy API
     end
 end
 
@@ -5393,9 +5446,15 @@ local function build_spells_submenu(parentMenu)
         local tabButton = parentMenu:CreateButton(tabName)
 
         -- Add individual spells for this tab
-        for _, spell in pairs(addon.spells[tabName] or {}) do
+        for _, spell in ipairs(addon.spells[tabName] or {}) do
             local spell_name = spell.name
             local spell_id = spell.id
+            local rank = spell_rank(spell)
+            -- "Fireball (Rank 3)" in the menu; "Spell Fireball(Rank 3)" is the binding
+            -- command the client resolves to exactly that rank.
+            local label = rank and (spell_name .. " |cff9d9d9d(" .. rank .. ")|r") or spell_name
+            local bound_name = (rank and spell.multi_rank) and (spell_name .. "(" .. rank .. ")") or spell_name
+            local printed_name = rank and (spell_name .. " (" .. rank .. ")") or spell_name
 
             -- IMPORTANT: Check spell_id exists BEFORE calling any APIs
             if spell_id then
@@ -5417,9 +5476,9 @@ local function build_spells_submenu(parentMenu)
                 end
 
             if is_known then
-                local spellButton = tabButton:CreateButton(spell_name, function()
+                local spellButton = tabButton:CreateButton(label, function()
                     local key = addon.current_modifier_string .. (addon.current_clicked_key.raw_key or "")
-                    local command = "Spell " .. spell_name
+                    local command = "Spell " .. bound_name
                     local binding_name = addon.current_clicked_key.readable_binding:GetText()
                     local actionbutton = addon.current_clicked_key.binding
                     local targetSlot = addon.current_slot or addon.action_slot_mapping[actionbutton]
@@ -5430,20 +5489,15 @@ local function build_spells_submenu(parentMenu)
                             return
                         end
 
-                        -- Version-aware spell pickup
-                        if API_COMPAT.has_modern_spellbook then
-                            C_Spell.PickupSpell(spell_id)
-                        else
-                            PickupSpell(spell_id)  -- Legacy API
-                        end
+                        pickup_spellbook_entry(spell)
                         PlaceAction(targetSlot)
                         ClearCursor()
-                        print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
+                        print("KeyUI: Bound |cffa335ee" .. printed_name .. "|r to |cffff8000" .. key .. "|r (" .. binding_name .. ")")
                     else
                         if not set_binding_and_save(key, command) then
                             return
                         end
-                        print("KeyUI: Bound |cffa335ee" .. spell_name .. "|r to |cffff8000" .. key .. "|r")
+                        print("KeyUI: Bound |cffa335ee" .. printed_name .. "|r to |cffff8000" .. key .. "|r")
                     end
                 end)
 
