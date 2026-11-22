@@ -31,8 +31,11 @@ during compatibility audits. Last refreshed 2026-11-22:
 
 Each folder holds:
 
-- the `Interface/AddOns` tree of the matching [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source)
-  branch (`live`, `forever`, `classic`, `classic_anniversary`, `classic_era`)
+- the contents of `Interface/AddOns` from the matching [Gethe/wow-ui-source](https://github.com/Gethe/wow-ui-source)
+  branch (`live`, `forever`, `classic`, `classic_anniversary`, `classic_era`). `update-api.sh`
+  strips that prefix, so the `Blizzard_*` folders sit directly in `API/<client>/` (e.g.
+  `API/retail/Blizzard_Menu/MenuUtil.lua`); searches under `API/<client>/Interface/AddOns`
+  find nothing
 - `version.txt` with that build
 - `_resources/` with `AtlasInfo.lua`, `GlobalAPI.lua`, `Templates.lua`, `Events.lua`,
   `FrameXML.lua`, `Frames.lua`, `Mixins.lua`, `LuaEnum.lua` and `GlobalStrings/enUS.lua` from
@@ -346,7 +349,12 @@ five client flavors in `pr-check.yml`.
 
 - `tools/harness/check.sh` -- check the working tree (exit 1 on any problem)
 - `tools/harness/check.sh diff [ref]` -- what each step shows in `ref` (default: latest
-  release tag) versus the working tree, for reviewing behaviour changes before a release
+  release tag) versus the working tree, for reviewing behaviour changes before a release.
+  Both sides run the working tree's `run.lua`. When a change adds session steps, the old code
+  fails them, and a step that errors halfway (e.g. inside `H.enter_combat()`) leaves its
+  state behind, so later steps differ although their code did not change. To check that the
+  existing steps are untouched, run the base ref's own `run.lua` against both trees and diff
+  the two `dump` outputs instead
 
 The stand-in models visibility (`IsShown` vs `IsVisible`, `OnShow`/`OnHide` through
 ancestors), protected frames in combat (including `StartMoving`, `SetBinding` and
@@ -355,9 +363,14 @@ pooled popups (inherited letter limit, formatted text) and the Gamepad atlases m
 Anniversary and Classic Era. The session also uses the Controls window during combat,
 pins Shift with its checkbox and opens Edit Layout, exports a profile, deletes a layout
 named with a `%`, saves a layout on each device, tries the built-in layout names, reopens a
-custom layout that shares a built-in name as after `/reload`, and saves over custom layouts
-(the one being edited, another one confirmed and cancelled). It does not model rendering, real API return values beyond what the
-session sets up, or secret values. A green run says the logic holds for these steps, not that
+custom layout that shares a built-in name as after `/reload`, saves over custom layouts
+(the one being edited, another one confirmed and cancelled), turns Fill Gaps on (with a key
+deleted and the keys rebuilt), steps through the three Frame Buttons modes (with the
+pointer on the keyboard, in its arrow menu and away) and uses `/keyui controls` and
+`/keyui options`, also in combat. It does not model rendering, real API return values beyond what the
+session sets up, or secret values. `H.frame` ticks only frames with an `OnUpdate` set by
+`SetScript`; a frame whose `OnUpdate` is only hooked never ticks there, while the client runs
+the hook (nothing in KeyUI hooks an `OnUpdate` without setting one today). A green run says the logic holds for these steps, not that
 the client agrees -- testers' `/keyui report` stays the final word.
 
 ### Lint (`luacheck`)
@@ -613,6 +626,16 @@ Notes from that pass:
 - [ ] Importing a layout string named like a built-in layout stores it as `<name> (2)`
 - [ ] A custom layout saved under a built-in name with an older KeyUI is still shown after `/reload`
 - [ ] Saving under the name of another custom layout asks "Replace it?"; Cancel returns to the name dialog; saving the edited custom layout under its own name does not ask
+
+#### Fill Gaps and Frame Buttons (issue #77)
+- [ ] Tartarus V2, arrow menu: Background off, Fill Gaps on. Walking around, no game world shows between neighbouring keys; the area outside the keys stays see-through
+- [ ] Fill Gaps on: Edit Layout, drag a key and Shift+click another away: the plate moves with the dragged key and leaves with the deleted one; Cancel brings both back
+- [ ] Fill Gaps on, Background on again: the frame looks exactly as before (no dark rim)
+- [ ] Frame Buttons "Transparent" (default): the buttons look as in the last release
+- [ ] Frame Buttons "Mouseover only" (arrow menu → Buttons, or Options): the buttons on the keyboard, mouse and controller windows are gone until the pointer is over the window; moving up onto them keeps them; the arrow menu stays usable while open; they leave again with the pointer
+- [ ] Frame Buttons "Hidden": no buttons at all, a chat line names `/keyui options` and `/keyui controls`; both work, `/keyui controls` again closes the Controls window; Options → Frame Buttons brings them back
+- [ ] All three modes on Retail and on Classic Era (Atlas tabs and KeyUI's own tabs); switching modes in combat raises nothing
+- [ ] Full Reset puts Frame Buttons back to "Transparent" and Fill Gaps off; importing a profile applies the Frame Buttons mode it carries
 
 ### In-Game Test Commands
 

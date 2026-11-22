@@ -69,6 +69,28 @@ local function InitializeSettingsPanel()
     )
     Settings.CreateCheckbox(category, showControllerSetting, "Show or hide the controller frame")
 
+    -- Frame Buttons Dropdown (issue #77). With "Hidden" this panel is the way back, opened
+    -- by right-clicking the minimap button or with /keyui options.
+    local function GetFrameButtonsOptions()
+        local container = Settings.CreateControlTextContainer()
+        for _, option in ipairs(addon.FRAME_BUTTON_MODE_OPTIONS) do
+            container:Add(option[1], option[2])
+        end
+        return container:GetData()
+    end
+
+    local frameButtonsSetting = Settings.RegisterProxySetting(
+        category,
+        "KEYUI_FRAME_BUTTONS",
+        Settings.VarType.String,
+        "Frame Buttons",
+        "transparent",
+        function() return keyui_settings.frame_buttons end,
+        function(value) addon:SetFrameButtonsMode(value) end
+    )
+    Settings.CreateDropdown(category, frameButtonsSetting, GetFrameButtonsOptions,
+        "Options, Controls, Close and the arrow menu on top of the KeyUI windows: Transparent (faded while the pointer is away), Mouseover only (hidden until the pointer is over the window) or Hidden (use /keyui, /keyui options and /keyui controls)")
+
     -- Font Header + Settings
     layout:AddInitializer(CreateSettingsListSectionHeaderInitializer("Font"))
 

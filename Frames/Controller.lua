@@ -184,33 +184,7 @@ function addon:create_controller_frame()
 
     -- Set OnClick behavior for controls button
     controller_frame.controls_button:SetScript("OnClick", function()
-        addon.active_control_tab = "controller"
-        addon:update_tab_textures()
-
-        -- Check if the controls frame exists
-        if addon.controls_frame then
-            -- If the controls frame is visible, hide it
-            if addon.controls_frame:IsVisible() then
-                addon.controls_frame:Hide()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:fade_controls_button_highlight(controller_frame)
-            else
-                -- Otherwise, show the controls frame
-                addon.controls_frame:Show()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:show_controls_button_highlight(controller_frame)
-            end
-        else
-            -- If the controls frame doesn't exist, create and show it
-            addon:get_controls_frame()
-
-            -- Change the style of other tab buttons, excluding the current button's frame
-            addon:show_controls_button_highlight(controller_frame)
-        end
-
-        addon:update_tab_visibility()
+        addon:ToggleControlsFrame(controller_frame, "controller")
     end)
 
     toggle_button_textures(controller_frame.controls_button, true)

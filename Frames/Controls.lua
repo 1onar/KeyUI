@@ -1300,6 +1300,30 @@ function addon:fade_controls_button_highlight(excluded_frame)
     end
 end
 
+-- Opens the Controls window on `tab` ("keyboard", "mouse" or "controller"), or closes it
+-- when it is already open. `frame` is the device frame that asked; the Controls buttons
+-- of the other device frames take on the open/closed look.
+function addon:ToggleControlsFrame(frame, tab)
+    addon.active_control_tab = tab
+    addon:update_tab_textures()
+
+    if addon.controls_frame then
+        if addon.controls_frame:IsVisible() then
+            addon.controls_frame:Hide()
+            addon:fade_controls_button_highlight(frame)
+        else
+            addon.controls_frame:Show()
+            addon:show_controls_button_highlight(frame)
+        end
+    else
+        -- Built on first use; get_controls_frame shows it.
+        addon:get_controls_frame()
+        addon:show_controls_button_highlight(frame)
+    end
+
+    addon:update_tab_visibility()
+end
+
 -- Function to update the textures based on the active control tab
 function addon:update_tab_textures()
     if addon.controls_frame then

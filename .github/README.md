@@ -91,6 +91,8 @@ KeyUI integrates seamlessly with popular addons, including:
 ## How to Use KeyUI:
 - **Open the Interface:** Type `/kui` or `/keyui` in the chat or click the minimap button.  
 - **Choose Your Layout:** Select a Keyboard, Mouse, or Controller layout from the main menu.  
+- **Tidy the Windows:** The arrow menu on each window turns the background or mouse picture off; **Fill Gaps** closes the gaps between keyboard keys without it. **Buttons** (also under Options → Frame Buttons) shows the buttons on top of the windows faded, only on mouseover, or never.  
+- **Chat Commands:** `/keyui options` opens the options, `/keyui controls` the Controls window.  
 
 ---
 

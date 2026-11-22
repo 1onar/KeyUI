@@ -251,7 +251,8 @@ function Widget:SetFrameLevel(l) if blocked(self, "SetFrameLevel") then return e
 function Widget:GetFrameLevel() return self._level end
 function Widget:SetFrameStrata(s) self._strata = s end
 function Widget:GetFrameStrata() return self._strata or "MEDIUM" end
-function Widget:IsMouseOver() return false end
+-- The pointer is nowhere unless a step puts it over a widget (w._mouse_over = true).
+function Widget:IsMouseOver() return self._mouse_over == true end
 function Widget:IsProtected() return self._protected == true end
 
 -- Scripts and events

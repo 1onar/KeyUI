@@ -1526,6 +1526,7 @@ function addon:ResetAddonSettings()
         Settings.SetValue("KEYUI_SHOW_KEYBOARD", keyui_settings.show_keyboard)
         Settings.SetValue("KEYUI_SHOW_MOUSE", keyui_settings.show_mouse)
         Settings.SetValue("KEYUI_SHOW_CONTROLLER", keyui_settings.show_controller)
+        Settings.SetValue("KEYUI_FRAME_BUTTONS", keyui_settings.frame_buttons)
         Settings.SetValue("KEYUI_FONT_FACE", keyui_settings.font_face)
         Settings.SetValue("KEYUI_FONT_SIZE", keyui_settings.font_base_size)
     end
@@ -1954,6 +1955,7 @@ function addon:show_frames()
 
     -- Apply visual and interaction settings
     addon:ApplyFrameBackgrounds()
+    addon:ApplyFrameButtonsMode()
     addon:ApplyClickThrough()
 end
 
@@ -1994,6 +1996,19 @@ function addon:ApplyClickThrough()
     -- Note: controls_frame is NOT affected - users must be able to interact with it
 end
 
+-- How far a keyboard key's gap fill reaches past each edge. Keys in the built-in layouts
+-- sit 2 px apart, so 3 px closes every straight gap and leaves a thin dark rim outside.
+addon.GAP_FILL_PADDING = 3
+
+-- Show a keyboard key's gap fill while the key is shown, "Fill Gaps" is on and the frame
+-- background is off (with the background on there is nothing to fill).
+function addon:UpdateGapFill(button)
+    if not button or not button.gap_fill then return end
+    button.gap_fill:SetShown(button:IsShown()
+        and keyui_settings.fill_keyboard_gaps == true
+        and not keyui_settings.show_keyboard_background)
+end
+
 -- Apply frame background/graphic settings to each visualization frame
 function addon:ApplyFrameBackgrounds()
     local backdropInfo = {
@@ -2012,6 +2027,9 @@ function addon:ApplyFrameBackgrounds()
         else
             addon.keyboard_frame:SetBackdrop(nil)
         end
+    end
+    for _, button in ipairs(addon.keys_keyboard) do
+        addon:UpdateGapFill(button)
     end
 
     if addon.mouse_image and addon.mouse_image.Texture then
@@ -2115,20 +2133,59 @@ function addon:UpdateAllToggleVisuals()
     end
 end
 
--- Setup frame-level button fade: all tab buttons nearly disappear when mouse is not over the frame
+-- The buttons on top of a device frame, by field name. Frames lack the ones they don't have.
+local FRAME_BUTTON_NAMES = {
+    "close_button", "controls_button", "options_button",
+    "menu_button",
+    "background_button", "esc_button", "combat_button",
+    "lock_button", "ghost_button"
+}
+
+local function get_frame_buttons_mode()
+    local mode = keyui_settings.frame_buttons
+    if addon.FRAME_BUTTON_MODES[mode] then
+        return mode
+    end
+    return "transparent"
+end
+
+local function set_frame_buttons_shown(frame, shown)
+    for _, name in ipairs(FRAME_BUTTON_NAMES) do
+        local btn = frame[name]
+        if btn then
+            btn:SetShown(shown)
+        end
+    end
+end
+
+-- Applies keyui_settings.frame_buttons to every device frame built so far:
+-- "transparent" shows the buttons (faded while the pointer is away), "mouseover" hides
+-- them until the pointer is over the frame, "hidden" never shows them. The buttons are
+-- plain (not secure), so this is allowed in combat.
+function addon:ApplyFrameButtonsMode()
+    local show = get_frame_buttons_mode() == "transparent"
+    for _, frame in ipairs({ addon.keyboard_frame, addon.mouse_image, addon.controller_frame }) do
+        if frame then
+            set_frame_buttons_shown(frame, show)
+            if frame._fade_out then
+                frame._fade_out()
+            end
+        end
+    end
+end
+
+-- Setup frame-level button fade: all tab buttons nearly disappear when mouse is not over the frame.
+-- In "mouseover" mode they are hidden instead, and in "hidden" mode they never show.
 function addon:SetupButtonFade(frame)
     local FADE_ALPHA = 0.15
-    local button_names = {
-        "close_button", "controls_button", "options_button",
-        "menu_button",
-        "background_button", "esc_button", "combat_button",
-        "lock_button", "ghost_button"
-    }
+    local button_names = FRAME_BUTTON_NAMES
 
     frame._buttons_faded = true
 
     local function is_any_hovered()
         if frame:IsMouseOver() then return true end
+        -- The arrow menu opens above the frame; keep its button while the menu is open.
+        if frame._open_menu and frame._open_menu:IsShown() then return true end
         for _, name in ipairs(button_names) do
             local btn = frame[name]
             if btn and btn:IsVisible() and btn:IsMouseOver() then return true end
@@ -2150,6 +2207,9 @@ function addon:SetupButtonFade(frame)
 
     local function fade_in()
         frame._buttons_faded = false
+        if get_frame_buttons_mode() == "mouseover" then
+            set_frame_buttons_shown(frame, true)
+        end
         for _, name in ipairs(button_names) do
             local btn = frame[name]
             if btn then
@@ -2170,7 +2230,11 @@ function addon:SetupButtonFade(frame)
                 btn:SetAlpha(FADE_ALPHA)
             end
         end
+        if get_frame_buttons_mode() ~= "transparent" then
+            set_frame_buttons_shown(frame, false)
+        end
     end
+    frame._fade_out = fade_out
 
     local function schedule_fade()
         C_Timer.After(0.1, function()
@@ -2181,6 +2245,7 @@ function addon:SetupButtonFade(frame)
     end
 
     -- Set initial faded state and reset on every show
+    set_frame_buttons_shown(frame, get_frame_buttons_mode() == "transparent")
     fade_out()
 
     if frame:GetScript("OnShow") then
@@ -2417,8 +2482,114 @@ function addon:CreateLockToggleButtons(frame, frame_level, custom_font, use_bott
     addon:UpdateAllToggleVisuals()
 end
 
--- Creates a single arrow-up menu button (left of Options tab) with Background/ESC/Combat/Lock/Ghost toggles.
--- Replaces CreateLockToggleButtons for Retail frames (Keyboard, Controller).
+-- The frame_buttons modes in menu order: value, label, description.
+addon.FRAME_BUTTON_MODE_OPTIONS = {
+    { "transparent", "Transparent", "Faded while the pointer is away from the frame" },
+    { "mouseover", "Mouseover only", "Hidden until the pointer is over the frame" },
+    { "hidden", "Hidden", "Never shown; use /keyui, /keyui options and /keyui controls" },
+}
+
+-- Sets how the buttons on top of the device frames show (see addon.FRAME_BUTTON_MODES).
+function addon:SetFrameButtonsMode(mode)
+    if not addon.FRAME_BUTTON_MODES[mode] then return end
+    local previous = keyui_settings.frame_buttons
+    keyui_settings.frame_buttons = mode
+    addon:ApplyFrameButtonsMode()
+    if mode == "hidden" and previous ~= "hidden" then
+        print("KeyUI: Frame buttons hidden. /keyui options shows them again, /keyui controls opens the Controls window.")
+    end
+end
+
+-- Builds the entries of a device frame's arrow-up menu: Background (plus Fill Gaps on the
+-- keyboard), ESC, Combat, Lock, Ghost and the Buttons submenu.
+-- bg_setting: the keyui_settings key of this frame's background toggle.
+-- bg_description: the Background tooltip line.
+function addon:BuildFrameMenu(rootDescription, bg_setting, bg_description)
+    local function add_tooltip(description, title, line)
+        description:SetTooltip(function(tooltip)
+            GameTooltip_SetTitle(tooltip, title)
+            GameTooltip_AddNormalLine(tooltip, line)
+        end)
+    end
+
+    add_tooltip(rootDescription:CreateCheckbox("Background",
+        function() return keyui_settings[bg_setting] end,
+        function()
+            keyui_settings[bg_setting] = not keyui_settings[bg_setting]
+            addon:ApplyFrameBackgrounds()
+            addon:UpdateAllToggleVisuals()
+        end), "Background", bg_description)
+
+    if bg_setting == "show_keyboard_background" then
+        add_tooltip(rootDescription:CreateCheckbox("Fill Gaps",
+            function() return keyui_settings.fill_keyboard_gaps end,
+            function()
+                keyui_settings.fill_keyboard_gaps = not keyui_settings.fill_keyboard_gaps
+                addon:ApplyFrameBackgrounds()
+            end), "Fill Gaps", "Without the background, fill the gaps between neighbouring keys")
+    end
+
+    add_tooltip(rootDescription:CreateCheckbox("ESC",
+        function() return keyui_settings.close_on_esc end,
+        function()
+            keyui_settings.close_on_esc = not keyui_settings.close_on_esc
+            addon:ApplyEscClose()
+            addon:UpdateAllToggleVisuals()
+        end), "ESC", "Close windows with the ESC key")
+
+    add_tooltip(rootDescription:CreateCheckbox("Combat",
+        function() return keyui_settings.stay_open_in_combat end,
+        function()
+            keyui_settings.stay_open_in_combat = not keyui_settings.stay_open_in_combat
+            addon:UpdateAllToggleVisuals()
+        end), "Combat", "Stay open during combat")
+
+    add_tooltip(rootDescription:CreateCheckbox("Lock",
+        function() return keyui_settings.position_locked end,
+        function()
+            keyui_settings.position_locked = not keyui_settings.position_locked
+            -- Disable ghost mode when unlocking
+            if not keyui_settings.position_locked then
+                keyui_settings.click_through = false
+                addon:ApplyClickThrough()
+            end
+            addon:UpdateAllToggleVisuals()
+        end), "Lock", "Lock frame positions to prevent accidental movement")
+
+    add_tooltip(rootDescription:CreateCheckbox("Ghost",
+        function() return keyui_settings.click_through end,
+        function()
+            if not keyui_settings.position_locked then return end
+            keyui_settings.click_through = not keyui_settings.click_through
+            addon:ApplyClickThrough()
+            addon:UpdateAllToggleVisuals()
+        end), "Ghost", "Make visualization frames click-through (requires Lock)")
+
+    local buttons = rootDescription:CreateButton("Buttons")
+    add_tooltip(buttons, "Buttons", "How the buttons on top of the KeyUI windows show")
+    for _, option in ipairs(addon.FRAME_BUTTON_MODE_OPTIONS) do
+        local value, label, description = option[1], option[2], option[3]
+        add_tooltip(buttons:CreateRadio(label,
+            function() return keyui_settings.frame_buttons == value end,
+            function() addon:SetFrameButtonsMode(value) end,
+            value), label, description)
+    end
+end
+
+-- Opens a device frame's menu above `button` (CreateContextMenu anchors it to the cursor).
+-- The open menu is remembered on the frame: in "mouseover" mode the frame's buttons stay
+-- while it is open, though the pointer has left the frame for the menu.
+function addon:OpenFrameMenu(button, frame, generator)
+    local menu = MenuUtil.CreateContextMenu(button, generator)
+    if menu then
+        menu:ClearAllPoints()
+        menu:SetPoint("BOTTOMRIGHT", button, "TOPRIGHT", 0, 0)
+    end
+    frame._open_menu = menu
+end
+
+-- Creates the arrow-up menu button (left of the Options tab) of the keyboard and
+-- controller frames.
 function addon:CreateToggleMenuButton(frame, bg_setting)
     frame._bg_setting = bg_setting
 
@@ -2427,76 +2598,9 @@ function addon:CreateToggleMenuButton(frame, bg_setting)
     frame.menu_button = menu_button
 
     menu_button:SetScript("OnClick", function(self)
-        local menu = MenuUtil.CreateContextMenu(self, function(_, rootDescription)
-            local bg = rootDescription:CreateCheckbox("Background",
-                function() return keyui_settings[bg_setting] end,
-                function()
-                    keyui_settings[bg_setting] = not keyui_settings[bg_setting]
-                    addon:ApplyFrameBackgrounds()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            bg:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Background")
-                GameTooltip_AddNormalLine(tooltip, "Show or hide the background")
-            end)
-
-            local esc = rootDescription:CreateCheckbox("ESC",
-                function() return keyui_settings.close_on_esc end,
-                function()
-                    keyui_settings.close_on_esc = not keyui_settings.close_on_esc
-                    addon:ApplyEscClose()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            esc:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "ESC")
-                GameTooltip_AddNormalLine(tooltip, "Close windows with the ESC key")
-            end)
-
-            local combat = rootDescription:CreateCheckbox("Combat",
-                function() return keyui_settings.stay_open_in_combat end,
-                function()
-                    keyui_settings.stay_open_in_combat = not keyui_settings.stay_open_in_combat
-                    addon:UpdateAllToggleVisuals()
-                end)
-            combat:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Combat")
-                GameTooltip_AddNormalLine(tooltip, "Stay open during combat")
-            end)
-
-            local lock = rootDescription:CreateCheckbox("Lock",
-                function() return keyui_settings.position_locked end,
-                function()
-                    keyui_settings.position_locked = not keyui_settings.position_locked
-                    if not keyui_settings.position_locked then
-                        keyui_settings.click_through = false
-                        addon:ApplyClickThrough()
-                    end
-                    addon:UpdateAllToggleVisuals()
-                end)
-            lock:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Lock")
-                GameTooltip_AddNormalLine(tooltip, "Lock frame positions to prevent accidental movement")
-            end)
-
-            local ghost = rootDescription:CreateCheckbox("Ghost",
-                function() return keyui_settings.click_through end,
-                function()
-                    if not keyui_settings.position_locked then return end
-                    keyui_settings.click_through = not keyui_settings.click_through
-                    addon:ApplyClickThrough()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            ghost:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Ghost")
-                GameTooltip_AddNormalLine(tooltip, "Make visualization frames click-through (requires Lock)")
-            end)
+        addon:OpenFrameMenu(self, frame, function(_, rootDescription)
+            addon:BuildFrameMenu(rootDescription, bg_setting, "Show or hide the background")
         end)
-
-        -- Reposition menu above the button, opening upward to the left
-        if menu then
-            menu:ClearAllPoints()
-            menu:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 0)
-        end
     end)
 end
 
@@ -6420,12 +6524,40 @@ StaticPopupDialogs["KEYUI_REPORT"] = {
     end,
 }
 
+-- /keyui controls: opens (or closes) the Controls window on the first shown device,
+-- opening KeyUI first when it is closed.
+function addon:ToggleControlsFromCommand()
+    if not addon.open then
+        -- Opening needs no combat lockdown; see the minimap button.
+        if InCombatLockdown() then
+            print("KeyUI: Cannot open while in combat.")
+            return
+        end
+        addon:load()
+    end
+
+    local devices = {
+        { keyui_settings.show_keyboard, addon.keyboard_frame, "keyboard" },
+        { keyui_settings.show_mouse, addon.mouse_image, "mouse" },
+        { keyui_settings.show_controller, addon.controller_frame, "controller" },
+    }
+    for _, device in ipairs(devices) do
+        if device[1] and device[2] then
+            addon:ToggleControlsFrame(device[2], device[3])
+            return
+        end
+    end
+    -- No device is shown: load() opened the device selection instead.
+end
+
 -- SlashCmdList["KeyUI"] - Registers a command to load the addon.
 SLASH_KeyUI1 = "/kui"
 SLASH_KeyUI2 = "/keyui"
 local function print_keyui_command_help()
     print("KeyUI: /keyui")
     print("KeyUI: /keyui help")
+    print("KeyUI: /keyui options")
+    print("KeyUI: /keyui controls")
     print("KeyUI: /keyui perf [on|off|reset]")
     print("KeyUI: /keyui diag [limit]")
     print("KeyUI: /keyui diagreset")
@@ -6450,6 +6582,18 @@ SlashCmdList["KeyUI"] = function(msg)
 
     if command == "open" or command == "toggle" then
         addon:load()
+        return
+    end
+
+    -- With the frame buttons hidden (frame_buttons = "hidden") these are the way to the
+    -- Options panel and the Controls window.
+    if command == "options" then
+        addon:OpenSettings()
+        return
+    end
+
+    if command == "controls" then
+        addon:ToggleControlsFromCommand()
         return
     end
 

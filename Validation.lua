@@ -35,6 +35,14 @@ local function trim(value)
     return (value:gsub("^%s+", ""):gsub("%s+$", ""))
 end
 
+-- Visibility of the buttons on top of the device frames (Options, Controls, Close and the
+-- arrow menu): faded while the pointer is away, shown only on mouseover, or never.
+addon.FRAME_BUTTON_MODES = {
+    transparent = true,
+    mouseover = true,
+    hidden = true,
+}
+
 local function normalize_bool(settings, key, default)
     if settings[key] == nil then
         settings[key] = default
@@ -86,6 +94,7 @@ function addon:NormalizeSettingTypes(settings)
     normalize_bool(settings, "show_mouse", false)
     normalize_bool(settings, "show_controller", false)
     normalize_bool(settings, "show_keyboard_background", true)
+    normalize_bool(settings, "fill_keyboard_gaps", false)
     normalize_bool(settings, "show_mouse_graphic", true)
     normalize_bool(settings, "show_controller_background", true)
     normalize_bool(settings, "stay_open_in_combat", false)
@@ -113,6 +122,10 @@ function addon:NormalizeSettingTypes(settings)
 
     if type(settings.font_face) ~= "string" or settings.font_face == "" then
         settings.font_face = "Expressway"
+    end
+
+    if not addon.FRAME_BUTTON_MODES[settings.frame_buttons] then
+        settings.frame_buttons = "transparent"
     end
 
     normalize_table(settings, "keyboard_position")

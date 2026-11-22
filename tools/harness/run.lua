@@ -612,6 +612,127 @@ if keyui_settings.layout_edited_keyboard["50% keys"] then
     problem("31c delete a layout named with %: layout still there")
 end
 
+-- Fill Gaps (issue #77): without the frame background every shown keyboard key has its
+-- dark plate behind it, and a key that is not shown (Shift+click delete, pool release)
+-- has none.
+local function check_gap_fills(where, want_plates)
+    local shown, plates, stray = 0, 0, 0
+    for _, button in ipairs(addon.key_button_pools.keyboard) do
+        local plate_shown = button.gap_fill and button.gap_fill:IsShown()
+        if button:IsShown() then
+            shown = shown + 1
+            if plate_shown then plates = plates + 1 end
+        elseif plate_shown then
+            stray = stray + 1
+        end
+    end
+    local want = want_plates and shown or 0
+    if shown == 0 or plates ~= want or stray ~= 0 then
+        problem(("%s: %d keys shown, %d with a gap fill (expected %d), %d gap fills on hidden keys")
+            :format(where, shown, plates, want, stray))
+    end
+end
+
+step("31d fill gaps", function()
+    keyui_settings.show_keyboard_background = false
+    keyui_settings.fill_keyboard_gaps = true
+    addon:ApplyFrameBackgrounds()
+end, { oracle = false })
+check_gap_fills("31d fill gaps", true)
+step("31e fill gaps, key deleted", function()
+    addon.keys_keyboard[#addon.keys_keyboard]:Hide()
+end, { oracle = false })
+check_gap_fills("31e fill gaps, key deleted", true)
+step("31f fill gaps, keys rebuilt", function() addon:refresh_layouts() end)
+check_gap_fills("31f fill gaps, keys rebuilt", true)
+step("31g background on again", function()
+    keyui_settings.show_keyboard_background = true
+    addon:ApplyFrameBackgrounds()
+end, { oracle = false })
+check_gap_fills("31g background on again", false)
+keyui_settings.fill_keyboard_gaps = false
+
+-- Frame Buttons (issue #77): the buttons on top of the device frames are faded
+-- ("transparent"), shown only while the pointer is over their frame ("mouseover") or
+-- never ("hidden").
+local FRAME_BUTTONS = {
+    keyboard_frame = { "close_button", "controls_button", "options_button", "menu_button" },
+    mouse_image = { "close_button", "menu_button" },
+    controller_frame = { "close_button", "controls_button", "options_button", "menu_button" },
+}
+local function check_frame_buttons(where, want_shown)
+    for frame_name, names in pairs(FRAME_BUTTONS) do
+        local frame = addon[frame_name]
+        local want = want_shown == true or want_shown == frame_name
+        for _, name in ipairs(names) do
+            local button = frame and frame[name]
+            if not button then
+                problem(("%s: %s.%s missing"):format(where, frame_name, name))
+            elseif button:IsShown() ~= want then
+                problem(("%s: %s.%s %s"):format(where, frame_name, name, want and "hidden" or "shown"))
+            end
+        end
+    end
+end
+
+step("31h frame buttons hidden", function()
+    addon:SetFrameButtonsMode("hidden")
+    addon.keyboard_frame._mouse_over = true
+end, { oracle = false })
+check_frame_buttons("31h frame buttons hidden", false)
+step("31i frame buttons mouseover, pointer on the keyboard", function()
+    addon:SetFrameButtonsMode("mouseover")
+end, { oracle = false })
+check_frame_buttons("31i frame buttons mouseover, pointer on the keyboard", "keyboard_frame")
+-- The arrow menu opens above the frame: its button stays while the menu is open.
+local open_menu = CreateFrame("Frame")
+step("31j frame buttons mouseover, pointer in the menu", function()
+    addon.keyboard_frame._open_menu = open_menu
+    addon.keyboard_frame._mouse_over = false
+end, { oracle = false })
+check_frame_buttons("31j frame buttons mouseover, pointer in the menu", "keyboard_frame")
+step("31k frame buttons mouseover, pointer away", function()
+    open_menu:Hide()
+end, { oracle = false })
+check_frame_buttons("31k frame buttons mouseover, pointer away", false)
+addon.keyboard_frame._open_menu = nil
+step("31l frame buttons transparent", function()
+    addon:SetFrameButtonsMode("transparent")
+end, { oracle = false })
+check_frame_buttons("31l frame buttons transparent", true)
+if addon.keyboard_frame.close_button:GetAlpha() ~= 0.15 then
+    problem(("31l frame buttons transparent: close button alpha %s, expected 0.15")
+        :format(tostring(addon.keyboard_frame.close_button:GetAlpha())))
+end
+
+-- With the frame buttons hidden, /keyui controls and /keyui options lead to the Controls
+-- window and the Options panel, in and out of combat.
+step("31m /keyui controls", function()
+    local controls = addon:get_controls_frame()
+    controls:Hide()
+    SlashCmdList["KeyUI"]("controls")
+end, { oracle = false })
+if not (addon.controls_frame and addon.controls_frame:IsShown()) then
+    problem("31m /keyui controls: the Controls window did not open")
+end
+step("31n /keyui controls again", function() SlashCmdList["KeyUI"]("controls") end, { oracle = false })
+if addon.controls_frame:IsShown() then
+    problem("31n /keyui controls again: the Controls window did not close")
+end
+step("31o /keyui options", function() SlashCmdList["KeyUI"]("options") end, { oracle = false })
+step("31p frame buttons and /keyui controls in combat", function()
+    keyui_settings.stay_open_in_combat = true
+    H.enter_combat()
+    addon:SetFrameButtonsMode("mouseover")
+    SlashCmdList["KeyUI"]("controls")
+    SlashCmdList["KeyUI"]("controls")
+    SlashCmdList["KeyUI"]("options")
+    addon:SetFrameButtonsMode("transparent")
+    H.leave_combat()
+    keyui_settings.stay_open_in_combat = false
+end, { oracle = false })
+check_frame_buttons("31p frame buttons and /keyui controls in combat", true)
+
 -- Edit Layout clears the modifier checkboxes; the keys have to leave the pinned layer
 -- with them, in edit mode and after Cancel (issue #73).
 step("32 shift released", function() H.set_modifier("shift", false) end)

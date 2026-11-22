@@ -177,34 +177,7 @@ function addon:create_keyboard_frame()
     text:SetTextColor(1, 1, 1) -- Set text color to white
 
     keyboard_frame.controls_button:SetScript("OnClick", function()
-        addon.active_control_tab = "keyboard"
-        addon:update_tab_textures()
-
-        -- Check if the controls frame exists
-        if addon.controls_frame then
-            -- If the controls frame is visible, hide it
-            if addon.controls_frame:IsVisible() then
-                addon.controls_frame:Hide()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:fade_controls_button_highlight(keyboard_frame)
-            else
-                -- Otherwise, show the controls frame
-                addon.controls_frame:Show()
-
-                -- Change the style of other tab buttons, excluding the current button's frame
-                addon:show_controls_button_highlight(keyboard_frame)
-
-            end
-        else
-            -- If the controls frame doesn't exist, create and show it
-            addon:get_controls_frame()
-
-            -- Change the style of other tab buttons, excluding the current button's frame
-            addon:show_controls_button_highlight(keyboard_frame)
-        end
-
-        addon:update_tab_visibility()
+        addon:ToggleControlsFrame(keyboard_frame, "keyboard")
     end)
 
     toggle_button_textures(keyboard_frame.controls_button, true)
@@ -472,6 +445,8 @@ function addon:generate_keyboard_key_frames()
                 button.raw_key = key_label
                 button.is_modifier = modifier_keys[button.raw_key] or false
                 button:Show()
+                -- A key that was already shown gets no OnShow; sync its gap fill here.
+                addon:UpdateGapFill(button)
 
                 -- Track maximum extents for frame size calculation
                 if offset_x + (key_width or 60) > max_horizontal_extent then
@@ -538,6 +513,22 @@ function addon:create_keyboard_buttons(index)
     }
     keyboard_button.edge:SetBackdrop(edgeBackdropInfo)
     keyboard_button.edge:SetFrameLevel(keyboard_button:GetFrameLevel() + 1)  -- Set this higher than the background
+
+    -- Gap fill ("Fill Gaps", issue #77): a dark plate a few pixels larger than the key,
+    -- so the plates of neighbouring keys overlap and close the gaps between them while
+    -- the frame background is off. It is a texture of the keyboard frame, which sits a
+    -- level below its keys, so it always draws under the key's own backdrop (a texture
+    -- of the key on the same layer would have no defined order against it). Anchored to
+    -- the key, it follows drags and resizes; the hooks keep it in step with the key's
+    -- shown state (pool release, Shift+click delete).
+    local gap_fill = addon.keyboard_frame:CreateTexture(nil, "BACKGROUND")
+    gap_fill:SetColorTexture(0.08, 0.08, 0.08, 1)
+    gap_fill:SetPoint("TOPLEFT", keyboard_button, "TOPLEFT", -addon.GAP_FILL_PADDING, addon.GAP_FILL_PADDING)
+    gap_fill:SetPoint("BOTTOMRIGHT", keyboard_button, "BOTTOMRIGHT", addon.GAP_FILL_PADDING, -addon.GAP_FILL_PADDING)
+    keyboard_button.gap_fill = gap_fill
+    keyboard_button:HookScript("OnShow", function(self) addon:UpdateGapFill(self) end)
+    keyboard_button:HookScript("OnHide", function(self) addon:UpdateGapFill(self) end)
+    addon:UpdateGapFill(keyboard_button)
 
     -- Keyboard Keybind text string on the top right of the button (e.g. a-c-s-1)
     keyboard_button.short_key = keyboard_button:CreateFontString(nil, "OVERLAY", "GameFontNormal")

@@ -100,102 +100,19 @@ function addon:create_mouse_image()
 
     -- Open context menu above the button
     mouse_image.menu_button:SetScript("OnClick", function(self)
-        local menu = MenuUtil.CreateContextMenu(self, function(_, rootDescription)
-            local bg = rootDescription:CreateCheckbox("Background",
-                function() return keyui_settings.show_mouse_graphic end,
-                function()
-                    keyui_settings.show_mouse_graphic = not keyui_settings.show_mouse_graphic
-                    addon:ApplyFrameBackgrounds()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            bg:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Background")
-                GameTooltip_AddNormalLine(tooltip, "Show or hide the mouse graphic")
-            end)
-
-            local esc = rootDescription:CreateCheckbox("ESC",
-                function() return keyui_settings.close_on_esc end,
-                function()
-                    keyui_settings.close_on_esc = not keyui_settings.close_on_esc
-                    addon:ApplyEscClose()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            esc:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "ESC")
-                GameTooltip_AddNormalLine(tooltip, "Close windows with the ESC key")
-            end)
-
-            local combat = rootDescription:CreateCheckbox("Combat",
-                function() return keyui_settings.stay_open_in_combat end,
-                function()
-                    keyui_settings.stay_open_in_combat = not keyui_settings.stay_open_in_combat
-                    addon:UpdateAllToggleVisuals()
-                end)
-            combat:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Combat")
-                GameTooltip_AddNormalLine(tooltip, "Stay open during combat")
-            end)
-
-            local lock = rootDescription:CreateCheckbox("Lock",
-                function() return keyui_settings.position_locked end,
-                function()
-                    keyui_settings.position_locked = not keyui_settings.position_locked
-                    if not keyui_settings.position_locked then
-                        keyui_settings.click_through = false
-                        addon:ApplyClickThrough()
-                    end
-                    addon:UpdateAllToggleVisuals()
-                end)
-            lock:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Lock")
-                GameTooltip_AddNormalLine(tooltip, "Lock frame positions to prevent accidental movement")
-            end)
-
-            local ghost = rootDescription:CreateCheckbox("Ghost",
-                function() return keyui_settings.click_through end,
-                function()
-                    if not keyui_settings.position_locked then return end
-                    keyui_settings.click_through = not keyui_settings.click_through
-                    addon:ApplyClickThrough()
-                    addon:UpdateAllToggleVisuals()
-                end)
-            ghost:SetTooltip(function(tooltip)
-                GameTooltip_SetTitle(tooltip, "Ghost")
-                GameTooltip_AddNormalLine(tooltip, "Make visualization frames click-through (requires Lock)")
-            end)
+        addon:OpenFrameMenu(self, mouse_image, function(_, rootDescription)
+            addon:BuildFrameMenu(rootDescription, "show_mouse_graphic", "Show or hide the mouse graphic")
 
             rootDescription:CreateDivider()
 
             rootDescription:CreateButton("Controls", function()
-                addon.active_control_tab = "mouse"
-                addon:update_tab_textures()
-
-                if addon.controls_frame then
-                    if addon.controls_frame:IsVisible() then
-                        addon.controls_frame:Hide()
-                        addon:fade_controls_button_highlight(mouse_image)
-                    else
-                        addon.controls_frame:Show()
-                        addon:show_controls_button_highlight(mouse_image)
-                    end
-                else
-                    addon:get_controls_frame()
-                    addon:show_controls_button_highlight(mouse_image)
-                end
-
-                addon:update_tab_visibility()
+                addon:ToggleControlsFrame(mouse_image, "mouse")
             end)
 
             rootDescription:CreateButton("Options", function()
                 addon:OpenSettings()
             end)
         end)
-
-        -- Reposition menu above the button (CreateContextMenu anchors to cursor by default)
-        if menu then
-            menu:ClearAllPoints()
-            menu:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", 0, 0)
-        end
     end)
 
     -- Fade all tab buttons when mouse is not over the frame
