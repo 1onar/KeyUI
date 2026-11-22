@@ -19,13 +19,13 @@ Its build number only looks like Classic. Code that follows the *client* therefo
 ### Local API Snapshots Used for Compatibility Validation
 
 `API/` (gitignored) holds one Blizzard UI source snapshot per client, used as source-of-truth
-during compatibility audits. Last refreshed 2026-11-14:
+during compatibility audits. Last refreshed 2026-11-22:
 
 | Folder | Client | Build | `_resources` build |
 |---|---|---|---|
-| `API/retail` | Retail | 12.1.5.70783 | 12.1.5 (70448) |
-| `API/forever` | Forever | 1.60.1.70938 | 1.60.1 (70532) |
-| `API/mists` | MoP Classic | 5.5.4.70631 | 5.5.4 (69155) |
+| `API/retail` | Retail | 12.1.5.70961 | 12.1.5 (70448) |
+| `API/forever` | Forever | 1.60.1.71037 | 1.60.1 (70938) |
+| `API/mists` | MoP Classic | 5.5.4.71060 | 5.5.4 (69155) |
 | `API/anniversary` | Anniversary | 2.5.6.70577 | 2.5.6 (68575) |
 | `API/classic_era` | Classic Era | 1.15.9.70576 | 1.15.9 (69109) |
 
@@ -145,9 +145,11 @@ local API_COMPAT = {
 
 ### Feature Audit from Local API Dumps
 
-Re-validated 2026-11-14 against the five snapshots listed above; every point below still holds.
+Re-validated 2026-11-22 against the five snapshots listed above; every point below still holds.
 The Forever update (70450 → 70707) made `GetActiveLossOfControlData` secret and changed
-`IsSpellCrowdControl`, neither of which KeyUI calls. Forever matches Retail on every point:
+`IsSpellCrowdControl`, neither of which KeyUI calls. The 2026-11-22 updates add only APIs KeyUI
+does not call: `EncodingDeserializeSizeLimit` (Retail, Forever), `C_BattleNet.IsGameAccountOnSameRealm`
+and `C_Mail.IsCODEnabled` (Forever); MoP changed no file. Forever matches Retail on every point:
 
 - `BINDINGS_LOADED` exists in **all five** dumps. `addon.compat.has_event` still reports it only
   for Anniversary, Forever and Retail, the clients it was verified on in-game.
